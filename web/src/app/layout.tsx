@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
-import { auth } from '../../auth'
-import Providers from './components/Providers'
+import Providers from '@/ui/components/Providers'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -15,23 +14,18 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Secure Shop',
-  description: 'Diffie-Hellman & DES implementation',
+  title: 'Webby',
 }
 
-export default async function RootLayout({
-  children,
-}: Readonly<{
+type Props = Readonly<{
   children: React.ReactNode
-}>) {
-  const session = await auth()
+}>
 
+export default async function RootLayout({ children }: Props) {
   return (
     <html lang="uk">
       <Providers>
-        <body className={`${geistSans.variable} ${geistMono.variable} bg-gray-900 text-gray-200 antialiased`}>
-          <div className="flex min-h-[calc(100vh-64px)] flex-col">{children}</div>
-        </body>
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
       </Providers>
     </html>
   )
