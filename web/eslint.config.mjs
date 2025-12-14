@@ -13,6 +13,7 @@ const eslintConfig = [
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint'],
     rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@next/next/no-html-link-for-pages': 'off',
       '@typescript-eslint/triple-slash-reference': 'off',
       '@typescript-eslint/no-unused-vars': [

@@ -1,9 +1,12 @@
 import type { NextConfig } from 'next'
+import type { RuleSetRule } from 'webpack'
 
 const nextConfig: NextConfig = {
   typedRoutes: true,
   webpack(config) {
-    const fileLoaderRule = config.module.rules.find((rule: any) => rule.test?.test?.('.svg'))
+    const fileLoaderRule = config.module.rules.find(
+      (rule: RuleSetRule) => rule.test instanceof RegExp && rule.test.test('.svg'),
+    )
 
     config.module.rules.push(
       {

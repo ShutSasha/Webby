@@ -1,10 +1,12 @@
 import NextAuth from 'next-auth'
+import type { User } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
-import { authConfig } from './auth.config'
-import $api from '@/app/lib/api'
 import { z } from 'zod'
-import type { User } from 'next-auth'
+
+import $api from '@/app/lib/api'
+
+import { authConfig } from './auth.config'
 
 const CredentialsSchema = z.object({
   username: z.string().min(4),
