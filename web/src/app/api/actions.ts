@@ -2,7 +2,7 @@
 
 import { AuthError } from 'next-auth'
 
-import $api from '@/app/lib/api'
+import $api from '@/app/api'
 
 import { signIn } from '../../../auth'
 

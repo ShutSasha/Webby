@@ -4,7 +4,7 @@ import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
 import { z } from 'zod'
 
-import $api from '@/app/lib/api'
+import $api from '@/app/api'
 
 import { authConfig } from './auth.config'
 
