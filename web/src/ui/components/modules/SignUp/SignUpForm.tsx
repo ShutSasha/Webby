@@ -36,6 +36,7 @@ export default function SignUpForm() {
           value={email}
           onChange={handleInputsChange('email')}
           placeholder="Email"
+          autoComplete="email"
         />
         <AuthInput
           Icon={UsernameIcon}
@@ -44,6 +45,7 @@ export default function SignUpForm() {
           value={username}
           onChange={handleInputsChange('username')}
           placeholder="Username"
+          autoComplete="username"
         />
         <AuthInput
           Icon={PasswordIcon}

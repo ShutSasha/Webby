@@ -1,4 +1,4 @@
-import { FC, HTMLInputTypeAttribute, SVGProps } from 'react'
+import { FC, HTMLInputAutoCompleteAttribute, HTMLInputTypeAttribute, SVGProps } from 'react'
 
 import Input from './Input'
 
@@ -10,10 +10,21 @@ type Props = {
   className?: string
   defaultValue?: string
   placeholder?: string
+  autoComplete?: HTMLInputAutoCompleteAttribute
   onChange: (value: string) => void
 }
 
-export default function AuthInput({ Icon, name, type, value, className, defaultValue, placeholder, onChange }: Props) {
+export default function AuthInput({
+  Icon,
+  name,
+  type,
+  value,
+  className,
+  defaultValue,
+  placeholder,
+  autoComplete,
+  onChange,
+}: Props) {
   return (
     <div className="relative">
       <Icon className={'absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4'} />
@@ -25,6 +36,7 @@ export default function AuthInput({ Icon, name, type, value, className, defaultV
         className={`py-2.5 pl-9 w-full ${className}`}
         placeholder={placeholder}
         defaultValue={defaultValue}
+        autoComplete={autoComplete}
       />
     </div>
   )
