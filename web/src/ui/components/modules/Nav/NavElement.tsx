@@ -7,13 +7,14 @@ type Props = {
   isExpanded: boolean
   Icon: FC<SVGProps<SVGSVGElement>>
   text: string
+  className?: string
 }
 
-export default function NavElement({ isExpanded, href, Icon, text }: Props) {
+export default function NavElement({ isExpanded, href, Icon, text, className }: Props) {
   return (
     <Link
       href={href}
-      className={`flex w-full h-fit cursor-pointer flex-col items-center rounded-sm ${
+      className={`flex w-full h-fit cursor-pointer flex-col items-center rounded-sm ${className} ${
         isExpanded
           ? 'flex-row gap-2 p-1 transition-colors duration-300 ease-out hover:bg-emerald-500 hover:text-neutral-800'
           : 'flex-col gap-0 p-0 hover:text-emerald-500'

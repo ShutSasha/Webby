@@ -27,6 +27,7 @@
       "@/lib/*": ["./src/lib/*"],
       "@/stores/*": ["./src/stores/*"],
       "@/types/*": ["./src/types/*"],
+      "@/components/*": ["./src/ui/components/*"],
       "@/workspace/*": ["./*"]
     }
   },

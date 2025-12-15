@@ -5,12 +5,13 @@ import Link from 'next/link'
 
 import ExpandIcon from '@/assets/icons/ic_expand.svg'
 import LogoIcon from '@/assets/icons/ic_logo.svg'
+import UserProfileIcon from '@/assets/icons/ic_user_profile.svg'
 import { navItems } from '@/lib/placeholder-data/nav-side'
 
 import NavElement from './NavElement'
 
 export default function SideNav() {
-  const [isExpanded, setIsExpanded] = useState<boolean>(true)
+  const [isExpanded, setIsExpanded] = useState<boolean>(false)
 
   const toggleSideNav = () => setIsExpanded(prev => !prev)
 
@@ -38,6 +39,14 @@ export default function SideNav() {
           </li>
         ))}
       </ul>
+
+      <NavElement
+        href={'/sign-up'}
+        text={'Log in | Sign up'}
+        isExpanded={isExpanded}
+        Icon={UserProfileIcon}
+        className="mt-auto"
+      />
     </nav>
   )
 }

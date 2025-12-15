@@ -12,6 +12,13 @@ const eslintConfig = [
     extends: ['next', 'plugin:import/recommended', 'plugin:@typescript-eslint/recommended'],
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint'],
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: './tsconfig.json',
+        },
+      },
+    },
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
       '@next/next/no-html-link-for-pages': 'off',
