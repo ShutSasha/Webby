@@ -10,12 +10,7 @@ export default function Page() {
         <SignUpForm />
 
         <div className="shrink min-w-0 items-center hidden sm:block">
-          <Image
-            src={ImageBackground}
-            alt="Sign up background"
-            loading="eager"
-            className="w-[380px] lg:w-[440px] h-auto rounded-lg"
-          />
+          <Image src={ImageBackground} alt="Sign up background" loading="eager" className="h-full w-110 rounded-lg" />
         </div>
       </div>
     </div>

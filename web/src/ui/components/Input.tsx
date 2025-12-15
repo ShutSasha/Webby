@@ -16,8 +16,8 @@ export default function Input({ name, type, value, defaultValue, placeholder, cl
       value={value}
       name={name}
       autoComplete="off"
-      className={`${className} focus:ring-emerald-500 border-border block rounded-lg border text-sm
-        placeholder:text-[#FCFFFF]/16 focus:ring-[1px] focus:outline-none`}
+      className={`${className} focus:border-emerald-500 focus:ring-emerald-500 ring-[0.3px] ring-transparent border
+        border-border block rounded-lg text-sm placeholder:text-[#FCFFFF]/16 focus:outline-none`}
       placeholder={placeholder}
       onChange={e => {
         onChange(e.target.value)
