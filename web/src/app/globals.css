@@ -14,6 +14,10 @@ input:-webkit-autofill:active {
   caret-color: #d4d4d4;
 }
 
+input::-ms-reveal {
+  display: none;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
