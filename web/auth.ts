@@ -26,10 +26,10 @@ async function login(username: string, password: string): Promise<User | undefin
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
   providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    }),
+    // Google({
+    //   clientId: process.env.AUTH_GOOGLE_ID,
+    //   clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    // }),
     Credentials({
       async authorize(credentials) {
         const parsedCredentials = CredentialsSchema.safeParse(credentials)
@@ -42,7 +42,6 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 
           return {
             ...user,
-            id: user._id,
           }
         }
         return null
