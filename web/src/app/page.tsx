@@ -1,6 +1,7 @@
 import Image from 'next/image'
 
-import ImageBackground from '@/assets/auth/bg-login.png'
+import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
+import ImageBackgroundGroup from '@/assets/auth/bg-login.png'
 import { benefitsList } from '@/lib/placeholder-data/home-page'
 import Button from '@/ui/components/Button'
 import MainLayout from '@/ui/components/MainLayout'
@@ -37,8 +38,8 @@ export default async function Home() {
             </div>
           </div>
           <Image
-            src={ImageBackground}
-            alt="Sign up background"
+            src={ImageBackgroundMan}
+            alt=""
             loading="eager"
             className="h-full hidden sm:block w-40 2xl:w-50 rounded-lg"
           />
@@ -54,9 +55,45 @@ export default async function Home() {
               </div>
             ))}
           </ul>
-          <h2 className="font-semibold text-xl sm:text-3xl 2xl:text-4xl leading-tight mb-2.5">
-            React to moments together 🔥
-          </h2>
+          <div className="flex justify-between gap-4">
+            <div className="flex flex-col justify-between gap-4">
+              <div className="max-w-[540px]">
+                <h2 className="font-semibold text-xl sm:text-2xl 2xl:text-3xl leading-tight mb-2.5">
+                  React to moments together 🔥
+                </h2>
+                <p className="font-medium text-sm sm:text-lg 2xl:text-xl leading-tight text-neutral-500">
+                  Find moments of shared joy, even when you’re apart.
+                </p>
+              </div>
+              <div className="flex flex-col gap-4">
+                <p className="font-medium text-sm 2xl:text-lg leading-tight text-neutral-100">
+                  Ready to join the journey? Sign up or log in below to get started!
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
+                    paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
+                    viewType="Confirm"
+                  >
+                    Sign up
+                  </Button>
+                  <Button
+                    className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
+                    paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
+                    viewType="Cancel"
+                  >
+                    Login
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <Image
+              src={ImageBackgroundGroup}
+              alt=""
+              loading="eager"
+              className="h-full hidden sm:block w-40 2xl:w-50 rounded-lg"
+            />
+          </div>
         </div>
       </div>
     </MainLayout>
