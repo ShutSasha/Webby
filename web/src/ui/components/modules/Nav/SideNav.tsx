@@ -32,7 +32,7 @@ export default function SideNav() {
         </button>
       </div>
 
-      <ul className="flex flex-col gap-2 list-none w-full">
+      <ul className={`flex flex-col gap-2 list-none w-full ${isExpanded ? '' : 'items-center'}`}>
         {navItems.map(item => (
           <li key={item.key}>
             <NavElement
@@ -51,7 +51,7 @@ export default function SideNav() {
         text={'Log in | Sign up'}
         isExpanded={isExpanded}
         Icon={UserProfileIcon}
-        className="mt-auto"
+        className={`mt-auto ${isExpanded ? 'w-full' : ''}`}
         iconSize="size-6"
       />
     </nav>
