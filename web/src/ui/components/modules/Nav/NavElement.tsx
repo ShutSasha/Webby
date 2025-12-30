@@ -8,22 +8,29 @@ type Props = {
   Icon: FC<SVGProps<SVGSVGElement>>
   text: string
   className?: string
+  iconSize: string
+  isLogo?: boolean
 }
 
-export default function NavElement({ isExpanded, href, Icon, text, className }: Props) {
+export default function NavElement({ isExpanded, href, Icon, text, className, iconSize, isLogo }: Props) {
   return (
     <Link
       href={href}
       className={`flex w-full h-fit cursor-pointer flex-col items-center rounded-sm ${className} ${
         isExpanded
-          ? 'flex-row gap-2 p-1 transition-colors duration-300 ease-out hover:bg-emerald-500 hover:text-neutral-800'
-          : 'flex-col gap-0 p-0 hover:text-emerald-500'
-        }`}
+          ? 'flex-row transition-colors duration-300 ease-out hover:bg-emerald-500 hover:text-neutral-800'
+          : 'flex-col hover:text-emerald-500'
+        } ${isLogo ? 'py-3' : ''}`}
     >
-      <Icon className={'h-6 w-6'} />
-      <p className={`overflow-hidden transition-opacity ${isExpanded ? 'opacity-100 ' : 'w-0 h-0 opacity-0'}`}>
-        {text}
-      </p>
+      <div className={`flex flex-col md:flex md:flex-row items-center ${isExpanded ? 'gap-2 p-1 ' : 'gap-0 p-0 '}`}>
+        <Icon className={iconSize} />
+        {/* text for desktop */}
+        <p className={`overflow-hidden transition-opacity ${isExpanded ? 'opacity-100 ' : 'w-0 h-0 opacity-0'}`}>
+          {text}
+        </p>
+        {/* text for mobile */}
+        <p className="overflow-hidden block md:hidden">{text}</p>
+      </div>
     </Link>
   )
 }

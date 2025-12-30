@@ -17,8 +17,8 @@ export default function SideNav() {
 
   return (
     <nav
-      className={`flex flex-col h-screen shrink-0 bg-neutral-900 p-2 transition-all duration-300 ease-out
-        ${isExpanded ? 'w-60 items-start' : 'w-12 items-center'} text-sm leading-5 fixed`}
+      className={`hidden md:flex flex-col h-screen shrink-0 bg-neutral-900 p-2 transition-all duration-300 ease-out
+        ${isExpanded ? 'w-60 items-start' : 'w-12 items-center'} text-sm leading-5 sticky top-0`}
     >
       <div className={`flex w-full items-center ${isExpanded ? 'mb-3 flex-row justify-between' : 'flex-col'}`}>
         <Link href={'/'}>
@@ -33,9 +33,15 @@ export default function SideNav() {
       </div>
 
       <ul className="flex flex-col gap-2 list-none w-full">
-        {navItems.map((item, index) => (
-          <li key={index}>
-            <NavElement href={item.href} text={item.text} isExpanded={isExpanded} Icon={item.icon} />
+        {navItems.map(item => (
+          <li key={item.key}>
+            <NavElement
+              href={item.href}
+              text={item.text}
+              isExpanded={isExpanded}
+              Icon={item.icon}
+              iconSize={item.iconSize}
+            />
           </li>
         ))}
       </ul>
@@ -46,6 +52,7 @@ export default function SideNav() {
         isExpanded={isExpanded}
         Icon={UserProfileIcon}
         className="mt-auto"
+        iconSize="size-6"
       />
     </nav>
   )
