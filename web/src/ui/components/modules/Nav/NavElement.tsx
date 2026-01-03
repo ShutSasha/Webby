@@ -28,7 +28,10 @@ export default function NavElement({ isExpanded, href, Icon, text, className, ic
       >
         <Icon className={`${iconSize} shrink-0`} />
         {/* text for desktop */}
-        <p className={`overflow-hidden transition-opacity ${isExpanded ? 'opacity-100 ' : 'w-0 h-0 opacity-0'}`}>
+        <p
+          className={`overflow-hidden whitespace-nowrap transition-opacity
+            ${isExpanded ? 'opacity-100 ' : 'w-0 h-0 opacity-0'}`}
+        >
           {text}
         </p>
         {/* text for mobile */}

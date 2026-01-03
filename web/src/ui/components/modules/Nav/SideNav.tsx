@@ -17,7 +17,7 @@ export default function SideNav() {
 
   return (
     <nav
-      className={`hidden md:flex flex-col h-screen shrink-0 bg-neutral-900 p-2 transition-all duration-300 ease-out
+      className={`hidden md:flex flex-col h-screen shrink-0 bg-neutral-900 p-2 transition-[width] duration-300 ease-out
         ${isExpanded ? 'w-60 items-start' : 'w-12 items-center'} text-sm leading-5 sticky top-0`}
     >
       <div className={`flex w-full items-center ${isExpanded ? 'mb-3 flex-row justify-between' : 'flex-col'}`}>

@@ -1,7 +1,7 @@
 import Image from 'next/image'
 
-import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
 import ImageBackgroundGroup from '@/assets/auth/bg-login.png'
+import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
 import { benefitsList } from '@/lib/placeholder-data/home-page'
 import Button from '@/ui/components/Button'
 import MainLayout from '@/ui/components/MainLayout'
