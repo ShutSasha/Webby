@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 import ImageBackgroundGroup from '@/assets/auth/bg-login.png'
 import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
@@ -70,20 +71,24 @@ export default async function Home() {
                   Ready to join the journey? Sign up or log in below to get started!
                 </p>
                 <div className="flex gap-3">
-                  <Button
-                    className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
-                    paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
-                    viewType="Confirm"
-                  >
-                    Sign up
-                  </Button>
-                  <Button
-                    className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
-                    paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
-                    viewType="Cancel"
-                  >
-                    Login
-                  </Button>
+                  <Link href="/sign-up">
+                    <Button
+                      className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
+                      paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
+                      viewType="Confirm"
+                    >
+                      Sign up
+                    </Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button
+                      className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
+                      paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
+                      viewType="Cancel"
+                    >
+                      Login
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>

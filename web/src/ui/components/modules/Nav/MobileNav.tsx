@@ -12,7 +12,7 @@ export default function MobileNav() {
 
   return (
     <nav
-      className={`flex w-full md:hidden bg-neutral-900 transition-all duration-300 ease-out text-sm leading-5 fixed
+      className={`flex w-full md:hidden bg-neutral-900 transition-all duration-300 ease-out text-sm leading-5 sticky
         bottom-0 border-t border-border`}
     >
       <ul className="flex justify-between items-center list-none w-full gap-2 max-[360px]:px-1.5 px-4">
