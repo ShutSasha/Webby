@@ -29,7 +29,7 @@ export const navMobileItems: NavItem[] = [
   { key: 'logo', href: '/', icon: LogoIcon, text: '', iconSize: 'max-[420px]:size-10 size-12' },
   { key: 'messages', href: '/', icon: MailIcon, text: 'Messages', iconSize: 'max-[420px]:size-5 size-6' },
   {
-    key: 'notifications',
+    key: 'menu',
     href: '/',
     icon: NotificationIcon,
     text: 'Notifications',

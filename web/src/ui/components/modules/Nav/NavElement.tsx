@@ -4,15 +4,28 @@ import Link from 'next/link'
 
 type Props = {
   href: ComponentProps<typeof Link>['href']
-  isExpanded: boolean
+  isExpanded?: boolean
   Icon: FC<SVGProps<SVGSVGElement>>
   text: string
   className?: string
   iconSize: string
   isLogo?: boolean
+  toggleMobileNav?: () => void
 }
 
-export default function NavElement({ isExpanded, href, Icon, text, className, iconSize, isLogo }: Props) {
+// Nav element used in both SideNav and MobileNav
+// TODO: Refactor to separate MobileNavElement and SideNavElement if needed
+
+export default function NavElement({
+  isExpanded,
+  href,
+  Icon,
+  text,
+  className,
+  iconSize,
+  isLogo,
+  toggleMobileNav,
+}: Props) {
   return (
     <Link
       href={href}
@@ -21,6 +34,7 @@ export default function NavElement({ isExpanded, href, Icon, text, className, ic
           ? 'flex-row transition-colors duration-300 ease-out hover:bg-emerald-500 hover:text-neutral-800'
           : 'flex-col hover:text-emerald-500'
         } ${isLogo ? 'py-3' : ''}`}
+      onClick={toggleMobileNav}
     >
       <div
         className={`w-full flex-1 flex flex-col md:flex md:flex-row items-center
@@ -29,7 +43,7 @@ export default function NavElement({ isExpanded, href, Icon, text, className, ic
         <Icon className={`${iconSize} shrink-0`} />
         {/* text for desktop */}
         <p
-          className={`overflow-hidden whitespace-nowrap transition-opacity
+          className={`hidden md:block overflow-hidden whitespace-nowrap transition-opacity
             ${isExpanded ? 'opacity-100 ' : 'w-0 h-0 opacity-0'}`}
         >
           {text}

@@ -1,14 +1,14 @@
 'use client'
-import { useState } from 'react'
 
 import { navMobileItems } from '@/lib/placeholder-data/nav-side'
+import { useCommonStore } from '@/stores/common.store'
 
+import MobileDrawer from './MobileDrawer'
 import NavElement from './NavElement'
 
 export default function MobileNav() {
-  const [isExpanded, setIsExpanded] = useState<boolean>(false)
-
-  const toggleSideNav = () => setIsExpanded(prev => !prev)
+  const isMobileNavOpen = useCommonStore(state => state.isMobileNavOpen)
+  const toggleMobileNav = useCommonStore(state => state.toggleMobileNav)
 
   return (
     <nav
@@ -21,14 +21,17 @@ export default function MobileNav() {
             <NavElement
               href={item.href}
               text={item.text}
-              isExpanded={isExpanded}
               Icon={item.icon}
               iconSize={item.iconSize}
               isLogo={item.key === 'logo'}
+              toggleMobileNav={item.key === 'menu' ? toggleMobileNav : undefined}
             />
           </li>
         ))}
       </ul>
+      <MobileDrawer isOpen={isMobileNavOpen} onClose={toggleMobileNav}>
+        <div>hello</div>
+      </MobileDrawer>
     </nav>
   )
 }
