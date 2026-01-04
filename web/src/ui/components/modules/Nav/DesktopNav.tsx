@@ -6,11 +6,11 @@ import Link from 'next/link'
 import ExpandIcon from '@/assets/icons/ic_expand.svg'
 import LogoIcon from '@/assets/icons/ic_logo.svg'
 import UserProfileIcon from '@/assets/icons/ic_user_profile.svg'
-import { navItems } from '@/lib/placeholder-data/nav-side'
+import { navDesktopElements } from '@/lib/placeholder-data/nav-side'
 
-import NavElement from './NavElement'
+import { DesktopNavElement } from './NavElements'
 
-export default function SideNav() {
+export default function DesktopNav() {
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
 
   const toggleSideNav = () => setIsExpanded(prev => !prev)
@@ -18,7 +18,7 @@ export default function SideNav() {
   return (
     <aside className={'hidden md:block h-screen p-4 transition-all duration-300 ease-in-out sticky top-0'}>
       <nav
-        className={`hidden md:flex flex-col h-full shrink-0 bg-neutral-900 p-2.5 transition-all duration-300 ease-in-out
+        className={`flex flex-col h-full shrink-0 bg-neutral-900 p-2.5 transition-all duration-300 ease-in-out
           rounded-lg ${isExpanded ? 'w-60 items-start' : 'w-14 items-center'} text-sm leading-5`}
       >
         <div className={`flex w-full items-center ${isExpanded ? 'mb-3 flex-row justify-between' : 'flex-col'}`}>
@@ -34,9 +34,9 @@ export default function SideNav() {
         </div>
 
         <ul className={`flex flex-col gap-2 list-none w-full ${isExpanded ? '' : 'items-center'}`}>
-          {navItems.map(item => (
+          {navDesktopElements.map(item => (
             <li key={item.key}>
-              <NavElement
+              <DesktopNavElement
                 href={item.href}
                 text={item.text}
                 isExpanded={isExpanded}
@@ -47,7 +47,7 @@ export default function SideNav() {
           ))}
         </ul>
 
-        <NavElement
+        <DesktopNavElement
           href={'/sign-up'}
           text={'Log in | Sign up'}
           isExpanded={isExpanded}

@@ -24,9 +24,9 @@ export default function MobileDrawer({ isOpen, onClose, children }: Props) {
   if (!mounted) return null
 
   return createPortal(
-    <div className={`fixed inset-0 z-100 md:hidden transition-all duration-500 ${isOpen ? 'visible' : 'invisible'}`}>
+    <div className={`fixed inset-0 z-100 md:hidden transition-all duration-400 ${isOpen ? 'visible' : 'invisible'}`}>
       <div
-        className={`absolute inset-0 bg-black/60 transition-opacity duration-500 ease-in-out ${
+        className={`absolute inset-0 bg-black/60 transition-opacity duration-400 ease-in-out ${
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}
@@ -34,7 +34,7 @@ export default function MobileDrawer({ isOpen, onClose, children }: Props) {
 
       <div
         className={`absolute top-0 right-0 h-full w-[calc(100%-70px)] max-w-[440px] bg-neutral-900 shadow-2xl p-6
-          transition-transform duration-500 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          transition-transform duration-400 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <p className="text-white">
           Lorem ipsum dolor sit amet consectetur, adipisicing elit. Tempora cum architecto fugiat eius aliquam rem in
