@@ -16,44 +16,46 @@ export default function SideNav() {
   const toggleSideNav = () => setIsExpanded(prev => !prev)
 
   return (
-    <nav
-      className={`hidden md:flex flex-col h-screen shrink-0 bg-neutral-900 p-2 transition-[width] duration-300 ease-out
-        ${isExpanded ? 'w-60 items-start' : 'w-12 items-center'} text-sm leading-5 sticky top-0`}
-    >
-      <div className={`flex w-full items-center ${isExpanded ? 'mb-3 flex-row justify-between' : 'flex-col'}`}>
-        <Link href={'/'}>
-          <LogoIcon className="h-8 w-8 text-white" />
-        </Link>
-        <button onClick={toggleSideNav}>
-          <ExpandIcon
-            className={`h-6 w-6 cursor-pointer transition-all duration-300 hover:text-emerald-500
-              ${isExpanded ? 'my-0 rotate-180' : 'my-3 rotate-0'} `}
-          />
-        </button>
-      </div>
-
-      <ul className={`flex flex-col gap-2 list-none w-full ${isExpanded ? '' : 'items-center'}`}>
-        {navItems.map(item => (
-          <li key={item.key}>
-            <NavElement
-              href={item.href}
-              text={item.text}
-              isExpanded={isExpanded}
-              Icon={item.icon}
-              iconSize={item.iconSize}
+    <aside className={'hidden md:block h-screen p-4 transition-all duration-300 ease-in-out sticky top-0'}>
+      <nav
+        className={`hidden md:flex flex-col h-full shrink-0 bg-neutral-900 p-2.5 transition-all duration-300 ease-in-out
+          rounded-lg ${isExpanded ? 'w-60 items-start' : 'w-14 items-center'} text-sm leading-5`}
+      >
+        <div className={`flex w-full items-center ${isExpanded ? 'mb-3 flex-row justify-between' : 'flex-col'}`}>
+          <Link href={'/'}>
+            <LogoIcon className="h-8 w-8 text-zinc-950" />
+          </Link>
+          <button onClick={toggleSideNav}>
+            <ExpandIcon
+              className={`h-6 w-6 cursor-pointer transition-all duration-300 hover:text-emerald-500
+                ${isExpanded ? 'my-0 rotate-180' : 'my-3 rotate-0'} `}
             />
-          </li>
-        ))}
-      </ul>
+          </button>
+        </div>
 
-      <NavElement
-        href={'/sign-up'}
-        text={'Log in | Sign up'}
-        isExpanded={isExpanded}
-        Icon={UserProfileIcon}
-        className={`mt-auto ${isExpanded ? 'w-full' : ''}`}
-        iconSize="size-6"
-      />
-    </nav>
+        <ul className={`flex flex-col gap-2 list-none w-full ${isExpanded ? '' : 'items-center'}`}>
+          {navItems.map(item => (
+            <li key={item.key}>
+              <NavElement
+                href={item.href}
+                text={item.text}
+                isExpanded={isExpanded}
+                Icon={item.icon}
+                iconSize={item.iconSize}
+              />
+            </li>
+          ))}
+        </ul>
+
+        <NavElement
+          href={'/sign-up'}
+          text={'Log in | Sign up'}
+          isExpanded={isExpanded}
+          Icon={UserProfileIcon}
+          className={`mt-auto ${isExpanded ? 'w-full' : ''}`}
+          iconSize="size-6"
+        />
+      </nav>
+    </aside>
   )
 }
