@@ -8,9 +8,19 @@ import SearchIcon from '@/assets/icons/ic_search.svg'
 
 type Props = {
   placeholder: string
+  inputClassName?: string
+  iconClassName?: string
 }
 
-export default function Search({ placeholder }: Props) {
+const DEFAULT_ICON_CLASSNAME = 'left-4 h-6 w-6 text-neutral-600'
+const DEFAULT_INPUT_CLASSNAME =
+  'pl-12 py-3 rounded-2xl font-medium text-sm leading-5 border border-border w-full max-w-[534px]'
+
+export default function Search({
+  placeholder,
+  inputClassName = DEFAULT_INPUT_CLASSNAME,
+  iconClassName = DEFAULT_ICON_CLASSNAME,
+}: Props) {
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const { replace } = useRouter()
@@ -30,22 +40,23 @@ export default function Search({ placeholder }: Props) {
   }, 300)
 
   return (
-    <div className="relative flex">
+    <div className="relative">
+      <SearchIcon className={`${iconClassName} absolute top-1/2 -translate-y-1/2`} aria-hidden="true" />
       <label htmlFor="search" className="sr-only">
         Search
       </label>
       <input
+        id="search"
         name="search"
         autoComplete="off"
-        className="focus:ring-primary-800/60 block h-full w-full rounded-lg border-0 pl-9 text-sm
-          placeholder:text-[#FCFFFF]/16 focus:ring-[1px] focus:outline-none"
+        className={`${inputClassName} focus:border-emerald-500 focus:ring-emerald-500 ring-[0.3px] ring-transparent
+          block placeholder:text-neutral-600 focus:outline-none `}
         placeholder={placeholder}
         onChange={e => {
           handleSearch(e.target.value)
         }}
         defaultValue={searchParams.get('query')?.toString()}
       />
-      <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-50" />
     </div>
   )
 }

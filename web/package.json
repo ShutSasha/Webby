@@ -30,6 +30,7 @@
     "@types/react-dom": "^19",
     "@types/webpack": "^5.28.5",
     "@typescript-eslint/parser": "^8.44.1",
+    "baseline-browser-mapping": "^2.9.14",
     "eslint": "^9.36.0",
     "eslint-config-next": "15.5.4",
     "eslint-import-resolver-typescript": "^4.4.4",
