@@ -10,16 +10,17 @@ type Props = {
   placeholder: string
   inputClassName?: string
   iconClassName?: string
+  containerClassName?: string
 }
 
 const DEFAULT_ICON_CLASSNAME = 'left-4 h-6 w-6 text-neutral-600'
-const DEFAULT_INPUT_CLASSNAME =
-  'pl-12 py-3 rounded-2xl font-medium text-sm leading-5 border border-border w-full max-w-[534px]'
+const DEFAULT_INPUT_CLASSNAME = 'pl-12 py-3 rounded-2xl font-medium text-[16px] leading-5 border border-border w-full '
 
 export default function Search({
   placeholder,
   inputClassName = DEFAULT_INPUT_CLASSNAME,
   iconClassName = DEFAULT_ICON_CLASSNAME,
+  containerClassName = '',
 }: Props) {
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -40,7 +41,7 @@ export default function Search({
   }, 300)
 
   return (
-    <div className="relative">
+    <div className={`relative ${containerClassName}`}>
       <SearchIcon className={`${iconClassName} absolute top-1/2 -translate-y-1/2`} aria-hidden="true" />
       <label htmlFor="search" className="sr-only">
         Search
