@@ -33,7 +33,7 @@ export function DesktopNavElement({ isExpanded, href, Icon, text, className, ico
       <div className={`w-full flex-1 flex flex-row items-center ${isExpanded ? 'gap-2 p-1 ' : 'gap-0 p-0 '}`}>
         <Icon className={`${iconSize} shrink-0`} />
         <p
-          className={`overflow-hidden whitespace-nowrap transition-opacity
+          className={`overflow-hidden whitespace-nowrap transition-opacity font-medium
             ${isExpanded ? 'opacity-100 ' : 'w-0 h-0 opacity-0'}`}
         >
           {text}

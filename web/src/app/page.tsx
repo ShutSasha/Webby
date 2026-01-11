@@ -29,13 +29,15 @@ export default async function Home() {
               >
                 Create a room
               </Button>
-              <Button
-                className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
-                paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
-                viewType="Cancel"
-              >
-                Find a room
-              </Button>
+              <Link href="/rooms">
+                <Button
+                  className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
+                  paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
+                  viewType="Cancel"
+                >
+                  Find a room
+                </Button>
+              </Link>
             </div>
           </div>
           <Image
