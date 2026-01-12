@@ -9,7 +9,7 @@ interface Props {
   children: React.ReactNode
 }
 
-export default function Drawer({ isOpen, onClose, children }: Props) {
+export default function Modal({ isOpen, onClose, children }: Props) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -24,19 +24,24 @@ export default function Drawer({ isOpen, onClose, children }: Props) {
   if (!mounted) return null
 
   return createPortal(
-    <div className={`fixed inset-0 z-100 transition-all duration-400 ${isOpen ? 'visible' : 'invisible'}`}>
+    <div
+      className={`fixed inset-0 z-100 flex items-center justify-center p-4 transition-all duration-400 ${
+        isOpen ? 'visible' : 'invisible'
+      }`}
+    >
       <div
-        className={`absolute inset-0 bg-black/60 transition-opacity duration-400 ease-in-out ${
+        className={`absolute inset-0 bg-black/70 transition-opacity duration-400 ease-in-out ${
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}
       />
 
       <div
-        className={`absolute top-0 right-0 h-full w-[calc(100%-70px)] max-w-[440px] bg-neutral-900 shadow-2xl p-6
-          transition-transform duration-400 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`relative w-full max-w-[440px] border border-emerald-500 bg-neutral-800 shadow-2xl p-6 rounded-2xl
+          transition-all duration-400 ease-out
+          ${isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8'}`}
       >
-        <div className="mt-10">{children}</div>
+        <div>{children}</div>
       </div>
     </div>,
     document.body,

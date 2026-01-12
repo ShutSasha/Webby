@@ -18,7 +18,10 @@ export default function MediaHeader({ searchPlaceholder, actionLabel, onActionCl
         containerClassName="order-1 lg:order-2 w-full lg:flex-1 lg:max-w-[534px]"
       />
 
-      <MediaButton actionLabel={actionLabel} onActionClick={onActionClick} />
+      {/* <MediaButton actionLabel={actionLabel} onActionClick={onActionClick} /> */}
+      <MediaButton actionLabel={actionLabel} onActionClick={onActionClick}>
+        <p className="text-neutral-300">text</p>
+      </MediaButton>
     </div>
   )
 }

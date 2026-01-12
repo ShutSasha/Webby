@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 
-import Drawer from '../shared/Drawer'
+import Modal from '../shared/Modal'
 
 type MediaButtonProps = {
   actionLabel: string
@@ -15,13 +15,9 @@ type MediaButtonProps = {
 export default function MediaButton({ actionLabel, onActionClick, children }: MediaButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleIsOpen = () => {
-    setIsOpen(!isOpen)
-  }
-
   const handleClick = () => {
     onActionClick?.()
-    handleIsOpen()
+    setIsOpen(true)
   }
 
   return (
@@ -35,9 +31,9 @@ export default function MediaButton({ actionLabel, onActionClick, children }: Me
         <PlusIcon className="h-4 w-4" aria-hidden="true" />
         {actionLabel}
       </button>
-      <Drawer isOpen={isOpen} onClose={handleIsOpen}>
-        <p></p>
-      </Drawer>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        {children}
+      </Modal>
     </>
   )
 }
