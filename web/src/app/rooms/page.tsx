@@ -2,6 +2,7 @@ import CategoryToggle from '@/ui/components/common/GenreToggle'
 import MediaHeader from '@/ui/components/common/MediaHeader'
 import MainLayout from '@/ui/components/MainLayout'
 import CreateRoomButton from '@/ui/components/modules/Rooms/CreateRoomButton'
+import RoomCard from '@/ui/components/modules/Rooms/RoomCard'
 
 export default function RoomPage() {
   return (
@@ -10,7 +11,7 @@ export default function RoomPage() {
         <MediaHeader searchPlaceholder="Search rooms..." actionSlot={<CreateRoomButton />} />
 
         <div className="flex justify-between">
-          <div className='hidden lg:block'>
+          <div className="hidden lg:block">
             <div className="flex gap-3 items-center">
               <span className="w-10 h-0.5 bg-emerald-500 rounded-full" />
               <p className="text-emerald-500 font-black text-[10px] leading-3.5 uppercase">live now</p>
@@ -18,6 +19,14 @@ export default function RoomPage() {
             <h2 className="font-black text-[48px] leading-14 text-emerald-500 uppercase">Rooms</h2>
           </div>
           <CategoryToggle />
+        </div>
+
+        <div>
+          {/* Room list goes here */}
+          <p className="text-neutral-400">Room list will be displayed here.</p>
+          {Array.from({ length: 10 }).map((_, index) => (
+            <RoomCard key={index} />
+          ))}
         </div>
       </div>
     </MainLayout>
