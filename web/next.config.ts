@@ -2,6 +2,14 @@ import type { NextConfig } from 'next'
 import type { RuleSetRule } from 'webpack'
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**', // TODO TEMPORARY: restrict this later
+      },
+    ],
+  },
   typedRoutes: true,
   webpack(config) {
     const fileLoaderRule = config.module.rules.find(

@@ -21,9 +21,8 @@ export default function RoomPage() {
           <CategoryToggle />
         </div>
 
-        <div>
-          {/* Room list goes here */}
-          <p className="text-neutral-400">Room list will be displayed here.</p>
+        {/* Room list goes here */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
           {Array.from({ length: 10 }).map((_, index) => (
             <RoomCard key={index} />
           ))}
