@@ -1,19 +1,28 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 import UsersIcon from '@/assets/icons/ic_users.svg'
 
-export default function RoomCard() {
+type Props = {
+  id: string
+}
+
+export default function RoomCard({ id }: Props) {
   return (
-    <div className="relative overflow-hidden flex rounded-xl h-[180px] py-3 px-2.5">
+    <Link
+      href={`/rooms/${id}`}
+      className="relative overflow-hidden flex rounded-xl h-[180px] py-3 px-2.5 cursor-pointer group"
+    >
+      {/* Background Image */}
       <Image
-        src="https://wallpapers.com/images/featured/anime-scenery-ahd1eqpvwq8aoofp.jpg"
+        src="https://cdn.magicdecor.in/com/2023/10/20174720/Anime-Scenery-Wallpaper-for-Walls-710x488.jpg"
         alt="Background"
         fill
         priority
-        className="object-cover z-0"
+        className="object-cover z-0 transition-transform duration-600 group-hover:scale-115"
       />
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/50 z-1" />
+      <div className="absolute inset-0 z-1 bg-black/40 transition-all duration-500 group-hover:bg-black/30" />
 
       <div className="z-10 flex-1 flex flex-col justify-between">
         {/* Card Header */}
@@ -41,13 +50,13 @@ export default function RoomCard() {
               height={24}
               className="rounded-full object-cover h-7 w-7 border border-emerald-500"
             />
-            <p className="text-neutral-300 font-black text-[12px] leading-4">Username</p>
+            <p className="text-neutral-100/85 font-black text-[12px] leading-4">Username</p>
           </div>
 
           {/* Title */}
           <p className="text-neutral-100 text-sm leading-4.5 font-black">Roadside. Jakob & Ryan</p>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
