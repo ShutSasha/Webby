@@ -1,8 +1,9 @@
 'use client'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import ReactPlayer from 'react-player'
 
+import FullscreenIcon from '@/assets/icons/Player/fullscreen.svg'
 import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
 import MaxVolume from '@/assets/icons/Player/volume-max.svg'
@@ -17,6 +18,8 @@ type PlayerProps = {
 
 export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const playerRef = useRef<HTMLVideoElement | null>(null)
+  const playerContainerRef = useRef<HTMLDivElement>(null)
+  const [isFullScreen, setIsFullScreen] = useState(false)
   const [prevVolume, setPrevVolume] = useState(1)
 
   const setPlayerRef = useCallback((player: HTMLVideoElement) => {
@@ -118,9 +121,30 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     }
   }
 
+  const toggleFullScreen = () => {
+    if (!isFullScreen) {
+      playerContainerRef.current?.requestFullscreen()
+    } else {
+      document.exitFullscreen()
+    }
+  }
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullScreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', handleFsChange)
+    return () => document.removeEventListener('fullscreenchange', handleFsChange)
+  }, [])
+
   return (
-    <div className="group relative aspect-video w-full bg-transparent rounded-2xl overflow-hidden">
+    <div
+      ref={playerContainerRef}
+      className={`group relative w-full bg-transparent overflow-hidden
+        ${isFullScreen ? 'w-screen h-screen rounded-0' : 'aspect-video rounded-2xl'}`}
+    >
       <ReactPlayer
+        className="react-player"
         ref={setPlayerRef}
         playing={playing}
         controls={controls}
@@ -140,7 +164,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         onClick={handlePlayPause}
       >
         {/* Controls */}
-        <div onClick={e => e.stopPropagation()} className="absolute bottom-2 left-2 right-2 flex flex-col gap-2">
+        <div onClick={e => e.stopPropagation()} className="absolute bottom-3 left-3 right-3 flex flex-col gap-2">
           {/* Progress Bar */}
           <div className="relative h-1.5 w-full bg-white/20 rounded-full group/bar">
             {/* Pre-Loaded */}
@@ -173,67 +197,78 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
           </div>
 
           {/* Buttons etc */}
-          <div className="flex items-center gap-3">
-            <button onClick={handlePlayPause} className="cursor-pointer">
-              {playing ? (
-                <PauseIcon
-                  className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors"
-                />
-              ) : (
-                <PlayIcon
-                  className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors"
-                />
-              )}
-            </button>
-
-            {/* Duration */}
-            <div className="flex items-center gap-0.5">
-              <Duration seconds={duration * played} className="text-neutral-300 text-sm font-medium leading-5" />
-              <span className="text-neutral-300 text-sm font-medium leading-5">/</span>
-              <Duration seconds={duration} className="text-neutral-300 text-sm font-medium leading-5" />
-            </div>
-            {/* Volume */}
-            <div className="flex items-center gap-2 group/volume">
-              <button onClick={toggleMute} className="cursor-pointer">
-                {volume >= 0.5 && (
-                  <MaxVolume className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors" />
-                )}
-                {volume < 0.5 && volume > 0 && (
-                  <MinVolume className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors" />
-                )}
-                {volume === 0 && (
-                  <MutedVolume
-                    className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button onClick={handlePlayPause} className="cursor-pointer">
+                {playing ? (
+                  <PauseIcon
+                    className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors"
+                  />
+                ) : (
+                  <PlayIcon
+                    className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors"
                   />
                 )}
               </button>
 
-              {/* Volume Slider */}
-              <div className="relative w-20 h-1.5 bg-white/20 rounded-full group/slider">
-                {/* Progress Bar */}
-                <div className="absolute h-full bg-emerald-500 rounded-full" style={{ width: `${volume * 100}%` }} />
+              {/* Duration */}
+              <div className="flex items-center gap-0.5">
+                <Duration seconds={duration * played} className="text-neutral-300 text-sm font-medium leading-5" />
+                <span className="text-neutral-300 text-sm font-medium leading-5">/</span>
+                <Duration seconds={duration} className="text-neutral-300 text-sm font-medium leading-5" />
+              </div>
+              {/* Volume */}
+              <div className="flex items-center gap-2 group/volume">
+                <button onClick={toggleMute} className="cursor-pointer">
+                  {volume >= 0.5 && (
+                    <MaxVolume
+                      className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+                    />
+                  )}
+                  {volume < 0.5 && volume > 0 && (
+                    <MinVolume
+                      className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+                    />
+                  )}
+                  {volume === 0 && (
+                    <MutedVolume
+                      className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+                    />
+                  )}
+                </button>
 
-                {/* Thumb */}
-                <div
-                  className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
-                    shadow-[0_0_10px_rgba(16,185,129,0.4)] pointer-events-none transition-transform
-                    group-hover/slider:scale-125"
-                  style={{ left: `${volume * 100}%` }}
-                />
+                {/* Volume Slider */}
+                <div className="relative w-20 h-1.5 bg-white/20 rounded-full group/slider">
+                  {/* Progress Bar */}
+                  <div className="absolute h-full bg-emerald-500 rounded-full" style={{ width: `${volume * 100}%` }} />
 
-                {/* Invisible Input for control */}
-                <input
-                  id="volume"
-                  type="range"
-                  min={0}
-                  max={1}
-                  step="any"
-                  value={volume}
-                  onChange={handleVolumeChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                />
+                  {/* Thumb */}
+                  <div
+                    className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
+                      shadow-[0_0_10px_rgba(16,185,129,0.4)] pointer-events-none transition-transform
+                      group-hover/slider:scale-125"
+                    style={{ left: `${volume * 100}%` }}
+                  />
+
+                  {/* Invisible Input for control */}
+                  <input
+                    id="volume"
+                    type="range"
+                    min={0}
+                    max={1}
+                    step="any"
+                    value={volume}
+                    onChange={handleVolumeChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  />
+                </div>
               </div>
             </div>
+            <button type="button" onClick={toggleFullScreen} className="cursor-pointer group/fullscreen">
+              <FullscreenIcon
+                className="text-neutral-300 w-6 h-6 group-hover/fullscreen:text-emerald-500 transition-colors"
+              />
+            </button>
           </div>
         </div>
       </div>
