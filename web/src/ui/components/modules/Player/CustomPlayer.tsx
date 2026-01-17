@@ -17,6 +17,7 @@ type PlayerProps = {
 
 export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const playerRef = useRef<HTMLVideoElement | null>(null)
+  const [prevVolume, setPrevVolume] = useState(1)
 
   const setPlayerRef = useCallback((player: HTMLVideoElement) => {
     if (!player) return
@@ -108,6 +109,15 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     setState(prevState => ({ ...prevState, volume: Number.parseFloat(inputTarget.value) }))
   }
 
+  const toggleMute = () => {
+    if (volume > 0) {
+      setPrevVolume(volume)
+      setState(prev => ({ ...prev, volume: 0 }))
+    } else {
+      setState(prev => ({ ...prev, volume: prevVolume }))
+    }
+  }
+
   return (
     <div className="group relative aspect-video w-full bg-transparent rounded-2xl overflow-hidden">
       <ReactPlayer
@@ -183,31 +193,46 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
               <Duration seconds={duration} className="text-neutral-300 text-sm font-medium leading-5" />
             </div>
             {/* Volume */}
-            <div className="flex items-center gap-2">
-              {volume >= 0.5 && (
-                <MaxVolume className="text-neutral-300 w-6 h-6 hover:text-emerald-500 cursor-pointer" />
-              )}
-              {volume < 0.5 && volume > 0 && (
-                <MinVolume className="text-neutral-300 w-6 h-6 hover:text-emerald-500 cursor-pointer" />
-              )}
-              {volume === 0 && (
-                <MutedVolume className="text-neutral-300 w-6 h-6 hover:text-emerald-500 cursor-pointer" />
-              )}
-              <input
-                id="volume"
-                type="range"
-                min={0}
-                max={1}
-                step="any"
-                value={volume}
-                onChange={handleVolumeChange}
-                className="w-24 h-1.5 bg-white/20 rounded-full appearance-none cursor-pointer accent-emerald-500
-                  [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
-                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500
-                  [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:transition-transform
-                  [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:border-none
-                  [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-emerald-500"
-              />
+            <div className="flex items-center gap-2 group/volume">
+              <button onClick={toggleMute} className="cursor-pointer">
+                {volume >= 0.5 && (
+                  <MaxVolume className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors" />
+                )}
+                {volume < 0.5 && volume > 0 && (
+                  <MinVolume className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors" />
+                )}
+                {volume === 0 && (
+                  <MutedVolume
+                    className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+                  />
+                )}
+              </button>
+
+              {/* Volume Slider */}
+              <div className="relative w-20 h-1.5 bg-white/20 rounded-full group/slider">
+                {/* Progress Bar */}
+                <div className="absolute h-full bg-emerald-500 rounded-full" style={{ width: `${volume * 100}%` }} />
+
+                {/* Thumb */}
+                <div
+                  className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
+                    shadow-[0_0_10px_rgba(16,185,129,0.4)] pointer-events-none transition-transform
+                    group-hover/slider:scale-125"
+                  style={{ left: `${volume * 100}%` }}
+                />
+
+                {/* Invisible Input for control */}
+                <input
+                  id="volume"
+                  type="range"
+                  min={0}
+                  max={1}
+                  step="any"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+              </div>
             </div>
           </div>
         </div>
