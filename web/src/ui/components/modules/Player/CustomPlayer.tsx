@@ -78,7 +78,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   }
 
   return (
-    <div className="group relative aspect-video bg-black rounded-2xl overflow-hidden border border-white/10">
+    <div className="group relative aspect-video w-full bg-black rounded-2xl overflow-hidden border border-white/10">
       <ReactPlayer
         ref={setPlayerRef}
         playing={playing}
@@ -99,14 +99,20 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         <div onClick={e => e.stopPropagation()} className="absolute bottom-5 left-5 right-5 flex flex-col gap-2">
           {/* Progress Bar */}
           <div className="relative h-1.5 w-full bg-white/20 rounded-full group/bar">
-            {/* (Loaded) */}
+            {/* Pre-Loaded */}
             <div
               className="absolute h-full bg-white/30 rounded-full transition-all"
               style={{ width: `${loaded * 100}%` }}
             />
 
-            {/* (Played) */}
+            {/* Played line */}
             <div className="absolute h-full bg-emerald-500 rounded-full" style={{ width: `${played * 100}%` }} />
+            {/* Played Circle */}
+            <div
+              className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
+                pointer-events-none"
+              style={{ left: `${played * 100}%` }}
+            />
 
             {/* Invisible Input for control */}
             <input
