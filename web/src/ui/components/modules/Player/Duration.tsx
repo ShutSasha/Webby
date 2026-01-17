@@ -1,6 +1,6 @@
 export default function Duration({ className, seconds }: { className?: string; seconds: number }) {
   return (
-    <time dateTime={`P${Math.round(seconds)}S`} className={className}>
+    <time dateTime={`P${Math.round(seconds)}S`} className={className} style={{ fontFeatureSettings: '"tnum"' }}>
       {format(seconds)}
     </time>
   )

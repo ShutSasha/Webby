@@ -5,6 +5,9 @@ import ReactPlayer from 'react-player'
 
 import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
+import MaxVolume from '@/assets/icons/Player/volume-max.svg'
+import MinVolume from '@/assets/icons/Player/volume-min.svg'
+import MutedVolume from '@/assets/icons/Player/volume-muted.svg'
 
 import Duration from './Duration'
 
@@ -100,6 +103,11 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     setState(prevState => ({ ...prevState, duration: player.duration }))
   }
 
+  const handleVolumeChange = (event: React.SyntheticEvent<HTMLInputElement>) => {
+    const inputTarget = event.target as HTMLInputElement
+    setState(prevState => ({ ...prevState, volume: Number.parseFloat(inputTarget.value) }))
+  }
+
   return (
     <div className="group relative aspect-video w-full bg-transparent rounded-2xl overflow-hidden">
       <ReactPlayer
@@ -108,6 +116,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         controls={controls}
         width="100%"
         height="100%"
+        volume={volume}
         src={videoUrl}
         onProgress={handleProgress}
         onTimeUpdate={handleTimeUpdate}
@@ -157,15 +166,48 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
           <div className="flex items-center gap-3">
             <button onClick={handlePlayPause} className="cursor-pointer">
               {playing ? (
-                <PauseIcon className="w-6 h-6 text-neutral-300" />
+                <PauseIcon
+                  className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors"
+                />
               ) : (
-                <PlayIcon className="w-6 h-6 text-neutral-300" />
+                <PlayIcon
+                  className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors"
+                />
               )}
             </button>
+
+            {/* Duration */}
             <div className="flex items-center gap-0.5">
               <Duration seconds={duration * played} className="text-neutral-300 text-sm font-medium leading-5" />
               <span className="text-neutral-300 text-sm font-medium leading-5">/</span>
               <Duration seconds={duration} className="text-neutral-300 text-sm font-medium leading-5" />
+            </div>
+            {/* Volume */}
+            <div className="flex items-center gap-2">
+              {volume >= 0.5 && (
+                <MaxVolume className="text-neutral-300 w-6 h-6 hover:text-emerald-500 cursor-pointer" />
+              )}
+              {volume < 0.5 && volume > 0 && (
+                <MinVolume className="text-neutral-300 w-6 h-6 hover:text-emerald-500 cursor-pointer" />
+              )}
+              {volume === 0 && (
+                <MutedVolume className="text-neutral-300 w-6 h-6 hover:text-emerald-500 cursor-pointer" />
+              )}
+              <input
+                id="volume"
+                type="range"
+                min={0}
+                max={1}
+                step="any"
+                value={volume}
+                onChange={handleVolumeChange}
+                className="w-24 h-1.5 bg-white/20 rounded-full appearance-none cursor-pointer accent-emerald-500
+                  [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500
+                  [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:transition-transform
+                  [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:border-none
+                  [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-emerald-500"
+              />
             </div>
           </div>
         </div>
