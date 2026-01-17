@@ -10,6 +10,7 @@ import PlayIcon from '@/assets/icons/Player/play.svg'
 import MaxVolume from '@/assets/icons/Player/volume-max.svg'
 import MinVolume from '@/assets/icons/Player/volume-min.svg'
 import MutedVolume from '@/assets/icons/Player/volume-muted.svg'
+import { usePlayerStore } from '@/stores/player.store'
 
 import Duration from './Duration'
 
@@ -25,18 +26,19 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const [showControls, setShowControls] = useState(true)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  const baseUserVolume = usePlayerStore(state => state.baseVolume)
+  const setBaseUserVolume = usePlayerStore(state => state.setBaseVolume)
+
   const setPlayerRef = useCallback((player: HTMLVideoElement) => {
     if (!player) return
     playerRef.current = player
   }, [])
 
   const initialState = {
-    src: videoUrl,
     pip: false,
     playing: false,
     controls: false,
     light: false,
-    volume: 1,
     muted: false,
     played: 0,
     loaded: 0,
@@ -48,13 +50,11 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     playedSeconds: 0,
   }
 
-  type PlayerState = Omit<typeof initialState, 'src'> & {
-    src?: string
-  }
+  type PlayerState = typeof initialState
 
   const [state, setState] = useState<PlayerState>(initialState)
 
-  const { src, playing, controls, light, volume, muted, loop, played, loaded, duration, playbackRate, pip } = state
+  const { playing, controls, light, muted, loop, played, loaded, duration, playbackRate, pip } = state
 
   const handlePlayPause = () => {
     setState(prevState => ({ ...prevState, playing: !prevState.playing }))
@@ -112,15 +112,15 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   const handleVolumeChange = (event: React.SyntheticEvent<HTMLInputElement>) => {
     const inputTarget = event.target as HTMLInputElement
-    setState(prevState => ({ ...prevState, volume: Number.parseFloat(inputTarget.value) }))
+    setBaseUserVolume(Number.parseFloat(inputTarget.value))
   }
 
   const toggleMute = () => {
-    if (volume > 0) {
-      setPrevVolume(volume)
-      setState(prev => ({ ...prev, volume: 0 }))
+    if (baseUserVolume > 0) {
+      setPrevVolume(baseUserVolume)
+      setBaseUserVolume(0)
     } else {
-      setState(prev => ({ ...prev, volume: prevVolume }))
+      setBaseUserVolume(prevVolume)
     }
   }
 
@@ -182,7 +182,12 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         controls={controls}
         width="100%"
         height="100%"
-        volume={volume}
+        light={light}
+        muted={muted}
+        loop={loop}
+        volume={baseUserVolume}
+        playbackRate={playbackRate}
+        pip={pip}
         src={videoUrl}
         onProgress={handleProgress}
         onTimeUpdate={handleTimeUpdate}
@@ -192,16 +197,16 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       {/* Overlay */}
       <div
         className={`absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent transition-opacity
-          duration-500 ease-in-out ${showControls ? 'opacity-100' : 'opacity-0'}`}
+          duration-400 ease-in-out ${showControls ? 'opacity-100' : 'opacity-0'}`}
         onClick={handlePlayPause}
       >
         {/* Play button on the overlay */}
         <div
-          className={`${playing === false ? 'opacity-100' : 'opacity-0'} absolute w-18 h-18 bg-black/15 rounded-full
-            top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center justify-center pl-1 transition-opacity
-            duration-300 ease-in-out`}
+          className={`${playing === false ? 'opacity-100' : 'opacity-0'} absolute w-12 h-12 md:w-18 md:h-18 bg-black/15
+            rounded-full top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center justify-center pl-1
+            transition-opacity duration-400 ease-in-out`}
         >
-          <FilledPlay className="w-8 h-8 text-white/30" />
+          <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-white/70" />
         </div>
 
         {/* Controls */}
@@ -265,17 +270,17 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
               {/* Volume */}
               <div className="flex items-center gap-2 group/volume">
                 <button onClick={toggleMute} className="cursor-pointer">
-                  {volume >= 0.5 && (
+                  {baseUserVolume >= 0.5 && (
                     <MaxVolume
                       className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
                     />
                   )}
-                  {volume < 0.5 && volume > 0 && (
+                  {baseUserVolume < 0.5 && baseUserVolume > 0 && (
                     <MinVolume
                       className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
                     />
                   )}
-                  {volume === 0 && (
+                  {baseUserVolume === 0 && (
                     <MutedVolume
                       className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
                     />
@@ -285,14 +290,17 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
                 {/* Volume Slider */}
                 <div className="relative w-20 h-1.5 bg-white/20 rounded-full group/slider">
                   {/* Progress Bar */}
-                  <div className="absolute h-full bg-emerald-500 rounded-full" style={{ width: `${volume * 100}%` }} />
+                  <div
+                    className="absolute h-full bg-emerald-500 rounded-full"
+                    style={{ width: `${baseUserVolume * 100}%` }}
+                  />
 
                   {/* Thumb */}
                   <div
                     className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
                       shadow-[0_0_10px_rgba(16,185,129,0.4)] pointer-events-none transition-transform
                       group-hover/slider:scale-125"
-                    style={{ left: `${volume * 100}%` }}
+                    style={{ left: `${baseUserVolume * 100}%` }}
                   />
 
                   {/* Invisible Input for control */}
@@ -302,7 +310,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
                     min={0}
                     max={1}
                     step="any"
-                    value={volume}
+                    value={baseUserVolume}
                     onChange={handleVolumeChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
