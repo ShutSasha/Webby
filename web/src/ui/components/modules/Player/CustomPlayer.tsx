@@ -21,6 +21,8 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const playerContainerRef = useRef<HTMLDivElement>(null)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [prevVolume, setPrevVolume] = useState(1)
+  const [showControls, setShowControls] = useState(true)
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const setPlayerRef = useCallback((player: HTMLVideoElement) => {
     if (!player) return
@@ -137,11 +139,40 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     return () => document.removeEventListener('fullscreenchange', handleFsChange)
   }, [])
 
+  const handleMouseMove = () => {
+    setShowControls(true)
+
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current)
+    }
+
+    if (playing) {
+      hideTimeoutRef.current = setTimeout(() => {
+        setShowControls(false)
+      }, 3000)
+    }
+  }
+
+  useEffect(() => {
+    if (!playing) {
+      setShowControls(true)
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
+    } else {
+      hideTimeoutRef.current = setTimeout(() => setShowControls(false), 3000)
+    }
+    return () => {
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
+    }
+  }, [playing])
+
   return (
     <div
       ref={playerContainerRef}
-      className={`group relative w-full bg-transparent overflow-hidden
-        ${isFullScreen ? 'w-screen h-screen rounded-0' : 'aspect-video rounded-2xl'}`}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => playing && setShowControls(false)}
+      className={`group relative w-full bg-transparent overflow-hidden transition-all
+        ${isFullScreen ? 'w-screen h-screen rounded-0' : 'aspect-video rounded-2xl'}
+        ${!showControls ? 'cursor-none' : 'cursor-default'}`}
     >
       <ReactPlayer
         className="react-player"
@@ -159,12 +190,16 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
       {/* Overlay */}
       <div
-        className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0
-          group-hover:opacity-100 transition-opacity"
+        className={`absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent transition-opacity
+          duration-500 ease-in-out ${showControls ? 'opacity-100' : 'opacity-0'}`}
         onClick={handlePlayPause}
       >
         {/* Controls */}
-        <div onClick={e => e.stopPropagation()} className="absolute bottom-3 left-3 right-3 flex flex-col gap-2">
+        <div
+          onClick={e => e.stopPropagation()}
+          className={`absolute bottom-3 left-3 right-3 flex flex-col gap-2 transition-transform duration-500
+            ${showControls ? 'translate-y-0' : 'translate-y-10 pointer-events-none'}`}
+        >
           {/* Progress Bar */}
           <div className="relative h-1.5 w-full bg-white/20 rounded-full group/bar">
             {/* Pre-Loaded */}
