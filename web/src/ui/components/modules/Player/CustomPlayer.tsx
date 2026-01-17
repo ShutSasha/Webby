@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import ReactPlayer from 'react-player'
 
+import FilledPlay from '@/assets/icons/Player/filled-play.svg'
 import FullscreenIcon from '@/assets/icons/Player/fullscreen.svg'
 import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
@@ -194,6 +195,15 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
           duration-500 ease-in-out ${showControls ? 'opacity-100' : 'opacity-0'}`}
         onClick={handlePlayPause}
       >
+        {/* Play button on the overlay */}
+        <div
+          className={`${playing === false ? 'opacity-100' : 'opacity-0'} absolute w-18 h-18 bg-black/15 rounded-full
+            top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center justify-center pl-1 transition-opacity
+            duration-300 ease-in-out`}
+        >
+          <FilledPlay className="w-8 h-8 text-white/30" />
+        </div>
+
         {/* Controls */}
         <div
           onClick={e => e.stopPropagation()}
