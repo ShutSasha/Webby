@@ -7,7 +7,7 @@ type Props = Readonly<{
 
 export default function MainLayout({ children }: Props) {
   return (
-    <main className="flex flex-col-reverse md:flex-row min-h-screen bg-neutral-800 text-neutral-300 relative">
+    <main className="flex flex-col-reverse lg:flex-row min-h-screen bg-neutral-800 text-neutral-300 relative">
       <DesktopNav />
       <MobileNav />
       <div className="flex flex-1 p-4">{children}</div>

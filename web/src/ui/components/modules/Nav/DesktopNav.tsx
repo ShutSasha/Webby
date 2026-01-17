@@ -16,7 +16,7 @@ export default function DesktopNav() {
   const toggleSideNav = () => setIsExpanded(prev => !prev)
 
   return (
-    <aside className={'hidden md:block h-screen p-4 transition-all duration-300 ease-in-out sticky top-0'}>
+    <aside className={'hidden lg:block h-screen py-4 pl-4 transition-all duration-300 ease-in-out sticky top-0'}>
       <nav
         className={`flex flex-col h-full shrink-0 bg-neutral-900 p-2.5 transition-all duration-300 ease-in-out
           rounded-lg ${isExpanded ? 'w-60 items-start' : 'w-14 items-center'} text-sm leading-5`}
