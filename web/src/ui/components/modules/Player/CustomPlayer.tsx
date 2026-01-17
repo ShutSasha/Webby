@@ -6,6 +6,8 @@ import ReactPlayer from 'react-player'
 import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
 
+import Duration from './Duration'
+
 type PlayerProps = {
   videoUrl: string
 }
@@ -77,16 +79,39 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     }
   }
 
+  const handleTimeUpdate = () => {
+    const player = playerRef.current
+    // We only want to update time slider if we are not currently seeking
+    if (!player || state.seeking) return
+
+    if (!player.duration) return
+
+    setState(prevState => ({
+      ...prevState,
+      playedSeconds: player.currentTime,
+      played: player.currentTime / player.duration,
+    }))
+  }
+
+  const handleDurationChange = () => {
+    const player = playerRef.current
+    if (!player) return
+
+    setState(prevState => ({ ...prevState, duration: player.duration }))
+  }
+
   return (
-    <div className="group relative aspect-video w-full bg-black rounded-2xl overflow-hidden border border-white/10">
+    <div className="group relative aspect-video w-full bg-transparent rounded-2xl overflow-hidden">
       <ReactPlayer
         ref={setPlayerRef}
         playing={playing}
-        controls={false}
+        controls={controls}
         width="100%"
         height="100%"
         src={videoUrl}
         onProgress={handleProgress}
+        onTimeUpdate={handleTimeUpdate}
+        onDurationChange={handleDurationChange}
       />
 
       {/* Overlay */}
@@ -96,7 +121,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         onClick={handlePlayPause}
       >
         {/* Controls */}
-        <div onClick={e => e.stopPropagation()} className="absolute bottom-5 left-5 right-5 flex flex-col gap-2">
+        <div onClick={e => e.stopPropagation()} className="absolute bottom-2 left-2 right-2 flex flex-col gap-2">
           {/* Progress Bar */}
           <div className="relative h-1.5 w-full bg-white/20 rounded-full group/bar">
             {/* Pre-Loaded */}
@@ -109,7 +134,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
             <div className="absolute h-full bg-emerald-500 rounded-full" style={{ width: `${played * 100}%` }} />
             {/* Played Circle */}
             <div
-              className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
+              className="absolute h-2.5 w-2.5 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
                 pointer-events-none"
               style={{ left: `${played * 100}%` }}
             />
@@ -128,10 +153,20 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          {/* Buttons etc */}
+          <div className="flex items-center gap-3">
             <button onClick={handlePlayPause} className="cursor-pointer">
-              {playing ? <PauseIcon className="w-6 h-6 text-white" /> : <PlayIcon className="w-6 h-6 text-white" />}
+              {playing ? (
+                <PauseIcon className="w-6 h-6 text-neutral-300" />
+              ) : (
+                <PlayIcon className="w-6 h-6 text-neutral-300" />
+              )}
             </button>
+            <div className="flex items-center gap-0.5">
+              <Duration seconds={duration * played} className="text-neutral-300 text-sm font-medium leading-5" />
+              <span className="text-neutral-300 text-sm font-medium leading-5">/</span>
+              <Duration seconds={duration} className="text-neutral-300 text-sm font-medium leading-5" />
+            </div>
           </div>
         </div>
       </div>
