@@ -1,4 +1,5 @@
 ﻿using Webby.AuthService.Helpers.Exception;
+using Webby.AuthService.Helpers.Response;
 
 namespace Webby.AuthService.Middlewares;
 
@@ -12,7 +13,7 @@ public class ExceptionMiddleware
       _next = next;
       _logger = logger;
    }
-
+   
    public async Task Invoke(HttpContext context)
    {
       try
@@ -21,28 +22,16 @@ public class ExceptionMiddleware
       }
       catch (ApiException ex)
       {
-         _logger.LogError(ex, "API Exception: {Message}", ex.Message);
-
-         var errorResponse = new
-         {
-            status = ex.StatusCode,
-            message = ex.Message
-         };
+         var errorResponse = ApiResponse.Fail(ex.Message, ex.Errors);
 
          context.Response.StatusCode = ex.StatusCode;
          context.Response.ContentType = "application/json";
 
          await context.Response.WriteAsJsonAsync(errorResponse);
       }
-      catch (Exception ex)
+      catch (Exception)
       {
-         _logger.LogError(ex, "Unhandled Exception: {Message}", ex.Message);
-
-         var errorResponse = new
-         {
-            status = 500,
-            message = "An unexpected error occurred."
-         };
+         var errorResponse = ApiResponse.Fail("Internal server error");
 
          context.Response.StatusCode = 500;
          context.Response.ContentType = "application/json";
@@ -50,4 +39,6 @@ public class ExceptionMiddleware
          await context.Response.WriteAsJsonAsync(errorResponse);
       }
    }
+
+
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Webby.AuthService.Dtos;
+using Webby.AuthService.Helpers.Response;
 using Webby.AuthService.Interfaces.Services;
 
 namespace Webby.AuthService.Controllers;
@@ -19,32 +20,28 @@ public class AuthController : ControllerBase
    public async Task<IActionResult> SignUp([FromBody] RegisterUserRequest request)
    {
       await _authService.Register(request);
-
-      return Ok(new { Message = "User successfully registered" });
-      
+      return Ok(ApiResponse.Ok("User successfully registered"));
    }
-   
+
    [HttpPost("sign-in")]
    public async Task<IActionResult> SignIn([FromBody] LoginUserRequest request)
    {
-      var userLoginResult = await _authService.Login(request);
-
-      return Ok(userLoginResult);
-      
+      var user = await _authService.Login(request);
+      return Ok(ApiResponse.Ok("Login success", user));
    }
 
    [HttpPost("resend-verification-code")]
    public async Task<IActionResult> ResendVerificationCode([FromBody] ResendVerificationCodeRequest request)
    {
       await _authService.SendCode(request);
-      return Ok(new { Message = "Verification code successfully send" });
+      return Ok(ApiResponse.Ok("Verification code sent"));
    }
 
    [HttpPost("verify-user")]
    public async Task<IActionResult> VerifyUser([FromBody] VerifyUserRequest request)
    {
-      var userVerifyResult = await _authService.VerifyEmail(request);
-      return Ok(userVerifyResult);
+      var user = await _authService.VerifyEmail(request);
+      return Ok(ApiResponse.Ok("User verified", user));
    }
    
 }

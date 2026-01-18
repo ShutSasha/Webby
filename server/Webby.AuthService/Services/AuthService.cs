@@ -23,11 +23,21 @@ public class AuthService : IAuthService
 
    public async Task Register(RegisterUserRequest request)
    {
-      var candidate = await _repository.GetByPredicate(user => user.Email == request.Email);
+      var exists = (await _repository
+            .GetByPredicate(u => u.Email == request.Email || u.Username == request.Username))
+         .ToList();
 
-      if (candidate == null)
+      if (exists.Any())
       {
-         throw new ApiException($"Email {request.Email} is already in use", 400);
+         var errors = new Dictionary<string, string>();
+
+         if (exists.Any(u => u.Email == request.Email))
+            errors["email"] = "Email already in use ";
+
+         if (exists.Any(u => u.Username == request.Username))
+            errors["username"] = "Username already in use";
+
+         throw new ApiException("Validation error", 400, errors);
       }
 
       var passwordHash = _passwordHasher.Generate(request.Password);
@@ -51,29 +61,28 @@ public class AuthService : IAuthService
 
 
    public async Task<User> Login(LoginUserRequest request)
-   { 
-      var user = (await _repository.GetByPredicate(user => user.Email == request.Email)).FirstOrDefault();
+   {
+      var errors = new Dictionary<string, string>();
+      var user = (await _repository.GetByPredicate(u => u.Email == request.Email)).FirstOrDefault();
 
       if (user == null)
-      {
          throw new ApiException("User not found", 404);
-      }
 
       if (!user.isVerified)
       {
-         throw new ApiException("User isn't verified", 400);
+         errors["isVerified"] = "User isn't verified";
+         throw new ApiException("Login error", 400, errors);
       }
 
-      var isCorrectPassword = _passwordHasher.Verify(request.Password, user.Password);
-
-      return isCorrectPassword switch
+      if (!_passwordHasher.Verify(request.Password, user.Password))
       {
-         true => user,
-         false => throw new ApiException("Incorrect password", 400)
-      };
-      
-   }
+         errors["password"] = "User isn't verified";
+         throw new ApiException("Login error", 400, errors);
+      }
 
+      return user;
+   }
+   
    public async Task SendCode(ResendVerificationCodeRequest request)
    {
       var user = (await _repository.GetByPredicate(user => user.Email == request.Email)).FirstOrDefault();
@@ -93,11 +102,20 @@ public class AuthService : IAuthService
    public async Task<User> VerifyEmail(VerifyUserRequest request)
    {
       var user = (await _repository.GetByPredicate(user => user.Email == request.Email)).FirstOrDefault();
+      var errors = new Dictionary<string, string>();
       
-      
-      if (user == null || user.VerificationCode != request.VerificationCode)
+      if (user == null)
       {
-         throw new ApiException("Invalid email or verification code",400);
+         errors["email"] = "Invalid email";
+         
+         throw new ApiException("Verification error",400, errors);
+      }
+
+      if (user.VerificationCode != request.VerificationCode)
+      {
+         errors["code"] = "Invalid verification code";
+         
+         throw new ApiException("Verification error",400, errors);
       }
 
       user.isVerified = true;

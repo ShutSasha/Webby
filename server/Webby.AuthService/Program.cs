@@ -25,6 +25,7 @@ var app = builder.Build();
 
 app.UseCors("AllowApiGetaway");
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<ValidationExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
