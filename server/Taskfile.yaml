@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  run_auth_service:
+    desc: "Run the C# AuthService"
+    cmds:
+      - |
+        cd ./Webby.AuthService
+        dotnet run 
+
+  run_api_getaway:
+    desc: "Run the api getaway"
+    cmds:
+      - |
+        cd ./Webby.ApiGetaway
+        dotnet run
+  
+  run_all:
+    desc: "Run all services"
+    deps:
+      - run_auth_service
+      - run_api_getaway
