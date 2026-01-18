@@ -63,11 +63,14 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   }
 
   const handleSetPlaybackRate = (event: React.SyntheticEvent<HTMLButtonElement>) => {
-    const buttonTarget = event.target as HTMLButtonElement
+    const buttonTarget = event.currentTarget as HTMLButtonElement
+    const btnData = Number.parseFloat(`${buttonTarget.dataset.value}`)
+
+    if (isNaN(btnData)) return
 
     setState(prevState => ({
       ...prevState,
-      playbackRate: Number.parseFloat(`${buttonTarget.dataset.value}`),
+      playbackRate: btnData,
     }))
   }
 
@@ -188,6 +191,18 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
     }
   }, [playing])
+
+  const [isMounted, setIsMounted] = useState(false)
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted)
+    return (
+      <div className="aspect-video bg-neutral-800 w-full h-full rounded-2xl flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+      </div>
+    )
 
   return (
     <div
