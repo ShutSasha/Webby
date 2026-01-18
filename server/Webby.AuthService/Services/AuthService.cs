@@ -37,7 +37,7 @@ public class AuthService : IAuthService
          if (exists.Any(u => u.Username == request.Username))
             errors["username"] = "Username already in use";
 
-         throw new ApiException("Validation error", 400, errors);
+         throw new ApiException("Registration error", 400, errors);
       }
 
       var passwordHash = _passwordHasher.Generate(request.Password);
