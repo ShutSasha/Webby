@@ -1,5 +1,8 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Webby.AuthService.Helpers.Response;
+
+namespace Webby.AuthService.Middlewares;
 
 public class ValidationExceptionMiddleware
 {
@@ -14,42 +17,47 @@ public class ValidationExceptionMiddleware
    {
       var originalBody = context.Response.Body;
 
-      using var memStream = new MemoryStream();
+      await using var memStream = new MemoryStream();
       context.Response.Body = memStream;
 
-      await _next(context);
-
-      if (context.Response.StatusCode == 400 &&
-          memStream.Length > 0 &&
-          context.Response.ContentType?.Contains("application/problem+json") == true)
+      try
       {
+         await _next(context);
+
          memStream.Seek(0, SeekOrigin.Begin);
-         var json = await new StreamReader(memStream).ReadToEndAsync();
 
-         var details = JsonSerializer.Deserialize<ValidationProblemDetails>(json);
-
-         var errors = details.Errors.ToDictionary(
-            e => e.Key,
-            e => e.Value.First()
-         );
-
-         var formatted = new
+         if (context.Response.StatusCode == 400 &&
+             memStream.Length > 0 &&
+             context.Response.ContentType?.Contains("application/problem+json") == true)
          {
-            message = "Validation failed",
-            status = 400,
-            errors
-         };
+            var json = await new StreamReader(memStream).ReadToEndAsync();
+            var details = JsonSerializer.Deserialize<ValidationProblemDetails>(json);
 
-         var output = JsonSerializer.Serialize(formatted);
+            var errors = details.Errors.ToDictionary(
+               e => e.Key.ToLower(),
+               e => e.Value.First()
+            );
 
-         context.Response.ContentType = "application/json";
-         context.Response.Body = originalBody;
+            var formatted = ApiResponse.Fail(message: "Validation error", errors);
+            var output = JsonSerializer.Serialize(formatted, new JsonSerializerOptions
+            {
+               PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
 
-         await context.Response.WriteAsync(output);
-         return;
+            context.Response.ContentType = "application/json";
+            context.Response.ContentLength = output.Length;
+            context.Response.Body = originalBody;
+
+            await context.Response.WriteAsync(output);
+            return;
+         }
+
+         memStream.Seek(0, SeekOrigin.Begin);
+         await memStream.CopyToAsync(originalBody);
       }
-
-      memStream.Seek(0, SeekOrigin.Begin);
-      await memStream.CopyToAsync(originalBody);
+      finally
+      {
+         context.Response.Body = originalBody;
+      }
    }
 }
