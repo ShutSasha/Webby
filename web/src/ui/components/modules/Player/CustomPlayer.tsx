@@ -22,10 +22,12 @@ type PlayerProps = {
 export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const playerRef = useRef<HTMLVideoElement | null>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
+  const settingsContainerRef = useRef<HTMLDivElement>(null)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [prevVolume, setPrevVolume] = useState(1)
   const [showControls, setShowControls] = useState(true)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [isMounted, setIsMounted] = useState(false)
 
   const baseUserVolume = usePlayerStore(state => state.baseVolume)
   const setBaseUserVolume = usePlayerStore(state => state.setBaseVolume)
@@ -58,7 +60,15 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   const { playing, controls, light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings } = state
 
-  const handlePlayPause = () => {
+  const handlePlayPause = (e: React.MouseEvent) => {
+    if (showSettings) {
+      if (settingsContainerRef.current && !settingsContainerRef.current.contains(e.target as Node)) {
+        setState(prevState => ({ ...prevState, showSettings: false }))
+        hideTimeoutRef.current = setTimeout(() => setShowControls(false), 3000)
+        return
+      }
+    }
+
     setState(prevState => ({ ...prevState, playing: !prevState.playing }))
   }
 
@@ -158,14 +168,6 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     }
   }
 
-  useEffect(() => {
-    const handleFsChange = () => {
-      setIsFullScreen(!!document.fullscreenElement)
-    }
-    document.addEventListener('fullscreenchange', handleFsChange)
-    return () => document.removeEventListener('fullscreenchange', handleFsChange)
-  }, [])
-
   const handleMouseMove = () => {
     setShowControls(true)
 
@@ -181,6 +183,14 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   }
 
   useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullScreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', handleFsChange)
+    return () => document.removeEventListener('fullscreenchange', handleFsChange)
+  }, [])
+
+  useEffect(() => {
     if (!playing) {
       setShowControls(true)
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
@@ -192,7 +202,6 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     }
   }, [playing])
 
-  const [isMounted, setIsMounted] = useState(false)
   useEffect(() => {
     setIsMounted(true)
   }, [])
@@ -251,6 +260,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         {/* Settings Menu Popup */}
         {showSettings && (
           <div
+            ref={settingsContainerRef}
             className="absolute bottom-14 right-3 w-48 bg-black/30 backdrop-blur-md rounded-xl overflow-hidden z-20"
             onClick={e => e.stopPropagation()}
           >
