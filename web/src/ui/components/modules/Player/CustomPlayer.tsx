@@ -7,6 +7,7 @@ import FilledPlay from '@/assets/icons/Player/filled-play.svg'
 import FullscreenIcon from '@/assets/icons/Player/fullscreen.svg'
 import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
+import SettingsIcon from '@/assets/icons/Player/settings.svg'
 import MaxVolume from '@/assets/icons/Player/volume-max.svg'
 import MinVolume from '@/assets/icons/Player/volume-min.svg'
 import MutedVolume from '@/assets/icons/Player/volume-muted.svg'
@@ -48,16 +49,38 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     seeking: false,
     loadedSeconds: 0,
     playedSeconds: 0,
+    showSettings: false,
   }
 
   type PlayerState = typeof initialState
 
   const [state, setState] = useState<PlayerState>(initialState)
 
-  const { playing, controls, light, muted, loop, played, loaded, duration, playbackRate, pip } = state
+  const { playing, controls, light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings } = state
 
   const handlePlayPause = () => {
     setState(prevState => ({ ...prevState, playing: !prevState.playing }))
+  }
+
+  const handleSetPlaybackRate = (event: React.SyntheticEvent<HTMLButtonElement>) => {
+    const buttonTarget = event.target as HTMLButtonElement
+
+    setState(prevState => ({
+      ...prevState,
+      playbackRate: Number.parseFloat(`${buttonTarget.dataset.value}`),
+    }))
+  }
+
+  const handleRateChange = () => {
+    const player = playerRef.current
+    if (!player) return
+
+    setState(prevState => ({ ...prevState, playbackRate: player.playbackRate }))
+  }
+
+  const toggleSettings = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setState(prev => ({ ...prev, showSettings: !prev.showSettings }))
   }
 
   const handleProgress = () => {
@@ -147,7 +170,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       clearTimeout(hideTimeoutRef.current)
     }
 
-    if (playing) {
+    if (playing && !showSettings) {
       hideTimeoutRef.current = setTimeout(() => {
         setShowControls(false)
       }, 3000)
@@ -189,6 +212,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         playbackRate={playbackRate}
         pip={pip}
         src={videoUrl}
+        onRateChange={handleRateChange}
         onProgress={handleProgress}
         onTimeUpdate={handleTimeUpdate}
         onDurationChange={handleDurationChange}
@@ -208,6 +232,34 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         >
           <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-white/70" />
         </div>
+
+        {/* Settings Menu Popup */}
+        {showSettings && (
+          <div
+            className="absolute bottom-14 right-3 w-48 bg-black/30 backdrop-blur-md rounded-xl overflow-hidden z-20"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-2 border-b border-white/5">
+              <p className="text-neutral-400 text-xs font-bold px-3 py-1 uppercase tracking-wider">Speed</p>
+            </div>
+            <div className="py-1">
+              {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map(rate => (
+                <button
+                  key={rate}
+                  onClick={handleSetPlaybackRate}
+                  className={`w-full flex items-center justify-between px-4 py-2 text-sm transition-colors
+                  hover:bg-white/10 ${playbackRate === rate ? 'text-emerald-500 font-bold' : 'text-neutral-300'}`}
+                  data-value={rate}
+                >
+                  <span>{rate === 1 ? 'Normal' : `${rate}x`}</span>
+                  {playbackRate === rate && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Controls */}
         <div
@@ -317,11 +369,19 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
                 </div>
               </div>
             </div>
-            <button type="button" onClick={toggleFullScreen} className="cursor-pointer group/fullscreen">
-              <FullscreenIcon
-                className="text-neutral-300 w-6 h-6 group-hover/fullscreen:text-emerald-500 transition-colors"
-              />
-            </button>
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={toggleSettings} className={'cursor-pointer group/settings'}>
+                <SettingsIcon
+                  className={`w-6 h-6 transition-colors duration-300
+                    ${showSettings ? 'text-emerald-500 rotate-45' : 'text-neutral-300 group-hover/settings:text-emerald-500'}`}
+                />
+              </button>
+              <button type="button" onClick={toggleFullScreen} className="cursor-pointer group/fullscreen">
+                <FullscreenIcon
+                  className="text-neutral-300 w-6 h-6 group-hover/fullscreen:text-emerald-500 transition-colors"
+                />
+              </button>
+            </div>
           </div>
         </div>
       </div>
