@@ -41,7 +41,7 @@ public class AuthController : ControllerBase
    public async Task<IActionResult> VerifyUser([FromBody] VerifyUserRequest request)
    {
       var user = await _authService.VerifyEmail(request);
-      return Ok(ApiResponse.Ok("User verified", user));
+      return Ok(ApiResponse.Ok("User has been successfully verified", user));
    }
    
 }

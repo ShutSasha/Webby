@@ -113,7 +113,7 @@ public class AuthService : IAuthService
 
       if (user.VerificationCode != request.VerificationCode)
       {
-         errors["code"] = "Invalid verification code";
+         errors["code"] = user.VerificationCode == string.Empty ? "User is already verified" : "Invalid verification code";
          
          throw new ApiException("Verification error",400, errors);
       }
