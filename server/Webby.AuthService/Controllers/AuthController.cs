@@ -19,8 +19,13 @@ public class AuthController : ControllerBase
    [HttpPost("sign-up")]
    public async Task<IActionResult> SignUp([FromBody] RegisterUserRequest request)
    {
-      await _authService.Register(request);
-      return Ok(ApiResponse.Ok("User successfully registered"));
+      bool isRedirectionOnConfrimationPage = await _authService.Register(request);
+
+      return isRedirectionOnConfrimationPage switch
+      {
+         false => Ok(ApiResponse.Ok("User successfully registered")),
+         true => Ok(ApiResponse.Ok("Redirecting to confirmation email page")),
+      };
    }
 
    [HttpPost("sign-in")]
