@@ -1,18 +1,43 @@
 'use client'
 
+import { useState } from 'react'
+
 // eslint-disable-next-line import/named
 import { OTPInput, SlotProps } from 'input-otp'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+
+import $api from '@/app/api'
+import { BaseServerResponse, serverLog } from '@/lib/utils/utils'
 
 export default function VerifyPage() {
-  const handleComplete = (code: string) => {
-    console.log('code', code)
-    // Server Action
+  const searchParams = useSearchParams()
+  const email = searchParams.get('email')
+
+  const [errors, setErrors] = useState<Record<string, string> | null>(null)
+  const [success, setSuccess] = useState<boolean>(false)
+
+  const handleComplete = async (code: string) => {
+    setSuccess(false)
+    setErrors(null)
+    try {
+      const response = await $api.post<BaseServerResponse>('/auth/verify-user', {
+        email: email || '',
+        verificationCode: code,
+      })
+      setSuccess(response.data.success)
+    } catch (error: any) {
+      serverLog('VERIFY_USER_ERROR', error)
+
+      const serverErrors = error.response?.data?.errors || null
+      setErrors(serverErrors)
+    }
   }
 
   return (
     <div className="flex flex-1 items-center justify-center">
       <div
-        className="flex w-full bg-neutral-900 max-w-[700px] rounded-[20px] p-10 box-border flex-col items-center gap-6"
+        className="flex w-full bg-neutral-900 max-w-[700px] rounded-[20px] p-10 box-border flex-col items-center gap-4"
       >
         <div className="space-y-2 text-center">
           <h2 className="text-white text-2xl font-bold">Confirm email</h2>
@@ -32,7 +57,26 @@ export default function VerifyPage() {
           )}
         />
 
-        <button className="text-emerald-500 text-sm hover:underline mt-4">Resend code</button>
+        {errors &&
+          Object.entries(errors as Record<string, string>).map(([field, message]) => (
+            <p key={field} className="text-red-500 text-sm">
+              {message}
+            </p>
+          ))}
+
+        {!success && <button className="text-emerald-500 text-sm hover:underline cursor-pointer">Resend code</button>}
+
+        {success && (
+          <>
+            <hr className="border-neutral-300 w-full" />
+            <p className="text-emerald-500 text-sm font-medium">
+              User has been successfully verified. Please Log in to your account now{' '}
+              <Link href="/login" className="underline">
+                here
+              </Link>
+            </p>
+          </>
+        )}
       </div>
     </div>
   )

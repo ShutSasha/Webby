@@ -1,6 +1,13 @@
 /* eslint-disable */
 import { AxiosError } from 'axios'
 
+export type BaseServerResponse = {
+  data: Record<string, any> | null
+  errors: Record<string, string> | null
+  message: string
+  success: boolean
+}
+
 export const serverLog = (label: string, error: any, detailed?: boolean) => {
   if (!(error instanceof AxiosError)) {
     console.log(`\n=== [${label}] Non-Axios Error ===`)

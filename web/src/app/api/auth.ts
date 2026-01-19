@@ -34,18 +34,16 @@ export async function registerUser(prevState: any, formData: FormData) {
   if (password !== repeatPassword) {
     return {
       success: false,
-      errors: { repeatPassword: 'Паролі не співпадають' },
+      errors: { repeatPassword: 'Password does not match' },
     }
   }
 
   try {
-    const result = await $api.post('/auth/sign-up', {
+    await $api.post('/auth/sign-up', {
       email,
       username,
       password,
     })
-
-    console.log('Registration result:', result.data)
   } catch (error: any) {
     serverLog('REGISTER_ERROR', error, true)
 
@@ -58,4 +56,22 @@ export async function registerUser(prevState: any, formData: FormData) {
   }
 
   redirect(`/sign-up/email-verify?email=${encodeURIComponent(email)}` satisfies Route)
+}
+
+export async function verifyUser({ email, code }: { email: string; code: string }) {
+  try {
+    await $api.post('/auth/verify-user', {
+      email,
+      verificationCode: code,
+    })
+  } catch (error: any) {
+    serverLog('VERIFY_USER_ERROR', error, true)
+
+    const serverErrors = error.response?.data?.errors || {}
+
+    return {
+      success: false,
+      errors: serverErrors,
+    }
+  }
 }
