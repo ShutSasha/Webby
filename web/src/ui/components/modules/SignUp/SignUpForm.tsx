@@ -14,7 +14,6 @@ import Button from '@/components/Button'
 
 const initialState = {
   success: false,
-  message: null,
   errors: null,
 }
 
@@ -72,6 +71,14 @@ export default function SignUpForm() {
           onChange={handleInputsChange('repeatPassword')}
           placeholder="Repeat Password"
         />
+        <div>
+          {state.errors &&
+            Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
+              <p key={field} className="text-red-500 text-sm">
+                {message}
+              </p>
+            ))}
+        </div>
         <Button
           disabled={isPending}
           type="submit"

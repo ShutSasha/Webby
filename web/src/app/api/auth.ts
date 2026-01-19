@@ -5,6 +5,7 @@ import { redirect } from 'next/dist/client/components/navigation'
 import { AuthError } from 'next-auth'
 
 import $api from '@/app/api'
+import { serverLog } from '@/lib/utils/utils'
 
 import { signIn } from '../../../auth'
 
@@ -38,20 +39,20 @@ export async function registerUser(prevState: any, formData: FormData) {
   }
 
   try {
-    // await $api.post('/auth/registration', {
-    //   email,
-    //   username,
-    //   password,
-    // })
+    const result = await $api.post('/auth/sign-up', {
+      email,
+      username,
+      password,
+    })
+
+    console.log('Registration result:', result.data)
   } catch (error: any) {
-    console.error('Registration error:', error)
+    serverLog('REGISTER_ERROR', error, true)
 
     const serverErrors = error.response?.data?.errors || {}
-    const message = error.response?.data?.message || 'Помилка реєстрації'
 
     return {
       success: false,
-      message,
       errors: serverErrors,
     }
   }
