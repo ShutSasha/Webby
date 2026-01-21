@@ -21,43 +21,58 @@ public class AuthService : IAuthService
       _mailService = mailService;
    }
 
-   public async Task Register(RegisterUserRequest request)
+   public async Task<bool> Register(RegisterUserRequest request)
    {
-      var exists = (await _repository
+      var existingUser = (await _repository
             .GetByPredicate(u => u.Email == request.Email || u.Username == request.Username))
-         .ToList();
+         .FirstOrDefault();
 
-      if (exists.Any())
+      if (existingUser != null)
       {
+         if (!existingUser.isVerified && 
+             existingUser.Email == request.Email && 
+             existingUser.Username == request.Username)
+         {
+            var newCode = GenerateActivationCode();
+
+            existingUser.VerificationCode = newCode;
+            existingUser.Password = _passwordHasher.Generate(request.Password);
+
+            await _repository.Update(existingUser);
+            await _mailService.SendVerificationCode(request.Email, newCode);
+
+            return true;
+         }
+
          var errors = new Dictionary<string, string>();
 
-         if (exists.Any(u => u.Email == request.Email))
-            errors["email"] = "Email already in use ";
+         if (existingUser.Email == request.Email)
+            errors["email"] = "Email already in use";
 
-         if (exists.Any(u => u.Username == request.Username))
+         if (existingUser.Username == request.Username)
             errors["username"] = "Username already in use";
 
          throw new ApiException("Registration error", 400, errors);
       }
 
-      var passwordHash = _passwordHasher.Generate(request.Password);
-      var verificationCode = GenerateActivationCode();
-
       var user = new User
       {
          Username = request.Username,
          Email = request.Email,
-         Password = passwordHash,
+         Password = _passwordHasher.Generate(request.Password),
          About = string.Empty,
          //TODO: change to default user image from aws bucket
          AvatarUrl = "https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg",
-         VerificationCode = verificationCode,
+         VerificationCode = GenerateActivationCode(),
          isVerified = false
       };
 
-      await _mailService.SendVerificationCode(request.Email, verificationCode);
       await _repository.Add(user);
+      await _mailService.SendVerificationCode(request.Email, user.VerificationCode);
+
+      return false;
    }
+
 
 
    public async Task<User> Login(LoginUserRequest request)
@@ -113,7 +128,7 @@ public class AuthService : IAuthService
 
       if (user.VerificationCode != request.VerificationCode)
       {
-         errors["code"] = "Invalid verification code";
+         errors["code"] = user.VerificationCode == string.Empty ? "User is already verified" : "Invalid verification code";
          
          throw new ApiException("Verification error",400, errors);
       }
