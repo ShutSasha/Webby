@@ -1,17 +1,29 @@
 'use client'
-import { useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 
 import Link from 'next/link'
 
+import { authenticate } from '@/app/api/auth'
 import GoogleIcon from '@/assets/auth/ic_google.svg'
 import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import AuthInput from '@/components/AuthInput'
 import Button from '@/components/Button'
 
+const initialState = {
+  success: false,
+  errors: null,
+}
+
 export default function LoginForm() {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+
+  const [state, formAction, isPending] = useActionState(authenticate, initialState)
+
+  useEffect(() => {
+    console.log('LOGIN_STATE', state)
+  }, [state])
 
   const handleInputsChange = (key: 'email' | 'password') => (value: string) => {
     if (key === 'email') setEmail(value)
@@ -19,7 +31,7 @@ export default function LoginForm() {
   }
 
   return (
-    <form className="flex w-full flex-col">
+    <form action={formAction} className="flex w-full flex-col">
       <h1 className="text-white text-xl font-bold text-center mb-4">Login</h1>
 
       <div className="flex flex-col gap-3">
@@ -41,14 +53,23 @@ export default function LoginForm() {
           onChange={handleInputsChange('password')}
           placeholder="Password"
         />
+        <div className={`${state?.errors ? 'block' : 'hidden'}`}>
+          {state?.errors &&
+            Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
+              <p key={field} className="text-red-500 text-sm">
+                {message}
+              </p>
+            ))}
+        </div>
 
         <Button
+          disabled={isPending}
           type="submit"
           viewType="Confirm"
           className="text-[16px] leading-[22px] font-semibold w-fit mx-auto"
           paddingClasses="px-5 py-2"
         >
-          Log in
+          {isPending ? 'Sending...' : 'Log in'}
         </Button>
         <p className="text-center text-sm leading-5 text-neutral-300">
           {`Haven't`} an account yet?{' '}

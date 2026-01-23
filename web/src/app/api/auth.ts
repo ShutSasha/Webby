@@ -2,25 +2,55 @@
 
 import { Route } from 'next'
 import { redirect } from 'next/dist/client/components/navigation'
-import { AuthError } from 'next-auth'
+import { AuthError, type User } from 'next-auth'
 
 import $api from '@/app/api'
 import { serverLog } from '@/lib/utils/utils'
 
 import { signIn } from '../../../auth'
 
-export async function authenticate(prevState: string | undefined, formData: FormData) {
+type ReturnError = {
+  success: boolean
+  errors: Record<string, string>
+}
+
+export async function login(email: string, password: string): Promise<User | ReturnError> {
+  try {
+    const { data: response } = await $api.post('/auth/sign-in', { email, password })
+    console.log('LOGIN_DATA', response)
+    return response.data as User
+  } catch (error: any) {
+    serverLog('LOGIN_ERROR', error, true)
+    return {
+      success: false,
+      errors: error.response?.data?.errors || { global: 'Server error' },
+    }
+  }
+}
+
+export async function authenticate(prevState: any, formData: FormData) {
   try {
     await signIn('credentials', formData)
   } catch (error) {
     if (error instanceof AuthError) {
-      switch (error.type) {
-        case 'CredentialsSignin':
-          return 'Невірні дані входу (Username або Password).'
-        default:
-          return 'Щось пішло не так.'
+      const cause = error.cause?.err?.message
+
+      try {
+        if (cause) {
+          const serverErrors = JSON.parse(cause)
+          return {
+            success: false,
+            errors: serverErrors,
+          }
+        }
+      } catch {}
+
+      return {
+        success: false,
+        errors: { email: 'Unknown login error' },
       }
     }
+
     throw error
   }
 }
