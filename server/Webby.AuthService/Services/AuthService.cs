@@ -91,7 +91,7 @@ public class AuthService : IAuthService
 
       if (!_passwordHasher.Verify(request.Password, user.Password))
       {
-         errors["password"] = "User isn't verified";
+         errors["password"] = "Incorrect password";
          throw new ApiException("Login error", 400, errors);
       }
 
