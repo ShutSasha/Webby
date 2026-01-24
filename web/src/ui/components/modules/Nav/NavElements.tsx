@@ -1,11 +1,12 @@
 import { ComponentProps, FC, SVGProps } from 'react'
 
+import Image from 'next/image'
 import Link from 'next/link'
 
 type DesktopNavProps = {
   href: ComponentProps<typeof Link>['href']
   isExpanded: boolean
-  Icon: FC<SVGProps<SVGSVGElement>>
+  Icon: FC<SVGProps<SVGSVGElement>> | string
   text: string
   className?: string
   iconSize: string
@@ -31,7 +32,11 @@ export function DesktopNavElement({ isExpanded, href, Icon, text, className, ico
         }`}
     >
       <div className={`w-full flex-1 flex flex-row items-center ${isExpanded ? 'gap-2 p-1 ' : 'gap-0 p-0 '}`}>
-        <Icon className={`${iconSize} shrink-0`} />
+        {typeof Icon === 'string' ? (
+          <Image src={Icon} alt={text} width={24} height={24} className={`${iconSize} object-cover rounded-full`} />
+        ) : (
+          <Icon className={`${iconSize} shrink-0`} />
+        )}
         <p
           className={`overflow-hidden whitespace-nowrap transition-opacity font-medium
             ${isExpanded ? 'opacity-100 ' : 'w-0 h-0 opacity-0'}`}

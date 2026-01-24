@@ -1,5 +1,5 @@
 'use client'
-import { useActionState, useEffect, useState } from 'react'
+import { useActionState, useState } from 'react'
 
 import Link from 'next/link'
 
@@ -18,12 +18,9 @@ const initialState = {
 export default function LoginForm() {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
-
   const [state, formAction, isPending] = useActionState(authenticate, initialState)
 
-  useEffect(() => {
-    console.log('LOGIN_STATE', state)
-  }, [state])
+  const callbackUrl = '/'
 
   const handleInputsChange = (key: 'email' | 'password') => (value: string) => {
     if (key === 'email') setEmail(value)
@@ -61,7 +58,7 @@ export default function LoginForm() {
               </p>
             ))}
         </div>
-
+        <input type="hidden" name="redirectTo" value={callbackUrl} />
         <Button
           disabled={isPending}
           type="submit"

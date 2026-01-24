@@ -31,6 +31,7 @@ export async function login(email: string, password: string): Promise<User | Ret
 export async function authenticate(prevState: any, formData: FormData) {
   try {
     await signIn('credentials', formData)
+    window.location.href = '/'
   } catch (error) {
     if (error instanceof AuthError) {
       const cause = error.cause?.err?.message

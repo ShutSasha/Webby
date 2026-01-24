@@ -9,18 +9,22 @@ export const authConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // token._id = user._id
-        // token.username = user.username
-        // token.sub = user._id
+        const u = user as any
+
+        token.id = u.userId
+        token.email = u.email
+        token.image = u.avatarUrl
+        token.username = u.username
       }
       return token
     },
 
     async session({ session, token }) {
       if (token && session.user) {
-        // session.user._id = token._id
-        // session.user.username = token.username
-        // session.user.name = token.username
+        session.user.id = token.id as string
+        session.user.name = token.username as string
+        session.user.email = token.email as string
+        session.user.image = token.image as string
       }
       return session
     },
