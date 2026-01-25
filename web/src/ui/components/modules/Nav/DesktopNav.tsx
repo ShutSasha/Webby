@@ -1,23 +1,17 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
 
 import ExpandIcon from '@/assets/icons/ic_expand.svg'
 import LogoIcon from '@/assets/icons/ic_logo.svg'
-import UserProfileIcon from '@/assets/icons/ic_user_profile.svg'
 import { navDesktopElements } from '@/lib/placeholder-data/nav-side'
 
 import { DesktopNavElement } from './NavElements'
+import { UserProfile } from './UserProfile'
 
 export default function DesktopNav() {
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
-  const { data: session } = useSession()
-
-  useEffect(() => {
-    console.log('user data in desktop nav', session?.user?.image)
-  }, [session])
 
   const toggleSideNav = () => setIsExpanded(prev => !prev)
 
@@ -53,14 +47,7 @@ export default function DesktopNav() {
           ))}
         </ul>
 
-        <DesktopNavElement
-          href={'/sign-up'}
-          text={'Log in | Sign up'}
-          isExpanded={isExpanded}
-          Icon={session?.user?.image ? session?.user?.image : UserProfileIcon}
-          className={`mt-auto ${isExpanded ? 'w-full' : ''}`}
-          iconSize="size-8"
-        />
+        <UserProfile isExpanded={isExpanded} iconSize="size-8" />
       </nav>
     </aside>
   )
