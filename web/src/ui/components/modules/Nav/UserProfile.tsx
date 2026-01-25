@@ -1,4 +1,5 @@
 'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -61,7 +62,7 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
           className={`overflow-hidden whitespace-nowrap transition-opacity font-medium
             ${isExpanded ? 'opacity-100 ' : 'w-0 h-0 opacity-0'}`}
         >
-          {session.user.name}
+          {session.user.username}
         </p>
       </div>
     </Link>

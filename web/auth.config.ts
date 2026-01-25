@@ -1,7 +1,5 @@
 import type { NextAuthConfig } from 'next-auth'
 
-// TODO configure new user object
-
 export const authConfig = {
   pages: {
     signIn: '/login',
@@ -9,22 +7,20 @@ export const authConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        const u = user as any
-
-        token.id = u.userId
-        token.email = u.email
-        token.image = u.avatarUrl
-        token.username = u.username
+        token.id = user.userId
+        token.username = user.username
+        token.email = user.email
+        token.image = user.avatarUrl
       }
       return token
     },
 
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string
-        session.user.name = token.username as string
-        session.user.email = token.email as string
-        session.user.image = token.image as string
+        session.user.id = token.id
+        session.user.username = token.username
+        session.user.email = token.email
+        session.user.image = token.image
       }
       return session
     },
