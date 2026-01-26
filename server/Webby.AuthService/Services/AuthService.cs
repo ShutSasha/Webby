@@ -64,7 +64,8 @@ public class AuthService : IAuthService
          //TODO: change to default user image from aws bucket
          AvatarUrl = "https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg",
          VerificationCode = GenerateActivationCode(),
-         isVerified = false
+         isVerified = false,
+         Role = Role.User
       };
 
       await _repository.Add(user);
@@ -126,6 +127,13 @@ public class AuthService : IAuthService
          throw new ApiException("Verification error",400, errors);
       }
 
+      if (user.isVerified)
+      {
+         errors["code"] = "User is already verified";
+         
+         throw new ApiException("Verification error",400, errors);
+      }
+
       if (user.VerificationCode != request.VerificationCode)
       {
          errors["code"] = user.VerificationCode == string.Empty ? "User is already verified" : "Invalid verification code";
@@ -140,8 +148,7 @@ public class AuthService : IAuthService
 
       return user;
    }
-
-
+   
    private string GenerateActivationCode()
    {
       const int length = 6;
