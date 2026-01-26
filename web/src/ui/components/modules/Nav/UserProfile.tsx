@@ -24,7 +24,7 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
   if (status === 'loading') {
     return (
       <div
-        className={`${iconSize} bg-neutral-800 mt-auto animate-pulse rounded-full ${isExpanded ? 'w-full' : ''}`}
+        className={`${iconSize} bg-neutral-700 mt-auto animate-pulse rounded-full ${isExpanded ? 'w-full' : ''}`}
       ></div>
     )
   }

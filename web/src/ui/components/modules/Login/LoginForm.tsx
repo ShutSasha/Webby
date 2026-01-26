@@ -5,12 +5,14 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
+import $api from '@/app/api'
 import { authenticate } from '@/app/api/auth'
 import GoogleIcon from '@/assets/auth/ic_google.svg'
 import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import AuthInput from '@/components/AuthInput'
 import Button from '@/components/Button'
+import { serverLog } from '@/lib/utils/utils'
 
 const initialState = {
   success: false,
@@ -37,6 +39,23 @@ export default function LoginForm() {
 
     handleSuccess()
   }, [state.success])
+
+  const resendVerifyCode = async () => {
+    const api = process.env.NEXT_PUBLIC_API_URL
+    
+    try {
+      await fetch(`${api}/auth/resend-verification-code`, {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        keepalive: true,
+      })
+    } catch (error) {
+      serverLog('Error resending verification code:', error)
+    }
+  }
 
   const handleInputsChange = (key: 'email' | 'password') => (value: string) => {
     if (key === 'email') setEmail(value)
@@ -71,6 +90,21 @@ export default function LoginForm() {
             Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
               <p key={field} className="text-red-500 text-sm">
                 {message}
+                {message === `User isn't verified` ? (
+                  <span>
+                    {'. '}
+                    Verify it{' '}
+                    <Link
+                      href={`/sign-up/email-verify?email=${email}`}
+                      className="underline"
+                      onClick={resendVerifyCode}
+                    >
+                      here
+                    </Link>
+                  </span>
+                ) : (
+                  ''
+                )}
               </p>
             ))}
         </div>

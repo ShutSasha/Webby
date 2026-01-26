@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-// eslint-disable-next-line import/named
 import { OTPInput, SlotProps } from 'input-otp'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -16,6 +15,44 @@ export default function VerifyPage() {
 
   const [errors, setErrors] = useState<Record<string, string> | null>(null)
   const [success, setSuccess] = useState<boolean>(false)
+  const [codeMessage, setCodeMessage] = useState<string>('')
+
+  const [timeLeft, setTimeLeft] = useState<number>(0)
+  const TIMER_KEY = `verify_timer_${email}`
+
+  useEffect(() => {
+    const savedExpiry = localStorage.getItem(TIMER_KEY)
+    if (savedExpiry) {
+      const remaining = Math.floor((parseInt(savedExpiry) - Date.now()) / 1000)
+      if (remaining > 0) {
+        setTimeLeft(remaining)
+      } else {
+        localStorage.removeItem(TIMER_KEY)
+      }
+    }
+  }, [email, TIMER_KEY])
+
+  useEffect(() => {
+    if (timeLeft <= 0) return
+
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          localStorage.removeItem(TIMER_KEY)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [timeLeft, TIMER_KEY])
+
+  const startTimer = () => {
+    const expiryDate = Date.now() + 60 * 1000 // 60 seconds from now
+    localStorage.setItem(TIMER_KEY, expiryDate.toString())
+    setTimeLeft(60)
+  }
 
   const handleComplete = async (code: string) => {
     setSuccess(false)
@@ -31,6 +68,19 @@ export default function VerifyPage() {
 
       const serverErrors = error.response?.data?.errors || null
       setErrors(serverErrors)
+    } finally {
+      setCodeMessage('')
+    }
+  }
+
+  const resendVerifyCode = async () => {
+    try {
+      if (timeLeft > 0) return
+      await $api.post('/auth/resend-verification-code', { email })
+      setCodeMessage('Verification code resent successfully.')
+      startTimer()
+    } catch (error) {
+      serverLog('Error resending verification code:', error)
     }
   }
 
@@ -64,7 +114,19 @@ export default function VerifyPage() {
             </p>
           ))}
 
-        {!success && <button className="text-emerald-500 text-sm hover:underline cursor-pointer">Resend code</button>}
+        {!success && (
+          <button
+            className={`text-sm transition-all ${
+              timeLeft > 0 ? 'text-neutral-500 cursor-not-allowed' : 'text-emerald-500 hover:underline cursor-pointer'
+            }`}
+            onClick={resendVerifyCode}
+            disabled={timeLeft > 0}
+          >
+            {timeLeft > 0 ? `Resend code in ${timeLeft}s` : 'Resend code'}
+          </button>
+        )}
+
+        {codeMessage && <p className="text-green-500 text-sm">{codeMessage}</p>}
 
         {success && (
           <>
