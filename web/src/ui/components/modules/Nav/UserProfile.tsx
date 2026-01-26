@@ -2,8 +2,9 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 
+import LogoutIcon from '@/assets/auth/ic_logout.svg'
 import UserProfileIcon from '@/assets/icons/ic_user_profile.svg'
 
 import { DesktopNavElement } from './NavElements'
@@ -15,6 +16,10 @@ type UserProfileProps = {
 
 export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
   const { data: session, status } = useSession()
+
+  const handleLogout = async () => {
+    await signOut({ redirectTo: '/login' })
+  }
 
   if (status === 'loading') {
     return (
@@ -38,15 +43,16 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
   }
 
   return (
-    <Link
-      href={'/'}
-      className={`flex h-fit cursor-pointer flex-col items-center rounded-sm mt-auto ${
-        isExpanded
-          ? 'flex-row transition-colors duration-300 ease-out hover:bg-emerald-500 hover:text-neutral-800 w-full'
-          : 'flex-col hover:text-emerald-500'
-        }`}
+    <div
+      className={`flex h-fit items-center rounded-sm mt-auto ${
+        isExpanded ? 'flex-row w-full gap-2' : ' hover:text-emerald-500'
+      }`}
     >
-      <div className={`w-full flex-1 flex flex-row items-center ${isExpanded ? 'gap-2 p-1 ' : 'gap-0 p-0 '}`}>
+      <Link
+        href={'/'}
+        className={`w-full flex-1 flex flex-row items-center rounded-sm transition-colors duration-300 ease-out
+          hover:bg-neutral-800 ${isExpanded ? 'gap-2 p-1 ' : 'gap-0 p-0 '}`}
+      >
         <Image
           src={
             session.user.image
@@ -64,7 +70,15 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
         >
           {session.user.username}
         </p>
-      </div>
-    </Link>
+      </Link>
+      {isExpanded && (
+        <LogoutIcon
+          onClick={handleLogout}
+          className={
+            'size-6 text-neutral-300 hover:text-red-600 transition-colors duration-300 ease-out cursor-pointer'
+          }
+        />
+      )}
+    </div>
   )
 }

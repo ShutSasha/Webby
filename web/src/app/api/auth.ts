@@ -17,7 +17,7 @@ type ReturnError = {
 export async function login(email: string, password: string): Promise<User | ReturnError> {
   try {
     const { data: response } = await $api.post('/auth/sign-in', { email, password })
-    console.log('LOGIN_DATA', response)
+
     return response.data as User
   } catch (error: any) {
     serverLog('LOGIN_ERROR', error, true)
@@ -30,8 +30,12 @@ export async function login(email: string, password: string): Promise<User | Ret
 
 export async function authenticate(prevState: any, formData: FormData) {
   try {
-    await signIn('credentials', formData)
-    window.location.href = '/'
+    await signIn('credentials', {
+      ...Object.fromEntries(formData),
+      redirect: false,
+    })
+
+    return { success: true, errors: null }
   } catch (error) {
     if (error instanceof AuthError) {
       const cause = error.cause?.err?.message

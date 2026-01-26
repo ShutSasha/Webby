@@ -1,7 +1,9 @@
 'use client'
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 import { authenticate } from '@/app/api/auth'
 import GoogleIcon from '@/assets/auth/ic_google.svg'
@@ -19,8 +21,22 @@ export default function LoginForm() {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [state, formAction, isPending] = useActionState(authenticate, initialState)
+  const { update } = useSession()
+  const router = useRouter()
 
   const callbackUrl = '/'
+
+  useEffect(() => {
+    if (!state.success) return
+
+    const handleSuccess = async () => {
+      await update()
+      router.replace('/')
+      router.refresh()
+    }
+
+    handleSuccess()
+  }, [state.success])
 
   const handleInputsChange = (key: 'email' | 'password') => (value: string) => {
     if (key === 'email') setEmail(value)
