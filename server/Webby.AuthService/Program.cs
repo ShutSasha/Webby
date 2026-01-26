@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Webby.AuthService.Extensions;
 using Webby.AuthService.Helpers.Mail;
 using Webby.AuthService.Middlewares;
@@ -12,7 +13,10 @@ services.AddSwaggerGen();
 services.AddCorsPolicy("AllowApiGetaway");
 services.AddDbConnection(configuration);
 
-services.AddControllers();
+services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 services.Configure<SenderDataSettings>(configuration.GetSection("SenderData"));
 
 services.AddRepositories();
