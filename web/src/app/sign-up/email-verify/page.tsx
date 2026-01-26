@@ -7,52 +7,21 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
 import $api from '@/app/api'
+import { useIsClient } from '@/lib/hooks/useIsClient'
+import { useResendTimer } from '@/lib/hooks/useResendTimer'
 import { BaseServerResponse, serverLog } from '@/lib/utils/utils'
 
 export default function VerifyPage() {
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
 
+  const [loading, setLoading] = useState<boolean>(false)
   const [errors, setErrors] = useState<Record<string, string> | null>(null)
   const [success, setSuccess] = useState<boolean>(false)
   const [codeMessage, setCodeMessage] = useState<string>('')
 
-  const [timeLeft, setTimeLeft] = useState<number>(0)
-  const TIMER_KEY = `verify_timer_${email}`
-
-  useEffect(() => {
-    const savedExpiry = localStorage.getItem(TIMER_KEY)
-    if (savedExpiry) {
-      const remaining = Math.floor((parseInt(savedExpiry) - Date.now()) / 1000)
-      if (remaining > 0) {
-        setTimeLeft(remaining)
-      } else {
-        localStorage.removeItem(TIMER_KEY)
-      }
-    }
-  }, [email, TIMER_KEY])
-
-  useEffect(() => {
-    if (timeLeft <= 0) return
-
-    const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          localStorage.removeItem(TIMER_KEY)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [timeLeft, TIMER_KEY])
-
-  const startTimer = () => {
-    const expiryDate = Date.now() + 60 * 1000 // 60 seconds from now
-    localStorage.setItem(TIMER_KEY, expiryDate.toString())
-    setTimeLeft(60)
-  }
+  const { timeLeft, start: startTimer } = useResendTimer(email, 60)
+  const isClientReady = useIsClient()
 
   const handleComplete = async (code: string) => {
     setSuccess(false)
@@ -74,6 +43,8 @@ export default function VerifyPage() {
   }
 
   const resendVerifyCode = async () => {
+    setLoading(true)
+    setCodeMessage('')
     try {
       if (timeLeft > 0) return
       await $api.post('/auth/resend-verification-code', { email })
@@ -81,7 +52,17 @@ export default function VerifyPage() {
       startTimer()
     } catch (error) {
       serverLog('Error resending verification code:', error)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  if (!isClientReady) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    )
   }
 
   return (
@@ -120,9 +101,9 @@ export default function VerifyPage() {
               timeLeft > 0 ? 'text-neutral-500 cursor-not-allowed' : 'text-emerald-500 hover:underline cursor-pointer'
             }`}
             onClick={resendVerifyCode}
-            disabled={timeLeft > 0}
+            disabled={timeLeft > 0 || loading}
           >
-            {timeLeft > 0 ? `Resend code in ${timeLeft}s` : 'Resend code'}
+            {timeLeft > 0 ? `Resend code in ${timeLeft}s` : loading ? 'Sending...' : 'Resend code'}
           </button>
         )}
 
