@@ -58,15 +58,15 @@ body {
 
 @layer base {
   ::-webkit-scrollbar {
-    @apply w-2;
+    @apply w-4;
   }
   ::-webkit-scrollbar-track {
     @apply bg-neutral-900;
   }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full border-2 border-neutral-900 bg-neutral-700/70;
+    @apply rounded-full border-4 border-neutral-900 bg-neutral-700/70;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-red-400;
+    @apply bg-neutral-600/80;
   }
 }
