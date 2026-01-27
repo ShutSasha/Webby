@@ -1,6 +1,6 @@
 import NextAuth, { type User } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
-// import Google from 'next-auth/providers/google'
+import Google from 'next-auth/providers/google'
 
 import { login } from '@/app/api/auth'
 
@@ -9,10 +9,10 @@ import { authConfig } from './auth.config'
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
   providers: [
-    // Google({
-    //   clientId: process.env.AUTH_GOOGLE_ID,
-    //   clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    // }),
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
     Credentials({
       async authorize(credentials) {
         const response = await login(credentials.email as string, credentials.password as string)
