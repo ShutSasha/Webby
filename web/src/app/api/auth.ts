@@ -21,12 +21,11 @@ export async function login(email: string, password: string): Promise<User | Ret
     return response.data as User
   } catch (error: any) {
     serverLog('LOGIN_ERROR', error, true)
+    const errors = error.response?.data?.errors
+    const message = error.response?.data?.message
     return {
       success: false,
-      errors:
-        error.response?.data?.errors || error.response?.data?.message
-          ? { global: error.response?.data?.message }
-          : { global: 'Server error' },
+      errors: errors ? errors : message ? { global: message } : { global: 'unknown login error' },
     }
   }
 }
