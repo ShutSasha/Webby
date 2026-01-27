@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
-import $api from '@/app/api'
 import { authenticate } from '@/app/api/auth'
 import GoogleIcon from '@/assets/auth/ic_google.svg'
 import MailIcon from '@/assets/auth/ic_mail.svg'
@@ -42,7 +41,7 @@ export default function LoginForm() {
 
   const resendVerifyCode = async () => {
     const api = process.env.NEXT_PUBLIC_API_URL
-    
+
     try {
       await fetch(`${api}/auth/resend-verification-code`, {
         method: 'POST',
@@ -57,9 +56,12 @@ export default function LoginForm() {
     }
   }
 
-  const handleInputsChange = (key: 'email' | 'password') => (value: string) => {
-    if (key === 'email') setEmail(value)
-    if (key === 'password') setPassword(value)
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value)
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value)
   }
 
   return (
@@ -72,7 +74,7 @@ export default function LoginForm() {
           name="email"
           type="email"
           value={email}
-          onChange={handleInputsChange('email')}
+          onChange={handleEmailChange}
           placeholder="Email"
           autoComplete="email"
         />
@@ -82,7 +84,7 @@ export default function LoginForm() {
           name="password"
           type="password"
           value={password}
-          onChange={handleInputsChange('password')}
+          onChange={handlePasswordChange}
           placeholder="Password"
         />
         <div className={`${state?.errors ? 'block' : 'hidden'}`}>

@@ -23,7 +23,10 @@ export async function login(email: string, password: string): Promise<User | Ret
     serverLog('LOGIN_ERROR', error, true)
     return {
       success: false,
-      errors: error.response?.data?.errors || { global: 'Server error' },
+      errors:
+        error.response?.data?.errors || error.response?.data?.message
+          ? { global: error.response?.data?.message }
+          : { global: 'Server error' },
     }
   }
 }
