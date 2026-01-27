@@ -82,8 +82,11 @@ public class AuthService : IAuthService
       var user = (await _repository.GetByPredicate(u => u.Email == request.Email)).FirstOrDefault();
 
       if (user == null)
-         throw new ApiException("User not found", 404);
-
+      {
+         errors["message"] = "User with specified credentials wasn't found";
+         throw new ApiException("Login error", 404,errors);
+      }
+      
       if (!user.isVerified)
       {
          errors["isVerified"] = "User isn't verified";
@@ -102,10 +105,12 @@ public class AuthService : IAuthService
    public async Task SendCode(ResendVerificationCodeRequest request)
    {
       var user = (await _repository.GetByPredicate(user => user.Email == request.Email)).FirstOrDefault();
-
+      var errors = new Dictionary<string, string>();
+      
       if (user == null)
       {
-         throw new ApiException("User not found", 404);
+         errors["message"] = "User with specified email wasn't found";
+         throw new ApiException("Send code error", 404,errors);
       }
 
       var newVerificationCode = GenerateActivationCode();
