@@ -1,5 +1,5 @@
 'use client'
-import { useActionState, useState } from 'react'
+import { useActionState } from 'react'
 
 import Link from 'next/link'
 
@@ -18,59 +18,17 @@ const initialState = {
 }
 
 export default function SignUpForm() {
-  const [email, setEmail] = useState<string>('')
-  const [username, setUsername] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-  const [repeatPassword, setRepeatPassword] = useState<string>('')
-
   const [state, formAction, isPending] = useActionState(registerUser, initialState)
-
-  const handleInputsChange = (key: 'email' | 'username' | 'password' | 'repeatPassword') => (value: string) => {
-    if (key === 'email') setEmail(value)
-    if (key === 'username') setUsername(value)
-    if (key === 'password') setPassword(value)
-    if (key === 'repeatPassword') setRepeatPassword(value)
-  }
 
   return (
     <form action={formAction} className="flex w-full flex-col">
       <h1 className="text-white text-xl font-bold text-center mb-4">Sign up</h1>
 
       <div className="flex flex-col gap-3">
-        <AuthInput
-          Icon={MailIcon}
-          name="email"
-          type="email"
-          value={email}
-          onChange={handleInputsChange('email')}
-          placeholder="Email"
-          autoComplete="email"
-        />
-        <AuthInput
-          Icon={UsernameIcon}
-          name="username"
-          type="text"
-          value={username}
-          onChange={handleInputsChange('username')}
-          placeholder="Username"
-          autoComplete="username"
-        />
-        <AuthInput
-          Icon={PasswordIcon}
-          name="password"
-          type="password"
-          value={password}
-          onChange={handleInputsChange('password')}
-          placeholder="Password"
-        />
-        <AuthInput
-          Icon={RepeatPasswordIcon}
-          name="repeatPassword"
-          type="password"
-          value={repeatPassword}
-          onChange={handleInputsChange('repeatPassword')}
-          placeholder="Repeat Password"
-        />
+        <AuthInput Icon={MailIcon} name="email" type="email" placeholder="Email" autoComplete="email" />
+        <AuthInput Icon={UsernameIcon} name="username" type="text" placeholder="Username" autoComplete="username" />
+        <AuthInput Icon={PasswordIcon} name="password" type="password" placeholder="Password" />
+        <AuthInput Icon={RepeatPasswordIcon} name="repeatPassword" type="password" placeholder="Repeat Password" />
         <div>
           {state.errors &&
             Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
