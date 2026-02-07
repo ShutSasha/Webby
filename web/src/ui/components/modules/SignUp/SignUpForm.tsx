@@ -2,6 +2,7 @@
 import { useActionState } from 'react'
 
 import Link from 'next/link'
+import { signIn } from 'next-auth/react'
 
 import { registerUser } from '@/app/api/auth'
 import GoogleIcon from '@/assets/auth/ic_google.svg'
@@ -56,7 +57,10 @@ export default function SignUpForm() {
         <p className="text-center text-sm leading-5 text-neutral-300">or sign up via </p>
       </div>
       <div className="flex flex-row gap-1 items-center justify-center">
-        <GoogleIcon className="w-11 h-11 hover:text-emerald-500 transition-colors duration-300 ease-out cursor-pointer" />
+        <GoogleIcon
+          className="w-11 h-11 hover:text-emerald-500 transition-colors duration-300 ease-out cursor-pointer"
+          onClick={() => signIn('google', { callbackUrl: '/' })}
+        />
       </div>
     </form>
   )

@@ -3,7 +3,7 @@ import { useActionState, useEffect, useState } from 'react'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 
 import { authenticate } from '@/app/api/auth'
 import GoogleIcon from '@/assets/auth/ic_google.svg'
@@ -130,7 +130,10 @@ export default function LoginForm() {
         <p className="text-center text-sm leading-5 text-neutral-300">or log in via </p>
       </div>
       <div className="flex flex-row gap-1 items-center justify-center">
-        <GoogleIcon className="w-11 h-11 hover:text-emerald-500 transition-colors duration-300 ease-out cursor-pointer" />
+        <GoogleIcon
+          className="w-11 h-11 hover:text-emerald-500 transition-colors duration-300 ease-out cursor-pointer"
+          onClick={() => signIn('google', { callbackUrl: '/' })}
+        />
       </div>
     </form>
   )
