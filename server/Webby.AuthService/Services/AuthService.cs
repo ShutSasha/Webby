@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Webby.AuthService.Dtos;
 using Webby.AuthService.Helpers.Exception;
 using Webby.AuthService.Interfaces.Helpers;
@@ -13,12 +14,14 @@ public class AuthService : IAuthService
    private readonly IRepository<User> _repository;
    private readonly IPasswordHasher _passwordHasher;
    private readonly IMailService _mailService;
+   private readonly IMapper _mapper;
 
-   public AuthService(IPasswordHasher passwordHasher, IRepository<User> repository, IMailService mailService)
+   public AuthService(IPasswordHasher passwordHasher, IRepository<User> repository, IMailService mailService, IMapper mapper)
    {
       _passwordHasher = passwordHasher;
       _repository = repository;
       _mailService = mailService;
+      _mapper = mapper;
    }
 
    public async Task<bool> Register(RegisterUserRequest request)
@@ -72,17 +75,15 @@ public class AuthService : IAuthService
 
       return false;
    }
-
-
-
-   public async Task<User> Login(LoginUserRequest request)
+   
+   public async Task<UserDto> Login(LoginUserRequest request)
    {
       var errors = new Dictionary<string, string>();
       var user = (await _repository.GetByPredicate(u => u.Email == request.Email)).FirstOrDefault();
 
       if (user == null)
          throw new ApiException("User not found", 404);
-
+      
       if (!user.isVerified)
       {
          errors["isVerified"] = "User isn't verified";
@@ -91,11 +92,11 @@ public class AuthService : IAuthService
 
       if (!_passwordHasher.Verify(request.Password, user.Password))
       {
-         errors["password"] = "Incorrect password";
+         errors["password"] = user.Password != null ? "Incorrect password" : "Unfilled password field. Use another type of signing in and use function of chaning password";
          throw new ApiException("Login error", 400, errors);
       }
 
-      return user;
+      return _mapper.Map<UserDto>(user);
    }
    
    public async Task SendCode(ResendVerificationCodeRequest request)
@@ -114,7 +115,7 @@ public class AuthService : IAuthService
       await _mailService.SendVerificationCode(user.Email, newVerificationCode);
    }
 
-   public async Task<User> VerifyEmail(VerifyUserRequest request)
+   public async Task<UserDto> VerifyEmail(VerifyUserRequest request)
    {
       var user = (await _repository.GetByPredicate(user => user.Email == request.Email)).FirstOrDefault();
       var errors = new Dictionary<string, string>();
@@ -138,10 +139,46 @@ public class AuthService : IAuthService
 
       await _repository.Update(user);
 
-      return user;
+      return _mapper.Map<UserDto>(user);
    }
 
+   public async Task<UserDto> PerformGoogleAuth(GoogleAuthRequest request)
+   {
+      
+      var user = (await _repository
+            .GetByPredicate(u => u.UserId == request.Id))
+         .FirstOrDefault();
 
+      if (user != null)
+      {
+         return _mapper.Map<UserDto>(user);
+      }
+      
+      var existingByEmail = (await _repository
+            .GetByPredicate(u => u.Email == request.Email))
+         .FirstOrDefault();
+
+      if (existingByEmail != null)
+      {
+         throw new ApiException("Email already registered with another authentication method", 400);
+      }
+      
+      var newUser = new User
+      {
+         UserId = request.Id,
+         Email = request.Email,
+         Username = request.Name,
+         AvatarUrl = request.Image,
+         isVerified = true,
+         VerificationCode = string.Empty,
+         Password = null
+      };
+
+      await _repository.Add(newUser);
+
+      return _mapper.Map<UserDto>(newUser);
+   }
+   
    private string GenerateActivationCode()
    {
       const int length = 6;

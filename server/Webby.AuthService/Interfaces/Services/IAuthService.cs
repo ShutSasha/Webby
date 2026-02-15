@@ -6,8 +6,8 @@ namespace Webby.AuthService.Interfaces.Services;
 public interface IAuthService
 {
    Task<bool> Register(RegisterUserRequest request);
-   Task<User> Login(LoginUserRequest request);
+   Task<UserDto> Login(LoginUserRequest request);
    Task SendCode(ResendVerificationCodeRequest request);
-   Task<User> VerifyEmail(VerifyUserRequest request);
-   
+   Task<UserDto> VerifyEmail(VerifyUserRequest request);
+   Task<UserDto> PerformGoogleAuth(GoogleAuthRequest request);
 }
