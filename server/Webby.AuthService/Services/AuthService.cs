@@ -92,7 +92,9 @@ public class AuthService : IAuthService
 
       if (!_passwordHasher.Verify(request.Password, user.Password))
       {
-         errors["password"] = user.Password != null ? "Incorrect password" : "Unfilled password field. Use another type of signing in and use function of chaning password";
+         errors["password"] = user.Password != null 
+            ? "Incorrect password" 
+            : "Missing password. Use a different login method and reset password for manually signing.";
          throw new ApiException("Login error", 400, errors);
       }
 
@@ -144,23 +146,13 @@ public class AuthService : IAuthService
 
    public async Task<UserDto> PerformGoogleAuth(GoogleAuthRequest request)
    {
-      
       var user = (await _repository
-            .GetByPredicate(u => u.UserId == request.Id))
+            .GetByPredicate(u => u.UserId == request.Id || u.Email == request.Email))
          .FirstOrDefault();
 
       if (user != null)
       {
          return _mapper.Map<UserDto>(user);
-      }
-      
-      var existingByEmail = (await _repository
-            .GetByPredicate(u => u.Email == request.Email))
-         .FirstOrDefault();
-
-      if (existingByEmail != null)
-      {
-         throw new ApiException("Email already registered with another authentication method", 400);
       }
       
       var newUser = new User
@@ -169,6 +161,7 @@ public class AuthService : IAuthService
          Email = request.Email,
          Username = request.Name,
          AvatarUrl = request.Image,
+         About = string.Empty,
          isVerified = true,
          VerificationCode = string.Empty,
          Password = null
