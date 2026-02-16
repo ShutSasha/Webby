@@ -11,6 +11,7 @@ import SettingsIcon from '@/assets/icons/Player/settings.svg'
 import MaxVolume from '@/assets/icons/Player/volume-max.svg'
 import MinVolume from '@/assets/icons/Player/volume-min.svg'
 import MutedVolume from '@/assets/icons/Player/volume-muted.svg'
+import { useIsClient } from '@/lib/hooks/useIsClient'
 import { usePlayerStore } from '@/stores/player.store'
 
 import Duration from './Duration'
@@ -27,7 +28,10 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const [prevVolume, setPrevVolume] = useState(1)
   const [showControls, setShowControls] = useState(true)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const [isMounted, setIsMounted] = useState(false)
+  const isMounted = useIsClient()
+
+  const [hoverTime, setHoverTime] = useState<number | null>(null)
+  const [hoverX, setHoverX] = useState<number>(0)
 
   const baseUserVolume = usePlayerStore(state => state.baseVolume)
   const setBaseUserVolume = usePlayerStore(state => state.setBaseVolume)
@@ -119,10 +123,20 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   const handleSeekMouseUp = (event: React.SyntheticEvent<HTMLInputElement>) => {
     const inputTarget = event.target as HTMLInputElement
-    setState(prevState => ({ ...prevState, seeking: false }))
-    if (playerRef.current) {
-      playerRef.current.currentTime = Number.parseFloat(inputTarget.value) * playerRef.current.duration
-    }
+    const player = playerRef.current
+
+    if (!player) return
+
+    const newTime = hoverTime !== null ? hoverTime : Number.parseFloat(inputTarget.value) * duration
+
+    setState(prevState => ({
+      ...prevState,
+      seeking: false,
+      played: newTime / duration,
+      playedSeconds: newTime,
+    }))
+
+    player.currentTime = newTime
   }
 
   const handleTimeUpdate = () => {
@@ -202,9 +216,18 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     }
   }, [playing])
 
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const percentage = Math.max(0, Math.min(1, x / rect.width))
+
+    setHoverTime(percentage * duration)
+    setHoverX(x)
+  }
+
+  const handleProgressMouseLeave = () => {
+    setHoverTime(null)
+  }
 
   if (!isMounted)
     return (
@@ -292,9 +315,26 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
           className={`absolute bottom-3 left-3 right-3 flex flex-col gap-2 transition-transform duration-500
             ${showControls ? 'translate-y-0' : 'translate-y-10 pointer-events-none'}`}
         >
-          {/* Progress Bar */}
-          <div className="relative h-1.5 w-full bg-white/20 rounded-full group/bar">
-            {/* Pre-Loaded */}
+          {/* Progress Bar Container */}
+          <div
+            className="relative h-1.5 w-full bg-white/20 rounded-full group/bar cursor-pointer"
+            onMouseMove={handleProgressMouseMove}
+            onMouseLeave={handleProgressMouseLeave}
+          >
+            {/* Hint (Tooltip) */}
+            {hoverTime !== null && (
+              <div
+                className="absolute bottom-4 -translate-x-1/2 bg-white text-black px-1.5 py-0.5 rounded-md text-[12px]
+                  font-bold shadow-lg pointer-events-none transition-opacity"
+                style={{ left: `${hoverX}px` }}
+              >
+                <Duration seconds={hoverTime} />
+
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45" />
+              </div>
+            )}
+
+            {/* Pre-Loaded line */}
             <div
               className="absolute h-full bg-white/30 rounded-full transition-all"
               style={{ width: `${loaded * 100}%` }}
@@ -302,6 +342,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
             {/* Played line */}
             <div className="absolute h-full bg-emerald-500 rounded-full" style={{ width: `${played * 100}%` }} />
+
             {/* Played Circle */}
             <div
               className="absolute h-2.5 w-2.5 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
