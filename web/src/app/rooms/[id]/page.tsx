@@ -1,3 +1,4 @@
+import { testVideoUrls } from '@/lib/placeholder-data/player'
 import MainLayout from '@/ui/components/MainLayout'
 import CustomPlayer from '@/ui/components/modules/Player/CustomPlayer'
 
@@ -10,7 +11,7 @@ export default function RoomPage() {
 
           {/* Short video (3 minutes) https://www.youtube.com/watch?v=r1753DCSO4M&list=RDHURv04Ogd0g&index=37 */}
           {/* Longer video (1 hour) https://www.youtube.com/watch?v=Zmrj90wYt4c */}
-          <CustomPlayer videoUrl="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4" />
+          <CustomPlayer videoUrl={testVideoUrls[0].link} />
 
           <div className="hidden xl:block xl:w-[300px] 2xl:w-[340px] flex-none bg-amber-700 rounded-2xl" />
         </div>
