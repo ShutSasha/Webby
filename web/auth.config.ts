@@ -13,20 +13,20 @@ export const authConfig = {
         try {
           console.log('authConfig.signIn - Google user:', user)
 
-          const { data } = await $api.post<GoogleAuthRes>('/auth/google-auth', {
+          const { data: googleAuthResponse } = await $api.post<GoogleAuthRes>('/auth/google-auth', {
             id: user.id,
             name: user.name,
             email: user.email,
             image: user.image,
           })
 
-          console.log('GOOGLE_AUTH RESPONSE', data)
-          if (!data.success) return false
+          console.log('GOOGLE_AUTH RESPONSE', googleAuthResponse)
+          if (!googleAuthResponse.success) return false
 
-          user.userId = user.id as string
-          user.username = user.name as string
-          user.email = user.email
-          user.avatarUrl = user.image as string
+          user.userId = googleAuthResponse.data.userId
+          user.username = googleAuthResponse.data.username
+          user.email = googleAuthResponse.data.email
+          user.avatarUrl = googleAuthResponse.data.avatarUrl
 
           return true
         } catch (error) {
