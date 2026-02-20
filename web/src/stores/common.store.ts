@@ -5,6 +5,7 @@ type State = {
   isMobileNavOpen: boolean
   toggleMobileNav: () => void
 }
+
 export const useCommonStore = create(
   persist<State>(
     set => ({

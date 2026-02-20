@@ -29,6 +29,7 @@ const eslintConfig = [
           argsIgnorePattern: '^_',
         },
       ],
+      'import/named': 'off',
       'no-console': ['warn', { allow: ['error'] }],
       'import/order': [
         'warn',
