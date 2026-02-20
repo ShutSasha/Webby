@@ -1,5 +1,5 @@
 'use client'
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
@@ -19,17 +19,75 @@ const initialState = {
 }
 
 export default function SignUpForm() {
+  const [email, setEmail] = useState<string>('')
+  const [username, setUsername] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [repeatPassword, seRepeatPassword] = useState<string>('')
+
   const [state, formAction, isPending] = useActionState(registerUser, initialState)
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+
+  const togglePassword = () => setShowPassword(prev => !prev)
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value)
+  }
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value)
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value)
+  }
+
+  const handleRepeatPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    seRepeatPassword(e.target.value)
+  }
 
   return (
     <form action={formAction} className="flex w-full flex-col">
       <h1 className="text-white text-xl font-bold text-center mb-4">Sign up</h1>
 
       <div className="flex flex-col gap-3">
-        <AuthInput Icon={MailIcon} name="email" type="email" placeholder="Email" autoComplete="email" />
-        <AuthInput Icon={UsernameIcon} name="username" type="text" placeholder="Username" autoComplete="username" />
-        <AuthInput Icon={PasswordIcon} name="password" type="password" placeholder="Password" />
-        <AuthInput Icon={RepeatPasswordIcon} name="repeatPassword" type="password" placeholder="Repeat Password" />
+        <AuthInput
+          value={email}
+          onChange={handleEmailChange}
+          Icon={MailIcon}
+          name="email"
+          type="email"
+          placeholder="Email"
+          autoComplete="email"
+        />
+        <AuthInput
+          value={username}
+          onChange={handleUsernameChange}
+          Icon={UsernameIcon}
+          name="username"
+          type="text"
+          placeholder="Username"
+          autoComplete="username"
+        />
+        <AuthInput
+          value={password}
+          onChange={handlePasswordChange}
+          Icon={PasswordIcon}
+          showPassword={showPassword}
+          togglePassword={togglePassword}
+          name="password"
+          type="password"
+          placeholder="Password"
+        />
+        <AuthInput
+          value={repeatPassword}
+          onChange={handleRepeatPasswordChange}
+          Icon={RepeatPasswordIcon}
+          showPassword={showPassword}
+          togglePassword={togglePassword}
+          name="repeatPassword"
+          type="password"
+          placeholder="Repeat Password"
+        />
         <div>
           {state.errors &&
             Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
