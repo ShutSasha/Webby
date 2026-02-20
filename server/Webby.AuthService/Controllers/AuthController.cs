@@ -48,5 +48,12 @@ public class AuthController : ControllerBase
       var user = await _authService.VerifyEmail(request);
       return Ok(ApiResponse.Ok("User has been successfully verified", user));
    }
+
+   [HttpPost("google-auth")]
+   public async Task<IActionResult> PerformGoogleAuth([FromBody] GoogleAuthRequest request)
+   {
+      var user = await _authService.PerformGoogleAuth(request);
+      return Ok(ApiResponse.Ok("Login success", user));
+   }
    
 }

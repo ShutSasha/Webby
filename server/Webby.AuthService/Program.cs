@@ -22,7 +22,7 @@ services.Configure<SenderDataSettings>(configuration.GetSection("SenderData"));
 services.AddRepositories();
 services.AddHelpers();
 services.AddServices();
-
+services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 services.AddOpenApi();
 
 var app = builder.Build();

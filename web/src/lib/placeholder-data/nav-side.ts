@@ -18,14 +18,14 @@ export type NavItem = {
 }
 
 export const navDesktopElements: NavItem[] = [
-  { key: 'search', href: '/', icon: SearchIcon, text: 'Search', iconSize: 'size-6' },
+  { key: 'search', href: '/rooms', icon: SearchIcon, text: 'Search', iconSize: 'size-6' },
   { key: 'playlists', href: '/', icon: PlaylistIcon, text: 'Playlists', iconSize: 'size-6' },
   { key: 'messages', href: '/', icon: MailIcon, text: 'Messages', iconSize: 'size-6' },
   { key: 'notifications', href: '/', icon: NotificationIcon, text: 'Notifications', iconSize: 'size-6' },
 ]
 
 export const navMobileElements: NavItem[] = [
-  { key: 'search', href: '/', icon: SearchIcon, text: 'Search', iconSize: 'max-[420px]:size-5 size-6' },
+  { key: 'search', href: '/rooms', icon: SearchIcon, text: 'Search', iconSize: 'max-[420px]:size-5 size-6' },
   { key: 'playlists', href: '/', icon: PlaylistIcon, text: 'Playlists', iconSize: 'max-[420px]:size-5 size-6' },
   { key: 'logo', href: '/', icon: LogoIcon, text: '', iconSize: 'max-[420px]:size-10 size-12' },
   { key: 'messages', href: '/', icon: MailIcon, text: 'Messages', iconSize: 'max-[420px]:size-5 size-6' },

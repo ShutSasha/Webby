@@ -22,7 +22,7 @@ export default function GenreToggle() {
   const pathname = usePathname()
   const { replace } = useRouter()
 
-  const currentGenre = searchParams.get('genre') || 'cinema'
+  const currentGenre = searchParams.get('genre') || 'all'
 
   const handleGenre = (genre: string) => {
     const params = new URLSearchParams(searchParams)

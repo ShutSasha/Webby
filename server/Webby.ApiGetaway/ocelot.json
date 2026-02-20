@@ -55,6 +55,20 @@
          "UpstreamHttpMethod": [
             "POST"
          ]
+      },
+      {
+         "DownstreamPathTemplate": "/api/auth/google-auth",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5001
+            }
+         ],
+         "UpstreamPathTemplate": "/api/auth/google-auth",
+         "UpstreamHttpMethod": [
+            "POST"
+         ]
       }
       
    ],

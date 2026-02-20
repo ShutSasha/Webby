@@ -24,7 +24,7 @@ export default function MobileDrawer({ isOpen, onClose, children }: Props) {
   if (!mounted) return null
 
   return createPortal(
-    <div className={`fixed inset-0 z-100 md:hidden transition-all duration-400 ${isOpen ? 'visible' : 'invisible'}`}>
+    <div className={`fixed inset-0 z-100 lg:hidden transition-all duration-400 ${isOpen ? 'visible' : 'invisible'}`}>
       <div
         className={`absolute inset-0 bg-black/60 transition-opacity duration-400 ease-in-out ${
           isOpen ? 'opacity-100' : 'opacity-0'
