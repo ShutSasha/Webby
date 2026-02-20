@@ -1,8 +1,9 @@
 'use client'
-import { useActionState, useState } from 'react'
+import { startTransition, useActionState, useState } from 'react'
 
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
+import { useForm } from 'react-hook-form'
 
 import { registerUser } from '@/app/api/auth'
 import GoogleIcon from '@/assets/auth/ic_google.svg'
@@ -19,72 +20,49 @@ const initialState = {
 }
 
 export default function SignUpForm() {
-  const [email, setEmail] = useState<string>('')
-  const [username, setUsername] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-  const [repeatPassword, seRepeatPassword] = useState<string>('')
-
   const [state, formAction, isPending] = useActionState(registerUser, initialState)
+  const { register, handleSubmit } = useForm({
+    defaultValues: {
+      email: '',
+      username: '',
+      password: '',
+      repeatPassword: '',
+    },
+  })
+
   const [showPassword, setShowPassword] = useState<boolean>(false)
 
   const togglePassword = () => setShowPassword(prev => !prev)
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value)
-  }
+  const onSubmit = (data: any) => {
+    const formData = new FormData()
+    Object.entries(data).forEach(([key, value]) => formData.append(key, value as string))
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value)
-  }
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value)
-  }
-
-  const handleRepeatPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    seRepeatPassword(e.target.value)
+    startTransition(() => {
+      formAction(formData)
+    })
   }
 
   return (
-    <form action={formAction} className="flex w-full flex-col">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col">
       <h1 className="text-white text-xl font-bold text-center mb-4">Sign up</h1>
 
       <div className="flex flex-col gap-3">
+        <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" />
+        <AuthInput Icon={UsernameIcon} {...register('username')} name="username" type="text" placeholder="Username" />
         <AuthInput
-          value={email}
-          onChange={handleEmailChange}
-          Icon={MailIcon}
-          name="email"
-          type="email"
-          placeholder="Email"
-          autoComplete="email"
-        />
-        <AuthInput
-          value={username}
-          onChange={handleUsernameChange}
-          Icon={UsernameIcon}
-          name="username"
-          type="text"
-          placeholder="Username"
-          autoComplete="username"
-        />
-        <AuthInput
-          value={password}
-          onChange={handlePasswordChange}
           Icon={PasswordIcon}
+          {...register('password')}
           showPassword={showPassword}
           togglePassword={togglePassword}
-          name="password"
           type="password"
           placeholder="Password"
         />
         <AuthInput
-          value={repeatPassword}
-          onChange={handleRepeatPasswordChange}
           Icon={RepeatPasswordIcon}
+          {...register('repeatPassword')}
           showPassword={showPassword}
           togglePassword={togglePassword}
-          name="repeatPassword"
           type="password"
           placeholder="Repeat Password"
         />

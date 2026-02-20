@@ -1,9 +1,10 @@
 'use client'
-import { useActionState, useEffect, useState } from 'react'
+import { startTransition, useActionState, useEffect, useState } from 'react'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signIn, useSession } from 'next-auth/react'
+import { useForm } from 'react-hook-form'
 
 import { authenticate } from '@/app/api/auth'
 import GoogleIcon from '@/assets/auth/ic_google.svg'
@@ -19,11 +20,29 @@ const initialState = {
 }
 
 export default function LoginForm() {
-  const [email, setEmail] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
   const [state, formAction, isPending] = useActionState(authenticate, initialState)
-  const { update } = useSession()
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const togglePassword = () => setShowPassword(prev => !prev)
   const router = useRouter()
+  const { update } = useSession()
+
+  const { register, handleSubmit, watch } = useForm({
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
+
+  const watchedEmail = watch('email')
+
+  const onSubmit = (data: any) => {
+    const formData = new FormData()
+    Object.entries(data).forEach(([key, value]) => formData.append(key, value as string))
+
+    startTransition(() => {
+      formAction(formData)
+    })
+  }
 
   const callbackUrl = '/'
 
@@ -45,7 +64,7 @@ export default function LoginForm() {
     try {
       await fetch(`${api}/auth/resend-verification-code`, {
         method: 'POST',
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: watchedEmail }),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -56,35 +75,18 @@ export default function LoginForm() {
     }
   }
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value)
-  }
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value)
-  }
-
   return (
-    <form action={formAction} className="flex w-full flex-col">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col">
       <h1 className="text-white text-xl font-bold text-center mb-4">Login</h1>
 
       <div className="flex flex-col gap-3">
-        <AuthInput
-          Icon={MailIcon}
-          name="email"
-          type="email"
-          value={email}
-          onChange={handleEmailChange}
-          placeholder="Email"
-          autoComplete="email"
-        />
-
+        <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" autoComplete="email" />
         <AuthInput
           Icon={PasswordIcon}
-          name="password"
+          {...register('password')}
+          showPassword={showPassword}
+          togglePassword={togglePassword}
           type="password"
-          value={password}
-          onChange={handlePasswordChange}
           placeholder="Password"
         />
         <div className={`${state?.errors ? 'block' : 'hidden'}`}>
@@ -97,7 +99,7 @@ export default function LoginForm() {
                     {'. '}
                     Verify it{' '}
                     <Link
-                      href={`/sign-up/email-verify?email=${email}`}
+                      href={`/sign-up/email-verify?email=${watchedEmail}`}
                       className="underline"
                       onClick={resendVerifyCode}
                     >
