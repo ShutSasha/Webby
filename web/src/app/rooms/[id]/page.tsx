@@ -3,7 +3,8 @@ import MainLayout from '@/ui/components/MainLayout'
 import CustomPlayer from '@/ui/components/modules/Player/CustomPlayer'
 
 export default function RoomPage() {
-  const testVideoUrl = testVideoUrls.find(it => it.key === 1)?.link ?? 'https://www.youtube.com/watch?v=Zmrj90wYt4c'
+  const testVideoUrl =
+    testVideoUrls.find(it => it.type === 'mp4')?.link ?? 'https://www.youtube.com/watch?v=Zmrj90wYt4c'
 
   return (
     <MainLayout>
