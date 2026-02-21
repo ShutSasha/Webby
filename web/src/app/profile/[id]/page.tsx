@@ -1,7 +1,12 @@
 import Image from 'next/image'
 
+import MailIcon from '@/assets/icons/ic_mail.svg'
+import ComplaintIcon from '@/assets/icons/Profile/ic_complaint.svg'
+import UserPlusIcon from '@/assets/icons/Profile/ic_user_plus.svg'
 import MainLayout from '@/ui/components/MainLayout'
 import EditProfileBtn from '@/ui/components/modules/Profile/EditProfileBtn'
+import ProfileActionButton from '@/ui/components/modules/Profile/ProfileActionButton'
+import { UserAchievements } from '@/ui/components/modules/Profile/UserAchivments'
 import UserBioSection from '@/ui/components/modules/Profile/UserBioSection'
 import { auth } from '@/workspace/auth'
 
@@ -27,38 +32,37 @@ export default async function Profile({ params, searchParams }: ProfileProps) {
       <div className="flex flex-col gap-4 w-full max-w-5xl 2xl:max-w-7xl mx-auto">
         <div className="bg-neutral-900 rounded-[20px] p-5 flex justify-between gap-4">
           {/* Left Part of user profle*/}
-          <div className="flex gap-4 max-h-[125px]">
-            <Image
-              src={'https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg'}
-              alt=""
-              width={125}
-              height={125}
-              className="h-[125px] w-[125px] rounded-full"
-            />
-            <UserBioSection username="username1" userId={id} bio="bio" />
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4">
+              <Image
+                src={'https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg'}
+                alt=""
+                width={125}
+                height={125}
+                className="h-[125px] w-[125px] rounded-full"
+              />
+              <UserBioSection username="username1" userId={id} bio="bio" />
+            </div>
+            <div className="flex items-center gap-2">
+              <ProfileActionButton Icon={MailIcon} label="Chat" iconClassName="w-4 h-4" />
+
+              <ProfileActionButton Icon={UserPlusIcon} label="Follow" iconClassName="w-4 h-4" />
+            </div>
           </div>
 
           {/* Right Part of user profile*/}
           <div className="flex flex-col gap-2">
-            {session?.user.id === id && <EditProfileBtn userId={id} />}
-
-            <div className="flex flex-col gap-1.5">
-              <p>Badges</p>
-              <hr className="text-emerald-400 w-full" />
-              <div className="flex items-center gap-4">
-                {[...new Array(3)].map((_, index) => (
-                  <Image
-                    key={index}
-                    src="https://i.ibb.co/ch9ZCDTr/badge1.png"
-                    alt=""
-                    width={80}
-                    height={80}
-                    loading="lazy"
-                    className="cursor-pointer"
-                  />
-                ))}
-              </div>
-            </div>
+            {session?.user.id === id ? (
+              <EditProfileBtn userId={id} />
+            ) : (
+              <ProfileActionButton
+                Icon={ComplaintIcon}
+                label="Leave complaint"
+                iconClassName="w-4 h-4"
+                btnClassName="self-end"
+              />
+            )}
+            <UserAchievements />
           </div>
         </div>
 
