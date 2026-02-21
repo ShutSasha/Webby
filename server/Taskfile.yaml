@@ -6,6 +6,13 @@ tasks:
     cmds:
       - |
         cd ./Webby.AuthService
+        dotnet run
+  
+  run_user_service:
+    desc: "Run the C# UserService"
+    cmds:
+      - |
+        cd ./Webby.UserService
         dotnet run 
 
   run_api_getaway:
@@ -20,3 +27,4 @@ tasks:
     deps:
       - run_auth_service
       - run_api_getaway
+      - run_user_service
