@@ -60,22 +60,6 @@ export const authConfig = {
       return session
     },
     authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user
-      const isOnSettings = nextUrl.pathname.endsWith('/settings')
-      const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/sign-up')
-
-      if (isOnSettings) {
-        if (isLoggedIn) return true
-        return false
-      }
-
-      if (isAuthPage) {
-        if (isLoggedIn) {
-          return Response.redirect(new URL('/', nextUrl))
-        }
-        return true
-      }
-
       return true
     },
   },
