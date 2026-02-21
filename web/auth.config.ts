@@ -25,7 +25,6 @@ export const authConfig = {
 
           user.userId = googleAuthResponse.data.userId
           user.username = googleAuthResponse.data.username
-          user.email = googleAuthResponse.data.email
           user.avatarUrl = googleAuthResponse.data.avatarUrl
           user.role = googleAuthResponse.data.role
 
@@ -42,7 +41,6 @@ export const authConfig = {
       if (user) {
         token.id = user.userId
         token.username = user.username
-        token.email = user.email
         token.image = user.avatarUrl
         token.role = user.role
       }
@@ -53,10 +51,10 @@ export const authConfig = {
       if (token && session.user) {
         session.user.id = token.id
         session.user.username = token.username
-        session.user.email = token.email
         session.user.image = token.image
         session.user.role = token.role
       }
+
       return session
     },
     authorized({ auth, request: { nextUrl } }) {

@@ -6,7 +6,7 @@ import { OTPInput, SlotProps } from 'input-otp'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
-import $api from '@/app/api'
+import $apiClient from '@/app/api/client'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { useResendTimer } from '@/lib/hooks/useResendTimer'
 import { BaseServerResponse, serverLog } from '@/lib/utils/utils'
@@ -27,7 +27,7 @@ export default function VerifyPage() {
     setSuccess(false)
     setErrors(null)
     try {
-      const response = await $api.post<BaseServerResponse>('/auth/verify-user', {
+      const response = await $apiClient.post<BaseServerResponse>('/auth/verify-user', {
         email: email || '',
         verificationCode: code,
       })
@@ -47,7 +47,7 @@ export default function VerifyPage() {
     setCodeMessage('')
     try {
       if (timeLeft > 0) return
-      await $api.post('/auth/resend-verification-code', { email })
+      await $apiClient.post('/auth/resend-verification-code', { email })
       setCodeMessage('Verification code resent successfully.')
       startTimer()
     } catch (error) {
