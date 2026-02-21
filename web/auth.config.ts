@@ -61,12 +61,21 @@ export const authConfig = {
     },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
-      const isOnChats = nextUrl.pathname.startsWith('/chats')
+      const isOnSettings = nextUrl.pathname.endsWith('/settings')
+      const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/sign-up')
 
-      if (isOnChats) {
+      if (isOnSettings) {
         if (isLoggedIn) return true
         return false
       }
+
+      if (isAuthPage) {
+        if (isLoggedIn) {
+          return Response.redirect(new URL('/', nextUrl))
+        }
+        return true
+      }
+
       return true
     },
   },
