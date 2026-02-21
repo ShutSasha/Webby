@@ -49,7 +49,7 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
       }`}
     >
       <Link
-        href={'/'}
+        href={`/profile/${session.user.id}`}
         className={`w-full flex-1 flex flex-row items-center rounded-sm transition-colors duration-300 ease-out
           hover:bg-neutral-800 ${isExpanded ? 'gap-2 p-1 ' : 'gap-0 p-0 '}`}
       >

@@ -1,3 +1,5 @@
+type Role = 'User' | 'Admin' | 'Moderator'
+
 type GoogleAuthRes = {
   success: boolean
   message: string
@@ -7,8 +9,9 @@ type GoogleAuthRes = {
     username: string
     about: string
     avatarUrl: string
+    role: Role
   }
   errors: null
 }
 
-export { type GoogleAuthRes }
+export { type GoogleAuthRes, type Role }

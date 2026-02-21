@@ -27,6 +27,7 @@ export const authConfig = {
           user.username = googleAuthResponse.data.username
           user.email = googleAuthResponse.data.email
           user.avatarUrl = googleAuthResponse.data.avatarUrl
+          user.role = googleAuthResponse.data.role
 
           return true
         } catch (error) {
@@ -43,6 +44,7 @@ export const authConfig = {
         token.username = user.username
         token.email = user.email
         token.image = user.avatarUrl
+        token.role = user.role
       }
       return token
     },
@@ -53,6 +55,7 @@ export const authConfig = {
         session.user.username = token.username
         session.user.email = token.email
         session.user.image = token.image
+        session.user.role = token.role
       }
       return session
     },

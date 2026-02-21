@@ -2,6 +2,7 @@
 
 import NextAuth, { DefaultSession } from 'next-auth'
 import { JWT } from 'next-auth/jwt'
+import { Role } from './auth'
 
 declare module 'next-auth' {
   interface User {
@@ -9,6 +10,7 @@ declare module 'next-auth' {
     username: string
     avatarUrl: string
     email: string
+    role: Role
   }
 
   interface Session {
@@ -17,6 +19,7 @@ declare module 'next-auth' {
       username: string
       email: string
       image: string
+      role: Role
     }
   }
 }
@@ -28,5 +31,6 @@ declare module 'next-auth/jwt' {
     username: string
     email: string
     image: string
+    role: Role
   }
 }
