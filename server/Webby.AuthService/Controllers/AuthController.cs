@@ -55,5 +55,11 @@ public class AuthController : ControllerBase
       var user = await _authService.PerformGoogleAuth(request);
       return Ok(ApiResponse.Ok("Login success", user));
    }
+
+   [HttpGet("check")]
+   public async Task<IActionResult> Check()
+   {
+      return Ok(ApiResponse.Ok("Server is running"));
+   }
    
 }

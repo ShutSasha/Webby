@@ -69,6 +69,20 @@
          "UpstreamHttpMethod": [
             "POST"
          ]
+      },
+      {
+         "DownstreamPathTemplate": "/api/auth/check",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5001
+            }
+         ],
+         "UpstreamPathTemplate": "/api/auth/check",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
       }
       
    ],
