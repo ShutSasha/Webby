@@ -11,5 +11,4 @@ public class User
    public string VerificationCode { get; set; }
    public bool isVerified { get; set; }
    public Role Role { get; set; }
-   public Guid? PremiumId { get; set; }
 }

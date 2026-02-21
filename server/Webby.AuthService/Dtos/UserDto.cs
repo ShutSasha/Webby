@@ -1,4 +1,6 @@
-﻿namespace Webby.AuthService.Dtos;
+﻿using Webby.AuthService.Models;
+
+namespace Webby.AuthService.Dtos;
 
 public class UserDto
 {
@@ -7,4 +9,5 @@ public class UserDto
    public string Username { get; set; }
    public string About { get; set; }
    public string AvatarUrl { get; set; }
+   public Role Role { get; set; }
 }

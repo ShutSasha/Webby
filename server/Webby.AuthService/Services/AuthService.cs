@@ -157,6 +157,35 @@ public class AuthService : IAuthService
       return _mapper.Map<UserDto>(user);
    }
    
+   public async Task<UserDto> PerformGoogleAuth(GoogleAuthRequest request)
+   {
+      var user = (await _repository
+            .GetByPredicate(u => u.UserId == request.Id || u.Email == request.Email))
+         .FirstOrDefault();
+
+      if (user != null)
+      {
+         return _mapper.Map<UserDto>(user);
+      }
+      
+      var newUser = new User
+      {
+         UserId = request.Id,
+         Email = request.Email,
+         Username = request.Name,
+         AvatarUrl = request.Image,
+         About = string.Empty,
+         isVerified = true,
+         VerificationCode = string.Empty,
+         Password = null,
+         Role = Role.User
+      };
+
+      await _repository.Add(newUser);
+
+      return _mapper.Map<UserDto>(newUser);
+   }
+   
    private string GenerateActivationCode()
    {
       const int length = 6;
