@@ -12,7 +12,7 @@ export default auth(req => {
   const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/sign-up')
   const isOnSettings = nextUrl.pathname.endsWith('/settings')
 
-  clog(`Middleware: ${nextUrl.pathname} | LoggedIn: ${isLoggedIn}`)
+  clog(`Proxy: ${nextUrl.pathname} | LoggedIn: ${isLoggedIn}`)
 
   if (isAuthPage) {
     if (isLoggedIn) {
