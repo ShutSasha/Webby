@@ -12,8 +12,9 @@ $api.interceptors.request.use(async config => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
-    console.log(config.headers)
   }
+
+  console.log('----- req SERVER HTTP headers -----', config.headers)
 
   return config
 })
