@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+import { clog } from '@/lib/utils/utils'
+
 import { getEncryptedToken } from './auth'
 
 const $apiClient = axios.create({
@@ -13,7 +15,7 @@ $apiClient.interceptors.request.use(async config => {
     config.headers.Authorization = `Bearer ${token}`
   }
 
-  console.log('----- req CLIENT HTTP headers -----', config.headers)
+  clog('req CLIENT HTTP headers', config.headers)
 
   return config
 })

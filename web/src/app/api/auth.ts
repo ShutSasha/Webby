@@ -6,7 +6,8 @@ import { cookies } from 'next/headers'
 import { AuthError, type User } from 'next-auth'
 
 import $api from '@/app/api'
-import { serverLog } from '@/lib/utils/utils'
+import { parseAxiosError, serverLog } from '@/lib/utils/utils'
+import { FormActionState } from '@/types/general'
 
 import { signIn } from '../../../auth'
 
@@ -20,18 +21,17 @@ export async function login(email: string, password: string): Promise<User | Ret
     const { data: response } = await $api.post('/auth/sign-in', { email, password })
 
     return response.data as User
-  } catch (error: any) {
+  } catch (error: unknown) {
     serverLog('LOGIN_ERROR', error, true)
-    const errors = error.response?.data?.errors
-    const message = error.response?.data?.message
+
     return {
       success: false,
-      errors: errors ? errors : message ? { global: message } : { global: 'unknown login error' },
+      errors: parseAxiosError(error),
     }
   }
 }
 
-export async function authenticate(prevState: any, formData: FormData) {
+export async function authenticate(_prevState: FormActionState, formData: FormData) {
   try {
     await signIn('credentials', {
       ...Object.fromEntries(formData),
@@ -45,10 +45,9 @@ export async function authenticate(prevState: any, formData: FormData) {
 
       try {
         if (cause) {
-          const serverErrors = JSON.parse(cause)
           return {
             success: false,
-            errors: serverErrors,
+            errors: JSON.parse(cause),
           }
         }
       } catch {}
@@ -63,7 +62,7 @@ export async function authenticate(prevState: any, formData: FormData) {
   }
 }
 
-export async function registerUser(prevState: any, formData: FormData) {
+export async function registerUser(_prevState: FormActionState, formData: FormData) {
   const email = formData.get('email') as string
   const username = formData.get('username') as string
   const password = formData.get('password') as string
@@ -82,14 +81,12 @@ export async function registerUser(prevState: any, formData: FormData) {
       username,
       password,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     serverLog('REGISTER_ERROR', error, true)
-
-    const serverErrors = error.response?.data?.errors || {}
 
     return {
       success: false,
-      errors: serverErrors,
+      errors: parseAxiosError(error),
     }
   }
 
@@ -102,26 +99,13 @@ export async function verifyUser({ email, code }: { email: string; code: string 
       email,
       verificationCode: code,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     serverLog('VERIFY_USER_ERROR', error, true)
-
-    const serverErrors = error.response?.data?.errors || {}
 
     return {
       success: false,
-      errors: serverErrors,
+      errors: parseAxiosError(error),
     }
-  }
-}
-
-export async function googleAuthenticate(prevState: string | undefined, formData: FormData) {
-  try {
-    await signIn('google')
-  } catch (error) {
-    if (error instanceof AuthError) {
-      return 'google log in failed'
-    }
-    throw error
   }
 }
 

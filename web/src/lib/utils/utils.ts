@@ -1,11 +1,33 @@
 /* eslint-disable */
-import { AxiosError } from 'axios'
+import axios, { AxiosError } from 'axios'
 
 export type BaseServerResponse = {
   data: Record<string, any> | null
   errors: Record<string, string> | null
   message: string
   success: boolean
+}
+
+export function parseAxiosError(error: unknown): Record<string, string> {
+  if (!axios.isAxiosError<BaseServerResponse>(error)) {
+    return { global: 'Unexpected server error' }
+  }
+
+  const data = error.response?.data
+
+  if (!data) {
+    return { global: 'No response from server' }
+  }
+
+  if (data.errors && Object.keys(data.errors).length > 0) {
+    return data.errors
+  }
+
+  if (data.message) {
+    return { global: data.message }
+  }
+
+  return { global: 'Unknown server error' }
 }
 
 export const serverLog = (label: string, error: any, detailed?: boolean) => {
@@ -41,4 +63,16 @@ export const serverLog = (label: string, error: any, detailed?: boolean) => {
     })
     console.log(`--- --- --- ---\n`)
   }
+}
+
+// console.log()
+export function clog(label: string, data?: any) {
+  if (!data) {
+    console.log(`\n=== [${label}] ===`)
+    return
+  }
+
+  console.log(`\n=== [${label}] ===`)
+  console.log(data)
+  console.log(`=== === === ===\n`)
 }

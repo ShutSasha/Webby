@@ -16,7 +16,7 @@ import Button from '@/components/Button'
 
 const initialState = {
   success: false,
-  errors: null,
+  errors: {},
 }
 
 export default function SignUpForm() {

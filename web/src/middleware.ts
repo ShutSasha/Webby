@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth'
 
 import { authConfig } from '../auth.config'
+import { clog } from './lib/utils/utils'
 
 const { auth } = NextAuth(authConfig)
 
@@ -11,7 +12,7 @@ export default auth(req => {
   const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/sign-up')
   const isOnSettings = nextUrl.pathname.endsWith('/settings')
 
-  console.log(`Middleware: ${nextUrl.pathname} | LoggedIn: ${isLoggedIn}`)
+  clog(`Middleware: ${nextUrl.pathname} | LoggedIn: ${isLoggedIn}`)
 
   if (isAuthPage) {
     if (isLoggedIn) {

@@ -6,7 +6,7 @@ import Link from 'next/link'
 import ImageBackgroundGroup from '@/assets/auth/bg-login.png'
 import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
 import { benefitsList } from '@/lib/placeholder-data/home-page'
-import { serverLog } from '@/lib/utils/utils'
+import { clog, serverLog } from '@/lib/utils/utils'
 import Button from '@/ui/components/Button'
 import MainLayout from '@/ui/components/MainLayout'
 
@@ -18,7 +18,7 @@ export default function Home() {
     try {
       const { data } = await $apiClient.get('/auth/check')
 
-      console.log('test data response', data)
+      clog('test data response', data)
     } catch (error) {
       serverLog('TEST ERROR', error, true)
     }

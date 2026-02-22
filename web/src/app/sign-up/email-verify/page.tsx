@@ -9,7 +9,9 @@ import { useSearchParams } from 'next/navigation'
 import $apiClient from '@/app/api/client'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { useResendTimer } from '@/lib/hooks/useResendTimer'
-import { BaseServerResponse, serverLog } from '@/lib/utils/utils'
+import { BaseServerResponse, parseAxiosError, serverLog } from '@/lib/utils/utils'
+
+export type ApiValidationErrors = Record<string, string[]>
 
 export default function VerifyPage() {
   const searchParams = useSearchParams()
@@ -32,10 +34,10 @@ export default function VerifyPage() {
         verificationCode: code,
       })
       setSuccess(response.data.success)
-    } catch (error: any) {
+    } catch (error: unknown) {
       serverLog('VERIFY_USER_ERROR', error)
 
-      const serverErrors = error.response?.data?.errors || null
+      const serverErrors = parseAxiosError(error)
       setErrors(serverErrors)
     } finally {
       setCodeMessage('')

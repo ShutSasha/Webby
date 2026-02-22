@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { cookies } from 'next/headers'
 
+import { clog } from '@/lib/utils/utils'
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api'
 
 const $api = axios.create({
@@ -14,7 +16,7 @@ $api.interceptors.request.use(async config => {
     config.headers.Authorization = `Bearer ${token}`
   }
 
-  console.log('----- req SERVER HTTP headers -----', config.headers)
+  clog('req SERVER HTTP headers', config.headers)
 
   return config
 })
