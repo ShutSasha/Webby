@@ -13,14 +13,14 @@ import { auth } from '@/workspace/auth'
 
 export default async function UserProfileInfo({ id }: { id: string }) {
   // const user = await getUser(id)
-   // await, sync user data
+  // await, sync user data
   // await, sync user folowers and follows
   // await, sync user pinned badges
   const session = await auth()
   await new Promise(resolve => {
     setTimeout(() => {
       resolve('')
-    }, 3000)
+    }, 1000)
   })
 
   return (
