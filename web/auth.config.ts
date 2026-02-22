@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from 'next-auth'
 
 import $api from '@/app/api'
+import { clog } from '@/lib/utils/utils'
 import { GoogleAuthRes } from '@/types/auth'
 
 export const authConfig = {
@@ -11,7 +12,7 @@ export const authConfig = {
     async signIn({ user, account }) {
       if (account?.provider === 'google') {
         try {
-          console.log('authConfig.signIn - Google user:', user)
+          clog('authConfig.signIn - Google user:', user)
 
           const { data: googleAuthResponse } = await $api.post<GoogleAuthRes>('/auth/google-auth', {
             id: user.id,
@@ -20,7 +21,7 @@ export const authConfig = {
             image: user.image,
           })
 
-          console.log('GOOGLE_AUTH RESPONSE', googleAuthResponse)
+          clog('GOOGLE_AUTH RESPONSE', googleAuthResponse)
           if (!googleAuthResponse.success) return false
 
           user.userId = googleAuthResponse.data.userId

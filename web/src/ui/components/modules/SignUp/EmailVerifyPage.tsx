@@ -4,7 +4,6 @@ import { useState } from 'react'
 
 import { OTPInput, SlotProps } from 'input-otp'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 
 import $apiClient from '@/app/api/client'
 import { useIsClient } from '@/lib/hooks/useIsClient'

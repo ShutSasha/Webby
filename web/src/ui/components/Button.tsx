@@ -17,8 +17,7 @@ export default function Button({ children, viewType, paddingClasses = 'px-4 py-2
   return (
     <button
       {...props}
-      className={`${btnClasess} ${paddingClasses} ${className} w-fit cursor-pointer rounded transition-all duration-300
-        ease-in-out`}
+      className={`${btnClasess} ${paddingClasses} ${className} w-fit rounded transition-all duration-300 ease-in-out`}
     >
       {children}
     </button>
