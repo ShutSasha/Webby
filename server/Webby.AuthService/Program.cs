@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Webby.AuthService.Extensions;
+using Webby.AuthService.Helpers.Jwt;
 using Webby.AuthService.Helpers.Mail;
 using Webby.AuthService.Middlewares;
 
@@ -18,6 +19,7 @@ services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 services.Configure<SenderDataSettings>(configuration.GetSection("SenderData"));
+services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
 
 services.AddRepositories();
 services.AddHelpers();

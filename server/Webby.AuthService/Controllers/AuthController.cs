@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
 using Webby.AuthService.Dtos;
 using Webby.AuthService.Helpers.Response;
 using Webby.AuthService.Interfaces.Services;
+using Webby.AuthService.Models;
 
 namespace Webby.AuthService.Controllers;
 
@@ -17,7 +19,7 @@ public class AuthController : ControllerBase
    }
 
    [HttpPost("sign-up")]
-   public async Task<IActionResult> SignUp([FromBody] RegisterUserRequest request)
+   public async Task<ActionResult<ApiResponse>> SignUp([FromBody] RegisterUserRequest request)
    {
       bool isRedirectionOnConfrimationPage = await _authService.Register(request);
 
@@ -29,37 +31,45 @@ public class AuthController : ControllerBase
    }
 
    [HttpPost("sign-in")]
-   public async Task<IActionResult> SignIn([FromBody] LoginUserRequest request)
+   public async Task<ActionResult<ApiResponse<LoginUserResponse>>>SignIn([FromBody] LoginUserRequest request)
    {
       var user = await _authService.Login(request);
-      return Ok(ApiResponse.Ok("Login success", user));
+      return Ok(ApiResponse<LoginUserResponse>.Ok("Login success", user));
    }
 
    [HttpPost("resend-verification-code")]
-   public async Task<IActionResult> ResendVerificationCode([FromBody] ResendVerificationCodeRequest request)
+   public async Task<ActionResult> ResendVerificationCode([FromBody] ResendVerificationCodeRequest request)
    {
       await _authService.SendCode(request);
       return Ok(ApiResponse.Ok("Verification code sent"));
    }
 
    [HttpPost("verify-user")]
-   public async Task<IActionResult> VerifyUser([FromBody] VerifyUserRequest request)
+   public async Task<ActionResult<ApiResponse>> VerifyUser([FromBody] VerifyUserRequest request)
    {
-      var user = await _authService.VerifyEmail(request);
-      return Ok(ApiResponse.Ok("User has been successfully verified", user));
+      await _authService.VerifyEmail(request);
+      return Ok(ApiResponse.Ok("User has been successfully verified"));
    }
 
    [HttpPost("google-auth")]
-   public async Task<IActionResult> PerformGoogleAuth([FromBody] GoogleAuthRequest request)
+   public async Task<ActionResult<ApiResponse<LoginUserResponse>>> PerformGoogleAuth([FromBody] GoogleAuthRequest request)
    {
       var user = await _authService.PerformGoogleAuth(request);
-      return Ok(ApiResponse.Ok("Login success", user));
+      return Ok(ApiResponse<LoginUserResponse>.Ok("Login success", user));
+   }
+
+   [HttpPost("refresh")]
+   public async Task<ActionResult<ApiResponse<LoginUserResponse>>> RefreshToken()
+   {
+      var token = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
+      var userRefreshResponse = await _authService.RefreshToken(token);
+      return Ok(ApiResponse<LoginUserResponse>.Ok("Successfully refresh access token", userRefreshResponse));
    }
 
    [HttpGet("check")]
-   public async Task<IActionResult> Check()
+   public Task<ActionResult<ApiResponse>> Check()
    {
-      return Ok(ApiResponse.Ok("Server is running"));
+      return Task.FromResult<ActionResult<ApiResponse>>(Ok(ApiResponse.Ok("Server is running")));
    }
    
 }

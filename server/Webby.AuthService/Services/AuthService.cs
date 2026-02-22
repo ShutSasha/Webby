@@ -15,13 +15,16 @@ public class AuthService : IAuthService
    private readonly IPasswordHasher _passwordHasher;
    private readonly IMailService _mailService;
    private readonly IMapper _mapper;
+   private readonly ITokenService _tokenService;
 
-   public AuthService(IPasswordHasher passwordHasher, IRepository<User> repository, IMailService mailService, IMapper mapper)
+   public AuthService(IPasswordHasher passwordHasher, IRepository<User> repository,
+      IMailService mailService, IMapper mapper, ITokenService tokenService)
    {
       _passwordHasher = passwordHasher;
       _repository = repository;
       _mailService = mailService;
       _mapper = mapper;
+      _tokenService = tokenService;
    }
 
    public async Task<bool> Register(RegisterUserRequest request)
@@ -77,8 +80,10 @@ public class AuthService : IAuthService
       return false;
    }
    
-   public async Task<UserDto> Login(LoginUserRequest request)
+   public async Task<LoginUserResponse> Login(LoginUserRequest request)
    {
+      var loginUserResponse = new LoginUserResponse();
+      
       var errors = new Dictionary<string, string>();
       var user = (await _repository.GetByPredicate(u => u.Email == request.Email)).FirstOrDefault();
 
@@ -102,7 +107,12 @@ public class AuthService : IAuthService
          throw new ApiException("Login error", 400, errors);
       }
 
-      return _mapper.Map<UserDto>(user);
+      var accessToken = await _tokenService.GenerateToken(user);
+      
+      loginUserResponse.User = _mapper.Map<UserDto>(user);
+      loginUserResponse.AccessToken = accessToken;
+
+      return loginUserResponse;
    }
    
    public async Task SendCode(ResendVerificationCodeRequest request)
@@ -123,7 +133,7 @@ public class AuthService : IAuthService
       await _mailService.SendVerificationCode(user.Email, newVerificationCode);
    }
 
-   public async Task<UserDto> VerifyEmail(VerifyUserRequest request)
+   public async Task VerifyEmail(VerifyUserRequest request)
    {
       var user = (await _repository.GetByPredicate(user => user.Email == request.Email)).FirstOrDefault();
       var errors = new Dictionary<string, string>();
@@ -153,21 +163,24 @@ public class AuthService : IAuthService
       user.VerificationCode = string.Empty;
 
       await _repository.Update(user);
-
-      return _mapper.Map<UserDto>(user);
+      
    }
    
-   public async Task<UserDto> PerformGoogleAuth(GoogleAuthRequest request)
+   public async Task<LoginUserResponse> PerformGoogleAuth(GoogleAuthRequest request)
    {
       var user = (await _repository
             .GetByPredicate(u => u.UserId == request.Id || u.Email == request.Email))
          .FirstOrDefault();
-
+      
+      var loginUserResponse = new LoginUserResponse();
+      
       if (user != null)
       {
-         return _mapper.Map<UserDto>(user);
+         loginUserResponse.User = _mapper.Map<UserDto>(user);
+         loginUserResponse.AccessToken = await _tokenService.GenerateToken(user);
+
+         return loginUserResponse;
       }
-      
       var newUser = new User
       {
          UserId = request.Id,
@@ -183,9 +196,39 @@ public class AuthService : IAuthService
 
       await _repository.Add(newUser);
 
-      return _mapper.Map<UserDto>(newUser);
+      loginUserResponse.User = _mapper.Map<UserDto>(newUser);
+      loginUserResponse.AccessToken = await _tokenService.GenerateToken(newUser);
+
+      return loginUserResponse;
    }
-   
+
+   public async Task<LoginUserResponse> RefreshToken(string accessToken)
+   {
+      var errors = new Dictionary<string, string>();
+      var loginUserResponse = new LoginUserResponse();
+
+      if (string.IsNullOrEmpty(accessToken))
+      {
+         errors["accessToken"] = "Empty access token was provided";
+         throw new ApiException("Refresh token error",400,errors);
+      }
+
+      var userId = await _tokenService.ExtractUserInfo(accessToken);
+
+      var existingUser = await _repository.FindById(userId);
+
+      if (existingUser == null)
+      {
+         errors["user"] = "User with specified id wasn't found";
+         throw new ApiException("Refresh token error", 404, errors);
+      }
+
+      loginUserResponse.User = _mapper.Map<UserDto>(existingUser);
+      loginUserResponse.AccessToken = await _tokenService.GenerateToken(existingUser);
+
+      return loginUserResponse;
+   }
+
    private string GenerateActivationCode()
    {
       const int length = 6;

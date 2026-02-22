@@ -71,7 +71,7 @@
          ]
       },
       {
-         "DownstreamPathTemplate": "/api/auth/check",
+         "DownstreamPathTemplate": "/api/auth/refresh",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
             {
@@ -79,9 +79,9 @@
                "Port": 5001
             }
          ],
-         "UpstreamPathTemplate": "/api/auth/check",
+         "UpstreamPathTemplate": "/api/auth/refresh",
          "UpstreamHttpMethod": [
-            "GET"
+            "POST"
          ]
       }
       
