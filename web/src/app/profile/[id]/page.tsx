@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+
 import Image from 'next/image'
 
 import MailIcon from '@/assets/icons/ic_mail.svg'
@@ -8,10 +10,12 @@ import MainLayout from '@/ui/components/MainLayout'
 import EditProfileBtn from '@/ui/components/modules/Profile/EditProfileBtn'
 import ProfileActionButton from '@/ui/components/modules/Profile/ProfileActionButton'
 import ProfileTab from '@/ui/components/modules/Profile/ProfileTab'
+import Test, { TestSkeleton } from '@/ui/components/modules/Profile/Test'
 import { UserAchievements } from '@/ui/components/modules/Profile/UserAchivments'
 import UserBioSection from '@/ui/components/modules/Profile/UserBioSection'
-import UserPlaylists from '@/ui/components/modules/Profile/UserPlaylists'
-import UserVideos from '@/ui/components/modules/Profile/UserVideos'
+import UserPlaylists, { UserPlaylistsSkeleton } from '@/ui/components/modules/Profile/UserPlaylists'
+import UserProfileInfo, { UserProfileInfoSkeleton } from '@/ui/components/modules/Profile/UserProfileInfo'
+import UserVideos, { UserVideosSkeleton } from '@/ui/components/modules/Profile/UserVideos'
 import { auth } from '@/workspace/auth'
 
 type ProfileProps = {
@@ -23,8 +27,8 @@ const allowedTabs = ['Video', 'Playlist'] as const
 
 export default async function Profile({ params, searchParams }: ProfileProps) {
   const { id } = await params
-  const session = await auth()
   const { tab } = await searchParams
+  const session = await auth()
   const currentTab = allowedTabs.includes(tab as any) ? tab : 'Video'
 
   // await, sync user data
@@ -38,7 +42,6 @@ export default async function Profile({ params, searchParams }: ProfileProps) {
     <MainLayout>
       <div className="flex flex-col gap-4 w-full max-w-5xl 2xl:max-w-7xl mx-auto">
         <div className="bg-neutral-900 rounded-[20px] p-5 flex flex-col md:flex-row justify-between gap-4">
-          {/* Left Part of user profle*/}
           <div className="flex flex-col gap-4">
             <div className="flex gap-4">
               <Image
@@ -57,7 +60,6 @@ export default async function Profile({ params, searchParams }: ProfileProps) {
             </div>
           </div>
 
-          {/* Right Part of user profile*/}
           <div className="flex flex-col gap-2">
             {session?.user.id === id ? (
               <EditProfileBtn userId={id} />
@@ -73,17 +75,28 @@ export default async function Profile({ params, searchParams }: ProfileProps) {
           </div>
         </div>
 
-        {/* Block - Dynamic content: Videos, Playlists */}
+        {/* <Suspense fallback={<UserProfileInfoSkeleton />}>
+          <UserProfileInfo id={id} />
+        </Suspense> */}
+        <Suspense key="test-info" fallback={<TestSkeleton />}>
+          <Test />
+        </Suspense>
         <div className="bg-neutral-900 rounded-[20px] p-5 flex flex-col gap-5">
-          {/* Videos, playlists selector */}
-
           <div className="flex gap-2 items-center">
             <ProfileTab label="Video" />
             <ProfileTab label="Playlist" />
           </div>
 
-          {currentTab === 'Video' && <UserVideos />}
-          {currentTab === 'Playlist' && <UserPlaylists />}
+          {currentTab === 'Video' && (
+            <Suspense key={currentTab} fallback={<UserVideosSkeleton />}>
+              <UserVideos />
+            </Suspense>
+          )}
+          {currentTab === 'Playlist' && (
+            <Suspense key={currentTab} fallback={<UserPlaylistsSkeleton />}>
+              <UserPlaylists />
+            </Suspense>
+          )}
         </div>
       </div>
     </MainLayout>
