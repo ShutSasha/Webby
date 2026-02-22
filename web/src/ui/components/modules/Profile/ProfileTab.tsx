@@ -14,7 +14,7 @@ export default function ProfileTab({ label }: Props) {
   const pathname = usePathname()
   const { replace } = useRouter()
 
-  const currentTab = searchParams.get('tab') ?? 'Video' 
+  const currentTab = searchParams.get('tab') ?? 'Video'
   const isActive = label === currentTab
 
   const handleTab = (tab: TabCategory) => {

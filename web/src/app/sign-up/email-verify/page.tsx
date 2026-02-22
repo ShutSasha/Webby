@@ -2,7 +2,11 @@ import { Suspense } from 'react'
 
 import VerifyPage from '@/ui/components/modules/SignUp/EmailVerifyPage'
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ email?: string }> }) {
+type Props = {
+  searchParams: Promise<{ email?: string }>
+}
+
+export default async function Page({ searchParams }: Props) {
   const { email } = await searchParams
 
   return (

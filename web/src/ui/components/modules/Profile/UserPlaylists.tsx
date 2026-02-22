@@ -1,6 +1,7 @@
 import PlaylistItem from '../Playlist/PlaylistItem'
 
 export default async function UserPlaylists() {
+  // await, sync Public playlists
   await new Promise(resolve => {
     setTimeout(() => {
       resolve('')

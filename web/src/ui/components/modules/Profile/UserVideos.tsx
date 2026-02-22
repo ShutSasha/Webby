@@ -1,6 +1,7 @@
 import Image from 'next/image'
 
 export default async function UserVideos() {
+  // await, sync videos - Lates/Popular
   await new Promise(resolve => {
     setTimeout(() => {
       resolve('')
