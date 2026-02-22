@@ -9,7 +9,7 @@ export default async function UserVideos() {
   })
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
       {[...new Array(10)].map((item, index) => (
         <div key={index} className="group cursor-pointer">
           <Image
@@ -17,8 +17,7 @@ export default async function UserVideos() {
             alt=""
             height={1920}
             width={1080}
-            className="w-full h-[260px] md:h-[200px] xl:h-[180px] rounded-2xl mb-1 group-hover:scale-95 transition-all
-              duration-300"
+            className="w-full rounded-2xl mb-1 group-hover:scale-95 transition-all duration-300"
             loading="lazy"
           />
           <p className="text-sm font-medium">さめ甘</p>
@@ -34,20 +33,16 @@ export default async function UserVideos() {
 
 export function UserVideosSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {Array.from({ length: 20 }).map((_, index) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
+      {Array.from({ length: 12 }).map((_, index) => (
         <div key={index}>
-          {/* Thumbnail */}
-          <div
-            className="w-full h-[260px] md:h-[200px] xl:h-[180px] rounded-2xl mb-2 bg-neutral-800
-              animate-[shimmer_1.5s_infinite]"
-          />
+          <div className="w-full aspect-video rounded-2xl mb-1 bg-neutral-800 animate-pulse" />
 
           {/* Title */}
-          <div className="h-4 w-2/3 bg-neutral-800 rounded-md mb-2 animate-pulse" />
+          <div className="h-4 w-3/4 bg-neutral-800 rounded-md mb-1.5 animate-pulse mt-1" />
 
-          {/* Meta info */}
-          <div className="flex gap-2">
+          {/* Meta info (Views and Date) */}
+          <div className="flex gap-2 items-center">
             <div className="h-3 w-16 bg-neutral-800 rounded-md animate-pulse" />
             <div className="h-3 w-20 bg-neutral-800 rounded-md animate-pulse" />
           </div>

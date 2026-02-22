@@ -8,8 +8,7 @@ export default async function PlaylistItem() {
         alt=""
         height={1920}
         width={1080}
-        className="w-full h-[260px] md:h-[200px] xl:h-[180px] rounded-2xl group-hover:scale-95 transition-all
-          duration-300 mb-1"
+        className="w-full rounded-2xl group-hover:scale-95 transition-all duration-300 mb-1"
         loading="lazy"
       />
       <p className="text-sm font-medium">Playlist Name</p>
