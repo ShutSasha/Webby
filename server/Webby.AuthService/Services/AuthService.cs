@@ -207,12 +207,6 @@ public class AuthService : IAuthService
       var errors = new Dictionary<string, string>();
       var loginUserResponse = new LoginUserResponse();
 
-      if (string.IsNullOrEmpty(accessToken))
-      {
-         errors["accessToken"] = "Empty access token was provided";
-         throw new ApiException("Refresh token error",400,errors);
-      }
-
       var userId = await _tokenService.ExtractUserInfo(accessToken);
 
       var existingUser = await _repository.FindById(userId);
