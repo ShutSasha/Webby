@@ -83,8 +83,24 @@
          "UpstreamHttpMethod": [
             "POST"
          ]
+      },
+      {
+         "DownstreamPathTemplate": "/api/auth/check",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5001
+            }
+         ],
+         "UpstreamPathTemplate": "/api/auth/check",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
       }
-      
    ],
    "GlobalConfiguration": {
       "BaseUrl": "http://localhost:5000"

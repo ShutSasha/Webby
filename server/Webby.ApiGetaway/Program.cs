@@ -2,6 +2,8 @@ using Microsoft.OpenApi.Models;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Webby.ApiGetaway.Extensions;
+using Webby.ApiGetaway.Helpers.Exception;
+using Webby.ApiGetaway.Helpers.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -9,6 +11,9 @@ var configuration = builder.Configuration;
 
 services.AddOpenApi();
 services.AddCorsPolicy("AllowWebOrigin");
+services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
+
+services.AddJwtAuthentication(builder.Configuration);
 
 configuration
     .SetBasePath(builder.Environment.ContentRootPath)
@@ -17,12 +22,13 @@ configuration
 
 services.AddOcelot(configuration);
 services.AddEndpointsApiExplorer();
-
 services.AddSwaggerInfo();
 
 var app = builder.Build();
 
 app.UseCors("AllowWebOrigin");
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -33,6 +39,7 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = "";
     });
 }
+app.UseApiExceptionHandling();
 
 await app.UseOcelot();
 app.Run();
