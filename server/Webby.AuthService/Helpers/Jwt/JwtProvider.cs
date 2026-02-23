@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Webby.AuthService.Dtos;
 using Webby.AuthService.Interfaces.Helpers;
 using Webby.AuthService.Models;
 
@@ -13,8 +14,9 @@ public class JwtProvider(IOptions<JwtOptions> options): IJwtProvider
 {  
    private readonly JwtOptions _options = options.Value;  
   
-   public string GenerateAccessToken(User user)
+   public AuthToken GenerateAccessToken(User user)
    {
+      var expiration = DateTime.UtcNow.AddMinutes(_options.AccessExpiresDuration);
       var roles = new List<string>();
 
       switch(user.Role)
@@ -41,14 +43,18 @@ public class JwtProvider(IOptions<JwtOptions> options): IJwtProvider
       var signingCredentials = new SigningCredentials(
          new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.AccessSecretKey)),
          SecurityAlgorithms.HmacSha256);
-
-      var accessToken = new JwtSecurityToken(
+      
+      var token = new JwtSecurityToken(
          claims: claims,
          signingCredentials: signingCredentials,
-         expires: DateTime.Now.AddMinutes(_options.AccessExpiresDuration)
+         expires: expiration
       );
-
-      return new JwtSecurityTokenHandler().WriteToken(accessToken);
+      
+      return new AuthToken
+      {
+         AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
+         ExpiresAt = new DateTimeOffset(expiration).ToUnixTimeSeconds()
+      };
    }
   
    public ClaimsPrincipal GetPrincipal(string accessToken)  

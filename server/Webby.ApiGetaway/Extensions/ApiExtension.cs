@@ -72,6 +72,18 @@ public static class ApiExtension
 
       services.AddAuthorization();
    }
+
+   public static void RegisterApiConfig(this ConfigurationManager configuration)
+   {
+      var configurationBuilder = new ConfigurationBuilder();
+
+      configurationBuilder
+         .AddJsonFile("ocelot.json", optional: true)
+         .AddJsonFile("ocelot.auth.json", optional: true)
+         .AddEnvironmentVariables();
+
+      configuration.AddConfiguration(configurationBuilder.Build());
+   }
    
    public static IApplicationBuilder UseApiExceptionHandling(this IApplicationBuilder app)
    {

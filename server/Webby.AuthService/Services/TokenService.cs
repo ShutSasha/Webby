@@ -1,4 +1,5 @@
-﻿using Webby.AuthService.Helpers.Exception;
+﻿using Webby.AuthService.Dtos;
+using Webby.AuthService.Helpers.Exception;
 using Webby.AuthService.Interfaces.Helpers;
 using Webby.AuthService.Interfaces.Services;
 using Webby.AuthService.Models;
@@ -14,7 +15,7 @@ public class TokenService: ITokenService
       _jwtProvider = jwtProvider;
    }
 
-   public Task<string> GenerateToken(User user) 
+   public Task<AuthToken> GenerateToken(User user) 
       => Task.FromResult(_jwtProvider.GenerateAccessToken(user));
 
    public Task<Guid> ExtractUserInfo(string accessToken)

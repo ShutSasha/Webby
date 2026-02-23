@@ -10,6 +10,7 @@ var configuration = builder.Configuration;
 
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
+services.AddSwaggerConfig();
 
 services.AddCorsPolicy("AllowApiGetaway");
 services.AddDbConnection(configuration);

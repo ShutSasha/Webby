@@ -1,8 +1,6 @@
-using Microsoft.OpenApi.Models;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Webby.ApiGetaway.Extensions;
-using Webby.ApiGetaway.Helpers.Exception;
 using Webby.ApiGetaway.Helpers.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,11 +12,7 @@ services.AddCorsPolicy("AllowWebOrigin");
 services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
 
 services.AddJwtAuthentication(builder.Configuration);
-
-configuration
-    .SetBasePath(builder.Environment.ContentRootPath)
-    .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
-    .AddEnvironmentVariables();
+configuration.RegisterApiConfig();
 
 services.AddOcelot(configuration);
 services.AddEndpointsApiExplorer();
@@ -35,7 +29,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("http://localhost:5001/swagger/v1/swagger.json", "AuthService");
+        c.SwaggerEndpoint("/auth/swagger/v1/swagger.json", "AuthService");
         c.RoutePrefix = "";
     });
 }
