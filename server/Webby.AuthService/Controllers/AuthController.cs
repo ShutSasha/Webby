@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Webby.AuthService.Dtos;
+using Webby.AuthService.Helpers.Exception;
 using Webby.AuthService.Helpers.Response;
 using Webby.AuthService.Interfaces.Services;
 using Webby.AuthService.Models;
@@ -61,7 +62,11 @@ public class AuthController : ControllerBase
    [HttpPost("refresh")]
    public async Task<ActionResult<ApiResponse<LoginUserResponse>>> RefreshToken()
    {
-      var token = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
+      var token = HttpContext.Request.Headers["Authorization"].ToString();
+      if (string.IsNullOrEmpty(token))
+      {
+         throw new ApiException("Refresh token error",400);
+      }
       var userRefreshResponse = await _authService.RefreshToken(token);
       return Ok(ApiResponse<LoginUserResponse>.Ok("Successfully refresh access token", userRefreshResponse));
    }
