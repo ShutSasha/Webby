@@ -6,7 +6,7 @@ export default function EditProfileBtn({ userId }: { userId: string }) {
   return (
     <div className="flex group/settings self-end">
       <Link
-        href={`/profile/${userId}/settings`}
+        href={`/profile/${userId}/profile-settings`}
         className="flex items-center gap-2 py-2 px-3 border border-border text-sm rounded-full cursor-pointer
           group-hover/settings:bg-emerald-400 transition-all duration-400 ease-in"
       >

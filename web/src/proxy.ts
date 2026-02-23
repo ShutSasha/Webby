@@ -10,7 +10,7 @@ export default auth(req => {
   const isLoggedIn = !!req.auth
 
   const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/sign-up')
-  const isOnSettings = nextUrl.pathname.endsWith('/settings')
+  const isOnSettings = nextUrl.pathname.endsWith('/settings') // TODO: change the pathname
 
   clog(`Proxy: ${nextUrl.pathname} | LoggedIn: ${isLoggedIn}`)
 

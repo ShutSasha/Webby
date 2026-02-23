@@ -1,4 +1,3 @@
-import { Route } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -11,7 +10,7 @@ type Props = {
 export default function RoomCard({ id }: Props) {
   return (
     <Link
-      href={`/rooms/${id}` as Route}
+      href={`/rooms/${id}`}
       className="relative overflow-hidden flex rounded-xl h-[180px] py-3 px-2.5 cursor-pointer group"
     >
       {/* Background Image */}
