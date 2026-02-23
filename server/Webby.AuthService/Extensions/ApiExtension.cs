@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Webby.AuthService.Data;
 using Webby.AuthService.Helpers;
+using Webby.AuthService.Helpers.Jwt;
 using Webby.AuthService.Interfaces.Helpers;
 using Webby.AuthService.Interfaces.Repositories;
 using Webby.AuthService.Interfaces.Services;
@@ -44,11 +45,14 @@ public static class ApiExtension
    {
       serviceCollection.AddScoped<IMailService, MailService>();
       serviceCollection.AddScoped<IAuthService, Services.AuthService>();
+      serviceCollection.AddScoped<ITokenService, TokenService>();
    }
 
    public static void AddHelpers(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IPasswordHasher, PasswordHasher>();
+      serviceCollection.AddScoped<IJwtProvider, JwtProvider>();
+      
    }
    
 }
