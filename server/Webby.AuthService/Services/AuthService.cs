@@ -107,10 +107,11 @@ public class AuthService : IAuthService
          throw new ApiException("Login error", 400, errors);
       }
 
-      var accessToken = await _tokenService.GenerateToken(user);
+      var authTokenModel = await _tokenService.GenerateToken(user);
       
       loginUserResponse.User = _mapper.Map<UserDto>(user);
-      loginUserResponse.AccessToken = accessToken;
+      loginUserResponse.AccessToken = authTokenModel.AccessToken;
+      loginUserResponse.AccessTokenExpiresAt = authTokenModel.ExpiresAt;
 
       return loginUserResponse;
    }
@@ -173,11 +174,15 @@ public class AuthService : IAuthService
          .FirstOrDefault();
       
       var loginUserResponse = new LoginUserResponse();
+      AuthToken authToken;
       
       if (user != null)
       {
+         authToken = await _tokenService.GenerateToken(user);
+         
          loginUserResponse.User = _mapper.Map<UserDto>(user);
-         loginUserResponse.AccessToken = await _tokenService.GenerateToken(user);
+         loginUserResponse.AccessToken = authToken.AccessToken;
+         loginUserResponse.AccessTokenExpiresAt = authToken.ExpiresAt;
 
          return loginUserResponse;
       }
@@ -195,9 +200,12 @@ public class AuthService : IAuthService
       };
 
       await _repository.Add(newUser);
-
+         
+      authToken = await _tokenService.GenerateToken(newUser);
+         
       loginUserResponse.User = _mapper.Map<UserDto>(newUser);
-      loginUserResponse.AccessToken = await _tokenService.GenerateToken(newUser);
+      loginUserResponse.AccessToken = authToken.AccessToken;
+      loginUserResponse.AccessTokenExpiresAt = authToken.ExpiresAt;
 
       return loginUserResponse;
    }
@@ -217,8 +225,11 @@ public class AuthService : IAuthService
          throw new ApiException("Refresh token error", 404, errors);
       }
 
+      var authTokenModel = await _tokenService.GenerateToken(existingUser);
+      
       loginUserResponse.User = _mapper.Map<UserDto>(existingUser);
-      loginUserResponse.AccessToken = await _tokenService.GenerateToken(existingUser);
+      loginUserResponse.AccessToken = authTokenModel.AccessToken;
+      loginUserResponse.AccessTokenExpiresAt = authTokenModel.ExpiresAt;
 
       return loginUserResponse;
    }

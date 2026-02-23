@@ -1,10 +1,11 @@
 ﻿using System.Security.Claims;
+using Webby.AuthService.Dtos;
 using Webby.AuthService.Models;
 
 namespace Webby.AuthService.Interfaces.Helpers;
 
 public interface IJwtProvider
 {
-   string GenerateAccessToken(User user);
+   AuthToken GenerateAccessToken(User user);
    ClaimsPrincipal GetPrincipal(string accessToken);
 }
