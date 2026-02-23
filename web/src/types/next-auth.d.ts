@@ -9,17 +9,19 @@ declare module 'next-auth' {
     userId: string
     username: string
     avatarUrl: string
-
     role: Role
+    accessToken: string
+    accessTokenExpires: number
   }
 
   interface Session {
     user: {
       id: string
       username: string
-
       image: string
       role: Role
+      accessToken: string
+      accessTokenExpires: number
     }
   }
 }
@@ -31,5 +33,7 @@ declare module 'next-auth/jwt' {
     username: string
     image: string
     role: Role
+    accessToken: string
+    accessTokenExpires: number
   }
 }

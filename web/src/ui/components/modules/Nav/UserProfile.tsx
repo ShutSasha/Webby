@@ -1,11 +1,14 @@
 'use client'
 
+import { useEffect } from 'react'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
 
 import LogoutIcon from '@/assets/auth/ic_logout.svg'
 import UserProfileIcon from '@/assets/icons/ic_user_profile.svg'
+import { clog } from '@/lib/utils/utils'
 
 import { DesktopNavElement } from './NavElements'
 
@@ -16,6 +19,10 @@ type UserProfileProps = {
 
 export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
   const { data: session, status } = useSession()
+
+  useEffect(() => {
+    clog('User Session', session?.user)
+  }, [session?.user])
 
   const handleLogout = async () => {
     await signOut({ redirectTo: '/login' })

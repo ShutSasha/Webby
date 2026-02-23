@@ -3,24 +3,24 @@
 import { Route } from 'next'
 import { redirect } from 'next/dist/client/components/navigation'
 import { cookies } from 'next/headers'
-import { AuthError, type User } from 'next-auth'
+import { AuthError } from 'next-auth'
 
 import $api from '@/app/api'
 import { parseAxiosError, serverLog } from '@/lib/utils/utils'
+import { LoginRes } from '@/types/auth'
 import { FormActionState } from '@/types/general'
-
-import { signIn } from '../../../auth'
+import { signIn } from '@/workspace/auth'
 
 type ReturnError = {
   success: boolean
   errors: Record<string, string>
 }
 
-export async function login(email: string, password: string): Promise<User | ReturnError> {
+export async function login(email: string, password: string): Promise<LoginRes | ReturnError> {
   try {
     const { data: response } = await $api.post('/auth/sign-in', { email, password })
 
-    return response.data as User
+    return response.data as LoginRes
   } catch (error: unknown) {
     serverLog('LOGIN_ERROR', error, true)
 

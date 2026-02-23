@@ -10,12 +10,6 @@ const $api = axios.create({
 })
 
 $api.interceptors.request.use(async config => {
-  const token = (await cookies()).get('authjs.session-token')?.value
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-
   clog('req SERVER HTTP headers', config.headers)
 
   return config

@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from 'next-auth'
 
 import $api from '@/app/api'
-import { clog } from '@/lib/utils/utils'
+import { clog, serverLog } from '@/lib/utils/utils'
 import { GoogleAuthRes } from '@/types/auth'
 
 export const authConfig = {
@@ -24,10 +24,11 @@ export const authConfig = {
           clog('GOOGLE_AUTH RESPONSE', googleAuthResponse)
           if (!googleAuthResponse.success) return false
 
-          user.userId = googleAuthResponse.data.userId
-          user.username = googleAuthResponse.data.username
-          user.avatarUrl = googleAuthResponse.data.avatarUrl
-          user.role = googleAuthResponse.data.role
+          user.userId = googleAuthResponse.data.user.userId
+          user.username = googleAuthResponse.data.user.username
+          user.avatarUrl = googleAuthResponse.data.user.avatarUrl
+          user.role = googleAuthResponse.data.user.role
+          user.accessToken = googleAuthResponse.data.accessToken
 
           return true
         } catch (error) {
@@ -39,13 +40,21 @@ export const authConfig = {
     },
 
     async jwt({ token, user }) {
+      console.log(1)
       if (user) {
         token.id = user.userId
         token.username = user.username
         token.image = user.avatarUrl
         token.role = user.role
+        token.accessToken = user.accessToken
+        token.accessTokenExpires = Date.now() + 30 * 1000 // 30 seconds
       }
-      return token
+
+      if (Date.now() < token.accessTokenExpires) {
+        return token
+      }
+
+      return await refreshAccessToken(token, token.accessToken)
     },
 
     async session({ session, token }) {
@@ -54,6 +63,7 @@ export const authConfig = {
         session.user.username = token.username
         session.user.image = token.image
         session.user.role = token.role
+        session.user.accessToken = token.accessToken
       }
 
       return session
@@ -64,3 +74,33 @@ export const authConfig = {
   },
   providers: [],
 } satisfies NextAuthConfig
+
+async function refreshAccessToken(token: any, accessToken: string) {
+  try {
+    console.log('AHHAHAHA')
+    const { data } = await $api.post(
+      '/auth/refresh',
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    )
+
+    console.log(data)
+
+    return {
+      ...token,
+      accessToken: data.accessToken,
+      accessTokenExpires: Date.now() + 30 * 1000, // 30 seconds
+    }
+  } catch (error) {
+    serverLog('refresh error', error, true)
+
+    return {
+      ...token,
+      error: 'RefreshAccessTokenError',
+    }
+  }
+}
