@@ -15,6 +15,7 @@ $api.interceptors.request.use(async config => {
   return config
 })
 
+// TODO: catch 401 or error with invalid accessToken for signOut method
 $api.interceptors.response.use(
   config => {
     return config

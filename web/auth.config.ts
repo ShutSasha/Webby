@@ -2,7 +2,7 @@ import type { NextAuthConfig } from 'next-auth'
 
 import $api from '@/app/api'
 import { clog, serverLog } from '@/lib/utils/utils'
-import { GoogleAuthRes } from '@/types/auth'
+import { AuthRes } from '@/types/auth'
 
 export const authConfig = {
   pages: {
@@ -14,7 +14,7 @@ export const authConfig = {
         try {
           clog('authConfig.signIn - Google user:', user)
 
-          const { data: googleAuthResponse } = await $api.post<GoogleAuthRes>('/auth/google-auth', {
+          const { data: googleAuthResponse } = await $api.post<AuthRes>('/auth/google-auth', {
             id: user.id,
             name: user.name,
             email: user.email,
@@ -29,6 +29,7 @@ export const authConfig = {
           user.avatarUrl = googleAuthResponse.data.user.avatarUrl
           user.role = googleAuthResponse.data.user.role
           user.accessToken = googleAuthResponse.data.accessToken
+          user.accessTokenExpires = googleAuthResponse.data.accessTokenExpiresAt
 
           return true
         } catch (error) {
@@ -40,14 +41,14 @@ export const authConfig = {
     },
 
     async jwt({ token, user }) {
-      console.log(1)
+      clog('jwt token', token)
       if (user) {
         token.id = user.userId
         token.username = user.username
         token.image = user.avatarUrl
         token.role = user.role
         token.accessToken = user.accessToken
-        token.accessTokenExpires = Date.now() + 30 * 1000 // 30 seconds
+        token.accessTokenExpires = user.accessTokenExpires
       }
 
       if (Date.now() < token.accessTokenExpires) {
@@ -64,6 +65,7 @@ export const authConfig = {
         session.user.image = token.image
         session.user.role = token.role
         session.user.accessToken = token.accessToken
+        session.error = token.error
       }
 
       return session
@@ -77,8 +79,9 @@ export const authConfig = {
 
 async function refreshAccessToken(token: any, accessToken: string) {
   try {
-    console.log('AHHAHAHA')
-    const { data } = await $api.post(
+    clog('entered in refresh req')
+
+    const response = await $api.post(
       '/auth/refresh',
       {},
       {
@@ -88,13 +91,21 @@ async function refreshAccessToken(token: any, accessToken: string) {
       },
     )
 
-    console.log(data)
+    const serverResponse = response.data as AuthRes
+    const newToken = serverResponse.data.accessToken
+    const expiresAt = serverResponse.data.accessTokenExpiresAt
 
-    return {
+    clog('REFRESH RESPONSE', serverResponse)
+
+    const updatedData = {
       ...token,
-      accessToken: data.accessToken,
-      accessTokenExpires: Date.now() + 30 * 1000, // 30 seconds
+      accessToken: newToken,
+      accessTokenExpires: expiresAt,
     }
+
+    clog('PREPARED DATA', updatedData)
+
+    return updatedData
   } catch (error) {
     serverLog('refresh error', error, true)
 

@@ -23,6 +23,7 @@ declare module 'next-auth' {
       accessToken: string
       accessTokenExpires: number
     }
+    error?: 'RefreshAccessTokenError'
   }
 }
 
@@ -35,5 +36,6 @@ declare module 'next-auth/jwt' {
     role: Role
     accessToken: string
     accessTokenExpires: number
+    error?: 'RefreshAccessTokenError'
   }
 }

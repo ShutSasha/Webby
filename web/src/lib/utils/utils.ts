@@ -34,7 +34,7 @@ export const serverLog = (label: string, error: any, detailed?: boolean) => {
   if (!(error instanceof AxiosError)) {
     console.log(`\n=== [${label}] Non-Axios Error ===`)
     console.log(error)
-    console.log(`=== === === ===\n`)
+    console.log(`============\n`)
     return
   }
 
@@ -50,7 +50,7 @@ export const serverLog = (label: string, error: any, detailed?: boolean) => {
     console.dir(responseData, { depth: null, colors: true })
   }
 
-  console.log(`=== === === ===\n`)
+  console.log(`============\n`)
 
   if (detailed) {
     console.log(`--- [${label}] DETAILED ---`)
@@ -61,7 +61,7 @@ export const serverLog = (label: string, error: any, detailed?: boolean) => {
       method: error.config?.method,
       ...props,
     })
-    console.log(`--- --- --- ---\n`)
+    console.log(`------------\n`)
   }
 }
 
@@ -74,5 +74,5 @@ export function clog(label: string, data?: any) {
 
   console.log(`\n=== [${label}] ===`)
   console.log(data)
-  console.log(`=== === === ===\n`)
+  console.log(`============\n`)
 }

@@ -2,7 +2,7 @@ import { User } from 'next-auth'
 
 type Role = 'User' | 'Admin' | 'Moderator'
 
-type GoogleAuthRes = {
+type AuthRes = {
   success: boolean
   message: string
   data: {
@@ -15,6 +15,7 @@ type GoogleAuthRes = {
       role: Role
     }
     accessToken: string
+    accessTokenExpiresAt: number
   }
   errors: null
 }
@@ -33,4 +34,4 @@ export function isLoginRes(data: LoginRes | ReturnError): data is LoginRes {
   return typeof data === 'object' && data !== null && 'user' in data && 'accessToken' in data
 }
 
-export { type GoogleAuthRes, type Role, type LoginRes }
+export { type AuthRes, type Role, type LoginRes }
