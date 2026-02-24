@@ -58,17 +58,27 @@ public class AuthController : ControllerBase
       var user = await _authService.PerformGoogleAuth(request);
       return Ok(ApiResponse<LoginUserResponse>.Ok("Login success", user));
    }
-
+   
    [HttpPost("refresh")]
    public async Task<ActionResult<ApiResponse<LoginUserResponse>>> RefreshToken()
    {
-      var token = HttpContext.Request.Headers["Authorization"].ToString();
-      if (string.IsNullOrEmpty(token))
-      {
-         throw new ApiException("Refresh token error",400);
-      }
-      var userRefreshResponse = await _authService.RefreshToken(token);
-      return Ok(ApiResponse<LoginUserResponse>.Ok("Successfully refresh access token", userRefreshResponse));
+      var authHeader = HttpContext.Request.Headers.Authorization.ToString();
+
+      if (string.IsNullOrWhiteSpace(authHeader))
+         throw new ApiException("Refresh token error", 400, "Authorization header is missing.");
+
+      if (!authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+         throw new ApiException("Refresh token error", 400, "Authorization header must use Bearer scheme.");
+
+      var token = authHeader["Bearer ".Length..].Trim();
+
+      if (string.IsNullOrWhiteSpace(token))
+         throw new ApiException("Refresh token error", 400, "Token is missing.");
+
+      var response = await _authService.RefreshToken(token);
+
+      return Ok(ApiResponse<LoginUserResponse>
+         .Ok("Successfully refreshed access token", response));
    }
 
    [HttpGet("check")]
