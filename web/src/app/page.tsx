@@ -10,13 +10,13 @@ import { clog, serverLog } from '@/lib/utils/utils'
 import Button from '@/ui/components/Button'
 import MainLayout from '@/ui/components/MainLayout'
 
-import $apiClient from './api/client'
+import $api from './api'
 
 // TODO: return server component
 export default function Home() {
   const handleTest = async () => {
     try {
-      const { data } = await $apiClient.get('/auth/check')
+      const { data } = await $api.get('/auth/check')
 
       clog('test data response', data)
     } catch (error) {

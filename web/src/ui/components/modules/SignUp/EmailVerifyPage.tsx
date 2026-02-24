@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { OTPInput, SlotProps } from 'input-otp'
 import Link from 'next/link'
 
-import $apiClient from '@/app/api/client'
+import $api from '@/app/api'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { useResendTimer } from '@/lib/hooks/useResendTimer'
 import { BaseServerResponse, parseAxiosError, serverLog } from '@/lib/utils/utils'
@@ -25,7 +25,7 @@ export default function VerifyPage({ email }: { email?: string }) {
     setSuccess(false)
     setErrors(null)
     try {
-      const response = await $apiClient.post<BaseServerResponse>('/auth/verify-user', {
+      const response = await $api.post<BaseServerResponse>('/auth/verify-user', {
         email: email || '',
         verificationCode: code,
       })
@@ -45,7 +45,7 @@ export default function VerifyPage({ email }: { email?: string }) {
     setCodeMessage('')
     try {
       if (timeLeft > 0) return
-      await $apiClient.post('/auth/resend-verification-code', { email })
+      await $api.post('/auth/resend-verification-code', { email })
       setCodeMessage('Verification code resent successfully.')
       startTimer()
     } catch (error) {
