@@ -80,6 +80,8 @@ export const authConfig = {
 async function refreshAccessToken(token: any, accessToken: string) {
   try {
     clog('entered in refresh req')
+    clog('Data now', Date.now())
+    clog('Token time', token.accessTokenExpires)
 
     const response = await $api.post(
       '/auth/refresh',
