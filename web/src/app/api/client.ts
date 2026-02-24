@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { getSession } from 'next-auth/react'
 
+import { getGlobalToken } from '@/lib/utils/auth-token'
 import { clog } from '@/lib/utils/utils'
 
 const $apiClient = axios.create({
@@ -8,10 +8,10 @@ const $apiClient = axios.create({
 })
 
 $apiClient.interceptors.request.use(async config => {
-  const session = await getSession()
+  const token = getGlobalToken()
 
-  if (session?.user?.accessToken) {
-    config.headers.Authorization = `Bearer ${session.user.accessToken}`
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
 
   clog('req CLIENT HTTP headers', config.headers)
