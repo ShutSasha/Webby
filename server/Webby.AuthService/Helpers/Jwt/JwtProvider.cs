@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Webby.AuthService.Dtos;
+using Webby.AuthService.Helpers.Exception;
 using Webby.AuthService.Interfaces.Helpers;
 using Webby.AuthService.Models;
 
@@ -57,20 +58,34 @@ public class JwtProvider(IOptions<JwtOptions> options): IJwtProvider
       };
    }
   
-   public ClaimsPrincipal GetPrincipal(string accessToken)  
-   {  
-      var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.AccessSecretKey));  
-        
-      var validation = new TokenValidationParameters  
-      {  
-         IssuerSigningKey = securityKey,  
-         ValidateIssuer = false,  
-         ValidateAudience = false,  
-         ValidateLifetime = false,  
-         ValidateIssuerSigningKey = true  
-      };  
-  
-      return new JwtSecurityTokenHandler().ValidateToken(accessToken, validation, out _);  
-   }  
+   public ClaimsPrincipal GetPrincipal(string accessToken)
+   {
+      if (string.IsNullOrWhiteSpace(accessToken))
+         throw new ApiException("Access token is missing", 400, "Token is null or empty.");
+      
+      var parts = accessToken.Split('.');
+      if (parts.Length != 3)
+         throw new ApiException("Invalid JWT format", 400, "Token is not well-formed. Expected format: header.payload.signature");
+
+      var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.AccessSecretKey));
+
+      var validationParameters = new TokenValidationParameters
+      {
+         IssuerSigningKey = securityKey,
+         ValidateIssuer = false,
+         ValidateAudience = false,
+         ValidateLifetime = false,
+         ValidateIssuerSigningKey = true
+      };
+
+      try
+      {
+         return new JwtSecurityTokenHandler().ValidateToken(accessToken, validationParameters, out _);
+      }
+      catch (System.Exception ex)
+      {
+         throw new ApiException("JWT validation failed", 400, ex.Message);
+      }
+   } 
   
 }
