@@ -117,7 +117,9 @@ export default function LoginForm() {
           disabled={isPending}
           type="submit"
           viewType="Confirm"
-          className="text-[16px] leading-[22px] font-semibold w-fit mx-auto"
+          className={`text-[16px] leading-[22px] font-semibold w-fit mx-auto ${
+            isPending ? 'bg-neutral-700 hover:bg-neutral-700 cursor-not-allowed' : 'cursor-pointer'
+          }`}
           paddingClasses="px-5 py-2"
         >
           {isPending ? 'Sending...' : 'Log in'}

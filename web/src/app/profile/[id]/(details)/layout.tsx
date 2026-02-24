@@ -1,0 +1,8 @@
+type Props = {
+  children: React.ReactNode
+  params: Promise<{ id: string }>
+}
+
+export default async function Layout({ children }: Props) {
+  return <div className="bg-neutral-900 rounded-[20px] p-5 gap-4">{children}</div>
+}

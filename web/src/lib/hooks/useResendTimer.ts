@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export function useResendTimer(email: string | null, initialSeconds = 60) {
+export function useResendTimer(email: string | null | undefined, initialSeconds = 60) {
   const [timeLeft, setTimeLeft] = useState(0)
   const KEY = `verify_timer_${email}`
 

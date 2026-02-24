@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+
 import CategoryToggle from '@/ui/components/common/GenreToggle'
 import MediaHeader from '@/ui/components/common/MediaHeader'
 import MainLayout from '@/ui/components/MainLayout'
@@ -18,7 +20,9 @@ export default function RoomsPage() {
             </div>
             <h2 className="font-black text-[48px] leading-14 text-emerald-500 uppercase">Rooms</h2>
           </div>
-          <CategoryToggle />
+          <Suspense>
+            <CategoryToggle />
+          </Suspense>
         </div>
 
         {/* Room list goes here */}

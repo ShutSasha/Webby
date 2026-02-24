@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import Providers from '@/ui/components/Providers'
+import Providers from '@/ui/components/Providers/Providers'
 import { inter } from '@/ui/fonts'
 import './globals.css'
 

@@ -1,13 +1,29 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
 
 import ImageBackgroundGroup from '@/assets/auth/bg-login.png'
 import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
 import { benefitsList } from '@/lib/placeholder-data/home-page'
+import { clog, serverLog } from '@/lib/utils/utils'
 import Button from '@/ui/components/Button'
 import MainLayout from '@/ui/components/MainLayout'
 
-export default async function Home() {
+import $apiClient from './api/client'
+
+// TODO: return server component
+export default function Home() {
+  const handleTest = async () => {
+    try {
+      const { data } = await $apiClient.get('/auth/check')
+
+      clog('test data response', data)
+    } catch (error) {
+      serverLog('TEST ERROR', error, true)
+    }
+  }
+
   return (
     <MainLayout>
       <div className="flex flex-col gap-4 w-full max-w-5xl 2xl:max-w-7xl mx-auto">
@@ -48,6 +64,13 @@ export default async function Home() {
           />
         </div>
         {/* Block - React to moments together */}
+        <button
+          onClick={handleTest}
+          className="text-[36px] text-red-500 font-black px-4 py-2 rounded-full border border-border hover:text-white
+            hover:bg-red-600 transition-all duration-300 cursor-pointer"
+        >
+          TEST BUTTON
+        </button>
         <div className="bg-neutral-900 rounded-[20px] p-5">
           <ul className="flex flex-wrap justify-center sm:flex-row sm:flex-nowrap sm:justify-between mb-5 gap-2">
             {benefitsList.map((benefit, index) => (

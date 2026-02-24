@@ -1,4 +1,6 @@
-﻿namespace Webby.AuthService.Helpers.Mail;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Webby.AuthService.Helpers.Mail;
 
 public class SenderDataSettings
 {
