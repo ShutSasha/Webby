@@ -37,11 +37,16 @@ export const authConfig = {
           return false
         }
       }
+
       return true
     },
 
     async jwt({ token, user }) {
-      clog('jwt token', token)
+      const timeNow = Math.floor(Date.now() / 1000)
+
+      clog('Data now', timeNow)
+      clog('Token time', token.accessTokenExpires)
+
       if (user) {
         token.id = user.userId
         token.username = user.username
@@ -51,7 +56,8 @@ export const authConfig = {
         token.accessTokenExpires = user.accessTokenExpires
       }
 
-      if (Date.now() < token.accessTokenExpires) {
+      // seconds
+      if (timeNow < token.accessTokenExpires - 30) {
         return token
       }
 
@@ -80,8 +86,6 @@ export const authConfig = {
 async function refreshAccessToken(token: any, accessToken: string) {
   try {
     clog('entered in refresh req')
-    clog('Data now', Date.now())
-    clog('Token time', token.accessTokenExpires)
 
     const response = await $api.post(
       '/auth/refresh',

@@ -14,14 +14,11 @@ type Props = {
 
 export function AuthProvider({ session, children }: Props) {
   useEffect(() => {
-    clog('log')
-    clog('Current session state:', session)
-
     if (session?.error === 'RefreshAccessTokenError') {
       clog('Refresh failed, signing out...')
       signOut({ callbackUrl: '/login', redirect: true })
     }
-  }, [session])
+  }, [session?.error])
 
   return <>{children}</>
 }
