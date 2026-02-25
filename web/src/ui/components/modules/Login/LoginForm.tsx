@@ -3,17 +3,17 @@ import { startTransition, useActionState, useEffect, useState } from 'react'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { signIn, useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useForm } from 'react-hook-form'
 
 import { authenticate } from '@/app/api/auth'
-import GoogleIcon from '@/assets/auth/ic_google.svg'
 import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import AuthInput from '@/components/AuthInput'
 import Button from '@/components/Button'
 
 import ErrorDisplay from './ErrorDisplay'
+import GoogleButton from './OAuthButtons'
 
 const initialState = {
   success: false,
@@ -63,7 +63,7 @@ export default function LoginForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col">
       <h1 className="text-white text-xl font-bold text-center mb-4">Login</h1>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 mb-2">
         <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" autoComplete="email" />
         <AuthInput
           Icon={PasswordIcon}
@@ -95,11 +95,9 @@ export default function LoginForm() {
         <hr className="border-neutral-300" />
         <p className="text-center text-sm leading-5 text-neutral-300">or log in via </p>
       </div>
-      <div className="flex flex-row gap-1 items-center justify-center">
-        <GoogleIcon
-          className="w-11 h-11 hover:text-emerald-500 transition-colors duration-300 ease-out cursor-pointer"
-          onClick={() => signIn('google', { callbackUrl: '/' })}
-        />
+      <div className="flex flex-row gap-3 items-center justify-center">
+        <GoogleButton />
+        <GoogleButton />
       </div>
     </form>
   )
