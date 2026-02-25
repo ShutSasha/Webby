@@ -20,6 +20,8 @@ export default function RoomCard({ id }: Props) {
         fill
         loading="lazy"
         className="object-cover z-0 transition-transform duration-600 group-hover:scale-115"
+        placeholder="blur"
+        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mMUrwcAALMAmGjO2MQAAAAASUVORK5CYII="
       />
       {/* Overlay */}
       <div className="absolute inset-0 z-1 bg-black/40 transition-all duration-500 group-hover:bg-black/30" />

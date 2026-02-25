@@ -15,11 +15,7 @@ export default async function UserProfileInfo({ id }: { id: string }) {
   // await, sync user folowers and follows
   // await, sync user pinned badges
   const session = await auth()
-  await new Promise(resolve => {
-    setTimeout(() => {
-      resolve('')
-    }, 1000)
-  })
+  await new Promise(r => setTimeout(r, 800))
 
   return (
     <div className="bg-neutral-900 rounded-[20px] p-5 flex flex-col md:flex-row justify-between gap-4">
@@ -31,6 +27,8 @@ export default async function UserProfileInfo({ id }: { id: string }) {
             alt=""
             width={250}
             height={250}
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mMUrwcAALMAmGjO2MQAAAAASUVORK5CYII="
             className="h-20 w-20 md:h-[125px] md:w-[125px] rounded-full object-cover"
             preload
             loading="eager"

@@ -15,7 +15,9 @@ export async function UserAchievements() {
             height={180}
             preload
             loading="eager"
-            className="cursor-pointer h-[60px] w-[60px] lg:h-[90px] lg:w-[90px] object-cover"
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mMUrwcAALMAmGjO2MQAAAAASUVORK5CYII="
+            className="cursor-pointer h-[60px] w-[60px] lg:h-[90px] lg:w-[90px] object-cover rounded-full"
           />
         ))}
       </div>
