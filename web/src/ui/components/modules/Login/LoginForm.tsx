@@ -12,7 +12,8 @@ import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import AuthInput from '@/components/AuthInput'
 import Button from '@/components/Button'
-import { serverLog } from '@/lib/utils/utils'
+
+import ErrorDisplay from './ErrorDisplay'
 
 const initialState = {
   success: false,
@@ -58,23 +59,6 @@ export default function LoginForm() {
     handleSuccess()
   }, [state.success])
 
-  const resendVerifyCode = async () => {
-    const api = process.env.NEXT_PUBLIC_API_URL
-
-    try {
-      await fetch(`${api}/auth/resend-verification-code`, {
-        method: 'POST',
-        body: JSON.stringify({ email: watchedEmail }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        keepalive: true,
-      })
-    } catch (error) {
-      serverLog('Error resending verification code:', error)
-    }
-  }
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col">
       <h1 className="text-white text-xl font-bold text-center mb-4">Login</h1>
@@ -89,29 +73,7 @@ export default function LoginForm() {
           type="password"
           placeholder="Password"
         />
-        <div className={`${state?.errors ? 'block' : 'hidden'}`}>
-          {state?.errors &&
-            Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
-              <p key={field} className="text-red-500 text-sm">
-                {message}
-                {message === `User isn't verified` ? (
-                  <span>
-                    {'. '}
-                    Verify it{' '}
-                    <Link
-                      href={`/sign-up/email-verify?email=${watchedEmail}`}
-                      className="underline"
-                      onClick={resendVerifyCode}
-                    >
-                      here
-                    </Link>
-                  </span>
-                ) : (
-                  ''
-                )}
-              </p>
-            ))}
-        </div>
+        <ErrorDisplay email={watchedEmail} state={state} />
         <input type="hidden" name="redirectTo" value={callbackUrl} />
         <Button
           disabled={isPending}

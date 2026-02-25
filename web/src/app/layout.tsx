@@ -15,9 +15,9 @@ type Props = Readonly<{
 export default async function RootLayout({ children }: Props) {
   return (
     <html lang="uk">
-      <Providers>
-        <body className={`${inter.className} antialiased`}>{children}</body>
-      </Providers>
+      <body className={`${inter.className} antialiased`}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }

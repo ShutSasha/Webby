@@ -9,7 +9,7 @@ export default async function Providers({ children }: { children: React.ReactNod
 
   return (
     <SessionProvider session={session} refetchOnWindowFocus={true}>
-      <AuthProvider session={session}>{children}</AuthProvider>
+      <AuthProvider>{children}</AuthProvider>
     </SessionProvider>
   )
 }

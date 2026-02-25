@@ -2,14 +2,12 @@
 
 import { useEffect } from 'react'
 
-import { Session } from 'next-auth'
 import { signOut, useSession } from 'next-auth/react'
 
 import { setGlobalToken, setUpdateSession } from '@/lib/utils/auth-token'
 import { clog } from '@/lib/utils/utils'
 
 type Props = {
-  session: Session | null
   children: React.ReactNode
 }
 

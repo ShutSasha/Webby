@@ -11,12 +11,12 @@ import { LoginRes } from '@/types/auth'
 import { FormActionState } from '@/types/general'
 import { signIn } from '@/workspace/auth'
 
-type ReturnError = {
+export type ReturnAuthError = {
   success: boolean
   errors: Record<string, string>
 }
 
-export async function login(email: string, password: string): Promise<LoginRes | ReturnError> {
+export async function login(email: string, password: string): Promise<LoginRes | ReturnAuthError> {
   try {
     const { data: response } = await $api.post('/auth/sign-in', { email, password })
 
@@ -106,6 +106,14 @@ export async function verifyUser({ email, code }: { email: string; code: string 
       success: false,
       errors: parseAxiosError(error),
     }
+  }
+}
+
+export async function resendVerifyCode({ email }: { email: string }) {
+  try {
+    await $api.post('/auth/resend-verification-code', { email })
+  } catch (error) {
+    serverLog('Error resending verification code:', error)
   }
 }
 

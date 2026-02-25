@@ -33,7 +33,7 @@ export const authConfig = {
 
           return true
         } catch (error) {
-          console.error('Backend sync error:', error)
+          serverLog('Backend sync error:', error)
           return false
         }
       }
