@@ -2,7 +2,6 @@
 
 import { Route } from 'next'
 import { redirect } from 'next/dist/client/components/navigation'
-import { cookies } from 'next/headers'
 import { AuthError } from 'next-auth'
 
 import $api from '@/app/api'
@@ -115,12 +114,4 @@ export async function resendVerifyCode({ email }: { email: string }) {
   } catch (error) {
     serverLog('Error resending verification code:', error)
   }
-}
-
-export async function getEncryptedToken() {
-  const cookieStore = await cookies()
-  const token =
-    cookieStore.get('authjs.session-token')?.value || cookieStore.get('__Secure-authjs.session-token')?.value
-
-  return token
 }
