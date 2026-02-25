@@ -57,7 +57,7 @@ export const authConfig = {
       }
 
       // seconds
-      if (timeNow < token.accessTokenExpires - 30) {
+      if (timeNow < token.accessTokenExpires - 120) {
         return token
       }
 
