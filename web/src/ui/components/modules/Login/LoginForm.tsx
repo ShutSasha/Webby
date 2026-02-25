@@ -13,7 +13,7 @@ import AuthInput from '@/components/AuthInput'
 import Button from '@/components/Button'
 
 import ErrorDisplay from './ErrorDisplay'
-import GoogleButton from './OAuthButtons'
+import AuthSocialButtons from './OAuthButtons'
 
 const initialState = {
   success: false,
@@ -95,10 +95,8 @@ export default function LoginForm() {
         <hr className="border-neutral-300" />
         <p className="text-center text-sm leading-5 text-neutral-300">or log in via </p>
       </div>
-      <div className="flex flex-row gap-3 items-center justify-center">
-        <GoogleButton />
-        <GoogleButton />
-      </div>
+
+      <AuthSocialButtons />
     </form>
   )
 }
