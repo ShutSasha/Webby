@@ -6,8 +6,8 @@ export default async function PlaylistItem() {
       <Image
         src={'https://i.ibb.co/FShJxq8/anime-style-clouds.jpg'}
         alt=""
-        height={1920}
-        width={1080}
+        width={700}
+        height={394}
         className="w-full rounded-2xl group-hover:scale-95 transition-all duration-300 mb-1"
         loading="lazy"
       />

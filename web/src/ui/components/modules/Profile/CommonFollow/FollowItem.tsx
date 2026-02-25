@@ -18,7 +18,7 @@ export default function FollowItem({ user }: Props) {
     >
       <Link href={'/'} className="flex items-center gap-2">
         {/* User info */}
-        <Image src={user.image} alt="" width={200} height={200} className="w-13 h-13 rounded-full" />
+        <Image src={user.image} alt="" width={60} height={60} className="w-13 h-13 rounded-full" loading="lazy" />
         <div className="flex flex-col">
           <p className="text-[16px] font-medium">Username</p>
           <p className="text-neutral-500 text-[12px]">152 followers</p>

@@ -11,14 +11,14 @@ export default function RoomCard({ id }: Props) {
   return (
     <Link
       href={`/rooms/${id}`}
-      className="relative overflow-hidden flex rounded-xl h-[180px] py-3 px-2.5 cursor-pointer group"
+      className="relative aspect-video overflow-hidden flex rounded-xl py-3 px-2.5 cursor-pointer group"
     >
       {/* Background Image */}
       <Image
         src="https://cdn.magicdecor.in/com/2023/10/20174720/Anime-Scenery-Wallpaper-for-Walls-710x488.jpg"
         alt="Background"
         fill
-        priority
+        loading="lazy"
         className="object-cover z-0 transition-transform duration-600 group-hover:scale-115"
       />
       {/* Overlay */}

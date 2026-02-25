@@ -11,10 +11,11 @@ export async function UserAchievements() {
             key={index}
             src="https://i.ibb.co/ch9ZCDTr/badge1.png"
             alt=""
-            width={200}
-            height={200}
-            loading="lazy"
-            className="cursor-pointer h-[60px] w-[60px] lg:h-[90px] lg:w-[90px]"
+            width={180}
+            height={180}
+            preload
+            loading="eager"
+            className="cursor-pointer h-[60px] w-[60px] lg:h-[90px] lg:w-[90px] object-cover"
           />
         ))}
       </div>

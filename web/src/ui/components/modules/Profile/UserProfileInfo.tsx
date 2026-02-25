@@ -29,9 +29,11 @@ export default async function UserProfileInfo({ id }: { id: string }) {
           <Image
             src={'https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg'}
             alt=""
-            width={500}
-            height={500}
-            className="h-20 w-20 md:h-[125px] md:w-[125px] rounded-full"
+            width={250}
+            height={250}
+            className="h-20 w-20 md:h-[125px] md:w-[125px] rounded-full object-cover"
+            preload
+            loading="eager"
           />
 
           <UserBioSection username="username1" userId={id} bio="bio" />
