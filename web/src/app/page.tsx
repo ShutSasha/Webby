@@ -7,6 +7,7 @@ import ImageBackgroundGroup from '@/assets/auth/bg-login.png'
 import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
 import { benefitsList } from '@/lib/placeholder-data/home-page'
 import { clog, serverLog } from '@/lib/utils/utils'
+import { useToastStore } from '@/stores/toast-store'
 import Button from '@/ui/components/Button'
 import MainLayout from '@/ui/components/MainLayout'
 
@@ -14,11 +15,14 @@ import $api from './api'
 
 // TODO: return server component
 export default function Home() {
+  const addToast = useToastStore(state => state.addToast)
+
   const handleTest = async () => {
     try {
       const { data } = await $api.get('/auth/check')
 
       clog('test data response', data)
+      addToast('Successss', 'success')
     } catch (error) {
       serverLog('TEST ERROR', error, true)
     }
