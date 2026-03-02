@@ -7,6 +7,7 @@ import EditProfileBtn from '@/ui/components/modules/Profile/EditProfileBtn'
 import ProfileActionButton from '@/ui/components/modules/Profile/ProfileActionButton'
 import { UserAchievements } from '@/ui/components/modules/Profile/UserAchivments'
 import UserBioSection from '@/ui/components/modules/Profile/UserBioSection'
+import { BLUR_DATA_URLS } from '@/ui/images'
 import { auth } from '@/workspace/auth'
 
 export default async function UserProfileInfo({ id }: { id: string }) {
@@ -28,7 +29,7 @@ export default async function UserProfileInfo({ id }: { id: string }) {
             width={250}
             height={250}
             placeholder="blur"
-            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mMUrwcAALMAmGjO2MQAAAAASUVORK5CYII="
+            blurDataURL={BLUR_DATA_URLS['neutral800']}
             className="h-20 w-20 md:h-[125px] md:w-[125px] rounded-full object-cover"
             preload
             loading="eager"

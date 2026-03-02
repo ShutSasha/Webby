@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 import MailIcon from '@/assets/icons/ic_mail_with_background.svg'
 import TrashIcon from '@/assets/icons/ic_trash.svg'
+import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {
   user: {
@@ -18,7 +19,16 @@ export default function FollowItem({ user }: Props) {
     >
       <Link href={'/'} className="flex items-center gap-2">
         {/* User info */}
-        <Image src={user.image} alt="" width={60} height={60} className="w-13 h-13 rounded-full" loading="lazy" />
+        <Image
+          src={user.image}
+          alt=""
+          width={60}
+          height={60}
+          className="w-13 h-13 rounded-full"
+          loading="lazy"
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URLS['neutral900']}
+        />
         <div className="flex flex-col">
           <p className="text-[16px] font-medium">Username</p>
           <p className="text-neutral-500 text-[12px]">152 followers</p>
