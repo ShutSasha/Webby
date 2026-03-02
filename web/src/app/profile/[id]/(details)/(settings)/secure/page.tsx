@@ -1,4 +1,4 @@
-export default async function Secure() {
+export default async function SecurePage() {
   return (
     <div>
       <div>SECURE content</div>

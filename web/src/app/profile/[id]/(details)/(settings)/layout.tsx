@@ -25,7 +25,7 @@ export default async function Layout({ children, params }: Props) {
     <div className="flex flex-1 gap-2">
       {/* Left menu */}
       <SettingsNavigation id={id} />
-      <span className="w-0.5 bg-border rounded-full" />
+      <span className="w-px bg-border rounded-full" />
       <div className="w-full">{children}</div>
     </div>
   )

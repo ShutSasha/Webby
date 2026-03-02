@@ -10,8 +10,8 @@ type Props = {
 export default function SettingsNavigation({ id }: Props) {
   const pathname = usePathname()
 
-  const baseClasses = 'border px-4 py-2 transition-colors rounded-xl font-semibold'
-  const activeClasses = 'bg-emerald-400 border-transparent text-neutral-900'
+  const baseClasses = 'border px-4 py-2 transition-colors rounded-xl font-medium'
+  const activeClasses = 'bg-emerald-500 border-transparent text-neutral-900'
   const inactiveClasses = 'hover:bg-neutral-800 border-border'
 
   const getClasses = (path: string) => {
