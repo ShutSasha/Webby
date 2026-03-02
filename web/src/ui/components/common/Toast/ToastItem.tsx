@@ -1,14 +1,13 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 
-import { clsx, type ClassValue } from 'clsx'
 import { motion } from 'framer-motion'
-import { twMerge } from 'tailwind-merge'
 
 import CheckCircle from '@/assets/icons/shared/check-circle.svg'
 import XCircleIcon from '@/assets/icons/shared/circle-xmark.svg'
 import InfoCircle from '@/assets/icons/shared/info-circle.svg'
 import X from '@/assets/icons/shared/x.svg'
+import { cn } from '@/lib/utils/utils'
 import { ToastType, useToastStore } from '@/stores/toast-store'
 
 interface ToastItemProps {
@@ -41,10 +40,6 @@ export default function ToastItem({ id, message, type }: ToastItemProps) {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
   }, [id])
-
-  function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs))
-  }
 
   return (
     <motion.div

@@ -10,7 +10,7 @@ import { authenticate } from '@/app/api/auth'
 import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import AuthInput from '@/components/AuthInput'
-import Button from '@/components/Button'
+import Button from '@/ui/components/shared/Button'
 
 import ErrorDisplay from './ErrorDisplay'
 import AuthSocialButtons from './OAuthButtons'
@@ -78,7 +78,7 @@ export default function LoginForm() {
         <Button
           disabled={isPending}
           type="submit"
-          viewType="Confirm"
+          viewType="confirm"
           className={`text-[16px] leading-[22px] font-semibold w-fit mx-auto ${
             isPending ? 'bg-neutral-700 hover:bg-neutral-700 cursor-not-allowed' : 'cursor-pointer'
           }`}

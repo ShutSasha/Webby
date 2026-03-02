@@ -26,7 +26,7 @@ export default async function Layout({ children, params }: Props) {
       {/* Left menu */}
       <SettingsNavigation id={id} />
       <span className="w-0.5 bg-border rounded-full" />
-      <div className="bg-emerald-400/40 w-full">{children}</div>
+      <div className="w-full">{children}</div>
     </div>
   )
 }

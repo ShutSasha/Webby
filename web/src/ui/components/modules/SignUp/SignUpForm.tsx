@@ -10,7 +10,7 @@ import PasswordIcon from '@/assets/auth/ic_password.svg'
 import RepeatPasswordIcon from '@/assets/auth/ic_repeat_password.svg'
 import UsernameIcon from '@/assets/auth/ic_username.svg'
 import AuthInput from '@/components/AuthInput'
-import Button from '@/components/Button'
+import Button from '@/ui/components/shared/Button'
 
 import AuthSocialButtons from '../Login/OAuthButtons'
 
@@ -77,7 +77,7 @@ export default function SignUpForm() {
         <Button
           disabled={isPending}
           type="submit"
-          viewType="Confirm"
+          viewType="confirm"
           className={`text-[16px] leading-[22px] font-semibold w-fit mx-auto
             ${isPending ? 'bg-neutral-700 hover:bg-neutral-700 cursor-not-allowed' : 'cursor-pointer'}`}
           paddingClasses="px-5 py-2"

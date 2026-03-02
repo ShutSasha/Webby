@@ -1,5 +1,8 @@
 /* eslint-disable */
 import axios, { AxiosError } from 'axios'
+import clsx from 'clsx'
+import { ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 export type BaseServerResponse = {
   data: Record<string, any> | null
@@ -75,4 +78,8 @@ export function clog(label: string, data?: any) {
   console.log(`\n=== [${label}] ===`)
   console.log(data)
   console.log(`============\n`)
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }
