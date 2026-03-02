@@ -23,6 +23,8 @@ export default function Home() {
 
       clog('test data response', data)
       addToast('Successss', 'success')
+      addToast('Successss', 'info')
+      addToast('Successss', 'error')
     } catch (error) {
       serverLog('TEST ERROR', error, true)
     }
