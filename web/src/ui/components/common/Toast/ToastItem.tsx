@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { clsx, type ClassValue } from 'clsx'
+import { motion } from 'framer-motion'
 import { twMerge } from 'tailwind-merge'
 
 import CheckCircle from '@/assets/icons/shared/check-circle.svg'
@@ -24,18 +25,13 @@ export default function ToastItem({ id, message, type }: ToastItemProps) {
 
   const startTimer = () => {
     startTimeRef.current = Date.now()
-    timerRef.current = setTimeout(() => {
-      removeToast(id)
-    }, remaining)
+    timerRef.current = setTimeout(() => removeToast(id), remaining)
   }
 
   const pauseTimer = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current)
-
-      setRemaining(prev => {
-        return prev - (Date.now() - startTimeRef.current)
-      })
+      setRemaining(prev => prev - (Date.now() - startTimeRef.current))
     }
   }
 
@@ -51,13 +47,29 @@ export default function ToastItem({ id, message, type }: ToastItemProps) {
   }
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 100 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{
+        opacity: 0,
+        y: -40,
+        scale: 1,
+        transition: { duration: 0.3 },
+      }}
+      transition={{
+        default: {
+          type: 'tween',
+          duration: 0.3,
+          ease: 'circOut',
+        },
+      }}
       onMouseEnter={pauseTimer}
       onMouseLeave={startTimer}
       onClick={() => removeToast(id)}
       className={cn(
         'flex items-center justify-between p-4 rounded-xl border cursor-pointer select-none',
-        'duration-300 transition-all hover:scale-[1.02] active:scale-[0.98]',
+        'hover:scale-[1.01] active:scale-[0.98]',
         {
           'bg-linear-to-r from-emerald-950 via-neutral-900 to-neutral-900 border-emerald-500/50': type === 'success',
           'bg-linear-to-r from-purple-900 via-neutral-900 to-neutral-900 border-purple-500/50': type === 'info',
@@ -72,6 +84,6 @@ export default function ToastItem({ id, message, type }: ToastItemProps) {
         <span className="text-sm font-medium text-neutral-300">{message}</span>
       </div>
       <X className="size-4 text-neutral-500 hover:text-neutral-300 transition-colors" />
-    </div>
+    </motion.div>
   )
 }
