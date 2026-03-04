@@ -9,7 +9,7 @@ type Props = {
   email: string
 }
 
-export default function ErrorDisplay({ email, state }: Props) {
+export default function AuthErrorDisplay({ email, state }: Props) {
   return (
     <div className={`${state?.errors ? 'block' : 'hidden'}`}>
       {state?.errors &&

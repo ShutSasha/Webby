@@ -12,7 +12,7 @@ import PasswordIcon from '@/assets/auth/ic_password.svg'
 import AuthInput from '@/components/AuthInput'
 import Button from '@/ui/components/shared/Button'
 
-import ErrorDisplay from './ErrorDisplay'
+import AuthErrorDisplay from './ErrorDisplay'
 import AuthSocialButtons from './OAuthButtons'
 
 const initialState = {
@@ -73,7 +73,7 @@ export default function LoginForm() {
           type="password"
           placeholder="Password"
         />
-        <ErrorDisplay email={watchedEmail} state={state} />
+        <AuthErrorDisplay email={watchedEmail} state={state} />
         <input type="hidden" name="redirectTo" value={callbackUrl} />
         <Button
           disabled={isPending}

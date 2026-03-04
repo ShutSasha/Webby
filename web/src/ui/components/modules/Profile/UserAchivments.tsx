@@ -19,7 +19,7 @@ export async function UserAchievements() {
             loading="eager"
             placeholder="blur"
             blurDataURL={BLUR_DATA_URLS['neutral800']}
-            className="cursor-pointer h-[60px] w-[60px] lg:h-[90px] lg:w-[90px] object-cover rounded-full"
+            className="cursor-pointer size-[60px] md:size-[90px] object-cover rounded-full"
           />
         ))}
       </div>

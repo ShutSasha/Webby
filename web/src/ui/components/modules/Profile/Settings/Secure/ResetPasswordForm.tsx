@@ -2,19 +2,25 @@
 
 import { startTransition, useActionState, useState } from 'react'
 
+import { Route } from 'next'
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 
 import { authenticate } from '@/app/api/auth'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import AuthInput from '@/ui/components/AuthInput'
-import Input from '@/ui/components/Input'
+import Button from '@/ui/components/shared/Button'
 
 const initialState = {
   success: false,
   errors: null,
 }
 
-export default function ResetPasswordForm() {
+type Props = {
+  userId: string
+}
+
+export default function ResetPasswordForm({ userId }: Props) {
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const togglePassword = () => setShowPassword(prev => !prev)
   const [state, formAction, isPending] = useActionState(authenticate, initialState)
@@ -37,7 +43,7 @@ export default function ResetPasswordForm() {
   }
 
   return (
-    <div className="flex flex-col justify-between items-center my-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col justify-between items-center my-4">
       <div className="flex flex-col gap-3 max-w-md w-full">
         <div className="flex flex-col gap-1">
           <label htmlFor="currentPassword" className="text-sm">
@@ -78,7 +84,24 @@ export default function ResetPasswordForm() {
             placeholder="Confirm new password"
           />
         </div>
+        <Link
+          href={`/profile/${userId}/secure/confirm-password-reset` as Route}
+          className="text-right text-emerald-500 text-sm hover:underline cursor-pointer"
+        >
+          Forgot your password?
+        </Link>
+        <Button
+          disabled={isPending}
+          type="submit"
+          viewType="confirm"
+          className={`text-[16px] leading-[22px] font-semibold w-fit mx-auto ${
+            isPending ? 'bg-neutral-700 hover:bg-neutral-700 cursor-not-allowed' : 'cursor-pointer'
+          }`}
+          paddingClasses="px-5 py-2"
+        >
+          {isPending ? 'Saving...' : 'Save'}
+        </Button>
       </div>
-    </div>
+    </form>
   )
 }
