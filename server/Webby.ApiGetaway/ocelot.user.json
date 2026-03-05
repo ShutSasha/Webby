@@ -1,0 +1,16 @@
+{
+   "Routes": [
+      {
+         "DownstreamPathTemplate": "/docs/user-service/v1/swagger.json",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/user/swagger/v1/swagger.json",
+         "UpstreamHttpMethod": [ "GET" ]
+      }
+      ]
+}

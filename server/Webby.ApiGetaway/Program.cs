@@ -12,7 +12,7 @@ services.AddCorsPolicy("AllowWebOrigin");
 services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
 
 services.AddJwtAuthentication(builder.Configuration);
-configuration.RegisterApiConfig();
+configuration.RegisterApiConfig(builder.Environment);
 
 services.AddOcelot(configuration);
 services.AddEndpointsApiExplorer();
@@ -30,6 +30,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/auth/swagger/v1/swagger.json", "AuthService");
+        c.SwaggerEndpoint("/user/swagger/v1/swagger.json", "UserService");
         c.RoutePrefix = "";
     });
 }

@@ -1,7 +1,7 @@
 {
    "Routes": [
       {
-         "DownstreamPathTemplate": "/swagger/v1/swagger.json",
+         "DownstreamPathTemplate": "/docs/auth-service/v1/swagger.json",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
             {
@@ -12,6 +12,7 @@
          "UpstreamPathTemplate": "/auth/swagger/v1/swagger.json",
          "UpstreamHttpMethod": [ "GET" ]
       },
+      
       {
          "DownstreamPathTemplate": "/api/auth/sign-in",
          "DownstreamScheme": "http",
@@ -106,6 +107,24 @@
             }
          ],
          "UpstreamPathTemplate": "/api/auth/check",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/auth/check2",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5001
+            }
+         ],
+         "UpstreamPathTemplate": "/api/auth/check2",
          "UpstreamHttpMethod": [
             "GET"
          ],
