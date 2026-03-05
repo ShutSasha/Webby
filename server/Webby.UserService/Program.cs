@@ -11,6 +11,10 @@ services.AddSwaggerGen();
 
 services.AddCorsPolicy("AllowApiGetaway");
 services.AddDbConnection(configuration);
+services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+services.AddRepositories();
+services.AddServices();
 
 services.AddControllers().AddJsonOptions(options =>
 {

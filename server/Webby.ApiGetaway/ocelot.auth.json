@@ -113,24 +113,6 @@
          "AuthenticationOptions": {
             "AuthenticationProviderKey": "Bearer"
          }
-      },
-
-      {
-         "DownstreamPathTemplate": "/api/auth/check2",
-         "DownstreamScheme": "http",
-         "DownstreamHostAndPorts": [
-            {
-               "Host": "localhost",
-               "Port": 5001
-            }
-         ],
-         "UpstreamPathTemplate": "/api/auth/check2",
-         "UpstreamHttpMethod": [
-            "GET"
-         ],
-         "AuthenticationOptions": {
-            "AuthenticationProviderKey": "Bearer"
-         }
       }
    ]
 }

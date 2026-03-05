@@ -17,3 +17,16 @@ public class ApiResponse
       return new ApiResponse { Success = false, Message = message, Errors = errors };
    }
 }
+
+public class ApiResponse<T> : ApiResponse
+{
+   public T? Data { get; init; }
+
+   public static ApiResponse<T> Ok(string message, T data)
+      => new()
+      {
+         Success = true,
+         Message = message,
+         Data = data
+      };
+}

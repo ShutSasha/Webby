@@ -11,6 +11,20 @@
          ],
          "UpstreamPathTemplate": "/user/swagger/v1/swagger.json",
          "UpstreamHttpMethod": [ "GET" ]
+      },
+      {
+         "DownstreamPathTemplate": "/api/users/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
       }
-      ]
+   ]
 }

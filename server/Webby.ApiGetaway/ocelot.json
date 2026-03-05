@@ -402,11 +402,11 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5001
+          "Port": 5002
         }
       ],
       "DownstreamHttpMethod": null,
-      "DownstreamPathTemplate": "/api/auth/check2",
+      "DownstreamPathTemplate": "/docs/user-service/v1/swagger.json",
       "FileCacheOptions": null,
       "Priority": 1,
       "RequestIdKey": null,
@@ -423,15 +423,8 @@
       "UpstreamHttpMethod": [
         "GET"
       ],
-      "UpstreamPathTemplate": "/api/auth/check2",
-      "AuthenticationOptions": {
-        "AllowedScopes": null,
-        "AllowAnonymous": null,
-        "AuthenticationProviderKey": "Bearer",
-        "AuthenticationProviderKeys": null,
-        "HasScheme": true,
-        "HasScope": false
-      },
+      "UpstreamPathTemplate": "/user/swagger/v1/swagger.json",
+      "AuthenticationOptions": null,
       "CacheOptions": null,
       "DownstreamHttpVersionPolicy": null,
       "DownstreamHttpVersion": null,
@@ -461,7 +454,7 @@
         }
       ],
       "DownstreamHttpMethod": null,
-      "DownstreamPathTemplate": "/docs/user-service/v1/swagger.json",
+      "DownstreamPathTemplate": "/api/users/{userId}",
       "FileCacheOptions": null,
       "Priority": 1,
       "RequestIdKey": null,
@@ -478,7 +471,7 @@
       "UpstreamHttpMethod": [
         "GET"
       ],
-      "UpstreamPathTemplate": "/user/swagger/v1/swagger.json",
+      "UpstreamPathTemplate": "/api/users/{userId}",
       "AuthenticationOptions": null,
       "CacheOptions": null,
       "DownstreamHttpVersionPolicy": null,

@@ -1,5 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Security.Cryptography.X509Certificates;
+using Microsoft.EntityFrameworkCore;
 using Webby.UserService.Data;
+using Webby.UserService.Interfaces.Repository;
+using Webby.UserService.Interfaces.Service;
+using Webby.UserService.Models;
+using Webby.UserService.Repositories;
 
 namespace Webby.UserService.Extensions;
 
@@ -26,5 +31,16 @@ public static class ApiExtension
       {
          options.UseNpgsql(configuration.GetConnectionString(nameof(AppDbContext)));
       });
+   }
+
+   public static void AddRepositories(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddScoped<IUserRepository, UserRepository>();
+      serviceCollection.AddScoped<IComplaintRepository, ComplaintRepository>();
+   }
+
+   public static void AddServices(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddScoped<IUserService,Services.UserService>();
    }
 }

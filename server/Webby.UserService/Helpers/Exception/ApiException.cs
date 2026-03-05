@@ -11,4 +11,11 @@ public class ApiException : System.Exception
       StatusCode = statusCode;
       Errors = errors;
    }
+   
+   public ApiException(string message, int statusCode, string? errorMessage)
+      : base(message)
+   {
+      StatusCode = statusCode;
+      Errors = errorMessage is null ? null : new Dictionary<string, string> { { "message", errorMessage } };
+   }
 }
