@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Webby.UserService.Data;
 using Webby.UserService.Dtos.Storage;
 using Webby.UserService.Interfaces.Repository;
@@ -25,6 +26,41 @@ public static class ApiExtension
                .AllowAnyHeader();
          });
       });
+   }
+   
+   public static IServiceCollection AddSwaggerConfig(this IServiceCollection services)
+   {
+      services.AddSwaggerGen(options =>
+      {
+         options.EnableAnnotations();
+ 
+         options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+         {
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "Bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Enter ONLY your JWT token"
+         });
+ 
+         options.AddSecurityRequirement(new OpenApiSecurityRequirement
+         {
+            {
+               new OpenApiSecurityScheme
+               {
+                  Reference = new OpenApiReference
+                  {
+                     Type = ReferenceType.SecurityScheme,
+                     Id = "Bearer"
+                  }
+               },
+               Array.Empty<string>()
+            }
+         });
+      });
+ 
+      return services;
    }
 
    public static void AddDbConnection(this IServiceCollection serviceCollection, IConfiguration configuration)

@@ -11,6 +11,7 @@ services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 
 services.AddCorsPolicy("AllowApiGetaway");
+services.AddSwaggerConfig();
 services.AddDbConnection(configuration);
 
 services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

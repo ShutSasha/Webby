@@ -234,6 +234,28 @@ public class AuthService : IAuthService
       return loginUserResponse;
    }
 
+   public async Task<UserDto> ChangeUserPassword(ChangeUserPasswordRequest request)
+   {
+      var user = await _repository.FindById(request.UserId);
+
+      if (user == null)
+      {
+         throw new ApiException("Change password error", 400, "User with specified id wasn't found");
+      }
+
+      if (user.VerificationCode != string.Empty)
+      {
+         throw new ApiException("Change password error", 401, "User isn't verified");
+      }
+
+      var newPasswordHash = _passwordHasher.Generate(request.NewPassword);
+      user.Password = newPasswordHash;
+
+      await _repository.Update(user);
+
+      return _mapper.Map<UserDto>(user);
+   }
+
    private string GenerateActivationCode()
    {
       const int length = 6;

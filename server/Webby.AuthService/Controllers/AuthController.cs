@@ -81,6 +81,14 @@ public class AuthController : ControllerBase
          .Ok("Successfully refreshed access token", response));
    }
 
+   [HttpPatch("change-password")]
+   public async Task<ActionResult<ApiResponse<UserDto>>> ChangeUserPassword([FromBody] ChangeUserPasswordRequest request)
+   {
+      var changeUserPasswordResult = await _authService.ChangeUserPassword(request);
+      return Ok(ApiResponse<UserDto>.Ok("Succesfully changed user password", changeUserPasswordResult));
+      
+   }
+
    [HttpGet("check")]
    public Task<ActionResult<ApiResponse>> Check()
    {

@@ -351,6 +351,61 @@
         }
       ],
       "DownstreamHttpMethod": null,
+      "DownstreamPathTemplate": "/api/auth/change-password/",
+      "FileCacheOptions": null,
+      "Priority": 1,
+      "RequestIdKey": null,
+      "RouteClaimsRequirement": {},
+      "RouteIsCaseSensitive": false,
+      "SecurityOptions": {
+        "IPAllowedList": [],
+        "IPBlockedList": [],
+        "ExcludeAllowedFromBlocked": false
+      },
+      "UpstreamHeaderTemplates": {},
+      "UpstreamHeaderTransform": {},
+      "UpstreamHost": null,
+      "UpstreamHttpMethod": [
+        "PATCH"
+      ],
+      "UpstreamPathTemplate": "/api/auth/change-password/",
+      "AuthenticationOptions": {
+        "AllowedScopes": null,
+        "AllowAnonymous": null,
+        "AuthenticationProviderKey": "Bearer",
+        "AuthenticationProviderKeys": null,
+        "HasScheme": true,
+        "HasScope": false
+      },
+      "CacheOptions": null,
+      "DownstreamHttpVersionPolicy": null,
+      "DownstreamHttpVersion": null,
+      "DownstreamScheme": "http",
+      "HttpHandlerOptions": null,
+      "Key": null,
+      "LoadBalancerOptions": null,
+      "Metadata": null,
+      "QoSOptions": null,
+      "RateLimitOptions": null,
+      "ServiceName": null,
+      "ServiceNamespace": null,
+      "Timeout": null
+    },
+    {
+      "AddClaimsToRequest": {},
+      "AddHeadersToRequest": {},
+      "AddQueriesToRequest": {},
+      "ChangeDownstreamPathTemplate": {},
+      "DangerousAcceptAnyServerCertificateValidator": false,
+      "DelegatingHandlers": [],
+      "DownstreamHeaderTransform": {},
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5001
+        }
+      ],
+      "DownstreamHttpMethod": null,
       "DownstreamPathTemplate": "/api/auth/check",
       "FileCacheOptions": null,
       "Priority": 1,
@@ -473,6 +528,116 @@
       ],
       "UpstreamPathTemplate": "/api/users/{userId}",
       "AuthenticationOptions": null,
+      "CacheOptions": null,
+      "DownstreamHttpVersionPolicy": null,
+      "DownstreamHttpVersion": null,
+      "DownstreamScheme": "http",
+      "HttpHandlerOptions": null,
+      "Key": null,
+      "LoadBalancerOptions": null,
+      "Metadata": null,
+      "QoSOptions": null,
+      "RateLimitOptions": null,
+      "ServiceName": null,
+      "ServiceNamespace": null,
+      "Timeout": null
+    },
+    {
+      "AddClaimsToRequest": {},
+      "AddHeadersToRequest": {},
+      "AddQueriesToRequest": {},
+      "ChangeDownstreamPathTemplate": {},
+      "DangerousAcceptAnyServerCertificateValidator": false,
+      "DelegatingHandlers": [],
+      "DownstreamHeaderTransform": {},
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5002
+        }
+      ],
+      "DownstreamHttpMethod": null,
+      "DownstreamPathTemplate": "/api/users/",
+      "FileCacheOptions": null,
+      "Priority": 1,
+      "RequestIdKey": null,
+      "RouteClaimsRequirement": {},
+      "RouteIsCaseSensitive": false,
+      "SecurityOptions": {
+        "IPAllowedList": [],
+        "IPBlockedList": [],
+        "ExcludeAllowedFromBlocked": false
+      },
+      "UpstreamHeaderTemplates": {},
+      "UpstreamHeaderTransform": {},
+      "UpstreamHost": null,
+      "UpstreamHttpMethod": [
+        "PATCH"
+      ],
+      "UpstreamPathTemplate": "/api/users/",
+      "AuthenticationOptions": {
+        "AllowedScopes": null,
+        "AllowAnonymous": null,
+        "AuthenticationProviderKey": "Bearer",
+        "AuthenticationProviderKeys": null,
+        "HasScheme": true,
+        "HasScope": false
+      },
+      "CacheOptions": null,
+      "DownstreamHttpVersionPolicy": null,
+      "DownstreamHttpVersion": null,
+      "DownstreamScheme": "http",
+      "HttpHandlerOptions": null,
+      "Key": null,
+      "LoadBalancerOptions": null,
+      "Metadata": null,
+      "QoSOptions": null,
+      "RateLimitOptions": null,
+      "ServiceName": null,
+      "ServiceNamespace": null,
+      "Timeout": null
+    },
+    {
+      "AddClaimsToRequest": {},
+      "AddHeadersToRequest": {},
+      "AddQueriesToRequest": {},
+      "ChangeDownstreamPathTemplate": {},
+      "DangerousAcceptAnyServerCertificateValidator": false,
+      "DelegatingHandlers": [],
+      "DownstreamHeaderTransform": {},
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5002
+        }
+      ],
+      "DownstreamHttpMethod": null,
+      "DownstreamPathTemplate": "/api/users/update-user-avatar/{userId}",
+      "FileCacheOptions": null,
+      "Priority": 1,
+      "RequestIdKey": null,
+      "RouteClaimsRequirement": {},
+      "RouteIsCaseSensitive": false,
+      "SecurityOptions": {
+        "IPAllowedList": [],
+        "IPBlockedList": [],
+        "ExcludeAllowedFromBlocked": false
+      },
+      "UpstreamHeaderTemplates": {},
+      "UpstreamHeaderTransform": {},
+      "UpstreamHost": null,
+      "UpstreamHttpMethod": [
+        "PATCH"
+      ],
+      "UpstreamPathTemplate": "/api/users/update-user-avatar/{userId}",
+      "AuthenticationOptions": {
+        "AllowedScopes": null,
+        "AllowAnonymous": null,
+        "AuthenticationProviderKey": "Bearer",
+        "AuthenticationProviderKeys": null,
+        "HasScheme": true,
+        "HasScope": false
+      },
       "CacheOptions": null,
       "DownstreamHttpVersionPolicy": null,
       "DownstreamHttpVersion": null,

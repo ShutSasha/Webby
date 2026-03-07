@@ -12,6 +12,7 @@
          "UpstreamPathTemplate": "/user/swagger/v1/swagger.json",
          "UpstreamHttpMethod": [ "GET" ]
       },
+      
       {
          "DownstreamPathTemplate": "/api/users/{userId}",
          "DownstreamScheme": "http",
@@ -25,6 +26,42 @@
          "UpstreamHttpMethod": [
             "GET"
          ]
+      },
+      
+      {
+         "DownstreamPathTemplate": "/api/users/",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/",
+         "UpstreamHttpMethod": [
+            "PATCH"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+      
+      {
+         "DownstreamPathTemplate": "/api/users/update-user-avatar/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/update-user-avatar/{userId}",
+         "UpstreamHttpMethod": [
+            "PATCH"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
       }
    ]
 }
