@@ -1,8 +1,11 @@
 ﻿using Webby.UserService.Dtos;
+using Webby.UserService.Dtos.User;
 
 namespace Webby.UserService.Interfaces.Service;
 
 public interface IUserService
 {
-   Task<UserDto> GetUserInformation(Guid userId);
+   Task<UserProfileResponse> GetUserInformation(Guid userId);
+   Task<UserDto> UpdateUserInformation(UpdateUserRequest request);
+   Task<UserDto> EditUserIcon(Guid id, string fileName, Stream fileStream, string contentType);
 }

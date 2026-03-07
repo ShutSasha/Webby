@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Amazon.S3;
 using Webby.UserService.Extensions;
 using Webby.UserService.Middlewares;
 
@@ -11,7 +12,11 @@ services.AddSwaggerGen();
 
 services.AddCorsPolicy("AllowApiGetaway");
 services.AddDbConnection(configuration);
+
 services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+services.AddSingleton<IAmazonS3>(AwsS3ClientFactory.CreateS3Client(configuration));
+
+services.ConfigureOptionDependencies(configuration);
 
 services.AddRepositories();
 services.AddServices();

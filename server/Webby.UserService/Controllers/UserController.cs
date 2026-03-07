@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Webby.UserService.Dtos;
+using Webby.UserService.Dtos.User;
+using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Helpers.Response;
 using Webby.UserService.Interfaces.Service;
 
@@ -20,7 +22,30 @@ public class UserController : ControllerBase
    public async Task<ActionResult<ApiResponse<UserDto>>> GetUserInformation([FromRoute] Guid userId)
    {
       var userExtractionResult = await _userService.GetUserInformation(userId);
-      return Ok(ApiResponse.Ok("Successfully exctract user", userExtractionResult));
+      return Ok(ApiResponse.Ok("Successfully extract user", userExtractionResult));
+   }
+
+   [HttpPatch]
+   public async Task<ActionResult<ApiResponse<UserProfileResponse>>> UpdateUserInformation([FromBody] UpdateUserRequest request)
+   {
+      var userUpdateResult = await _userService.UpdateUserInformation(request);
+      return Ok(ApiResponse<UserProfileResponse>.Ok("Successfully update user", userUpdateResult));
+   }
+
+   [HttpPatch("update-user-avatar/{userId:guid}")]
+   public async Task<ActionResult<ApiResponse<UserDto>>> UpdateUserAvatar(IFormFile file, [FromRoute] Guid userId)
+   {
+      if (file.Length == 0)
+      {
+         throw new ApiException("Update user avatar error", 400, "file is empty");
+      }
+      
+      await using var fileStream = file.OpenReadStream();
+      var fileName = file.FileName;
+      var contentType = file.ContentType;
+      var updateUserIconResult = await _userService.EditUserIcon(userId, fileName, fileStream, contentType);
+
+      return Ok(ApiResponse<UserDto>.Ok("Successfully update user icon", updateUserIconResult));
    }
    
 }

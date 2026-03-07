@@ -1,10 +1,12 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using Microsoft.EntityFrameworkCore;
 using Webby.UserService.Data;
+using Webby.UserService.Dtos.Storage;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
 using Webby.UserService.Models;
 using Webby.UserService.Repositories;
+using Webby.UserService.Services;
 
 namespace Webby.UserService.Extensions;
 
@@ -41,6 +43,12 @@ public static class ApiExtension
 
    public static void AddServices(this IServiceCollection serviceCollection)
    {
+      serviceCollection.AddScoped<IStorageService,StorageService>();
       serviceCollection.AddScoped<IUserService,Services.UserService>();
+   }
+
+   public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)
+   {
+      serviceCollection.Configure<AwsOptions>(config.GetSection(nameof(AwsOptions)));
    }
 }
