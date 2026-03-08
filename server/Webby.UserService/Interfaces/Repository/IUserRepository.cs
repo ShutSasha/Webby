@@ -6,4 +6,8 @@ namespace Webby.UserService.Interfaces.Repository;
 public interface IUserRepository : IRepository<User>
 {
    Task<UserFollowStats> GetUserFollowBlock(Guid userId);
+   Task AddUserFollowing(Guid userId, Guid followerId);
+   Task DeleteUserFollowing(Guid userId, Guid followerId);
+   Task<bool> HasUserFollow(Guid userId, Guid followerId);
+   
 }

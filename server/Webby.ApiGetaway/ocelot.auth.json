@@ -40,7 +40,10 @@
          "UpstreamPathTemplate": "/api/auth/sign-up",
          "UpstreamHttpMethod": [
             "POST"
-         ]
+         ],
+         "AuthenticationOptions": {
+            "AllowAnonymous": true
+         }
       },
       
       {

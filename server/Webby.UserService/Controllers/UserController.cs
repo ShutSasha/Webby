@@ -2,6 +2,7 @@
 using Webby.UserService.Dtos;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Helpers.Exception;
+using Webby.UserService.Helpers.Jwt;
 using Webby.UserService.Helpers.Response;
 using Webby.UserService.Interfaces.Service;
 
@@ -46,6 +47,34 @@ public class UserController : ControllerBase
       var updateUserIconResult = await _userService.EditUserIcon(userId, fileName, fileStream, contentType);
 
       return Ok(ApiResponse<UserDto>.Ok("Successfully update user icon", updateUserIconResult));
+   }
+
+   [HttpPost("{followId:guid}/follow")]
+   public async Task<ActionResult<ApiResponse>> Follow(Guid followId)
+   {
+      var followerId = JwtHelper.ExtractUserId(HttpContext);
+
+      await _userService.FollowUser(new UserFollowRequest
+      {
+         UserId = followId,
+         FollowerId = followerId
+      });
+
+      return Ok(ApiResponse.Ok("Successfully followed"));
+   }
+
+   [HttpDelete("{followId:guid}/unfollow")]
+   public async Task<ActionResult<ApiResponse>> Unfollow(Guid followId)
+   {
+      var followerId = JwtHelper.ExtractUserId(HttpContext);
+      
+      await _userService.UnfollowUser(new UserFollowRequest
+      {
+         UserId = followId,
+         FollowerId = followerId
+      });
+      
+      return Ok(ApiResponse.Ok("Successfully unfollowed"));
    }
    
 }

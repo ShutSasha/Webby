@@ -75,6 +75,45 @@ public class UserService : IUserService
       return _mapper.Map<UserDto>(user);
 
    }
-   
-   
+
+   public async Task FollowUser(UserFollowRequest request)
+   {
+      if (request.UserId == request.FollowerId)
+      {
+         throw new ApiException("Follow user error", 400, "User cannot follow himself");
+      }
+
+      var user = await _userRepository.FindById(request.UserId);
+
+      if (user == null)
+      {
+         throw new ApiException("Follow user error", 404, "User wasn't found");
+      }
+
+      var userFollowExist = await _userRepository.HasUserFollow(request.UserId, request.FollowerId);
+
+      if (userFollowExist)
+      {
+         throw new ApiException("Follow user error", 400, "You've already follow to this user");
+      }
+
+      await _userRepository.AddUserFollowing(request.UserId, request.FollowerId);
+   }
+
+   public async Task UnfollowUser(UserFollowRequest request)
+   {
+      if (request.UserId == request.FollowerId)
+      {
+         throw new ApiException("Unfollow user error", 400, "Invalid request");
+      }
+      
+      var userFollowExist = await _userRepository.HasUserFollow(request.UserId, request.FollowerId);
+
+      if (!userFollowExist)
+      {
+         throw new ApiException("Unfollow user error", 400, "Follow isn't exist");
+      }
+
+      await _userRepository.DeleteUserFollowing(request.UserId, request.FollowerId);
+   }
 }

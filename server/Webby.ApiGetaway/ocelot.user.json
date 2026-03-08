@@ -62,6 +62,42 @@
          "AuthenticationOptions": {
             "AuthenticationProviderKey": "Bearer"
          }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/{followId}/follow",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{followId}/follow",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/{followId}/unfollow",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{followId}/unfollow",
+         "UpstreamHttpMethod": [
+            "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
       }
    ]
 }
