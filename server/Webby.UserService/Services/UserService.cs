@@ -11,12 +11,14 @@ public class UserService : IUserService
 {
    private readonly IUserRepository _userRepository;
    private readonly IStorageService _storageService;
+   private readonly IAchievementService _achievementService;
    private readonly IMapper _mapper;
-   public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService)
+   public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService, IAchievementService achievementService)
    {
       _userRepository = userRepository;
       _mapper = mapper;
       _storageService = storageService;
+      _achievementService = achievementService;
    }
    
    public async Task<UserProfileResponse> GetUserInformation(Guid userId)
@@ -32,6 +34,7 @@ public class UserService : IUserService
 
       response.User = _mapper.Map<UserDto>(user);
       response.UserFollowStats = followBlock;
+      response.PinnedUserAchievements = await _achievementService.GetPinnedAchievements(userId);
 
       return response;
    }
@@ -116,5 +119,71 @@ public class UserService : IUserService
       }
 
       await _userRepository.DeleteUserFollowing(request.UserId, request.FollowerId);
+   }
+
+   public async Task UnlockAchievement(Guid userId, Guid achievementId)
+   {
+      var user = await _userRepository.FindById(userId);
+
+      if (user == null)
+      {
+         throw new ApiException("Unlock achievement error", 404, "User wasn't found");
+      }
+
+      var achievement = await _achievementService.FindById(achievementId);
+
+      if (achievement == null)
+      {
+         throw new ApiException("Unlock achievement error", 404, "Achievement wasn't found");
+      }
+
+      await _achievementService.AddUserAchievement(userId, achievementId);
+      
+   }
+
+   public async Task PinUserAchievement(Guid userId, Guid achievementId)
+   {
+      var user = await _userRepository.FindById(userId);
+
+      if (user == null)
+      {
+         throw new ApiException("Pin achievement error", 404, "User wasn't found");
+      }
+      
+      var achievement = await _achievementService.FindById(achievementId);
+
+      if (achievement == null)
+      {
+         throw new ApiException("Pin achievement error", 404, "Achievement wasn't found");
+      }
+      
+      var userAchievement = await _achievementService.GetUserAchievement(userId,achievementId);
+
+      userAchievement.IsPinned = true;
+      await _achievementService.UpdateUserAchievement(userAchievement);
+   }
+
+   public async Task UnpinUserAchievement(Guid userId, Guid achievementId)
+   {
+      var user = await _userRepository.FindById(userId);
+
+      if (user == null)
+      {
+         throw new ApiException("Unpin achievement error", 404, "User wasn't found");
+      }
+      
+      var achievement = await _achievementService.FindById(achievementId);
+
+      if (achievement == null)
+      {
+         throw new ApiException("Unpin achievement error", 404, "Achievement wasn't found");
+      }
+
+      var userAchievement = await _achievementService.GetUserAchievement(userId,achievementId);
+
+      userAchievement.IsPinned = false;
+      await _achievementService.UpdateUserAchievement(userAchievement);
+      
+
    }
 }

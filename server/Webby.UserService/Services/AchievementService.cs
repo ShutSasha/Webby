@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Webby.UserService.Dtos.Achievement;
 using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Interfaces.Repository;
@@ -11,13 +12,14 @@ public class AchievementService : IAchievementService
 {
     private readonly IAchievementRepository _achievementRepository;
     private readonly IStorageService _storageService;
-
+    private readonly IMapper _mapper;
     public AchievementService(
         IAchievementRepository achievementRepository,
-        IStorageService storageService)
+        IStorageService storageService, IMapper mapper)
     {
         _achievementRepository = achievementRepository;
         _storageService = storageService;
+        _mapper = mapper;
     }
 
     public async Task<Achievement> CreateAchievement(CreateAchievementRequest request)
@@ -129,5 +131,48 @@ public class AchievementService : IAchievementService
     {
         var achievements = await _achievementRepository.GetAll();
         return achievements.ToList();
+    }
+
+    public async Task<Achievement?> FindById(Guid achievementId)
+    {
+        return await _achievementRepository.FindById(achievementId);
+    }
+
+    public async Task AddUserAchievement(Guid userId, Guid achievementId)
+    {
+        var userAchievementExist = await _achievementRepository
+            .HasUserAchievement(userId, achievementId);
+
+        if (userAchievementExist)
+        {
+            throw new ApiException("Add user achievement error", 400, "user achievement is already exist");
+        }
+
+        await _achievementRepository.AddUserAchievement(userId, achievementId);
+    }
+
+    public async Task<UserAchievement> GetUserAchievement(Guid userId, Guid achievementId)
+    {
+        var userAchievement = await _achievementRepository.GetUserAchievement(userId, achievementId);
+
+        if (userAchievement == null)
+        {
+            throw new ApiException("Get user achievement error", 404, "User achievement not found");
+        }
+
+        return userAchievement;
+    }
+
+    public async Task UpdateUserAchievement(UserAchievement userAchievement) => 
+        await _achievementRepository.UpdateUserAchievement(userAchievement);
+
+    public async Task<List<AchievementDto>> GetPinnedAchievements(Guid userId)
+    {
+        var userAchievements = await _achievementRepository
+            .GetUserPinnedAchievements(userId);
+
+        return userAchievements
+            .Select(ua => _mapper.Map<AchievementDto>(ua.Achievement))
+            .ToList();
     }
 }

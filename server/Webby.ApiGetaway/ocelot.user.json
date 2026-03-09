@@ -104,6 +104,42 @@
       },
 
       {
+         "DownstreamPathTemplate": "/api/users/achievements/unlock",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/achievements/unlock",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/achievements/{achievementId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/achievements/{achievementId}",
+         "UpstreamHttpMethod": [
+            "POST", "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
          "DownstreamPathTemplate": "/api/achievements",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [

@@ -6,4 +6,7 @@ public class UserAchievement
    public Guid AchievementId { get; set; }
    public DateTime UnlockedAt { get; set; }
    public bool IsPinned { get; set; }
+   
+   public User User { get; set; }
+   public Achievement Achievement { get; set; }
 }

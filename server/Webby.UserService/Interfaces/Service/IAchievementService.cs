@@ -10,5 +10,9 @@ public interface IAchievementService
    Task DeleteAchievement(Guid achievementId);
    Task<Achievement> UpdateAchievement(UpdateAchievementRequest request);
    Task<List<Achievement>> GetAchievements();
-   
+   Task<Achievement?> FindById(Guid achievementId);
+   Task AddUserAchievement(Guid userId, Guid achievementId);
+   Task<UserAchievement> GetUserAchievement(Guid userId, Guid achievementId);
+   Task UpdateUserAchievement(UserAchievement userAchievement);
+   Task<List<AchievementDto>> GetPinnedAchievements(Guid userId);
 }

@@ -20,6 +20,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
       modelBuilder.ApplyConfiguration(new UserFollowerConfiguration());
       modelBuilder.ApplyConfiguration(new UserPremiumConfiguration());
       modelBuilder.ApplyConfiguration(new AchievementConfiguration());
-      modelBuilder.ApplyConfiguration(new UserAchievementsConfiguration());
+      modelBuilder.ApplyConfiguration(new UserAchievementConfiguration());
    }
 }

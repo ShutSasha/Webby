@@ -5,6 +5,7 @@ using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Helpers.Jwt;
 using Webby.UserService.Helpers.Response;
 using Webby.UserService.Interfaces.Service;
+using Webby.UserService.Models;
 
 namespace Webby.UserService.Controllers;
 
@@ -75,6 +76,30 @@ public class UserController : ControllerBase
       });
       
       return Ok(ApiResponse.Ok("Successfully unfollowed"));
+   }
+
+   [HttpPost("achievements/unlock")]
+   public async Task<ActionResult<ApiResponse>> UnlockUserAchievement([FromBody] UnlockUserAchievementRequest request)
+   {
+      await _userService.UnlockAchievement(request.UserId, request.AchievementId);
+      return Ok(ApiResponse.Ok("Successfully unlock user achievement"));
+   }
+
+   [HttpPost("achievements/{achievementId:guid}")]
+   public async Task<ActionResult<ApiResponse>> PinUserAchievement([FromRoute] Guid achievementId)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext);
+      await _userService.PinUserAchievement(userId, achievementId);
+      return Ok(ApiResponse.Ok("Successfully pinned user achievement"));
+
+   }
+   
+   [HttpDelete("achievements/{achievementId:guid}")]
+   public async Task<ActionResult<ApiResponse>> UnpinUserAchievement([FromRoute] Guid achievementId)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext);
+      await _userService.UnpinUserAchievement(userId, achievementId);
+      return Ok(ApiResponse.Ok("Successfully unpinned user achievement"));
    }
    
 }
