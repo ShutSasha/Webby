@@ -61,11 +61,12 @@ public class UserService : IUserService
          throw new ApiException("Update user information error", 404, "User wasn't found");
       }
 
-      var updatedUserIconPath = await _storageService.UploadFileAsync(id,fileName,fileStream,contentType);
+      var updatedUserIconPath = await _storageService
+         .UploadFileAsync(id,"user_data",fileName,fileStream,contentType);
 
       if (user.AvatarUrl.StartsWith("https://webby-watch-platform-bucket"))
       {
-         await _storageService.DeleteFileAsync(id,user.AvatarUrl);
+         await _storageService.DeleteFileAsync(user.AvatarUrl);
       }
 
       user.AvatarUrl = updatedUserIconPath;

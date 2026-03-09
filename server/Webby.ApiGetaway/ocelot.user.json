@@ -10,7 +10,10 @@
             }
          ],
          "UpstreamPathTemplate": "/user/swagger/v1/swagger.json",
-         "UpstreamHttpMethod": [ "GET" ]
+         "UpstreamHttpMethod": [ "GET" ],
+         "AuthenticationOptions": {
+            "AllowAnonymous": true
+         }
       },
       
       {
@@ -98,6 +101,64 @@
          "AuthenticationOptions": {
             "AuthenticationProviderKey": "Bearer"
          }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/achievements",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+      
+      {
+         "DownstreamPathTemplate": "/api/achievements",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements",
+         "UpstreamHttpMethod": [
+            "POST","PUT"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/achievements/{achievementId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements/{achievementId}",
+         "UpstreamHttpMethod": [
+            "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
       }
+      
    ]
 }

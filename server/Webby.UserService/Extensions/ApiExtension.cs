@@ -75,12 +75,14 @@ public static class ApiExtension
    {
       serviceCollection.AddScoped<IUserRepository, UserRepository>();
       serviceCollection.AddScoped<IComplaintRepository, ComplaintRepository>();
+      serviceCollection.AddScoped<IAchievementRepository, AchievementRepository>();
    }
 
    public static void AddServices(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IStorageService,StorageService>();
       serviceCollection.AddScoped<IUserService,Services.UserService>();
+      serviceCollection.AddScoped<IAchievementService, AchievementService>();
    }
 
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)

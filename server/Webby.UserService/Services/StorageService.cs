@@ -19,12 +19,12 @@ public class StorageService : IStorageService
       _options = options.Value;
    }
    
-   public async Task<string> UploadFileAsync(Guid id, string key, Stream fileStream, string contentType)
+   public async Task<string> UploadFileAsync(Guid id, string folder, string key, Stream fileStream, string contentType)
    {
       var request = new PutObjectRequest
       {
          BucketName = _options.BucketName,
-         Key = "user_data/" + $"{id}/" + DateTime.Now.ToString("HH:mm:ss") + key,
+         Key = $"{folder}/" + $"{id}/" + DateTime.Now.ToString("HH:mm:ss") + key,
          InputStream = fileStream,
          ContentType = contentType,
          CannedACL = S3CannedACL.BucketOwnerFullControl
@@ -51,7 +51,7 @@ public class StorageService : IStorageService
       }
    }
    
-   public async Task DeleteFileAsync(Guid id, string path)
+   public async Task DeleteFileAsync(string path)
    {
       var uri = new Uri(path);
       var key = uri.AbsolutePath.TrimStart('/');
