@@ -52,4 +52,20 @@ public class UserRepository : GenericRepository<User>,IUserRepository
       return await _context.UserFollowers
          .AnyAsync(uf => uf.FollowerId == followerId && uf.UserId == userId);
    }
+
+   public async Task<List<UserFollower>> GetUserFollows(Guid userId)
+   {
+      return await _context.UserFollowers
+         .Include(uf => uf.FollowedUser)
+         .Where(uf => uf.FollowerId == userId)
+         .ToListAsync();
+   }
+
+   public async Task<List<UserFollower>> GetUserFollowers(Guid userId)
+   {
+      return await _context.UserFollowers
+         .Include(uf => uf.FollowerUser)
+         .Where(uf => uf.UserId == userId)
+         .ToListAsync();
+   }
 }

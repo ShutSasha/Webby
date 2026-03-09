@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using Webby.UserService.Dtos;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Helpers.Exception;
@@ -21,13 +22,64 @@ public class UserController : ControllerBase
    }
 
    [HttpGet("{userId:guid}")]
+   [SwaggerOperation("Get user information by id")]
    public async Task<ActionResult<ApiResponse<UserDto>>> GetUserInformation([FromRoute] Guid userId)
    {
       var userExtractionResult = await _userService.GetUserInformation(userId);
       return Ok(ApiResponse.Ok("Successfully extract user", userExtractionResult));
    }
+   
+   [HttpGet("{userId:guid}/follows")]
+   [SwaggerOperation("Get user follows")]
+   public async Task<ActionResult<ApiResponse<List<UserFollowersDto>>>> GetUserFollows([FromRoute] Guid userId)
+   {
+      var userFollows = await _userService.GetUserFollows(userId);
+      return Ok(ApiResponse<List<UserFollowersDto>>.Ok("Successfully retrieved user follows", userFollows));
+   }
+   
+   [HttpGet("{userId:guid}/followers")]
+   [SwaggerOperation("Get user followers")]
+   public async Task<ActionResult<ApiResponse<List<UserFollowersDto>>>> GetUserFollowers([FromRoute] Guid userId)
+   {
+      var userFollowers = await _userService.GetUserFollowers(userId);
+      return Ok(ApiResponse<List<UserFollowersDto>>.Ok("Successfully retrieved user followers", userFollowers));
+   }
+   
+   [HttpPost("{followId:guid}/follow")]
+   [SwaggerOperation("Follow user","AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> Follow(Guid followId)
+   {
+      var followerId = JwtHelper.ExtractUserId(HttpContext);
 
+      await _userService.FollowUser(new UserFollowRequest
+      {
+         UserId = followId,
+         FollowerId = followerId
+      });
+
+      return Ok(ApiResponse.Ok("Successfully followed"));
+   }
+   
+   [HttpPost("achievements/unlock")]
+   [SwaggerOperation("Test unlock achievement to user")]
+   public async Task<ActionResult<ApiResponse>> UnlockUserAchievement([FromBody] UnlockUserAchievementRequest request)
+   {
+      await _userService.UnlockAchievement(request.UserId, request.AchievementId);
+      return Ok(ApiResponse.Ok("Successfully unlock user achievement"));
+   }
+
+   [HttpPost("achievements/{achievementId:guid}")]
+   [SwaggerOperation("Pin user achievement","AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> PinUserAchievement([FromRoute] Guid achievementId)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext);
+      await _userService.PinUserAchievement(userId, achievementId);
+      return Ok(ApiResponse.Ok("Successfully pinned user achievement"));
+
+   }
+   
    [HttpPatch]
+   [SwaggerOperation("Update user text information","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse<UserProfileResponse>>> UpdateUserInformation([FromBody] UpdateUserRequest request)
    {
       var userUpdateResult = await _userService.UpdateUserInformation(request);
@@ -35,6 +87,7 @@ public class UserController : ControllerBase
    }
 
    [HttpPatch("update-user-avatar/{userId:guid}")]
+   [SwaggerOperation("Update user icon","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse<UserDto>>> UpdateUserAvatar(IFormFile file, [FromRoute] Guid userId)
    {
       if (file.Length == 0)
@@ -49,22 +102,9 @@ public class UserController : ControllerBase
 
       return Ok(ApiResponse<UserDto>.Ok("Successfully update user icon", updateUserIconResult));
    }
-
-   [HttpPost("{followId:guid}/follow")]
-   public async Task<ActionResult<ApiResponse>> Follow(Guid followId)
-   {
-      var followerId = JwtHelper.ExtractUserId(HttpContext);
-
-      await _userService.FollowUser(new UserFollowRequest
-      {
-         UserId = followId,
-         FollowerId = followerId
-      });
-
-      return Ok(ApiResponse.Ok("Successfully followed"));
-   }
-
+   
    [HttpDelete("{followId:guid}/unfollow")]
+   [SwaggerOperation("Unfollow user","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> Unfollow(Guid followId)
    {
       var followerId = JwtHelper.ExtractUserId(HttpContext);
@@ -77,24 +117,9 @@ public class UserController : ControllerBase
       
       return Ok(ApiResponse.Ok("Successfully unfollowed"));
    }
-
-   [HttpPost("achievements/unlock")]
-   public async Task<ActionResult<ApiResponse>> UnlockUserAchievement([FromBody] UnlockUserAchievementRequest request)
-   {
-      await _userService.UnlockAchievement(request.UserId, request.AchievementId);
-      return Ok(ApiResponse.Ok("Successfully unlock user achievement"));
-   }
-
-   [HttpPost("achievements/{achievementId:guid}")]
-   public async Task<ActionResult<ApiResponse>> PinUserAchievement([FromRoute] Guid achievementId)
-   {
-      var userId = JwtHelper.ExtractUserId(HttpContext);
-      await _userService.PinUserAchievement(userId, achievementId);
-      return Ok(ApiResponse.Ok("Successfully pinned user achievement"));
-
-   }
    
    [HttpDelete("achievements/{achievementId:guid}")]
+   [SwaggerOperation("Unpin user achievement","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> UnpinUserAchievement([FromRoute] Guid achievementId)
    {
       var userId = JwtHelper.ExtractUserId(HttpContext);

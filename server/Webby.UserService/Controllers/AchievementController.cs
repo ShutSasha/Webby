@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using Webby.UserService.Dtos.Achievement;
 using Webby.UserService.Helpers.Response;
 using Webby.UserService.Interfaces.Repository;
@@ -19,6 +20,7 @@ public class AchievementController: ControllerBase
    }
 
    [HttpGet]
+   [SwaggerOperation("Get all platform achievements")]
    public async Task<ActionResult<ApiResponse<List<Achievement>>>> GetAchievements()
    {
       var achievements = await _achievementService.GetAchievements();
@@ -26,24 +28,29 @@ public class AchievementController: ControllerBase
    }
 
    [HttpPost]
+   [SwaggerOperation("Create achievement on platform","MODERATION ROLE CLAIM REQUIRED")]
    public async Task<ActionResult<ApiResponse<Achievement>>> CreateAchievement([FromForm] CreateAchievementRequest request)
    {
       var achievementCreationResult = await _achievementService.CreateAchievement(request);
-      return Ok(ApiResponse<Achievement>.Ok("Successully create achievement", achievementCreationResult));
+      return Ok(ApiResponse<Achievement>.Ok("Successfully create achievement", achievementCreationResult));
+   }
+   
+   [HttpPut]
+   [SwaggerOperation("Update achievement","MODERATION ROLE CLAIM REQUIRED")]
+   public async Task<ActionResult<ApiResponse<Achievement>>> UpdateAchievement([FromForm] UpdateAchievementRequest request)
+   {
+      var updateAchievementResult = await _achievementService.UpdateAchievement(request);
+      return Ok(ApiResponse<Achievement>.Ok("Successfully updated achievement", updateAchievementResult));
    }
 
    [HttpDelete("{achievementId:guid}")]
+   [SwaggerOperation("Delete achievement","MODERATION ROLE CLAIM REQUIRED")]
    public async Task<ActionResult<ApiResponse>> DeleteAchievement([FromRoute] Guid achievementId)
    {
       await _achievementService.DeleteAchievement(achievementId);
       return Ok(ApiResponse.Ok("Successfully deleted achievement"));
    }
 
-   [HttpPut]
-   public async Task<ActionResult<ApiResponse<Achievement>>> UpdateAchievement([FromForm] UpdateAchievementRequest request)
-   {
-      var updateAchievementResult = await _achievementService.UpdateAchievement(request);
-      return Ok(ApiResponse<Achievement>.Ok("Successfully updated achievement", updateAchievementResult));
-   }
+   
    
 }

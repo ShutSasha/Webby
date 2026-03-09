@@ -13,4 +13,7 @@ public interface IUserService
    Task UnlockAchievement(Guid userId, Guid achievementId);
    Task PinUserAchievement(Guid userId, Guid achievementId);
    Task UnpinUserAchievement(Guid userId, Guid achievementId);
+   Task<List<UserFollowersDto>> GetUserFollowers(Guid userId);
+   Task<List<UserFollowersDto>> GetUserFollows(Guid userId);
+   
 }

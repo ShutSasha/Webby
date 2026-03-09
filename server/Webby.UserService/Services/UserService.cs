@@ -186,4 +186,24 @@ public class UserService : IUserService
       
 
    }
+
+   public async Task<List<UserFollowersDto>> GetUserFollowers(Guid userId)
+   {
+      var userFollows = await _userRepository
+         .GetUserFollowers(userId);
+
+      return userFollows
+         .Select(uf => _mapper.Map<UserFollowersDto>(uf.FollowerUser))
+         .ToList();
+   }
+
+   public async Task<List<UserFollowersDto>> GetUserFollows(Guid userId)
+   {
+      var userFollows = await _userRepository
+         .GetUserFollows(userId);
+
+      return userFollows
+         .Select(uf => _mapper.Map<UserFollowersDto>(uf.FollowedUser))
+         .ToList();
+   }
 }

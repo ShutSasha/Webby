@@ -14,12 +14,12 @@ public class UserFollowerConfiguration : IEntityTypeConfiguration<UserFollower>
 
       builder.HasIndex(uf => uf.FollowerId);
 
-      builder.HasOne<User>()
+      builder.HasOne(uf => uf.FollowedUser)
          .WithMany(u => u.Followers)
          .HasForeignKey(uf => uf.UserId)
          .OnDelete(DeleteBehavior.Restrict);
 
-      builder.HasOne<User>()
+      builder.HasOne(uf => uf.FollowerUser)
          .WithMany(u => u.Following)
          .HasForeignKey(uf => uf.FollowerId)
          .OnDelete(DeleteBehavior.Restrict);
