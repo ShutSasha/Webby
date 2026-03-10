@@ -1,0 +1,18 @@
+﻿{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "AppDbContext": "{{DatabaseConnectionString}}"
+  },
+  
+  "AwsOptions": {
+    "AccessKey": "{{AwsAccessKey}}",
+    "SecretKey": "{{AwsSecretKey}}",
+    "BucketName": "{{AwsBucketName}}",
+    "Region": "{{AwsRegion}}"
+  }
+}
