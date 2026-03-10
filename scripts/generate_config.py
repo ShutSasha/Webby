@@ -6,7 +6,8 @@ from pathlib import Path
 configs = [
     "..\\server\\Webby.AuthService\\appsettings.Development.json.temp",
     "..\\server\\Webby.UserService\\appsettings.Development.json.temp",
-    "..\\server\\Webby.ApiGetaway\\appsettings.Development.json.temp"
+    "..\\server\\Webby.ApiGetaway\\appsettings.Development.json.temp",
+    "..\\web\\.env.temp"
 ]
 
 print("Fetching secrets")
