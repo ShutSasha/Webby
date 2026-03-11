@@ -1,15 +1,9 @@
 /* eslint-disable */
+import { BaseServerResponse } from '@/types/general'
 import axios, { AxiosError } from 'axios'
 import clsx from 'clsx'
 import { ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
-export type BaseServerResponse = {
-  data: Record<string, any> | null
-  errors: Record<string, string> | null
-  message: string
-  success: boolean
-}
 
 export function parseAxiosError(error: unknown): Record<string, string> {
   if (!axios.isAxiosError<BaseServerResponse>(error)) {

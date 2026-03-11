@@ -1,5 +1,7 @@
 import Image from 'next/image'
+import { notFound } from 'next/navigation'
 
+import { getUser } from '@/app/api/user'
 import MailIcon from '@/assets/icons/ic_mail.svg'
 import ComplaintIcon from '@/assets/icons/Profile/ic_complaint.svg'
 import UserPlusIcon from '@/assets/icons/Profile/ic_user_plus.svg'
@@ -11,12 +13,14 @@ import { BLUR_DATA_URLS } from '@/ui/images'
 import { auth } from '@/workspace/auth'
 
 export default async function UserProfileInfo({ id }: { id: string }) {
-  // const user = await getUser(id)
-  // await, sync user data
+  const userData = await getUser(id)
   // await, sync user folowers and follows
   // await, sync user pinned badges
   const session = await auth()
-  await new Promise(r => setTimeout(r, 800))
+
+  if (!userData) {
+    notFound()
+  }
 
   return (
     <div className="bg-neutral-900 rounded-[20px] p-5 flex flex-col md:flex-row justify-between gap-4">
@@ -24,7 +28,7 @@ export default async function UserProfileInfo({ id }: { id: string }) {
       <div className="flex flex-col gap-4">
         <div className="flex gap-4">
           <Image
-            src={'https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg'}
+            src={userData?.user.avatarUrl}
             alt=""
             width={250}
             height={250}

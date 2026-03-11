@@ -2,7 +2,7 @@ import type { NextAuthConfig } from 'next-auth'
 
 import $api from '@/app/api'
 import { mapUserData, refreshAccessToken } from '@/lib/utils/auth'
-import { serverLog } from '@/lib/utils/utils'
+import { clog, serverLog } from '@/lib/utils/utils'
 import { AuthRes } from '@/types/auth'
 
 const TOKEN_REFRESH_BUFFER = 120
@@ -43,9 +43,15 @@ export const authConfig = {
       return true
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session: sessionData }) {
       if (user) {
         mapUserData(token, user)
+        return token
+      }
+
+      if (trigger === 'update' && sessionData) {
+        if (sessionData.image) token.image = sessionData.image
+
         return token
       }
 

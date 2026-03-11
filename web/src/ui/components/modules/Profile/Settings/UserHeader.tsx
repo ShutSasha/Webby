@@ -13,9 +13,9 @@ export default function UserHeader({ image, username }: Props) {
       <Image
         src={image}
         alt=""
-        width={125}
-        height={125}
-        className="size-[125px] rounded-full"
+        width={400}
+        height={400}
+        className="size-[125px] rounded-full object-cover"
         loading="lazy"
         placeholder="blur"
         blurDataURL={BLUR_DATA_URLS['neutral800']}
