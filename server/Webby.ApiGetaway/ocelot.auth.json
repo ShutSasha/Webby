@@ -58,7 +58,10 @@
          "UpstreamPathTemplate": "/api/auth/verify-user",
          "UpstreamHttpMethod": [
             "POST"
-         ]
+         ],
+         "AuthenticationOptions": {
+            "AllowAnonymous": true
+         }
       },
       
       {
@@ -73,7 +76,10 @@
          "UpstreamPathTemplate": "/api/auth/resend-verification-code",
          "UpstreamHttpMethod": [
             "POST"
-         ]
+         ],
+         "AuthenticationOptions": {
+            "AllowAnonymous": true
+         }
       },
       
       {
@@ -88,7 +94,10 @@
          "UpstreamPathTemplate": "/api/auth/google-auth",
          "UpstreamHttpMethod": [
             "POST"
-         ]
+         ],
+         "AuthenticationOptions": {
+            "AllowAnonymous": true
+         }
       },
       
       {
@@ -103,7 +112,10 @@
          "UpstreamPathTemplate": "/api/auth/refresh",
          "UpstreamHttpMethod": [
             "POST"
-         ]
+         ],
+         "AuthenticationOptions": {
+            "AllowAnonymous": true
+         }
       },
       
       {

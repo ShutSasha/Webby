@@ -184,7 +184,14 @@
         "POST"
       ],
       "UpstreamPathTemplate": "/api/auth/verify-user",
-      "AuthenticationOptions": null,
+      "AuthenticationOptions": {
+        "AllowedScopes": null,
+        "AllowAnonymous": true,
+        "AuthenticationProviderKey": null,
+        "AuthenticationProviderKeys": null,
+        "HasScheme": false,
+        "HasScope": false
+      },
       "CacheOptions": null,
       "DownstreamHttpVersionPolicy": null,
       "DownstreamHttpVersion": null,
@@ -232,7 +239,14 @@
         "POST"
       ],
       "UpstreamPathTemplate": "/api/auth/resend-verification-code",
-      "AuthenticationOptions": null,
+      "AuthenticationOptions": {
+        "AllowedScopes": null,
+        "AllowAnonymous": true,
+        "AuthenticationProviderKey": null,
+        "AuthenticationProviderKeys": null,
+        "HasScheme": false,
+        "HasScope": false
+      },
       "CacheOptions": null,
       "DownstreamHttpVersionPolicy": null,
       "DownstreamHttpVersion": null,
@@ -280,7 +294,14 @@
         "POST"
       ],
       "UpstreamPathTemplate": "/api/auth/google-auth",
-      "AuthenticationOptions": null,
+      "AuthenticationOptions": {
+        "AllowedScopes": null,
+        "AllowAnonymous": true,
+        "AuthenticationProviderKey": null,
+        "AuthenticationProviderKeys": null,
+        "HasScheme": false,
+        "HasScope": false
+      },
       "CacheOptions": null,
       "DownstreamHttpVersionPolicy": null,
       "DownstreamHttpVersion": null,
@@ -328,7 +349,14 @@
         "POST"
       ],
       "UpstreamPathTemplate": "/api/auth/refresh",
-      "AuthenticationOptions": null,
+      "AuthenticationOptions": {
+        "AllowedScopes": null,
+        "AllowAnonymous": true,
+        "AuthenticationProviderKey": null,
+        "AuthenticationProviderKeys": null,
+        "HasScheme": false,
+        "HasScope": false
+      },
       "CacheOptions": null,
       "DownstreamHttpVersionPolicy": null,
       "DownstreamHttpVersion": null,
