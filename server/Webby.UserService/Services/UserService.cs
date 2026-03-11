@@ -4,6 +4,7 @@ using Webby.UserService.Dtos.User;
 using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
+using Webby.UserService.Models;
 
 namespace Webby.UserService.Services;
 
@@ -206,4 +207,8 @@ public class UserService : IUserService
          .Select(uf => _mapper.Map<UserFollowersDto>(uf.FollowedUser))
          .ToList();
    }
+
+   public async Task<User?> GetById(Guid userId) 
+      => await _userRepository.FindById(userId);
+   
 }

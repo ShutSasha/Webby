@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Webby.UserService.Dtos;
 using Webby.UserService.Dtos.Achievement;
+using Webby.UserService.Dtos.Complaint;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Models;
 
@@ -13,5 +14,6 @@ public class MappingProfiles : Profile
       CreateMap<User, UserDto>();
       CreateMap<User, UserFollowersDto>();
       CreateMap<Achievement, AchievementDto>();
+      CreateMap<Complaint, ComplaintDto>();
    }
 }

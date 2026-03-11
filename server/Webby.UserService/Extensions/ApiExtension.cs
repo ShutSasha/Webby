@@ -83,6 +83,7 @@ public static class ApiExtension
       serviceCollection.AddScoped<IStorageService,StorageService>();
       serviceCollection.AddScoped<IUserService,Services.UserService>();
       serviceCollection.AddScoped<IAchievementService, AchievementService>();
+      serviceCollection.AddScoped<IComplaintService, ComplaintService>();
    }
 
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)

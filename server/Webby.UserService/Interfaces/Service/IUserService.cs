@@ -1,5 +1,6 @@
 ﻿using Webby.UserService.Dtos;
 using Webby.UserService.Dtos.User;
+using Webby.UserService.Models;
 
 namespace Webby.UserService.Interfaces.Service;
 
@@ -15,5 +16,6 @@ public interface IUserService
    Task UnpinUserAchievement(Guid userId, Guid achievementId);
    Task<List<UserFollowersDto>> GetUserFollowers(Guid userId);
    Task<List<UserFollowersDto>> GetUserFollows(Guid userId);
-   
+   Task<User?> GetById(Guid userId);
+
 }
