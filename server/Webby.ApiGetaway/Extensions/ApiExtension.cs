@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Webby.ApiGetaway.Helpers.Exception;
 using Webby.ApiGetaway.Helpers.Jwt;
+using Ocelot.Configuration.File;
+using Ocelot.DependencyInjection;
 
 namespace Webby.ApiGetaway.Extensions;
 
@@ -72,14 +74,15 @@ public static class ApiExtension
 
       services.AddAuthorization();
    }
-
-   public static void RegisterApiConfig(this ConfigurationManager configuration)
+   public static void RegisterApiConfig(this ConfigurationManager configuration, IWebHostEnvironment env)
    {
       var configurationBuilder = new ConfigurationBuilder();
 
       configurationBuilder
-         .AddJsonFile("ocelot.json", optional: true)
-         .AddJsonFile("ocelot.auth.json", optional: true)
+         .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
+         .AddJsonFile("ocelot.auth.json", optional: true, reloadOnChange: true)
+         .AddJsonFile("ocelot.user.json", optional: true, reloadOnChange: true)
+         .AddOcelot(env)
          .AddEnvironmentVariables();
 
       configuration.AddConfiguration(configurationBuilder.Build());

@@ -1,0 +1,2 @@
+#!/bin/bash
+python ./scripts/generate_config.py

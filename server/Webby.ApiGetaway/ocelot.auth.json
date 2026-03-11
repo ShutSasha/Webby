@@ -1,7 +1,7 @@
 {
    "Routes": [
       {
-         "DownstreamPathTemplate": "/swagger/v1/swagger.json",
+         "DownstreamPathTemplate": "/docs/auth-service/v1/swagger.json",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
             {
@@ -12,6 +12,7 @@
          "UpstreamPathTemplate": "/auth/swagger/v1/swagger.json",
          "UpstreamHttpMethod": [ "GET" ]
       },
+      
       {
          "DownstreamPathTemplate": "/api/auth/sign-in",
          "DownstreamScheme": "http",
@@ -26,6 +27,7 @@
             "POST"
          ]
       },
+      
       {
          "DownstreamPathTemplate": "/api/auth/sign-up",
          "DownstreamScheme": "http",
@@ -38,8 +40,12 @@
          "UpstreamPathTemplate": "/api/auth/sign-up",
          "UpstreamHttpMethod": [
             "POST"
-         ]
+         ],
+         "AuthenticationOptions": {
+            "AllowAnonymous": true
+         }
       },
+      
       {
          "DownstreamPathTemplate": "/api/auth/verify-user",
          "DownstreamScheme": "http",
@@ -54,6 +60,7 @@
             "POST"
          ]
       },
+      
       {
          "DownstreamPathTemplate": "/api/auth/resend-verification-code",
          "DownstreamScheme": "http",
@@ -68,6 +75,7 @@
             "POST"
          ]
       },
+      
       {
          "DownstreamPathTemplate": "/api/auth/google-auth",
          "DownstreamScheme": "http",
@@ -82,6 +90,7 @@
             "POST"
          ]
       },
+      
       {
          "DownstreamPathTemplate": "/api/auth/refresh",
          "DownstreamScheme": "http",
@@ -96,6 +105,25 @@
             "POST"
          ]
       },
+      
+      {
+         "DownstreamPathTemplate": "/api/auth/change-password/",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5001
+            }
+         ],
+         "UpstreamPathTemplate": "/api/auth/change-password/",
+         "UpstreamHttpMethod": [
+            "PATCH"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+      
       {
          "DownstreamPathTemplate": "/api/auth/check",
          "DownstreamScheme": "http",

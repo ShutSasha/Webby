@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using Webby.AuthService.Dtos;
 using Webby.AuthService.Helpers.Exception;
 using Webby.AuthService.Helpers.Response;
@@ -19,7 +20,15 @@ public class AuthController : ControllerBase
       _authService = authService;
    }
 
+   [HttpGet("check")]
+   [SwaggerOperation("Test check auth route","AUTH REQUIRED")]
+   public Task<ActionResult<ApiResponse>> Check()
+   {
+      return Task.FromResult<ActionResult<ApiResponse>>(Ok(ApiResponse.Ok("Server is running")));
+   }
+    
    [HttpPost("sign-up")]
+   [SwaggerOperation("Registration route")]
    public async Task<ActionResult<ApiResponse>> SignUp([FromBody] RegisterUserRequest request)
    {
       bool isRedirectionOnConfrimationPage = await _authService.Register(request);
@@ -32,6 +41,7 @@ public class AuthController : ControllerBase
    }
 
    [HttpPost("sign-in")]
+   [SwaggerOperation("Login route")]
    public async Task<ActionResult<ApiResponse<LoginUserResponse>>>SignIn([FromBody] LoginUserRequest request)
    {
       var user = await _authService.Login(request);
@@ -39,6 +49,7 @@ public class AuthController : ControllerBase
    }
 
    [HttpPost("resend-verification-code")]
+   [SwaggerOperation("Resending verification code to user email")]
    public async Task<ActionResult> ResendVerificationCode([FromBody] ResendVerificationCodeRequest request)
    {
       await _authService.SendCode(request);
@@ -46,6 +57,7 @@ public class AuthController : ControllerBase
    }
 
    [HttpPost("verify-user")]
+   [SwaggerOperation("User verification code check")]
    public async Task<ActionResult<ApiResponse>> VerifyUser([FromBody] VerifyUserRequest request)
    {
       await _authService.VerifyEmail(request);
@@ -53,6 +65,7 @@ public class AuthController : ControllerBase
    }
 
    [HttpPost("google-auth")]
+   [SwaggerOperation("Proccessing google account data after OAuth verification step")]
    public async Task<ActionResult<ApiResponse<LoginUserResponse>>> PerformGoogleAuth([FromBody] GoogleAuthRequest request)
    {
       var user = await _authService.PerformGoogleAuth(request);
@@ -60,6 +73,7 @@ public class AuthController : ControllerBase
    }
    
    [HttpPost("refresh")]
+   [SwaggerOperation("Access token exchanging")]
    public async Task<ActionResult<ApiResponse<LoginUserResponse>>> RefreshToken()
    {
       var authHeader = HttpContext.Request.Headers.Authorization.ToString();
@@ -81,10 +95,12 @@ public class AuthController : ControllerBase
          .Ok("Successfully refreshed access token", response));
    }
 
-   [HttpGet("check")]
-   public Task<ActionResult<ApiResponse>> Check()
+   [HttpPatch("change-password")]
+   [SwaggerOperation("Change user password route","AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<UserDto>>> ChangeUserPassword([FromBody] ChangeUserPasswordRequest request)
    {
-      return Task.FromResult<ActionResult<ApiResponse>>(Ok(ApiResponse.Ok("Server is running")));
+      var changeUserPasswordResult = await _authService.ChangeUserPassword(request);
+      return Ok(ApiResponse<UserDto>.Ok("Succesfully changed user password", changeUserPasswordResult));
    }
    
 }
