@@ -3,11 +3,14 @@ import json
 import re
 from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent
+
 configs = [
-    "..\\server\\Webby.AuthService\\appsettings.Development.json.temp",
-    "..\\server\\Webby.UserService\\appsettings.Development.json.temp",
-    "..\\server\\Webby.ApiGetaway\\appsettings.Development.json.temp",
-    "..\\web\\.env.temp"
+    PROJECT_ROOT / "server/Webby.AuthService/appsettings.Development.json.temp",
+    PROJECT_ROOT / "server/Webby.UserService/appsettings.Development.json.temp",
+    PROJECT_ROOT / "server/Webby.ApiGetaway/appsettings.Development.json.temp",
+    PROJECT_ROOT / "web/.env.temp"
 ]
 
 print("Fetching secrets")
