@@ -76,16 +76,9 @@ public static class ApiExtension
    }
    public static void RegisterApiConfig(this ConfigurationManager configuration, IWebHostEnvironment env)
    {
-      var configurationBuilder = new ConfigurationBuilder();
-
-      configurationBuilder
-         .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
-         .AddJsonFile("ocelot.auth.json", optional: true, reloadOnChange: true)
-         .AddJsonFile("ocelot.user.json", optional: true, reloadOnChange: true)
-         .AddOcelot(env)
-         .AddEnvironmentVariables();
-
-      configuration.AddConfiguration(configurationBuilder.Build());
+       configuration.SetBasePath(env.ContentRootPath)
+          .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
+          .AddEnvironmentVariables();
    }
    
    public static IApplicationBuilder UseApiExceptionHandling(this IApplicationBuilder app)
