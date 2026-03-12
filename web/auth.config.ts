@@ -1,11 +1,11 @@
 import type { NextAuthConfig } from 'next-auth'
 
-import $api from '@/app/api'
 import { mapUserData, refreshAccessToken } from '@/lib/utils/auth'
 import { clog, serverLog } from '@/lib/utils/utils'
 import { AuthRes } from '@/types/auth'
 
 const TOKEN_REFRESH_BUFFER = 120
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api'
 
 export const authConfig = {
   pages: {
@@ -15,12 +15,18 @@ export const authConfig = {
     async signIn({ user, account }) {
       if (account?.provider === 'google') {
         try {
-          const { data: res } = await $api.post<AuthRes>('/auth/google-auth', {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            image: user.image,
+          const response = await fetch(`${API_URL}/auth/google-auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              image: user.image,
+            }),
           })
+
+          const res: AuthRes = await response.json()
 
           if (!res.success) return false
 

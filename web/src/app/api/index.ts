@@ -2,6 +2,7 @@ import axios from 'axios'
 
 import { getGlobalToken, setGlobalToken, triggerSessionUpdate } from '@/lib/utils/auth-token'
 import { clog } from '@/lib/utils/utils'
+import { auth } from '@/workspace/auth'
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api'
 
@@ -10,7 +11,16 @@ const $api = axios.create({
 })
 
 $api.interceptors.request.use(async config => {
-  const token = getGlobalToken()
+  let token: string | null = null
+
+  if (typeof window === 'undefined') {
+    const session = await auth()
+    token = session?.user?.accessToken || null
+  } else {
+    token = getGlobalToken()
+  }
+
+  clog('token', token)
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
