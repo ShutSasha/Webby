@@ -25,7 +25,7 @@ export async function getUser(id: string): Promise<GetUserResponse | undefined |
 
 export async function uploadNewUserPhoto(id: string, formData: FormData) {
   try {
-    const { data: response } = await $api.patch<BaseServerResponse<any>>(
+    const { data: response } = await $api.patch<BaseServerResponse<User>>(
       `${endpoint}/update-user-avatar/${id}`,
       formData,
     )
