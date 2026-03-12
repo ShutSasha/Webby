@@ -9,4 +9,9 @@ interface User {
   role: Role
 }
 
-export { type Role, type User }
+type UserFolowStats = {
+  followers: number
+  following: number
+}
+
+export { type Role, type User, type UserFolowStats }

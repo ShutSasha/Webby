@@ -1,17 +1,22 @@
 import Image from 'next/image'
 
+import { Achievement } from '@/types/achivement'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
-export async function UserAchievements() {
+type Props = {
+  achivements: Achievement[]
+}
+
+export async function UserAchievements({ achivements }: Props) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5 self-end">
       <p>Badges</p>
       <hr className="text-emerald-400 w-full" />
       <div className="flex items-center gap-4">
-        {[...new Array(3)].map((_, index) => (
+        {achivements.map(achivement => (
           <Image
-            key={index}
-            src="https://i.ibb.co/ch9ZCDTr/badge1.png"
+            key={achivement.achievementId}
+            src={achivement.iconUrl}
             alt=""
             width={180}
             height={180}

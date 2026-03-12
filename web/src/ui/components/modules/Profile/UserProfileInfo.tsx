@@ -5,6 +5,7 @@ import { getUser } from '@/app/api/user'
 import MailIcon from '@/assets/icons/ic_mail.svg'
 import ComplaintIcon from '@/assets/icons/Profile/ic_complaint.svg'
 import UserPlusIcon from '@/assets/icons/Profile/ic_user_plus.svg'
+import { clog, cn } from '@/lib/utils/utils'
 import EditProfileBtn from '@/ui/components/modules/Profile/EditProfileBtn'
 import ProfileActionButton from '@/ui/components/modules/Profile/ProfileActionButton'
 import { UserAchievements } from '@/ui/components/modules/Profile/UserAchivments'
@@ -14,9 +15,10 @@ import { auth } from '@/workspace/auth'
 
 export default async function UserProfileInfo({ id }: { id: string }) {
   const userData = await getUser(id)
-  // await, sync user folowers and follows
-  // await, sync user pinned badges
   const session = await auth()
+  const isOwner = session?.user.id === id
+
+  clog('fetched user data', userData)
 
   if (!userData) {
     notFound()
@@ -28,23 +30,36 @@ export default async function UserProfileInfo({ id }: { id: string }) {
       <div className="flex flex-col gap-4">
         <div className="flex gap-4">
           <Image
-            src={userData?.user.avatarUrl}
+            src={userData.user.avatarUrl}
             alt=""
-            width={250}
-            height={250}
+            width={300}
+            height={300}
             placeholder="blur"
             blurDataURL={BLUR_DATA_URLS['neutral800']}
-            className="h-20 w-20 md:h-[125px] md:w-[125px] rounded-full object-cover"
+            className={cn(
+              'aspect-square rounded-full object-cover shrink-0 transition-all duration-500',
+              'size-20',
+              isOwner ? 'md:size-[175px]' : 'md:size-[125px]',
+            )}
             preload
             loading="eager"
           />
 
-          <UserBioSection username="username1" userId={id} bio="bio" />
+          <UserBioSection
+            userId={id}
+            username={userData.user.username}
+            bio={userData.user.about}
+            followersCount={userData.userFollowStats.followers}
+            followsCount={userData.userFollowStats.following}
+          />
         </div>
-        <div className="flex items-center gap-2">
-          <ProfileActionButton Icon={MailIcon} label="Chat" iconClassName="w-4 h-4" />
-          <ProfileActionButton Icon={UserPlusIcon} label="Follow" iconClassName="w-4 h-4" />
-        </div>
+
+        {!isOwner && (
+          <div className="flex items-center gap-2">
+            <ProfileActionButton Icon={MailIcon} label="Chat" iconClassName="w-4 h-4" />
+            <ProfileActionButton Icon={UserPlusIcon} label="Follow" iconClassName="w-4 h-4" />
+          </div>
+        )}
       </div>
 
       {/* Right Part of user profile*/}
@@ -59,7 +74,9 @@ export default async function UserProfileInfo({ id }: { id: string }) {
             btnClassName="self-end"
           />
         )}
-        <UserAchievements />
+        {userData.pinnedUserAchievements.length > 0 && (
+          <UserAchievements achivements={userData.pinnedUserAchievements} />
+        )}
       </div>
     </div>
   )
