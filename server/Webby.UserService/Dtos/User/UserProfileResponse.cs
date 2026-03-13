@@ -7,4 +7,5 @@ public class UserProfileResponse
    public UserDto User { get; set; }
    public UserFollowStats UserFollowStats { get; set; }
    public List<AchievementDto> PinnedUserAchievements { get; set; }
+
 }

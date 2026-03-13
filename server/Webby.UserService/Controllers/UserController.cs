@@ -36,6 +36,16 @@ public class UserController : ControllerBase
       var userFollows = await _userService.GetUserFollows(userId);
       return Ok(ApiResponse<List<UserFollowersDto>>.Ok("Successfully retrieved user follows", userFollows));
    }
+
+   [HttpGet("is-following/{targetId:guid}")]
+   [SwaggerOperation("Checks if user followed to target user","AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<UserFollowingResponse>>> GetUserFollowing([FromRoute] Guid targetId)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext);
+      var userFollowingResponse = await _userService.IsUserFollowing(userId, targetId);
+      
+      return Ok(ApiResponse<UserFollowingResponse>.Ok("Successfully retrieved information", userFollowingResponse));
+   }
    
    [HttpGet("{userId:guid}/followers")]
    [SwaggerOperation("Get user followers")]

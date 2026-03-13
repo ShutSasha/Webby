@@ -36,7 +36,6 @@ public class UserService : IUserService
       response.User = _mapper.Map<UserDto>(user);
       response.UserFollowStats = followBlock;
       response.PinnedUserAchievements = await _achievementService.GetPinnedAchievements(userId);
-
       return response;
    }
 
@@ -198,5 +197,17 @@ public class UserService : IUserService
 
    public async Task<User?> GetById(Guid userId) 
       => await _userRepository.FindById(userId);
-   
+
+   public async Task<UserFollowingResponse> IsUserFollowing(Guid userId, Guid targetId)
+   {
+      var response = new UserFollowingResponse();
+      
+      var targetUser = await _userRepository.FindById(targetId);
+
+      if (targetUser == null)
+         throw new ApiException("Check is user following error", 404, "Target user wasn't found");
+
+      response.isFollowing = await _userRepository.HasUserFollow(userId, targetId);
+      return response;
+   }
 }
