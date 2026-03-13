@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 
 import { getUser } from '@/app/api/user'
 import MailIcon from '@/assets/icons/ic_mail.svg'
-import ComplaintIcon from '@/assets/icons/Profile/ic_complaint.svg'
 import UserPlusIcon from '@/assets/icons/Profile/ic_user_plus.svg'
 import { clog, cn } from '@/lib/utils/utils'
 import EditProfileBtn from '@/ui/components/modules/Profile/EditProfileBtn'
@@ -12,6 +11,8 @@ import { UserAchievements } from '@/ui/components/modules/Profile/UserAchivments
 import UserBioSection from '@/ui/components/modules/Profile/UserBioSection'
 import { BLUR_DATA_URLS } from '@/ui/images'
 import { auth } from '@/workspace/auth'
+
+import ComplaintButton from './ComplaintButton'
 
 export default async function UserProfileInfo({ id }: { id: string }) {
   const userData = await getUser(id)
@@ -56,24 +57,22 @@ export default async function UserProfileInfo({ id }: { id: string }) {
 
         {!isOwner && (
           <div className="flex items-center gap-2">
-            <ProfileActionButton Icon={MailIcon} label="Chat" iconClassName="w-4 h-4" />
-            <ProfileActionButton Icon={UserPlusIcon} label="Follow" iconClassName="w-4 h-4" />
+            <ProfileActionButton label="Chat">
+              <MailIcon className="w-4 h-4" />
+            </ProfileActionButton>
+
+            <ProfileActionButton label="Follow">
+              <UserPlusIcon className="w-4 h-4" />
+            </ProfileActionButton>
           </div>
         )}
       </div>
 
       {/* Right Part of user profile*/}
       <div className="flex flex-col gap-2">
-        {session?.user.id === id ? (
-          <EditProfileBtn userId={id} />
-        ) : (
-          <ProfileActionButton
-            Icon={ComplaintIcon}
-            label="Leave complaint"
-            iconClassName="w-4 h-4"
-            btnClassName="self-end"
-          />
-        )}
+        {session?.user.id === id && <EditProfileBtn userId={id} />}
+        {session && session?.user.id !== id && <ComplaintButton authorId={session.user.id} targetId={id} />}
+
         {userData.pinnedUserAchievements.length > 0 && (
           <UserAchievements achivements={userData.pinnedUserAchievements} />
         )}

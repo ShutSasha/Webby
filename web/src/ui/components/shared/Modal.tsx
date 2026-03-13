@@ -41,7 +41,7 @@ export default function Modal({ isOpen, onClose, children }: Props) {
           transition-all duration-400 ease-out
           ${isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8'}`}
       >
-        <div>{children}</div>
+        <div className="text-neutral-300">{children}</div>
       </div>
     </div>,
     document.body,

@@ -20,8 +20,8 @@ export default function UploadAvatarContainer() {
     const file = e.target.files?.[0]
     if (!file || !session?.user?.id) return
 
-    if (file.size > 5 * 1024 * 1024) {
-      addToast('File is too large (max 5MB)', 'error')
+    if (file.size > 3 * 1024 * 1024) {
+      addToast('File is too large (max 3MB)', 'error')
       return
     }
 

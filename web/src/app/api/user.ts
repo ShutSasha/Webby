@@ -32,7 +32,7 @@ export async function getUser(id: string): Promise<GetUserResponse | undefined |
   }
 }
 
-export async function uploadNewUserPhoto(id: string, formData: FormData) {
+export async function uploadNewUserPhoto(id: string, formData: FormData): Promise<User | null> {
   try {
     const { data: response } = await $api.patch<BaseServerResponse<User>>(
       `${endpoint}/update-user-avatar/${id}`,
@@ -46,7 +46,7 @@ export async function uploadNewUserPhoto(id: string, formData: FormData) {
   }
 }
 
-export async function getUserFollows(id: string) {
+export async function getUserFollows(id: string): Promise<GetUserFollowsResponse[] | null> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<GetUserFollowsResponse[]>>(`${endpoint}/${id}/follows`)
 
@@ -57,7 +57,7 @@ export async function getUserFollows(id: string) {
   }
 }
 
-export async function getUserFollowers(id: string) {
+export async function getUserFollowers(id: string): Promise<GetUserFollowersResponse[] | null> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<GetUserFollowersResponse[]>>(
       `${endpoint}/${id}/followers`,
@@ -66,6 +66,27 @@ export async function getUserFollowers(id: string) {
     return response.data
   } catch (error: unknown) {
     serverLog('FETCH_USER_FOLLOWERS_ERROR', error, true)
+    return null
+  }
+}
+
+export async function leaveComplaint(
+  authorId: string,
+  targetUserId: string,
+  reasonType: string,
+  additionalInfo: string,
+): Promise<BaseServerResponse<null> | null> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/complaints`, {
+      authorId,
+      targetUserId,
+      reasonType,
+      additionalInfo,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('LEAVE_COMPLAINT_ERROR', error, true)
     return null
   }
 }
