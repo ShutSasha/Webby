@@ -6,21 +6,22 @@ import TrashIcon from '@/assets/icons/ic_trash.svg'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {
-  user: {
-    image: string
-  }
+  userId: string
+  avatarUrl: string
+  followersCount: number
+  username: string
 }
 
-export default function FollowItem({ user }: Props) {
+export default function FollowItem({ userId, avatarUrl, followersCount, username }: Props) {
   return (
     <div
       className="bg-neutral-800 hover:bg-neutral-300/10 transition-all duration-200 ease-in rounded-xl p-2 flex
         items-center justify-between gap-2 border border-transparent hover:border-emerald-400/25"
     >
-      <Link href={'/'} className="flex items-center gap-2">
+      <Link href={`/profile/${userId}`} className="flex items-center gap-2">
         {/* User info */}
         <Image
-          src={user.image}
+          src={avatarUrl}
           alt=""
           width={60}
           height={60}
@@ -30,8 +31,8 @@ export default function FollowItem({ user }: Props) {
           blurDataURL={BLUR_DATA_URLS['neutral900']}
         />
         <div className="flex flex-col">
-          <p className="text-[16px] font-medium">Username</p>
-          <p className="text-neutral-500 text-[12px]">152 followers</p>
+          <p className="text-[16px] font-medium">{username}</p>
+          <p className="text-neutral-500 text-[12px]">{followersCount} followers</p>
         </div>
       </Link>
 
