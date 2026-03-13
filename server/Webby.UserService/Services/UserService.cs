@@ -81,7 +81,7 @@ public class UserService : IUserService
 
    }
 
-   public async Task FollowUser(UserFollowRequest request)
+   public async Task<string> ProcessFollow(UserFollowRequest request)
    {
       if (request.UserId == request.FollowerId)
       {
@@ -97,29 +97,17 @@ public class UserService : IUserService
 
       var userFollowExist = await _userRepository.HasUserFollow(request.UserId, request.FollowerId);
 
-      if (userFollowExist)
+      switch (userFollowExist)
       {
-         throw new ApiException("Follow user error", 400, "You've already follow to this user");
-      }
+         case true:
+            await _userRepository.DeleteUserFollowing(request.UserId, request.FollowerId);
+            return "Successfully unfollowed user";
 
-      await _userRepository.AddUserFollowing(request.UserId, request.FollowerId);
-   }
-
-   public async Task UnfollowUser(UserFollowRequest request)
-   {
-      if (request.UserId == request.FollowerId)
-      {
-         throw new ApiException("Unfollow user error", 400, "Invalid request");
+         case false:
+            await _userRepository.AddUserFollowing(request.UserId, request.FollowerId);
+            return "Successfully followed user";
       }
       
-      var userFollowExist = await _userRepository.HasUserFollow(request.UserId, request.FollowerId);
-
-      if (!userFollowExist)
-      {
-         throw new ApiException("Unfollow user error", 400, "Follow isn't exist");
-      }
-
-      await _userRepository.DeleteUserFollowing(request.UserId, request.FollowerId);
    }
 
    public async Task UnlockAchievement(Guid userId, Guid achievementId)
