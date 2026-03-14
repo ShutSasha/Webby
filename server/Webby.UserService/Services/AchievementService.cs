@@ -183,7 +183,7 @@ public class AchievementService : IAchievementService
         var achievementsWithUserStatus = await _achievementRepository
             .GetAchievementsWithUserStatus(userId);
         
-        getUserAchievementsResponse.PinnedAchievementDtos = pinnedAchievements.Select(
+        getUserAchievementsResponse.PinnedAchievements = pinnedAchievements.Select(
             ua => _mapper.Map<AchievementDto>(ua.Achievement)).ToList();
 
         getUserAchievementsResponse.Achievements = achievementsWithUserStatus;
