@@ -154,7 +154,7 @@ public class AchievementService : IAchievementService
 
         if (userAchievement == null)
         {
-            throw new ApiException("Get user achievement error", 404, "User achievement not found");
+            throw new ApiException("Get user achievement error", 400, "This achievement has not been unlocked yet.");
         }
 
         return userAchievement;
