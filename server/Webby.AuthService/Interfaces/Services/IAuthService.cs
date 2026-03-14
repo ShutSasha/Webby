@@ -11,7 +11,7 @@ public interface IAuthService
    Task VerifyEmail(VerifyUserRequest request);
    Task<LoginUserResponse> PerformGoogleAuth(GoogleAuthRequest request);
    Task<LoginUserResponse> RefreshToken(string accessToken);
-   Task<UserDto> ChangeUserPassword(ChangeUserPasswordRequest request);
+   Task<UserDto> ChangeUserPassword(Guid userId, ChangeUserPasswordRequest request);
    
 
 }

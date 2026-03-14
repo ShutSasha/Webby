@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using MimeKit.Encodings;
 using Webby.AuthService.Dtos;
 using Webby.AuthService.Helpers.Exception;
 using Webby.AuthService.Interfaces.Helpers;
@@ -234,10 +235,10 @@ public class AuthService : IAuthService
       return loginUserResponse;
    }
 
-   public async Task<UserDto> ChangeUserPassword(ChangeUserPasswordRequest request)
+   public async Task<UserDto> ChangeUserPassword(Guid userId, ChangeUserPasswordRequest request)
    {
-      var user = await _repository.FindById(request.UserId);
-
+      var user = await _repository.FindById(userId);
+      
       if (user == null)
       {
          throw new ApiException("Change password error", 400, "User with specified id wasn't found");
@@ -248,6 +249,14 @@ public class AuthService : IAuthService
          throw new ApiException("Change password error", 401, "User isn't verified");
       }
 
+      if (request.CurrentPassword != null)
+      {
+         if (!_passwordHasher.Verify(request.CurrentPassword,user.Password))
+         {
+            throw new ApiException("Change password error", 400, "Current password is incorrect");
+         }
+      }
+      
       var newPasswordHash = _passwordHasher.Generate(request.NewPassword);
       user.Password = newPasswordHash;
 

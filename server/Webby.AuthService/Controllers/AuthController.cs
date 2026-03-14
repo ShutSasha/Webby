@@ -1,8 +1,10 @@
-﻿using System.Net;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.AuthService.Dtos;
 using Webby.AuthService.Helpers.Exception;
+using Webby.AuthService.Helpers.Jwt;
 using Webby.AuthService.Helpers.Response;
 using Webby.AuthService.Interfaces.Services;
 using Webby.AuthService.Models;
@@ -99,8 +101,10 @@ public class AuthController : ControllerBase
    [SwaggerOperation("Change user password route","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse<UserDto>>> ChangeUserPassword([FromBody] ChangeUserPasswordRequest request)
    {
-      var changeUserPasswordResult = await _authService.ChangeUserPassword(request);
-      return Ok(ApiResponse<UserDto>.Ok("Succesfully changed user password", changeUserPasswordResult));
+      var userId = JwtHelper.ExtractUserId(HttpContext);
+      
+      var changeUserPasswordResult = await _authService.ChangeUserPassword(userId,request);
+      return Ok(ApiResponse<UserDto>.Ok("Successfully changed user password", changeUserPasswordResult));
    }
    
 }
