@@ -207,7 +207,7 @@ public class UserService : IUserService
       if (targetUser == null)
          throw new ApiException("Check is user following error", 404, "Target user wasn't found");
 
-      response.isFollowing = await _userRepository.HasUserFollow(userId, targetId);
+      response.isFollowing = await _userRepository.HasUserFollow(targetId, userId);
       return response;
    }
 }
