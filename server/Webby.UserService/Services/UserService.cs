@@ -177,10 +177,10 @@ public class UserService : IUserService
 
    public async Task<List<UserFollowersDto>> GetUserFollowers(Guid userId)
    {
-      var userFollows = await _userRepository
+      var userFollowers = await _userRepository
          .GetUserFollowers(userId);
 
-      return userFollows
+      return userFollowers
          .Select(uf => _mapper.Map<UserFollowersDto>(uf.FollowerUser))
          .ToList();
    }
