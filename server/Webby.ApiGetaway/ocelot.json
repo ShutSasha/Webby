@@ -387,6 +387,21 @@
          }
       },
 
+      {
+         "DownstreamPathTemplate": "/api/achievements/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
 
       {
          "DownstreamPathTemplate": "/api/complaints/{userId}",

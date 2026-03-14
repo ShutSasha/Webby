@@ -1,8 +1,7 @@
 ﻿namespace Webby.UserService.Dtos.Achievement;
 
-public class AchievementDto
+public class AchievementDto : ProfileAchievementDto
 {
-   public Guid AchievementId { get; set; }
-   public string IconUrl { get; set; }
-   public string Title { get; set; }
+   public string Description { get; set; }
+   public bool IsUnlocked { get; set; }
 }

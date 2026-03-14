@@ -27,6 +27,14 @@ public class AchievementController: ControllerBase
       return Ok(ApiResponse<List<Achievement>>.Ok("Successfully extracted achievements", achievements));
    }
 
+   [HttpGet("{userId:guid}")]
+   [SwaggerOperation("Retrieve a user's pinned and unlocked achievements")]
+   public async Task<ActionResult<ApiResponse<GetUserAchievementsResponse>>> GetUserAchievementsBlock([FromRoute] Guid userId)
+   {
+      var userAchievementsWithStatus = await _achievementService.GetUserAchievementsBlock(userId);
+      return Ok(ApiResponse<GetUserAchievementsResponse>.Ok("Successfully retrieved", userAchievementsWithStatus));
+   }
+   
    [HttpPost]
    [SwaggerOperation("Create achievement on platform","MODERATION ROLE CLAIM REQUIRED")]
    public async Task<ActionResult<ApiResponse<Achievement>>> CreateAchievement([FromForm] CreateAchievementRequest request)
