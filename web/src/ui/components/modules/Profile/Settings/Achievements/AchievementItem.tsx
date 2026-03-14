@@ -6,7 +6,7 @@ import MoreOptions from '@/assets/icons/shared/more-vertical.svg'
 import SafeImage from '@/ui/components/shared/SafeImage'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
-type BadgeItemProps = {
+type AchievementItemProps = {
   title: string
   description: string
   image: string
@@ -14,7 +14,7 @@ type BadgeItemProps = {
   className?: string
 }
 
-export default function BadgeItem({ title, description, image, isPinned, className }: BadgeItemProps) {
+export default function AchievementItem({ title, description, image, isPinned, className }: AchievementItemProps) {
   const [isOpen, setOpen] = useState<boolean>(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const optionsRef = useRef<SVGSVGElement>(null)
@@ -70,10 +70,14 @@ export default function BadgeItem({ title, description, image, isPinned, classNa
           className="absolute top-10 right-2 border border-border bg-neutral-800 rounded-lg p-2 z-50 shadow-xl"
         >
           {!isPinned && (
-            <p className="hover:bg-neutral-700 px-2 py-1 rounded cursor-pointer transition-colors">Pin the badge</p>
+            <p className="hover:bg-neutral-700 px-2 py-1 rounded cursor-pointer transition-colors text-nowrap">
+              Pin the achievement
+            </p>
           )}
           {isPinned && (
-            <p className="hover:bg-neutral-700 px-2 py-1 rounded cursor-pointer transition-colors">Unpin the badge</p>
+            <p className="hover:bg-neutral-700 px-2 py-1 rounded cursor-pointer transition-colors text-nowrap">
+              Unpin the achievement
+            </p>
           )}
         </div>
       )}

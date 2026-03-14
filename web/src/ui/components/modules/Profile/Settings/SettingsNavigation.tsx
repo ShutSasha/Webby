@@ -29,8 +29,8 @@ export default function SettingsNavigation({ id }: Props) {
         Secure
       </Link>
 
-      <Link href={`/profile/${id}/badges`} className={getClasses('/badges')}>
-        Badges
+      <Link href={`/profile/${id}/achievements`} className={getClasses('/achievements')}>
+        Achievements
       </Link>
     </div>
   )

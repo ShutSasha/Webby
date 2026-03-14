@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation'
 
 import { getAllAchievements } from '@/app/api/achievements'
 import { getUser } from '@/app/api/user'
-import BadgeItem from '@/ui/components/modules/Profile/Settings/Badges/BadgeItem'
-import Splitter from '@/ui/components/modules/Profile/Settings/Badges/Splitter'
+import AchievementItem from '@/ui/components/modules/Profile/Settings/Achievements/AchievementItem'
+import Splitter from '@/ui/components/modules/Profile/Settings/Achievements/Splitter'
 import UserHeader from '@/ui/components/modules/Profile/Settings/UserHeader'
 import { auth } from '@/workspace/auth'
 
@@ -11,7 +11,7 @@ type Props = {
   params: Promise<{ id: string }>
 }
 
-export default async function BadgesPage({ params }: Props) {
+export default async function AchievementsPage({ params }: Props) {
   const { id } = await params
   const session = await auth()
 
@@ -29,10 +29,10 @@ export default async function BadgesPage({ params }: Props) {
   return (
     <div>
       <UserHeader image={session.user.image} username={session.user.username} />
-      <Splitter text="Your pinned badges" />
+      <Splitter text="Your pinned achievements" />
       <div className="flex flex-row items-center justify-center gap-3">
         {userData?.pinnedUserAchievements.map(achivement => (
-          <BadgeItem
+          <AchievementItem
             title={achivement.title}
             description="Upload 5 videos on the Webby platform"
             key={achivement.achievementId}
@@ -41,12 +41,12 @@ export default async function BadgesPage({ params }: Props) {
           />
         ))}
       </div>
-      <Splitter text="All badges" />
+      <Splitter text="All achievements" />
       <div className="grid grid-cols-5 gap-4">
         {unpinnedAchievements &&
           unpinnedAchievements.length > 0 &&
           unpinnedAchievements.map(achievement => (
-            <BadgeItem
+            <AchievementItem
               title={achievement.title}
               description={achievement.description}
               key={achievement.achievementId}

@@ -119,13 +119,13 @@ export function UserProfileInfoSkeleton() {
 
         {/* Achievements Skeleton */}
         <div className="flex flex-col gap-1.5 mt-auto">
-          {/* Label "Badges" */}
+          {/* Label "Achievement" */}
           <div className="h-4 w-16 bg-neutral-800 rounded-md animate-pulse" />
 
           {/* HR line */}
           <div className="h-px w-full bg-neutral-800" />
 
-          {/* Badges icons */}
+          {/* Achievements icons */}
           <div className="flex items-center gap-4">
             {[1, 2, 3].map(i => (
               <div
