@@ -90,3 +90,27 @@ export async function leaveComplaint(
     return null
   }
 }
+
+export async function toggleFollow(targerId: string): Promise<BaseServerResponse<null> | null> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/${targerId}/follow`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('TOGGLE_FOLLOW_ERROR', error, true)
+    return null
+  }
+}
+
+export async function checkFollowing(targerId: string): Promise<BaseServerResponse<{ isFollowing: boolean }> | null> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<{ isFollowing: boolean }>>(
+      `${endpoint}/is-following/${targerId}`,
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('IS_FOLLOWING_ERROR', error, true)
+    return null
+  }
+}

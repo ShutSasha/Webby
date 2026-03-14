@@ -1,10 +1,9 @@
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 
-import { getUser } from '@/app/api/user'
+import { checkFollowing, getUser } from '@/app/api/user'
 import MailIcon from '@/assets/icons/ic_mail.svg'
-import UserPlusIcon from '@/assets/icons/Profile/ic_user_plus.svg'
-import { clog, cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/utils'
 import EditProfileBtn from '@/ui/components/modules/Profile/EditProfileBtn'
 import ProfileActionButton from '@/ui/components/modules/Profile/ProfileActionButton'
 import { UserAchievements } from '@/ui/components/modules/Profile/UserAchivments'
@@ -13,13 +12,13 @@ import { BLUR_DATA_URLS } from '@/ui/images'
 import { auth } from '@/workspace/auth'
 
 import ComplaintButton from './ComplaintButton'
+import FollowButton from './FollowButton'
 
 export default async function UserProfileInfo({ id }: { id: string }) {
   const userData = await getUser(id)
   const session = await auth()
+  const isFollowing = await checkFollowing(id)
   const isOwner = session?.user.id === id
-
-  clog('fetched user data', userData)
 
   if (!userData) {
     notFound()
@@ -61,9 +60,7 @@ export default async function UserProfileInfo({ id }: { id: string }) {
               <MailIcon className="w-4 h-4" />
             </ProfileActionButton>
 
-            <ProfileActionButton label="Follow">
-              <UserPlusIcon className="w-4 h-4" />
-            </ProfileActionButton>
+            <FollowButton targetUserId={id} initialIsFollowing={isFollowing?.data?.isFollowing ?? false} />
           </div>
         )}
       </div>

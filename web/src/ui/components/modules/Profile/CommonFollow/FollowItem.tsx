@@ -1,8 +1,8 @@
-import Image from 'next/image'
 import Link from 'next/link'
 
 import MailIcon from '@/assets/icons/ic_mail_with_background.svg'
 import TrashIcon from '@/assets/icons/ic_trash.svg'
+import SafeImage from '@/ui/components/shared/SafeImage'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {
@@ -20,7 +20,7 @@ export default function FollowItem({ userId, avatarUrl, followersCount, username
     >
       <Link href={`/profile/${userId}`} className="flex items-center gap-2">
         {/* User info */}
-        <Image
+        <SafeImage
           src={avatarUrl}
           alt=""
           width={60}
