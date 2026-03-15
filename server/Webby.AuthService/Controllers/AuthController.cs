@@ -99,12 +99,20 @@ public class AuthController : ControllerBase
 
    [HttpPatch("change-password")]
    [SwaggerOperation("Change user password route","AUTH REQUIRED")]
-   public async Task<ActionResult<ApiResponse<UserDto>>> ChangeUserPassword([FromBody] ChangeUserPasswordRequest request)
+   public async Task<ActionResult<ApiResponse>> ChangeUserPassword([FromBody] ChangeUserPasswordRequest request)
    {
       var userId = JwtHelper.ExtractUserId(HttpContext);
       
-      var changeUserPasswordResult = await _authService.ChangeUserPassword(userId,request);
-      return Ok(ApiResponse<UserDto>.Ok("Successfully changed user password", changeUserPasswordResult));
+      await _authService.ChangeUserPassword(userId,request);
+      return Ok(ApiResponse.Ok("Successfully changed user password"));
+   }
+   
+   [HttpPatch("reset-password")]
+   [SwaggerOperation("Reset user password after user email verification")]
+   public async Task<ActionResult<ApiResponse>> ResetUserPassword([FromBody] ResetUserPasswordRequest request)
+   {
+      await _authService.ResetUserPassword(request);
+      return Ok(ApiResponse.Ok("Successfully reset user password"));
    }
    
 }

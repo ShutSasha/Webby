@@ -8,5 +8,7 @@ public class ChangeUserPasswordRequest
    
    [Required]
    public string NewPassword { get; set; }
-   public string? CurrentPassword { get; set; }
+   
+   [Required]
+   public string CurrentPassword { get; set; }
 }

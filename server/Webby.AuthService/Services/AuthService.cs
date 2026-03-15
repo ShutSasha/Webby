@@ -147,13 +147,6 @@ public class AuthService : IAuthService
          throw new ApiException("Verification error",400, errors);
       }
 
-      if (user.isVerified)
-      {
-         errors["code"] = "User is already verified";
-         
-         throw new ApiException("Verification error",400, errors);
-      }
-
       if (user.VerificationCode != request.VerificationCode)
       {
          errors["code"] = user.VerificationCode == string.Empty ? "User is already verified" : "Invalid verification code";
@@ -235,7 +228,7 @@ public class AuthService : IAuthService
       return loginUserResponse;
    }
 
-   public async Task<UserDto> ChangeUserPassword(Guid userId, ChangeUserPasswordRequest request)
+   public async Task ChangeUserPassword(Guid userId, ChangeUserPasswordRequest request)
    {
       var user = await _repository.FindById(userId);
       
@@ -244,26 +237,37 @@ public class AuthService : IAuthService
          throw new ApiException("Change password error", 400, "User with specified id wasn't found");
       }
 
-      if (user.VerificationCode != string.Empty)
+      if (!_passwordHasher.Verify(request.CurrentPassword,user.Password))
       {
-         throw new ApiException("Change password error", 401, "User isn't verified");
+         throw new ApiException("Change password error", 400, "Current password is incorrect");
       }
 
-      if (request.CurrentPassword != null)
-      {
-         if (!_passwordHasher.Verify(request.CurrentPassword,user.Password))
-         {
-            throw new ApiException("Change password error", 400, "Current password is incorrect");
-         }
-      }
-      
       var newPasswordHash = _passwordHasher.Generate(request.NewPassword);
       user.Password = newPasswordHash;
 
       await _repository.Update(user);
-
-      return _mapper.Map<UserDto>(user);
    }
+
+   public async Task ResetUserPassword(ResetUserPasswordRequest request)
+   {
+      var user = (await _repository.GetByPredicate(u => u.Email == request.Email)).FirstOrDefault();
+
+      if (user == null)
+      {
+         throw new ApiException("Reset user password error", 404, "User with indicated email wasn't found");
+      }
+
+      if (user.VerificationCode != string.Empty)
+      {
+         throw new ApiException("Reset user password error", 400, "User isn't verified");
+      }
+
+      var newPasswordHash = _passwordHasher.Generate(request.NewPassword);
+      user.Password = newPasswordHash;
+
+      await _repository.Update(user);
+   }
+
 
    private string GenerateActivationCode()
    {
