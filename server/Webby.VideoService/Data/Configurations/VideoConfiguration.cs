@@ -28,6 +28,9 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
 
       builder.Property(v => v.Views)
          .HasDefaultValue(0);
+
+      builder.Property(v => v.IsPrivate)
+         .HasDefaultValue(false);
       
       builder.HasMany(v => v.VideoTags)
          .WithOne(vt => vt.Video)

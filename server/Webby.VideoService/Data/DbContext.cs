@@ -9,11 +9,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
    public DbSet<Video> Videos { get; set; }
    public DbSet<Tag> Tags { get; set; }
    public DbSet<VideoTag> VideoTags { get; set; }
-
+   public DbSet<Playlist> Playlists { get; set; }
+   public DbSet<PlaylistVideo> PlaylistVideos { get; set; }
    protected override void OnModelCreating(ModelBuilder modelBuilder)
    {
       modelBuilder.ApplyConfiguration(new VideoConfiguration());
       modelBuilder.ApplyConfiguration(new TagConfiguration());
       modelBuilder.ApplyConfiguration(new VideoTagConfiguration());
+      modelBuilder.ApplyConfiguration(new PlaylistConfiguration());
+      modelBuilder.ApplyConfiguration(new PlaylistVideoConfiguration());
    }
 }

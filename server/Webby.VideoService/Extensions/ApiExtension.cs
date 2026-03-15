@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Webby.VideoService.Data;
 using Webby.VideoService.Helpers.Storage;
+using Webby.VideoService.Interfaces.Repositories;
+using Webby.VideoService.Interfaces.Services;
+using Webby.VideoService.Repositories;
+using Webby.VideoService.Services;
 
 namespace Webby.VideoService.Extensions;
 
@@ -74,12 +78,16 @@ public static class ApiExtension
 
    public static void AddRepositories(this IServiceCollection serviceCollection)
    {
-      
+      serviceCollection.AddScoped<IPlaylistRepository, PlaylistRepository>();
+      serviceCollection.AddScoped<ITagRepository, TagRepository>();
+      serviceCollection.AddScoped<IVideoRepository, VideoRepository>();
    }
 
    public static void AddServices(this IServiceCollection serviceCollection)
    {
-      
+      serviceCollection.AddScoped<IPlaylistService, PlaylistService>();
+      serviceCollection.AddScoped<ITagService, TagService>();
+      serviceCollection.AddScoped<IVideoService,Services.VideoService>();
    }
 
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)

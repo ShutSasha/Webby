@@ -19,15 +19,12 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="8.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Dtos\" />
-    <Folder Include="Helpers\" />
-    <Folder Include="Interfaces\" />
-    <Folder Include="Repositories\" />
-    <Folder Include="Services\" />
+    <Folder Include="Dtos\Tag\" />
+    <Folder Include="Dtos\Video\" />
   </ItemGroup>
 
 </Project>

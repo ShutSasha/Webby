@@ -11,6 +11,8 @@ public class Video
    public DateTime CreatedAt { get; set; }
    public required string VideoUrl { get; set; }
    public required string PreviewUrl { get; set; }
+
+   public required bool IsPrivate { get; set; }
    public ICollection<VideoTag>? VideoTags { get; set; }
    
 }
