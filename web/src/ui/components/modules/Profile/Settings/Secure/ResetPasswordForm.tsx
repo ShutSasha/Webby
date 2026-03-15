@@ -1,41 +1,48 @@
 'use client'
 
-import { startTransition, useActionState, useState } from 'react'
+import { startTransition, useActionState, useEffect, useState } from 'react'
 
-import { Route } from 'next'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 
-import { authenticate } from '@/app/api/auth'
+import { changePassworddAction } from '@/app/api/auth'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
+import { useToastStore } from '@/stores/toast-store'
 import AuthInput from '@/ui/components/AuthInput'
 import Button from '@/ui/components/shared/Button'
 
 const initialState = {
   success: false,
   errors: null,
+  timestamp: Date.now(),
 }
 
-type Props = {
-  userId: string
-}
-
-export default function ResetPasswordForm({ userId }: Props) {
+export default function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const togglePassword = () => setShowPassword(prev => !prev)
-  const [state, formAction, isPending] = useActionState(authenticate, initialState)
+  const [state, formAction, isPending] = useActionState(changePassworddAction, initialState)
+  const addToast = useToastStore(state => state.addToast)
 
-  const { register, handleSubmit } = useForm({
+  const { register, handleSubmit, reset } = useForm({
     defaultValues: {
       currentPassword: '',
       newPassword: '',
-      confirmNewPassword: '',
+      confirmPassword: '',
     },
   })
 
+  useEffect(() => {
+    if (state?.success) {
+      addToast('Password changed successfully!', 'success')
+      reset()
+    }
+  }, [state, addToast, reset])
+
   const onSubmit = (data: any) => {
     const formData = new FormData()
-    Object.entries(data).forEach(([key, value]) => formData.append(key, value as string))
+    formData.append('currentPassword', data.currentPassword)
+    formData.append('newPassword', data.newPassword)
+    formData.append('confirmPassword', data.confirmPassword)
 
     startTransition(() => {
       formAction(formData)
@@ -76,7 +83,7 @@ export default function ResetPasswordForm({ userId }: Props) {
             Confirm new password
           </label>
           <AuthInput
-            {...register('confirmNewPassword')}
+            {...register('confirmPassword')}
             Icon={PasswordIcon}
             showPassword={showPassword}
             togglePassword={togglePassword}
@@ -84,10 +91,7 @@ export default function ResetPasswordForm({ userId }: Props) {
             placeholder="Confirm new password"
           />
         </div>
-        <Link
-          href={`/profile/${userId}/secure/confirm-password-reset` as Route}
-          className="text-right text-emerald-500 text-sm hover:underline cursor-pointer"
-        >
+        <Link href={'/forgot-password'} className="text-right text-emerald-500 text-sm hover:underline cursor-pointer">
           Forgot your password?
         </Link>
         <Button
@@ -101,6 +105,14 @@ export default function ResetPasswordForm({ userId }: Props) {
         >
           {isPending ? 'Saving...' : 'Save'}
         </Button>
+        <div className={`${state?.errors ? 'block' : 'hidden'}`}>
+          {state?.errors &&
+            Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
+              <p key={field} className="text-red-500 text-sm">
+                {message}
+              </p>
+            ))}
+        </div>
       </div>
     </form>
   )

@@ -14,7 +14,7 @@ export default async function SecurePage() {
   return (
     <div className="flex flex-col">
       <UserHeader image={session.user.image} username={session.user.username} />
-      <ResetPasswordForm userId={session.user.id} />
+      <ResetPasswordForm />
     </div>
   )
 }

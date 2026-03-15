@@ -115,3 +115,28 @@ export async function resendVerifyCode({ email }: { email: string }) {
     serverLog('Error resending verification code:', error)
   }
 }
+
+export async function changePassworddAction(_prevState: FormActionState, formData: FormData) {
+  const currentPassword = formData.get('currentPassword') as string
+  const newPassword = formData.get('newPassword') as string
+  const confirmPassword = formData.get('confirmPassword') as string
+
+  if (newPassword !== confirmPassword) {
+    return {
+      success: false,
+      errors: { confirmPassword: 'Passwords do not match' },
+    }
+  }
+
+  try {
+    await $api.patch('/auth/change-password', {
+      currentPassword,
+      newPassword,
+    })
+
+    return { success: true, errors: null, timestamp: Date.now() }
+  } catch (error: unknown) {
+    serverLog('CHANGE_PASSWORD_ERROR', error, true)
+    return { success: false, errors: parseAxiosError(error) }
+  }
+}
