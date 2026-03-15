@@ -7,11 +7,12 @@ import { resendVerifyCode, ReturnAuthError } from '@/app/api/auth'
 type Props = {
   state: ReturnAuthError
   email: string
+  className?: string
 }
 
-export default function AuthErrorDisplay({ email, state }: Props) {
+export default function AuthErrorDisplay({ email, state, className }: Props) {
   return (
-    <div className={`${state?.errors ? 'block' : 'hidden'}`}>
+    <div className={`${state?.errors ? 'block' : 'hidden'} ${className}`}>
       {state?.errors &&
         Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
           <p key={field} className="text-red-500 text-sm">

@@ -140,3 +140,32 @@ export async function changePassworddAction(_prevState: FormActionState, formDat
     return { success: false, errors: parseAxiosError(error) }
   }
 }
+
+export async function resetPasswordAction(_prevState: FormActionState, formData: FormData) {
+  const email = formData.get('email') as string
+  const newPassword = formData.get('newPassword') as string
+  const confirmPassword = formData.get('confirmPassword') as string
+
+  if (newPassword !== confirmPassword) {
+    return {
+      success: false,
+      errors: { confirmPassword: 'Passwords do not match' },
+    }
+  }
+
+  try {
+    await $api.patch('/auth/reset-password', {
+      email,
+      newPassword,
+    })
+
+    return { success: true, errors: null, timestamp: Date.now() }
+  } catch (error: unknown) {
+    serverLog('RESET_PASSWORD_ERROR', error, true)
+
+    return {
+      success: false,
+      errors: parseAxiosError(error),
+    }
+  }
+}

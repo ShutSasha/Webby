@@ -124,7 +124,7 @@ export default function VerifyPage({ email }: { email?: string }) {
   )
 }
 
-function Slot(props: SlotProps) {
+export function Slot(props: SlotProps) {
   return (
     <div
       className={` relative w-12 h-14 text-[20px] flex items-center justify-center transition-all duration-300 border-2

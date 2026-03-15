@@ -3,7 +3,11 @@
 import { useToastStore } from '@/stores/toast-store'
 import Button from '@/ui/components/shared/Button'
 
-export default function AboutContainer() {
+type Props = {
+  about: string
+}
+
+export default function AboutContainer({ about }: Props) {
   // useActionState
   const addToast = useToastStore(state => state.addToast)
 
@@ -14,6 +18,7 @@ export default function AboutContainer() {
   return (
     <>
       <textarea
+        defaultValue={about}
         placeholder="Type something about yourself"
         className="w-full rounded-[20px] p-4 border border-border bg-transparent ring-0 outline-0 h-[200px] resize-none
           text-start align-top mb-4"
