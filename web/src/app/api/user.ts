@@ -1,7 +1,7 @@
 'use server'
 
 import $api from '@/app/api'
-import { serverLog } from '@/lib/utils/utils'
+import { parseAxiosError, serverLog } from '@/lib/utils/utils'
 import { Achievement } from '@/types/achivement'
 import { BaseServerResponse } from '@/types/general'
 import { User, UserFolowStats } from '@/types/user'
@@ -112,5 +112,25 @@ export async function checkFollowing(targerId: string): Promise<BaseServerRespon
   } catch (error: unknown) {
     serverLog('IS_FOLLOWING_ERROR', error, true)
     return null
+  }
+}
+
+export async function updateAboutField(
+  userId: string,
+  about: string,
+): Promise<BaseServerResponse<User> | { success: boolean; errors: Record<string, string> }> {
+  try {
+    const { data: response } = await $api.patch<BaseServerResponse<User>>(endpoint, {
+      userId,
+      about,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('UPDATE_ABOUT_ERROR', error, true)
+    return {
+      success: false,
+      errors: parseAxiosError(error),
+    }
   }
 }
