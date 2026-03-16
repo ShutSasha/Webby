@@ -19,4 +19,10 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
          .Where(p => p.UserId == userId)
          .ToListAsync();
    }
+
+   public async Task AddPlaylistVideos(List<PlaylistVideo> playlistVideos)
+   {
+      await _context.PlaylistVideos.AddRangeAsync(playlistVideos);
+      await _context.SaveChangesAsync();
+   }
 }

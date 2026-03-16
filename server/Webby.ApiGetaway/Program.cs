@@ -31,6 +31,7 @@ if (app.Environment.IsDevelopment())
     {
         c.SwaggerEndpoint("/auth/swagger/v1/swagger.json", "AuthService");
         c.SwaggerEndpoint("/user/swagger/v1/swagger.json", "UserService");
+        c.SwaggerEndpoint("/video/swagger/v1/swagger.json", "VideoService");
         c.RoutePrefix = "";
     });
 }

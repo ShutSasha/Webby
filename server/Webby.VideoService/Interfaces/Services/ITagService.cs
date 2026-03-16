@@ -2,5 +2,5 @@
 
 public interface ITagService
 {
-   
+   Task EnsureCreateTags(List<string>? tags, Guid videoId);
 }

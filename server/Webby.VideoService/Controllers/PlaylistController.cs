@@ -33,7 +33,24 @@ public class PlaylistController : ControllerBase
       var playlistCreationResult = await _playlistService.CreatePlaylist(userId, request);
       return Ok(ApiResponse<PlaylistDto>.Ok("Successfully created playlist",playlistCreationResult));
    }
+   
+   [HttpPost("videos")]
+   [SwaggerOperation("Add videos to playlist", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> AddVideoToPlaylist([FromBody] AddVideoToPlaylistRequest request)
+   {
+      await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds);
+      return Ok(ApiResponse.Ok("Successfully added videos to playlist"));
+   }
 
+   [HttpPatch]
+   [SwaggerOperation("Update playlist", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<PlaylistDto>>> UpdatePlaylist([FromBody] UpdatePlaylistRequest request)
+   {
+      var updatePlaylistResult = await _playlistService.UpdatePlaylist(request);
+      return Ok(ApiResponse<PlaylistDto>.Ok("Successfully updated playlist", updatePlaylistResult));
+      
+   }
+   
    [HttpDelete("{playlistId:guid}")]
    [SwaggerOperation("Delete user playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> DeleteUserPlaylist([FromRoute] Guid playlistId)
@@ -42,6 +59,5 @@ public class PlaylistController : ControllerBase
       await _playlistService.DeletePlaylist(userId, playlistId);
       return Ok(ApiResponse.Ok("Successfully delete playlist"));
    }
-   
    
 }

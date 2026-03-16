@@ -88,6 +88,7 @@ public static class ApiExtension
       serviceCollection.AddScoped<IPlaylistService, PlaylistService>();
       serviceCollection.AddScoped<ITagService, TagService>();
       serviceCollection.AddScoped<IVideoService,Services.VideoService>();
+      serviceCollection.AddScoped<IStorageService, StorageService>();
    }
 
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)

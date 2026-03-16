@@ -39,28 +39,26 @@ public class PlaylistService : IPlaylistService
    {
       var playlists = await _playlistRepository.GetUserPlaylists(userId);
 
-      return playlists.Select(p =>
-      {
-         var lastVideo = p.PlaylistVideos
-            ?.OrderByDescending(pv => pv.Video.CreatedAt)
-            .FirstOrDefault();
-
-         return new PlaylistDto
-         {
-            PlaylistId = p.PlaylistId,
-            UserId = p.UserId,
-            Name = p.Name,
-            Description = p.Description,
-            CountOfVideos = p.PlaylistVideos?.Count ?? 0,
-            PlaylistCover = lastVideo?.Video.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
-         };
-      }).ToList();
-      
+      return playlists
+         .Select(MapToPlaylistDto)
+         .ToList();
    }
 
-   public Task<PlaylistDto> UpdatePlaylist(UpdatePlaylistRequest request)
+   public async Task<PlaylistDto> UpdatePlaylist(UpdatePlaylistRequest request)
    {
-      throw new NotImplementedException();
+      var playlist = await _playlistRepository.FindById(request.PlaylistId);
+
+      if (playlist == null)
+      {
+         throw new ApiException("Update playlist error", 404, "Playlist wasn't found");
+      }
+
+      playlist.Description = request.Description;
+      playlist.Name = request.Name;
+
+      await _playlistRepository.Update(playlist);
+
+      return MapToPlaylistDto(playlist);
    }
 
    public async Task DeletePlaylist(Guid userId, Guid playlistId)
@@ -83,5 +81,44 @@ public class PlaylistService : IPlaylistService
    public Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId)
    {
       throw new NotImplementedException();
+   }
+   
+   public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds)
+   {
+      if (videoIds == null || !videoIds.Any())
+         throw new ApiException("Attach video error", 400, "No videos to add");
+
+      var playlist = await _playlistRepository.FindById(playlistId);
+
+      if (playlist == null)
+         throw new ApiException("Attach to playlist error", 404,"Playlist wasn't found");
+
+      var playlistVideos = videoIds
+         .Distinct()
+         .Select(videoId => new PlaylistVideo
+         {
+            PlaylistId = playlistId,
+            VideoId = videoId
+         })
+         .ToList();
+
+      await _playlistRepository.AddPlaylistVideos(playlistVideos);
+      return MapToPlaylistDto(playlist);
+   }
+
+   private PlaylistDto MapToPlaylistDto(Playlist playlist)
+   {
+      var lastVideo = playlist.PlaylistVideos?
+         .MaxBy(pv => pv.Video.CreatedAt);
+
+      return new PlaylistDto
+      {
+         PlaylistId = playlist.PlaylistId,
+         UserId = playlist.UserId,
+         Name = playlist.Name,
+         Description = playlist.Description,
+         CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
+         PlaylistCover = lastVideo?.Video.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
+      };
    }
 }

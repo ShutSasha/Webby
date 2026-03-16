@@ -5,4 +5,5 @@ namespace Webby.VideoService.Interfaces.Repositories;
 public interface IPlaylistRepository : IRepository<Playlist>
 {
    Task<List<Playlist>> GetUserPlaylists(Guid userId);
+   Task AddPlaylistVideos(List<PlaylistVideo> playlistVideos);
 }
