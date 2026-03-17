@@ -1,6 +1,6 @@
-export default async function PageLoading() {
+export default function PageLoading() {
   return (
-    <div className="flex flex-1 flex-col justify-center items-center gap-4 min-h-[40vh]">
+    <div className="flex flex-1 flex-col justify-center items-center gap-4 min-h-[40vh] h-full">
       <div className="flex items-center gap-1.5 h-10">
         <div
           className="w-1.5 h-full bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"
