@@ -37,7 +37,7 @@ export default function RoomInteractionHeader() {
   }
 
   return (
-    <div className="border-b border-emerald-500 rounded-lg flex flex-row items-center justify-between py-2 px-3">
+    <div className="border-b border-emerald-500 rounded-lg flex flex-row items-center justify-between py-2 px-3 mb-2">
       <TabButton type="playlist" Icon={PlaylistIcon} />
 
       <div className="flex flex-row items-center gap-4">
