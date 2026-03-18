@@ -13,9 +13,15 @@ public class ExceptionMiddleware
       _next = next;
       _logger = logger;
    }
-   
+
    public async Task Invoke(HttpContext context)
    {
+      if (context.Request.ContentType?.StartsWith("application/grpc") == true)
+      {
+         await _next(context);
+         return;
+      }
+
       try
       {
          await _next(context);
@@ -29,8 +35,10 @@ public class ExceptionMiddleware
 
          await context.Response.WriteAsJsonAsync(errorResponse);
       }
-      catch (Exception)
+      catch (Exception ex)
       {
+         _logger.LogError(ex, "Unhandled exception");
+
          var errorResponse = ApiResponse.Fail("Internal server error");
 
          context.Response.StatusCode = 500;

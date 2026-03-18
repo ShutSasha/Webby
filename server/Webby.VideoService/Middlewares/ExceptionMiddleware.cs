@@ -16,6 +16,7 @@ public class ExceptionMiddleware
    
    public async Task Invoke(HttpContext context)
    {
+      Dictionary<string, string> errorMsg = new Dictionary<string, string>();
       try
       {
          await _next(context);
@@ -29,9 +30,10 @@ public class ExceptionMiddleware
 
          await context.Response.WriteAsJsonAsync(errorResponse);
       }
-      catch (Exception)
+      catch (Exception ex)
       {
-         var errorResponse = ApiResponse.Fail("Internal server error");
+         errorMsg["errorMsg"] = ex.Message;
+         var errorResponse = ApiResponse.Fail("Internal server error",errorMsg);
 
          context.Response.StatusCode = 500;
          context.Response.ContentType = "application/json";

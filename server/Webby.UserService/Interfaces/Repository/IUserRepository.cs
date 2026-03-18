@@ -11,4 +11,5 @@ public interface IUserRepository : IRepository<User>
    Task<bool> HasUserFollow(Guid userId, Guid followerId);
    Task<List<UserFollower>> GetUserFollows(Guid userId);
    Task<List<UserFollower>> GetUserFollowers(Guid userId);
+   Task<List<User>> GetByIds(List<Guid> ids);
 }

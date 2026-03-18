@@ -10,6 +10,4 @@ public interface IPlaylistService
    Task DeletePlaylist(Guid userId, Guid playlistId);
    Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId);
    Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds);
-
-   
 }

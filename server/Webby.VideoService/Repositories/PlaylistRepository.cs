@@ -25,4 +25,12 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
       await _context.PlaylistVideos.AddRangeAsync(playlistVideos);
       await _context.SaveChangesAsync();
    }
+   
+   public async Task<Playlist?> FindByIdWithVideos(Guid playlistId)
+   {
+      return await _context.Playlists
+         .Include(p => p.PlaylistVideos)
+         .ThenInclude(pv => pv.Video)
+         .FirstOrDefaultAsync(p => p.PlaylistId == playlistId);
+   }
 }

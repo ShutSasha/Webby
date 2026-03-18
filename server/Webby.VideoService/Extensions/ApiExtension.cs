@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using UserService;
 using Webby.VideoService.Data;
 using Webby.VideoService.Helpers.Storage;
 using Webby.VideoService.Interfaces.Repositories;
@@ -18,10 +19,10 @@ public static class ApiExtension
       {
          corsOptions.AddPolicy(policyName, policy =>
          {
-            policy
-               .WithOrigins("http://localhost:5000")
+            policy.WithHeaders().AllowCredentials();
+            policy.WithHeaders().AllowAnyHeader();
+            policy.WithOrigins("http://localhost:5000")
                .AllowAnyMethod()
-               .AllowCredentials()
                .AllowAnyHeader();
          });
       });
@@ -95,5 +96,13 @@ public static class ApiExtension
    {
       serviceCollection.Configure<AwsOptions>(config.GetSection(nameof(AwsOptions)));
       
+   }
+
+   public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddGrpcClient<UserGrpcService.UserGrpcServiceClient>(o =>
+      {
+         o.Address = new Uri("http://localhost:5002");
+      });
    }
 }

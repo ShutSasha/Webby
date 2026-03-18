@@ -24,6 +24,14 @@ public class PlaylistController : ControllerBase
       var userPlaylists = await _playlistService.GetUserPlaylists(userId);
       return Ok(ApiResponse<List<PlaylistDto>>.Ok("Successfully retrieved user playlists",userPlaylists));
    }
+
+   [HttpGet("{playlistId:guid}/details")]
+   [SwaggerOperation("Get playlist information")]
+   public async Task<ActionResult<ApiResponse<GetPlaylistResponse>>> GetPlaylistInformation([FromRoute] Guid playlistId)
+   {
+      var playlistInformation = await _playlistService.GetPlaylistInformation(playlistId);
+      return Ok(ApiResponse<GetPlaylistResponse>.Ok("Successfully retrieved playlist information", playlistInformation));
+   }
    
    [HttpPost]
    [SwaggerOperation("Create user playlist","AUTH REQUIRED")]
@@ -59,5 +67,6 @@ public class PlaylistController : ControllerBase
       await _playlistService.DeletePlaylist(userId, playlistId);
       return Ok(ApiResponse.Ok("Successfully delete playlist"));
    }
+   
    
 }

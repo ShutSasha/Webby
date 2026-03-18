@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
+using Grpc.Core;
+using UserService;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.User;
+using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
-using Webby.VideoService.Repositories;
 
 namespace Webby.VideoService.Services;
 
@@ -13,11 +16,13 @@ public class PlaylistService : IPlaylistService
 {
    private readonly IPlaylistRepository _playlistRepository;
    private readonly IMapper _mapper;
-
-   public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper)
+   private readonly UserGrpcService.UserGrpcServiceClient _userClient;
+   
+   public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper, UserGrpcService.UserGrpcServiceClient userClient)
    {
       _playlistRepository = playlistRepository;
       _mapper = mapper;
+      _userClient = userClient;
    }
 
    public async Task<PlaylistDto> CreatePlaylist(Guid userId, CreatePlaylistRequest request)
@@ -77,11 +82,71 @@ public class PlaylistService : IPlaylistService
 
       await _playlistRepository.DeleteAsync(playlistId);
    }
+   
+   public async Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId)
+{
+    var playlist = await _playlistRepository.FindByIdWithVideos(playlistId);
 
-   public Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId)
-   {
-      throw new NotImplementedException();
-   }
+    if (playlist == null)
+    {
+        throw new ApiException("Get playlist information error", 404, "Playlist wasn't found");
+    }
+    
+    var playlistDto = MapToPlaylistDto(playlist);
+    
+    var videos = playlist.PlaylistVideos
+        .Select(pv => pv.Video)
+        .OrderByDescending(v => v.CreatedAt)
+        .ToList();
+
+    var videoDtos = videos.Select(v => new VideoDto
+    {
+        VideoId = v.VideoId,
+        Name = v.Name,
+        Views = v.Views,
+        CreatedAt = v.CreatedAt,
+        User = null 
+    }).ToList();
+
+    var userIds = videos
+       .Select(v => v.UserId.ToString())
+       .Distinct()
+       .ToList();
+    
+
+    if (userIds.Any())
+    {
+         var usersResponse = await _userClient.GetUsersByIdsAsync(
+             new GetUsersRequest { UserIds = { userIds } }
+         );
+
+         var usersDict = usersResponse.Users
+             .ToDictionary(
+                 u => Guid.Parse(u.UserId),
+                 u => new UserVideoDto
+                 {
+                     UserId = Guid.Parse(u.UserId),
+                     Username = u.Username,
+                     AvatarUrl = u.AvatarUrl
+                 });
+         
+         foreach (var videoDto in videoDtos)
+         {
+             var originalVideo = videos.First(v => v.VideoId == videoDto.VideoId);
+
+             if (usersDict.TryGetValue(originalVideo.UserId, out var user))
+             {
+                 videoDto.User = user;
+             }
+         }
+    }
+    
+    return new GetPlaylistResponse
+    {
+        Playlist = playlistDto,
+        Videos = videoDtos
+    };
+}
    
    public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds)
    {
@@ -105,7 +170,7 @@ public class PlaylistService : IPlaylistService
       await _playlistRepository.AddPlaylistVideos(playlistVideos);
       return MapToPlaylistDto(playlist);
    }
-
+   
    private PlaylistDto MapToPlaylistDto(Playlist playlist)
    {
       var lastVideo = playlist.PlaylistVideos?
