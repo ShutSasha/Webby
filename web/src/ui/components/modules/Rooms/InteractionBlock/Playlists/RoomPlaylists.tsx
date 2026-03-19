@@ -12,6 +12,7 @@ interface Video {
   thumbnail: string
   isActive?: boolean
   isFolder?: boolean
+  children?: Video[]
 }
 
 const mockVideos: Video[] = [
@@ -22,13 +23,33 @@ const mockVideos: Video[] = [
     isActive: true,
   },
   {
-    id: '2',
+    id: 'folder-1',
     title: 'Fears to Fathom episodes',
     thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg',
     isFolder: true,
+    children: [
+      { id: '2-1', title: 'Episode 1: Home Alone', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
+      {
+        id: '2-2',
+        title: 'Episode 2: Norwood Hitchhike',
+        thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg',
+      },
+      { id: '2-3', title: 'Episode 3: Carson House', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
+    ],
   },
-  { id: '3', title: 'Fears to Fathom: Ironbark Lookout', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
-  { id: '4', title: 'Fears to Fathom: Ironbark Lookout', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
+  {
+    id: 'folder-2',
+    title: 'Lo-Fi Chill Beats',
+    thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg',
+    isFolder: true,
+    children: [
+      { id: '3-1', title: 'Night in Tokyo', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
+      { id: '3-2', title: 'Rainy Day in Paris', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
+    ],
+  },
+  { id: '4', title: 'Gaming Highlights #42', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
+  { id: '5', title: 'How to React 2026', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
+  { id: '6', title: 'Webby Project Update', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
 ]
 
 export default function RoomPlaylists() {
@@ -63,7 +84,13 @@ export default function RoomPlaylists() {
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2 pr-1 custom-scrollbar">
+      {/* TODO: add custom scrolbar styles */}
+      <div
+        className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2 pr-1 [&::-webkit-scrollbar]:w-1.5
+          [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-900
+          [&::-webkit-scrollbar-thumb]:border-0 [&::-webkit-scrollbar-thumb]:rounded-full
+          hover:[&::-webkit-scrollbar-thumb]:bg-neutral-800"
+      >
         {filteredPlaylist.map(video => (
           <PlaylistItem key={video.id} video={video} />
         ))}

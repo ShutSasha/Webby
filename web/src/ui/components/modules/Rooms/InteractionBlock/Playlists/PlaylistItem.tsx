@@ -9,26 +9,33 @@ import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
 import { cn } from '@/lib/utils/utils'
 
-type Props = {
-  video: {
-    id: string
-    title: string
-    thumbnail: string
-    isActive?: boolean
-    isFolder?: boolean
-  }
+// TODO: add Video type to types folder
+
+interface Video {
+  id: string
+  title: string
+  thumbnail: string
+  isActive?: boolean
+  isFolder?: boolean
+  children?: Video[]
 }
 
-export default function PlaylistItem({ video }: Props) {
+type Props = {
+  video: Video
+  isChild?: boolean
+}
+
+export default function PlaylistItem({ video, isChild = false }: Props) {
   const [isOpen, setOpen] = useState(false)
 
   return (
-    <>
+    <div className={cn('flex flex-col gap-1', isChild && 'ml-4 pl-2 border-l border-neutral-800')}>
       <div
         className={cn(
           `flex items-center justify-between p-2 rounded-xl bg-neutral-900/50 hover:bg-neutral-900 transition-all
           duration-300 border-b-2 border-transparent group cursor-pointer`,
-          video.isActive && 'border-emerald-500 ',
+          video.isActive && 'border-emerald-500 bg-neutral-900',
+          video.isFolder && 'hover:bg-neutral-800/40',
         )}
       >
         <div className="flex items-center gap-3 overflow-hidden">
@@ -37,12 +44,15 @@ export default function PlaylistItem({ video }: Props) {
             alt={video.title}
             width={96}
             height={96}
-            className="object-cover size-12 rounded-xl"
+            className={cn(
+              'object-cover size-10 rounded-lg',
+              video.isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100',
+            )}
           />
 
           <span
             className={cn(
-              'text-sm font-medium truncate pr-1',
+              'text-sm font-medium truncate pr-1 transition-colors',
               video.isActive ? 'text-neutral-300' : 'text-neutral-500 group-hover:text-neutral-300',
             )}
             title={video.title}
@@ -51,28 +61,39 @@ export default function PlaylistItem({ video }: Props) {
           </span>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            className="p-1.5 text-neutral-300 hover:text-neutral-300 transition-colors hover:bg-neutral-300/10
-              cursor-pointer rounded-full"
-          >
-            {video.isActive ? <PauseIcon className="size-4" /> : <PlayIcon className="size-4" />}
+        <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+          <button className="p-1.5 group/play hover:bg-neutral-300/10 rounded-full cursor-pointer">
+            {video.isActive ? (
+              <PauseIcon
+                className={`size-4 ${video.isActive ? 'text-neutral-300' : 'text-neutral-500'}
+                  group-hover/play:text-neutral-300`}
+              />
+            ) : (
+              <PlayIcon
+                className={`size-4 ${video.isActive ? 'text-neutral-300' : 'text-neutral-500'}
+                  group-hover/play:text-neutral-300`}
+              />
+            )}
           </button>
 
           <button
-            className="p-1.5 text-neutral-300 hover:text-red-500 transition-colors hover:bg-red-500/10 cursor-pointer
-              rounded-full"
+            className="group/trash p-1.5 text-neutral-500 hover:text-red-500 transition-colors hover:bg-red-500/10
+              cursor-pointer rounded-full"
           >
-            <TrashIcon className="size-4" />
+            <TrashIcon
+              className={`size-4 transition-colors ${video.isActive ? 'text-neutral-300' : 'text-neutral-500'}
+                group-hover/trash:text-red-500`}
+            />
           </button>
 
           {video.isFolder && (
             <button
-              className="p-1.5 hover:bg-neutral-300/10 cursor-pointer rounded-full"
-              onClick={() => setOpen(prev => !prev)}
+              className="p-1.5 text-neutral-500 hover:text-emerald-300 transition-colors hover:bg-neutral-500/10
+                cursor-pointer rounded-full"
+              onClick={() => video.isFolder && setOpen(prev => !prev)}
             >
               <svg
-                className={cn('size-4 text-neutral-300 transition-transform', isOpen && 'rotate-180')}
+                className={cn('size-4 text-neutral-600 transition-transform duration-300', isOpen && 'rotate-180')}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -83,7 +104,14 @@ export default function PlaylistItem({ video }: Props) {
           )}
         </div>
       </div>
-      {isOpen && <p>text</p>}
-    </>
+
+      {video.isFolder && isOpen && video.children && (
+        <div className="flex flex-col gap-2 mt-1 animate-in fade-in slide-in-from-top-2 duration-300">
+          {video.children.map(child => (
+            <PlaylistItem key={child.id} video={child} isChild />
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
