@@ -5,8 +5,8 @@ import { useRoomStore } from '@/stores/room.store'
 import PageLoading from '@/ui/components/shared/PageLoading'
 
 import RoomChatContainer from './Chat/RoomChatContainer'
+import RoomPlaylists from './Playlists/RoomPlaylists'
 import RoomInteractionHeader from './RoomInteractionHeader'
-import RoomPlaylists from './RoomPlaylists'
 import RoomSettings from './Settings/RoomSettings'
 import RoomUsers from './UsersList/RoomUsers'
 
