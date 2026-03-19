@@ -8,7 +8,7 @@ import RoomChatContainer from './Chat/RoomChatContainer'
 import RoomInteractionHeader from './RoomInteractionHeader'
 import RoomPlaylists from './RoomPlaylists'
 import RoomSettings from './Settings/RoomSettings'
-import RoomUsers from './RoomUsers'
+import RoomUsers from './UsersList/RoomUsers'
 
 export default function RoomInteractionContainer() {
   const tab = useRoomStore(state => state.tab)
