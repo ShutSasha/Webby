@@ -105,6 +105,8 @@ public class PlaylistService : IPlaylistService
         Name = v.Name,
         Views = v.Views,
         CreatedAt = v.CreatedAt,
+        PreviewUrl = v.PreviewUrl,
+        IsPrivate = v.IsPrivate,
         User = null 
     }).ToList();
 

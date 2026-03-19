@@ -4,5 +4,5 @@ namespace Webby.VideoService.Interfaces.Repositories;
 
 public interface IVideoRepository : IRepository<Video>
 {
-   
+   Task<Video> GetVideoInformationById(Guid videoId);
 }

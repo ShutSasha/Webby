@@ -9,6 +9,7 @@ service UserGrpcService {
 
 message GetUserRequest {
   string userId = 1;
+  optional string requestUserId = 2;
 }
 
 message GetUsersRequest {
@@ -19,6 +20,7 @@ message UserResponse {
   string userId = 1;
   string username = 2;
   string avatarUrl = 3;
+  bool isFollowed = 4;
 }
 
 message GetUsersResponse {

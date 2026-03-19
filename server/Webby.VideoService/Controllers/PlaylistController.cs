@@ -37,8 +37,8 @@ public class PlaylistController : ControllerBase
    [SwaggerOperation("Create user playlist","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse<PlaylistDto>>> CreatePlaylist([FromBody] CreatePlaylistRequest request)
    {
-      var userId = JwtHelper.ExtractUserId(HttpContext);
-      var playlistCreationResult = await _playlistService.CreatePlaylist(userId, request);
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      var playlistCreationResult = await _playlistService.CreatePlaylist(userId.Value, request);
       return Ok(ApiResponse<PlaylistDto>.Ok("Successfully created playlist",playlistCreationResult));
    }
    
@@ -63,8 +63,8 @@ public class PlaylistController : ControllerBase
    [SwaggerOperation("Delete user playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> DeleteUserPlaylist([FromRoute] Guid playlistId)
    {
-      var userId = JwtHelper.ExtractUserId(HttpContext);
-      await _playlistService.DeletePlaylist(userId, playlistId);
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _playlistService.DeletePlaylist(userId.Value, playlistId);
       return Ok(ApiResponse.Ok("Successfully delete playlist"));
    }
    
