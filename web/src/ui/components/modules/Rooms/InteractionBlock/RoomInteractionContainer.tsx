@@ -7,7 +7,7 @@ import PageLoading from '@/ui/components/shared/PageLoading'
 import RoomChatContainer from './Chat/RoomChatContainer'
 import RoomInteractionHeader from './RoomInteractionHeader'
 import RoomPlaylists from './RoomPlaylists'
-import RoomSettings from './RoomSettings'
+import RoomSettings from './Settings/RoomSettings'
 import RoomUsers from './RoomUsers'
 
 export default function RoomInteractionContainer() {

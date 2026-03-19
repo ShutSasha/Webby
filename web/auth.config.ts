@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from 'next-auth'
 
 import { mapUserData, refreshAccessToken } from '@/lib/utils/auth'
-import { clog, serverLog } from '@/lib/utils/utils'
+import { serverLog } from '@/lib/utils/utils'
 import { AuthRes } from '@/types/auth'
 
 const TOKEN_REFRESH_BUFFER = 120
