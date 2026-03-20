@@ -13,6 +13,13 @@ tasks:
     cmds:
       - |
         cd ./Webby.UserService
+        dotnet run
+
+  run_video_service:
+    desc: "Run the C# VideoService"
+    cmds:
+      - |
+        cd ./Webby.VideoService
         dotnet run 
 
   run_api_getaway:
@@ -28,3 +35,4 @@ tasks:
       - run_auth_service
       - run_api_getaway
       - run_user_service
+      - run_video_service

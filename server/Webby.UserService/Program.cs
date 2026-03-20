@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Amazon.S3;
 using Webby.UserService.Extensions;
 using Webby.UserService.Middlewares;
+using UserGrpcService = Webby.UserService.Services.UserGrpcService;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -21,6 +22,7 @@ services.ConfigureOptionDependencies(configuration);
 
 services.AddRepositories();
 services.AddServices();
+services.AddGrpc();
 
 services.AddControllers().AddJsonOptions(options =>
 {
@@ -46,8 +48,11 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+app.MapGrpcService<UserGrpcService>().EnableGrpcWeb();
+
 app.MapControllers();
+
 app.Run();
