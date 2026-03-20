@@ -1,29 +1,20 @@
-import Image from 'next/image'
+import { videos } from '@/lib/placeholder-data/profile'
+
+import ImageBackground from './ImageBackground'
 
 export default async function UserVideos() {
   // await, sync videos - Lates/Popular
-  await new Promise(resolve => {
-    setTimeout(() => {
-      resolve('')
-    }, 1300)
-  })
+  await new Promise(r => setTimeout(r, 2000))
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
-      {[...new Array(10)].map((item, index) => (
-        <div key={index} className="group cursor-pointer">
-          <Image
-            src={'https://i.ibb.co/60Ns8j8r/cd4af4dd04fcfba0a358cfdee5c039f7.jpg'}
-            alt=""
-            height={1920}
-            width={1080}
-            className="w-full rounded-2xl mb-1 group-hover:scale-95 transition-all duration-300"
-            loading="lazy"
-          />
-          <p className="text-sm font-medium">さめ甘</p>
+      {videos.map(video => (
+        <div key={video.id} className="group cursor-pointer">
+          <ImageBackground src={video.src} />
+          <p className="text-sm font-medium">{video.title}</p>
           <div className="flex gap-2 text-[12px] text-neutral-500">
-            <p>1.3K views</p>
-            <p>03/11/2025</p>
+            <p>{video.views}</p>
+            <p>{video.date}</p>
           </div>
         </div>
       ))}

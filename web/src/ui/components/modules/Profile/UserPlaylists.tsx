@@ -1,17 +1,15 @@
+import { playlists } from '@/lib/placeholder-data/profile'
+
 import PlaylistItem from '../Playlist/PlaylistItem'
 
 export default async function UserPlaylists() {
   // await, sync Public playlists
-  await new Promise(resolve => {
-    setTimeout(() => {
-      resolve('')
-    }, 1300)
-  })
+  await new Promise(r => setTimeout(r, 1500))
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
-      {[...new Array(10)].map((item, index) => (
-        <PlaylistItem key={index} />
+      {playlists.map(playlist => (
+        <PlaylistItem key={playlist.id} {...playlist} />
       ))}
     </div>
   )

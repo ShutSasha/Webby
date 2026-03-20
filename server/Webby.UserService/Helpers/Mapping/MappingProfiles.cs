@@ -14,6 +14,7 @@ public class MappingProfiles : Profile
       CreateMap<User, UserDto>();
       CreateMap<User, UserFollowersDto>();
       CreateMap<Achievement, AchievementDto>();
+      CreateMap<Achievement, ProfileAchievementDto>();
       CreateMap<Complaint, ComplaintDto>();
    }
 }

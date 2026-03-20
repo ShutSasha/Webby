@@ -1,12 +1,9 @@
 /* eslint-disable */
+import { BaseServerResponse } from '@/types/general'
 import axios, { AxiosError } from 'axios'
-
-export type BaseServerResponse = {
-  data: Record<string, any> | null
-  errors: Record<string, string> | null
-  message: string
-  success: boolean
-}
+import clsx from 'clsx'
+import { ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 export function parseAxiosError(error: unknown): Record<string, string> {
   if (!axios.isAxiosError<BaseServerResponse>(error)) {
@@ -75,4 +72,8 @@ export function clog(label: string, data?: any) {
   console.log(`\n=== [${label}] ===`)
   console.log(data)
   console.log(`============\n`)
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }

@@ -128,10 +128,7 @@ public class AchievementService : IAchievementService
     }
 
     public async Task<List<Achievement>> GetAchievements()
-    {
-        var achievements = await _achievementRepository.GetAll();
-        return achievements.ToList();
-    }
+        => await _achievementRepository.GetAll();
 
     public async Task<Achievement?> FindById(Guid achievementId)
     {
@@ -157,7 +154,7 @@ public class AchievementService : IAchievementService
 
         if (userAchievement == null)
         {
-            throw new ApiException("Get user achievement error", 404, "User achievement not found");
+            throw new ApiException("Get user achievement error", 400, "This achievement has not been unlocked yet.");
         }
 
         return userAchievement;
@@ -166,13 +163,32 @@ public class AchievementService : IAchievementService
     public async Task UpdateUserAchievement(UserAchievement userAchievement) => 
         await _achievementRepository.UpdateUserAchievement(userAchievement);
 
-    public async Task<List<AchievementDto>> GetPinnedAchievements(Guid userId)
+    public async Task<List<ProfileAchievementDto>> GetPinnedAchievements(Guid userId)
     {
         var userAchievements = await _achievementRepository
             .GetUserPinnedAchievements(userId);
 
         return userAchievements
-            .Select(ua => _mapper.Map<AchievementDto>(ua.Achievement))
+            .Select(ua => _mapper.Map<ProfileAchievementDto>(ua.Achievement))
             .ToList();
     }
+
+    public async Task<GetUserAchievementsResponse> GetUserAchievementsBlock(Guid userId)
+    {
+        var getUserAchievementsResponse = new GetUserAchievementsResponse();
+        
+        var pinnedAchievements = await _achievementRepository
+            .GetUserPinnedAchievements(userId);
+
+        var achievementsWithUserStatus = await _achievementRepository
+            .GetAchievementsWithUserStatus(userId);
+        
+        getUserAchievementsResponse.PinnedAchievements = pinnedAchievements.Select(
+            ua => _mapper.Map<AchievementDto>(ua.Achievement)).ToList();
+
+        getUserAchievementsResponse.Achievements = achievementsWithUserStatus;
+
+        return getUserAchievementsResponse;
+    }
+    
 }

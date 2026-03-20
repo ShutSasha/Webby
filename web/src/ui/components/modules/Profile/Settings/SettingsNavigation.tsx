@@ -11,7 +11,7 @@ export default function SettingsNavigation({ id }: Props) {
   const pathname = usePathname()
 
   const baseClasses = 'border px-4 py-2 transition-colors rounded-xl font-medium'
-  const activeClasses = 'bg-emerald-400 border-transparent text-neutral-900'
+  const activeClasses = 'bg-emerald-500 border-transparent text-neutral-900'
   const inactiveClasses = 'hover:bg-neutral-800 border-border'
 
   const getClasses = (path: string) => {
@@ -29,8 +29,8 @@ export default function SettingsNavigation({ id }: Props) {
         Secure
       </Link>
 
-      <Link href={`/profile/${id}/badges`} className={getClasses('/badges')}>
-        Badges
+      <Link href={`/profile/${id}/achievements`} className={getClasses('/achievements')}>
+        Achievements
       </Link>
     </div>
   )

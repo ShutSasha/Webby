@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import ToastContainer from '@/ui/components/common/Toast/ToastContainer'
 import Providers from '@/ui/components/Providers/Providers'
 import { inter } from '@/ui/fonts'
 import './globals.css'
@@ -15,9 +16,10 @@ type Props = Readonly<{
 export default async function RootLayout({ children }: Props) {
   return (
     <html lang="uk">
-      <Providers>
-        <body className={`${inter.className} antialiased`}>{children}</body>
-      </Providers>
+      <body className={`${inter.className} antialiased`}>
+        <Providers>{children}</Providers>
+        <ToastContainer />
+      </body>
     </html>
   )
 }

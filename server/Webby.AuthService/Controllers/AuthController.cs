@@ -1,8 +1,10 @@
-﻿using System.Net;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.AuthService.Dtos;
 using Webby.AuthService.Helpers.Exception;
+using Webby.AuthService.Helpers.Jwt;
 using Webby.AuthService.Helpers.Response;
 using Webby.AuthService.Interfaces.Services;
 using Webby.AuthService.Models;
@@ -97,10 +99,20 @@ public class AuthController : ControllerBase
 
    [HttpPatch("change-password")]
    [SwaggerOperation("Change user password route","AUTH REQUIRED")]
-   public async Task<ActionResult<ApiResponse<UserDto>>> ChangeUserPassword([FromBody] ChangeUserPasswordRequest request)
+   public async Task<ActionResult<ApiResponse>> ChangeUserPassword([FromBody] ChangeUserPasswordRequest request)
    {
-      var changeUserPasswordResult = await _authService.ChangeUserPassword(request);
-      return Ok(ApiResponse<UserDto>.Ok("Succesfully changed user password", changeUserPasswordResult));
+      var userId = JwtHelper.ExtractUserId(HttpContext);
+      
+      await _authService.ChangeUserPassword(userId,request);
+      return Ok(ApiResponse.Ok("Successfully changed user password"));
+   }
+   
+   [HttpPatch("reset-password")]
+   [SwaggerOperation("Reset user password after user email verification")]
+   public async Task<ActionResult<ApiResponse>> ResetUserPassword([FromBody] ResetUserPasswordRequest request)
+   {
+      await _authService.ResetUserPassword(request);
+      return Ok(ApiResponse.Ok("Successfully reset user password"));
    }
    
 }

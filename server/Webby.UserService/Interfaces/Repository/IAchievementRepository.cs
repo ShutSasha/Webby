@@ -1,4 +1,5 @@
-﻿using Webby.UserService.Models;
+﻿using Webby.UserService.Dtos.Achievement;
+using Webby.UserService.Models;
 
 namespace Webby.UserService.Interfaces.Repository;
 
@@ -9,4 +10,5 @@ public interface IAchievementRepository : IRepository<Achievement>
    Task<UserAchievement?> GetUserAchievement(Guid userId, Guid achievementId);
    Task UpdateUserAchievement(UserAchievement userAchievement);
    Task<List<UserAchievement>> GetUserPinnedAchievements(Guid userId);
+   Task<List<AchievementDto>> GetAchievementsWithUserStatus(Guid userId);
 }
