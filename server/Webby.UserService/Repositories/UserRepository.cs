@@ -57,6 +57,7 @@ public class UserRepository : GenericRepository<User>,IUserRepository
    {
       return await _context.UserFollowers
          .Include(uf => uf.FollowedUser)
+         .ThenInclude(uf => uf.Followers)
          .Where(uf => uf.FollowerId == userId)
          .ToListAsync();
    }

@@ -178,7 +178,7 @@ public class UserService : IUserService
    public async Task<List<UserFollowersDto>> GetUserFollowers(Guid userId)
    {
       //TODO: Add check user existance
-      var userFollows = await _userRepository
+      var userFollowers = await _userRepository
          .GetUserFollowers(userId);
 
       return userFollowers
