@@ -19,7 +19,7 @@ export default function ProfileActionButton({ children, label, onClick, btnClass
     >
       {children}
 
-      <span className="text-white text-sm font-medium leading-none">{label}</span>
+      <span className="text-neutral-300 text-sm font-medium leading-none">{label}</span>
     </button>
   )
 }

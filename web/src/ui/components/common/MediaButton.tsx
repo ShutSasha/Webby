@@ -22,7 +22,7 @@ export default function MediaButton({ actionLabel, children }: MediaButtonProps)
           md:font-bold leading-5.5 px-4 py-1.5 md:py-2 md:px-5 rounded-xl"
         onClick={() => setIsOpen(true)}
       >
-        <PlusIcon className="h-4 w-4" aria-hidden="true" />
+        <PlusIcon className="h-4 w-4 text-neutral-900" aria-hidden="true" />
         {actionLabel}
       </button>
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>

@@ -10,7 +10,7 @@ export default function RoomsPage() {
   return (
     <MainLayout>
       <div className="flex flex-col w-full bg-neutral-900 rounded-[20px] p-5 gap-4 box-border">
-        <MediaHeader searchPlaceholder="Search rooms..." actionSlot={<CreateRoomButton />} />
+        <MediaHeader searchPlaceholder="Search a room" actionSlot={<CreateRoomButton />} />
 
         <div className="flex justify-between">
           <div className="hidden lg:block">
