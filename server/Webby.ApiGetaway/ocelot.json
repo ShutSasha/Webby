@@ -119,7 +119,7 @@
       },
 
       {
-         "DownstreamPathTemplate": "/api/auth/change-password/",
+         "DownstreamPathTemplate": "/api/auth/change-password",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
             {
@@ -127,13 +127,28 @@
                "Port": 5001
             }
          ],
-         "UpstreamPathTemplate": "/api/auth/change-password/",
+         "UpstreamPathTemplate": "/api/auth/change-password",
          "UpstreamHttpMethod": [
             "PATCH"
          ],
          "AuthenticationOptions": {
             "AuthenticationProviderKey": "Bearer"
          }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/auth/reset-password",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5001
+            }
+         ],
+         "UpstreamPathTemplate": "/api/auth/reset-password",
+         "UpstreamHttpMethod": [
+            "PATCH"
+         ]
       },
 
       {
@@ -171,6 +186,24 @@
          }
       },
 
+      {
+         "DownstreamPathTemplate": "/api/users/is-following/{targetId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/is-following/{targetId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+      
       {
          "DownstreamPathTemplate": "/api/users/{userId}",
          "DownstreamScheme": "http",
@@ -234,24 +267,6 @@
          "UpstreamPathTemplate": "/api/users/{followId}/follow",
          "UpstreamHttpMethod": [
             "POST"
-         ],
-         "AuthenticationOptions": {
-            "AuthenticationProviderKey": "Bearer"
-         }
-      },
-
-      {
-         "DownstreamPathTemplate": "/api/users/{followId}/unfollow",
-         "DownstreamScheme": "http",
-         "DownstreamHostAndPorts": [
-            {
-               "Host": "localhost",
-               "Port": 5002
-            }
-         ],
-         "UpstreamPathTemplate": "/api/users/{followId}/unfollow",
-         "UpstreamHttpMethod": [
-            "DELETE"
          ],
          "AuthenticationOptions": {
             "AuthenticationProviderKey": "Bearer"
@@ -387,6 +402,21 @@
          }
       },
 
+      {
+         "DownstreamPathTemplate": "/api/achievements/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
 
       {
          "DownstreamPathTemplate": "/api/complaints/{userId}",
@@ -426,7 +456,6 @@
             "AuthenticationProviderKey": "Bearer"
          }
       }
-      
       
    ],
    "GlobalConfiguration": {

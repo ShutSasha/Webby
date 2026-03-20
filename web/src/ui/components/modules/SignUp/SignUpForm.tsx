@@ -2,17 +2,17 @@
 import { startTransition, useActionState, useState } from 'react'
 
 import Link from 'next/link'
-import { signIn } from 'next-auth/react'
 import { useForm } from 'react-hook-form'
 
 import { registerUser } from '@/app/api/auth'
-import GoogleIcon from '@/assets/auth/ic_google.svg'
 import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import RepeatPasswordIcon from '@/assets/auth/ic_repeat_password.svg'
 import UsernameIcon from '@/assets/auth/ic_username.svg'
 import AuthInput from '@/components/AuthInput'
-import Button from '@/components/Button'
+import Button from '@/ui/components/shared/Button'
+
+import AuthSocialButtons from '../Login/OAuthButtons'
 
 const initialState = {
   success: false,
@@ -47,7 +47,7 @@ export default function SignUpForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col">
       <h1 className="text-white text-xl font-bold text-center mb-4">Sign up</h1>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 mb-2">
         <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" />
         <AuthInput Icon={UsernameIcon} {...register('username')} name="username" type="text" placeholder="Username" />
         <AuthInput
@@ -77,7 +77,7 @@ export default function SignUpForm() {
         <Button
           disabled={isPending}
           type="submit"
-          viewType="Confirm"
+          viewType="confirm"
           className={`text-[16px] leading-[22px] font-semibold w-fit mx-auto
             ${isPending ? 'bg-neutral-700 hover:bg-neutral-700 cursor-not-allowed' : 'cursor-pointer'}`}
           paddingClasses="px-5 py-2"
@@ -93,12 +93,7 @@ export default function SignUpForm() {
         <hr className="border-neutral-300" />
         <p className="text-center text-sm leading-5 text-neutral-300">or sign up via </p>
       </div>
-      <div className="flex flex-row gap-1 items-center justify-center">
-        <GoogleIcon
-          className="w-11 h-11 hover:text-emerald-500 transition-colors duration-300 ease-out cursor-pointer"
-          onClick={() => signIn('google', { callbackUrl: '/' })}
-        />
-      </div>
+      <AuthSocialButtons />
     </form>
   )
 }

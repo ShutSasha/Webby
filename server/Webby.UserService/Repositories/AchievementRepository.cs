@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Webby.UserService.Data;
+using Webby.UserService.Dtos.Achievement;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Models;
 
@@ -53,4 +54,22 @@ public class AchievementRepository : GenericRepository<Achievement>, IAchievemen
          .ToListAsync();
    }
    
+   public async Task<List<AchievementDto>> GetAchievementsWithUserStatus(Guid userId)
+   {
+      return await _context.Achievements
+         .Where(a => !_context.UserAchievements
+            .Any(ua => ua.UserId == userId 
+                       && ua.AchievementId == a.AchievementId 
+                       && ua.IsPinned))
+         .Select(a => new AchievementDto
+         {
+            AchievementId = a.AchievementId,
+            IconUrl = a.IconUrl,
+            Title = a.Title,
+            Description = a.Description,
+            IsUnlocked = _context.UserAchievements
+               .Any(ua => ua.UserId == userId && ua.AchievementId == a.AchievementId)
+         })
+         .ToListAsync();
+   }
 }

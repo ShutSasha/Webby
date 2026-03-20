@@ -2,7 +2,6 @@
 
 import { Route } from 'next'
 import { redirect } from 'next/dist/client/components/navigation'
-import { cookies } from 'next/headers'
 import { AuthError } from 'next-auth'
 
 import $api from '@/app/api'
@@ -11,12 +10,12 @@ import { LoginRes } from '@/types/auth'
 import { FormActionState } from '@/types/general'
 import { signIn } from '@/workspace/auth'
 
-type ReturnError = {
+export type ReturnAuthError = {
   success: boolean
   errors: Record<string, string>
 }
 
-export async function login(email: string, password: string): Promise<LoginRes | ReturnError> {
+export async function login(email: string, password: string): Promise<LoginRes | ReturnAuthError> {
   try {
     const { data: response } = await $api.post('/auth/sign-in', { email, password })
 
@@ -109,10 +108,64 @@ export async function verifyUser({ email, code }: { email: string; code: string 
   }
 }
 
-export async function getEncryptedToken() {
-  const cookieStore = await cookies()
-  const token =
-    cookieStore.get('authjs.session-token')?.value || cookieStore.get('__Secure-authjs.session-token')?.value
+export async function resendVerifyCode({ email }: { email: string }) {
+  try {
+    await $api.post('/auth/resend-verification-code', { email })
+  } catch (error) {
+    serverLog('Error resending verification code:', error)
+  }
+}
 
-  return token
+export async function changePassworddAction(_prevState: FormActionState, formData: FormData) {
+  const currentPassword = formData.get('currentPassword') as string
+  const newPassword = formData.get('newPassword') as string
+  const confirmPassword = formData.get('confirmPassword') as string
+
+  if (newPassword !== confirmPassword) {
+    return {
+      success: false,
+      errors: { confirmPassword: 'Passwords do not match' },
+    }
+  }
+
+  try {
+    await $api.patch('/auth/change-password', {
+      currentPassword,
+      newPassword,
+    })
+
+    return { success: true, errors: null, timestamp: Date.now() }
+  } catch (error: unknown) {
+    serverLog('CHANGE_PASSWORD_ERROR', error, true)
+    return { success: false, errors: parseAxiosError(error) }
+  }
+}
+
+export async function resetPasswordAction(_prevState: FormActionState, formData: FormData) {
+  const email = formData.get('email') as string
+  const newPassword = formData.get('newPassword') as string
+  const confirmPassword = formData.get('confirmPassword') as string
+
+  if (newPassword !== confirmPassword) {
+    return {
+      success: false,
+      errors: { confirmPassword: 'Passwords do not match' },
+    }
+  }
+
+  try {
+    await $api.patch('/auth/reset-password', {
+      email,
+      newPassword,
+    })
+
+    return { success: true, errors: null, timestamp: Date.now() }
+  } catch (error: unknown) {
+    serverLog('RESET_PASSWORD_ERROR', error, true)
+
+    return {
+      success: false,
+      errors: parseAxiosError(error),
+    }
+  }
 }

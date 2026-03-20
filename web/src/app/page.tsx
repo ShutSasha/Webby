@@ -7,18 +7,22 @@ import ImageBackgroundGroup from '@/assets/auth/bg-login.png'
 import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
 import { benefitsList } from '@/lib/placeholder-data/home-page'
 import { clog, serverLog } from '@/lib/utils/utils'
-import Button from '@/ui/components/Button'
+import { useToastStore } from '@/stores/toast-store'
 import MainLayout from '@/ui/components/MainLayout'
+import Button from '@/ui/components/shared/Button'
 
-import $apiClient from './api/client'
+import $api from './api'
 
 // TODO: return server component
 export default function Home() {
+  const addToast = useToastStore(state => state.addToast)
+
   const handleTest = async () => {
     try {
-      const { data } = await $apiClient.get('/auth/check')
+      const { data } = await $api.get('/auth/check')
 
       clog('test data response', data)
+      addToast('Successss', 'success')
     } catch (error) {
       serverLog('TEST ERROR', error, true)
     }
@@ -41,7 +45,7 @@ export default function Home() {
               <Button
                 className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
                 paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
-                viewType="Confirm"
+                viewType="confirm"
               >
                 Create a room
               </Button>
@@ -49,7 +53,7 @@ export default function Home() {
                 <Button
                   className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
                   paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
-                  viewType="Cancel"
+                  viewType="cancel"
                 >
                   Find a room
                 </Button>
@@ -100,7 +104,7 @@ export default function Home() {
                     <Button
                       className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
                       paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
-                      viewType="Confirm"
+                      viewType="confirm"
                     >
                       Sign up
                     </Button>
@@ -109,7 +113,7 @@ export default function Home() {
                     <Button
                       className="font-semibold rounded-[20px] text-sm sm:text-[16px]"
                       paddingClasses="px-3 py-2 sm:px-4.5 sm:py-2.5 2xl:px-5 2xl:py-3"
-                      viewType="Cancel"
+                      viewType="cancel"
                     >
                       Login
                     </Button>

@@ -36,6 +36,16 @@ public class UserController : ControllerBase
       var userFollows = await _userService.GetUserFollows(userId);
       return Ok(ApiResponse<List<UserFollowersDto>>.Ok("Successfully retrieved user follows", userFollows));
    }
+
+   [HttpGet("is-following/{targetId:guid}")]
+   [SwaggerOperation("Checks if user followed to target user","AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<UserFollowingResponse>>> GetUserFollowing([FromRoute] Guid targetId)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext);
+      var userFollowingResponse = await _userService.IsUserFollowing(userId, targetId);
+      
+      return Ok(ApiResponse<UserFollowingResponse>.Ok("Successfully retrieved information", userFollowingResponse));
+   }
    
    [HttpGet("{userId:guid}/followers")]
    [SwaggerOperation("Get user followers")]
@@ -46,18 +56,18 @@ public class UserController : ControllerBase
    }
    
    [HttpPost("{followId:guid}/follow")]
-   [SwaggerOperation("Follow user","AUTH REQUIRED")]
+   [SwaggerOperation("Follow or unfollow user","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> Follow(Guid followId)
    {
       var followerId = JwtHelper.ExtractUserId(HttpContext);
 
-      await _userService.FollowUser(new UserFollowRequest
+      var resultMessage = await _userService.ProcessFollow(new UserFollowRequest
       {
          UserId = followId,
          FollowerId = followerId
       });
 
-      return Ok(ApiResponse.Ok("Successfully followed"));
+      return Ok(ApiResponse.Ok(resultMessage));
    }
    
    [HttpPost("achievements/unlock")]
@@ -103,20 +113,6 @@ public class UserController : ControllerBase
       return Ok(ApiResponse<UserDto>.Ok("Successfully update user icon", updateUserIconResult));
    }
    
-   [HttpDelete("{followId:guid}/unfollow")]
-   [SwaggerOperation("Unfollow user","AUTH REQUIRED")]
-   public async Task<ActionResult<ApiResponse>> Unfollow(Guid followId)
-   {
-      var followerId = JwtHelper.ExtractUserId(HttpContext);
-      
-      await _userService.UnfollowUser(new UserFollowRequest
-      {
-         UserId = followId,
-         FollowerId = followerId
-      });
-      
-      return Ok(ApiResponse.Ok("Successfully unfollowed"));
-   }
    
    [HttpDelete("achievements/{achievementId:guid}")]
    [SwaggerOperation("Unpin user achievement","AUTH REQUIRED")]

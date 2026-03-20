@@ -8,8 +8,8 @@ export default async function Providers({ children }: { children: React.ReactNod
   const session = await auth()
 
   return (
-    <SessionProvider session={session} refetchOnWindowFocus={true}>
-      <AuthProvider session={session}>{children}</AuthProvider>
+    <SessionProvider session={session} refetchOnWindowFocus={true} refetchInterval={1500}>
+      <AuthProvider>{children}</AuthProvider>
     </SessionProvider>
   )
 }
