@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using Webby.UserService.Helpers.Response;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Jwt;
-using Webby.VideoService.Interfaces.Repositories;
+using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Services;
 
 namespace Webby.VideoService.Controllers;
@@ -33,16 +32,22 @@ public class VideoController: ControllerBase
 
    [HttpGet("users/{userId:guid}")]
    [SwaggerOperation("Get user videos")]
-   public async Task<ActionResult<ApiResponse<List<VideoDto>>>> GetUserVideos([FromRoute] Guid userId)
+   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> GetUserVideos(
+      [FromRoute] Guid userId,
+      [FromQuery] int page = 1,
+      [FromQuery] int pageSize = 10)
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
-      var userVideos = await _videoService.GetUserVideos(userId,requestUserId);
-      return Ok(ApiResponse<List<VideoDto>>.Ok("Successfully retrieved user videos", userVideos));
+      var result = await _videoService.GetUserVideos(userId, requestUserId, page, pageSize);
+      return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved user videos", result));
    }
    
    
+   //TODO: add background service for async uploading files
    [HttpPost]
    [SwaggerOperation("Create video route", "AUTH REQUIRED")]
+   [RequestSizeLimit(5L * 1024 * 1024 * 1024)]
+   [RequestFormLimits(MultipartBodyLengthLimit = 5L * 1024 * 1024 * 1024)]
    public async Task<ActionResult<ApiResponse>> CreateVideo([FromForm] CreateVideoRequest request)
    {
       var userId = JwtHelper.ExtractUserId(HttpContext)!;
@@ -67,5 +72,7 @@ public class VideoController: ControllerBase
       await _videoService.DeleteVideo(userId.Value, videoId);
       return Ok(ApiResponse.Ok("Successfully delete video"));
    }
+   
+   
    
 }

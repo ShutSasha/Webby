@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using Webby.UserService.Helpers.Response;
 using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Helpers.Jwt;
+using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Services;
 
 namespace Webby.VideoService.Controllers;
@@ -19,10 +19,16 @@ public class PlaylistController : ControllerBase
 
    [HttpGet("{userId:guid}")]
    [SwaggerOperation("Get user playlists")]
-   public async Task<ActionResult<ApiResponse<List<PlaylistDto>>>> GetUserPlaylists([FromRoute] Guid userId)
+   public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistDto>>>> GetUserPlaylists(
+      [FromRoute] Guid userId,
+      [FromQuery] int page = 1,
+      [FromQuery] int pageSize = 10)
    {
-      var userPlaylists = await _playlistService.GetUserPlaylists(userId);
-      return Ok(ApiResponse<List<PlaylistDto>>.Ok("Successfully retrieved user playlists",userPlaylists));
+      var result = await _playlistService.GetUserPlaylists(userId, page, pageSize);
+
+      return Ok(ApiResponse<PagedResponse<PlaylistDto>>.Ok(
+         "Successfully retrieved user playlists",
+         result));
    }
 
    [HttpGet("{playlistId:guid}/details")]
@@ -42,8 +48,9 @@ public class PlaylistController : ControllerBase
       return Ok(ApiResponse<PlaylistDto>.Ok("Successfully created playlist",playlistCreationResult));
    }
    
+   //TODO: Measure response time in stress testing
    [HttpPost("videos")]
-   [SwaggerOperation("Add videos to playlist", "AUTH REQUIRED")]
+   [SwaggerOperation("Add or delete videos in playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> AddVideoToPlaylist([FromBody] AddVideoToPlaylistRequest request)
    {
       await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds);
@@ -67,6 +74,5 @@ public class PlaylistController : ControllerBase
       await _playlistService.DeletePlaylist(userId.Value, playlistId);
       return Ok(ApiResponse.Ok("Successfully delete playlist"));
    }
-   
    
 }

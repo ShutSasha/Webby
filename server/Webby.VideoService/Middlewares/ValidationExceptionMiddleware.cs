@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using Webby.UserService.Helpers.Response;
+using Webby.VideoService.Helpers.Response;
 
 namespace Webby.VideoService.Middlewares;
 

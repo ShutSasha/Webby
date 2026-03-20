@@ -6,6 +6,7 @@ using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
+using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
@@ -40,13 +41,22 @@ public class PlaylistService : IPlaylistService
       return _mapper.Map<PlaylistDto>(playlist);
    }
 
-   public async Task<List<PlaylistDto>> GetUserPlaylists(Guid userId)
+   public async Task<PagedResponse<PlaylistDto>> GetUserPlaylists(Guid userId, int page, int pageSize)
    {
-      var playlists = await _playlistRepository.GetUserPlaylists(userId);
+      page = page <= 0 ? 1 : page;
+      pageSize = pageSize <= 0 ? 10 : pageSize;
 
-      return playlists
-         .Select(MapToPlaylistDto)
-         .ToList();
+      var (playlists, totalCount) = await _playlistRepository
+         .GetPaginatedUserPlaylists(userId, page, pageSize);
+
+      return new PagedResponse<PlaylistDto>
+      {
+         Items = playlists.Select(MapToPlaylistDto).ToList(),
+         Page = page,
+         PageSize = pageSize,
+         TotalCount = totalCount
+      };
+
    }
 
    public async Task<PlaylistDto> UpdatePlaylist(UpdatePlaylistRequest request)
@@ -155,13 +165,22 @@ public class PlaylistService : IPlaylistService
       if (videoIds == null || !videoIds.Any())
          throw new ApiException("Attach video error", 400, "No videos to add");
 
-      var playlist = await _playlistRepository.FindById(playlistId);
+      var playlist = await _playlistRepository.GetPlaylistDetails(playlistId);
 
       if (playlist == null)
          throw new ApiException("Attach to playlist error", 404,"Playlist wasn't found");
 
+      var existingVideoIds = playlist.PlaylistVideos
+         .Select(pv => pv.VideoId)
+         .ToHashSet();
+
+      var playlistVideosToDelete = playlist.PlaylistVideos
+         .Where(p => videoIds.Contains(p.VideoId))
+         .ToList();
+
       var playlistVideos = videoIds
          .Distinct()
+         .Where(videoId => !existingVideoIds.Contains(videoId))
          .Select(videoId => new PlaylistVideo
          {
             PlaylistId = playlistId,
@@ -170,7 +189,8 @@ public class PlaylistService : IPlaylistService
          .ToList();
 
       await _playlistRepository.AddPlaylistVideos(playlistVideos);
-      return MapToPlaylistDto(playlist);
+      await _playlistRepository.DeletePlaylistVideos(playlistVideosToDelete);
+      return MapToPlaylistDto((await _playlistRepository.GetPlaylistDetails(playlistId))!);
    }
    
    private PlaylistDto MapToPlaylistDto(Playlist playlist)

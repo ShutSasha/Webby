@@ -4,6 +4,7 @@ using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
+using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
@@ -131,14 +132,23 @@ public class VideoService : IVideoService
       };
    }
 
-   public async Task<List<VideoDto>> GetUserVideos(Guid userId, Guid? requestUserId)
+   public async Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId, Guid? requestUserId, int page, int pageSize)
    {
+      page = page <= 0 ? 1 : page;
+      pageSize = pageSize <= 0 ? 10 : pageSize;
+
       var isOwner = userId == requestUserId;
 
-      var videos = await _videoRepository.GetByPredicate(v =>
-         v.UserId == userId && (isOwner || !v.IsPrivate));
+      var (videos, totalCount) = await _videoRepository
+         .GetPaginatedUserVideos(userId, isOwner, page, pageSize);
 
-      return MapToDto(videos);
+      return new PagedResponse<VideoDto>
+      {
+         Items = MapToDto(videos),
+         Page = page,
+         PageSize = pageSize,
+         TotalCount = totalCount
+      };
    }
 
    public async Task UpdateVideoInformation(Guid userId, UpdateVideoRequest request)

@@ -1,4 +1,4 @@
-﻿namespace Webby.UserService.Helpers.Response;
+﻿namespace Webby.VideoService.Helpers.Response;
 
 public class ApiResponse
 {
