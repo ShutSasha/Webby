@@ -57,6 +57,7 @@ public class UserRepository : GenericRepository<User>,IUserRepository
    {
       return await _context.UserFollowers
          .Include(uf => uf.FollowedUser)
+         .ThenInclude(uf => uf.Followers)
          .Where(uf => uf.FollowerId == userId)
          .ToListAsync();
    }
@@ -67,6 +68,13 @@ public class UserRepository : GenericRepository<User>,IUserRepository
          .Include(uf => uf.FollowerUser)
          .ThenInclude(u => u.Followers)
          .Where(uf => uf.UserId == userId)
+         .ToListAsync();
+   }
+   
+   public async Task<List<User>> GetByIds(List<Guid> ids)
+   {
+      return await _context.Users
+         .Where(u => ids.Contains(u.UserId))
          .ToListAsync();
    }
 }

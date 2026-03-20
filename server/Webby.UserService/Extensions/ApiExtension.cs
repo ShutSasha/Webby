@@ -19,10 +19,10 @@ public static class ApiExtension
       {
          corsOptions.AddPolicy(policyName, policy =>
          {
-            policy
-               .WithOrigins("http://localhost:5000")
+            policy.WithHeaders().AllowCredentials();
+            policy.WithHeaders().AllowAnyHeader();
+            policy.WithOrigins("http://localhost:5000")
                .AllowAnyMethod()
-               .AllowCredentials()
                .AllowAnyHeader();
          });
       });
