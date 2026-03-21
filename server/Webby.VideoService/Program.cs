@@ -4,6 +4,7 @@ using Grpc.Net.Client.Web;
 using UserService;
 using Webby.VideoService.Extensions;
 using Webby.VideoService.Middlewares;
+using Webby.VideoService.Services.Grpc;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -25,17 +26,12 @@ services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 services.AddSingleton<IAmazonS3>(AwsS3ClientFactory.CreateS3Client(configuration));
 
 services.ConfigureOptionDependencies(configuration);
+
+services.AddGrpc();
 services.AddRepositories();
 services.AddServices();
 
-services.AddGrpcClient<UserGrpcService.UserGrpcServiceClient>(options =>
-    {
-        options.Address = new Uri("http://localhost:5004");
-    })
-    .ConfigurePrimaryHttpMessageHandler(() =>
-    {
-        return new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler());
-    });
+services.ConfigureGrpcConnections();
 
 services.AddControllers().AddJsonOptions(options =>
 {
@@ -62,6 +58,9 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/docs/video-service/v1/swagger.json", "Video Service API");
     });
 }
+
+app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+app.MapGrpcService<VideoGrpcService>().EnableGrpcWeb();
 
 app.UseRouting();
 app.MapControllers();
