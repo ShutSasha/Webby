@@ -6,6 +6,7 @@ public class VideoDto
 {
    public Guid VideoId { get; set; }
    public required string Name { get; set; }
+   public string? Description { get; set; }
    public int Views { get; set; }
    public required string PreviewUrl { get; set; }
    public required bool IsPrivate { get; set; }
