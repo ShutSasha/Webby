@@ -2,12 +2,17 @@ import MediaHeader from '@/ui/components/common/MediaHeader'
 import MainLayout from '@/ui/components/MainLayout'
 import CreateVideoButton from '@/ui/components/modules/Videos/CreateVideoButton'
 import VideoCard from '@/ui/components/modules/Videos/VideoCard'
+import PageToggle from '@/ui/components/PageToggle'
 
 export default function VideosPage() {
   return (
     <MainLayout>
       <div className="flex flex-col w-full bg-neutral-900 rounded-[20px] p-5 gap-4 box-border">
-        <MediaHeader searchPlaceholder="Search a video" actionSlot={<CreateVideoButton />} />
+        <MediaHeader
+          searchPlaceholder="Search a video"
+          actionSlot={<CreateVideoButton />}
+          pageToggle={<PageToggle />}
+        />
 
         <div className="flex justify-between">
           <div className="hidden lg:block">

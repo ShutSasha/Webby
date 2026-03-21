@@ -5,12 +5,13 @@ import MediaHeader from '@/ui/components/common/MediaHeader'
 import MainLayout from '@/ui/components/MainLayout'
 import CreateRoomButton from '@/ui/components/modules/Rooms/CreateRoomButton'
 import RoomCard from '@/ui/components/modules/Rooms/RoomCard'
+import PageToggle from '@/ui/components/PageToggle'
 
 export default function RoomsPage() {
   return (
     <MainLayout>
       <div className="flex flex-col w-full bg-neutral-900 rounded-[20px] p-5 gap-4 box-border">
-        <MediaHeader searchPlaceholder="Search a room" actionSlot={<CreateRoomButton />} />
+        <MediaHeader searchPlaceholder="Search a room" actionSlot={<CreateRoomButton />} pageToggle={<PageToggle />} />
 
         <div className="flex justify-between">
           <div className="hidden lg:block">

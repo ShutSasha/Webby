@@ -30,7 +30,7 @@ export default function VideoCard() {
   }
 
   return (
-    <Link href={`/videos/0`} className="group flex flex-col gap-3">
+    <Link href={`/videos/43d81094-58c7-4a49-8409-3cf8dbd6b5a6`} className="group flex flex-col gap-3">
       <div className="overflow-hidden rounded-lg relative">
         <Image
           src="https://i.ibb.co/d4fJc7FX/anime-moon-landscape.jpg"

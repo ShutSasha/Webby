@@ -1,14 +1,19 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+import { Video } from '@/app/api/videos'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
-export default function AsideVideoCard() {
+type Props = {
+  video: Pick<Video, 'videoId' | 'previewUrl'>
+}
+
+export default function AsideVideoCard({ video }: Props) {
   return (
-    <Link href={`/videos/0`} className="group flex gap-3">
+    <Link href={`/videos/${video.videoId}`} className="group flex gap-3">
       <div className="overflow-hidden rounded-lg relative w-[168px] h-fit shrink-0">
         <Image
-          src="https://i.ibb.co/d4fJc7FX/anime-moon-landscape.jpg"
+          src={video.previewUrl}
           width={400}
           height={400}
           alt=""
