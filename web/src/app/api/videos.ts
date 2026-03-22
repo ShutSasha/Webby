@@ -26,11 +26,11 @@ export type Video = {
 
 const endpoint = '/videos'
 
-export async function getVideoInfo(videoId: string): Promise<Video | BaseServerResponse | null> {
+export async function getVideoInfo(videoId: string): Promise<BaseServerResponse<Video>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<Video>>(`${endpoint}/${videoId}`)
 
-    return response.data
+    return response
   } catch (error: unknown) {
     serverLog('GET_VIDEO_INFO_ERROR', error, true)
 

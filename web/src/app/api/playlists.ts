@@ -4,17 +4,29 @@ import $api from '@/app/api'
 import { parseAxiosError, serverLog } from '@/lib/utils/utils'
 import { BaseServerResponse } from '@/types/general'
 
+import { Video } from './videos'
+
 const endpoint = '/playlists'
 
-type Playlist = {
-  pip: string
+export type PlaylistDetails = {
+  playlistId: string
+  userId: string
+  name: string
+  description: string
+  countOfVideos: number
+  playlistCover: string
 }
 
-export async function getPlaylistInfo(playlistId: string): Promise<Playlist | BaseServerResponse | null> {
-  try {
-    const { data: response } = await $api.get<BaseServerResponse<Playlist>>(`${endpoint}/${playlistId}/details`)
+export type PlaylistData = {
+  playlist: PlaylistDetails
+  video: Video
+}
 
-    return response.data
+export async function getPlaylistInfo(playlistId: string): Promise<BaseServerResponse<PlaylistData>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<PlaylistData>>(`${endpoint}/${playlistId}/details`)
+
+    return response
   } catch (error: unknown) {
     serverLog('GET_PLAYLIST_INFO_ERROR', error, true)
 

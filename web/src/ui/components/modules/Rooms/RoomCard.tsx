@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-import UsersIcon from '@/assets/icons/ic_users.svg'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {

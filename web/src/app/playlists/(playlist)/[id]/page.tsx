@@ -7,6 +7,7 @@ import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import { clog } from '@/lib/utils/utils'
 import MainLayout from '@/ui/components/MainLayout'
 import CustomPlayer from '@/ui/components/modules/Player/CustomPlayer'
+import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer'
 import VideoItem from '@/ui/components/modules/Playlists/VideoItem'
 import ComplaintButton from '@/ui/components/modules/Profile/ComplaintButton'
 import FollowButton from '@/ui/components/modules/Profile/FollowButton'
@@ -18,29 +19,26 @@ import { auth } from '@/workspace/auth'
 
 type Props = {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ v?: string; query?: string }>
 }
 
-export default async function PlaylistPage({ params }: Props) {
-  const { id } = await params
-  const playlistData = await getPlaylistInfo(id)
+export default async function PlaylistPage({ params, searchParams }: Props) {
+  const { id: playlistId } = await params
+  const { v: videoIdFromUrl } = await searchParams
   const session = await auth()
+  const playlistInfoResponse = await getPlaylistInfo(playlistId)
+  const video = await getVideoInfo('22f510be-a044-47b2-9710-7660caba5192')
 
-  clog('playlistData', playlistData)
-  // playlistData
-  // const videoData = await getVideoInfo(playlistData)
+  if (!playlistInfoResponse.success || !playlistInfoResponse.data || !video.success || !video.data) {
+    notFound()
+  }
 
-  // if (!videoData || !('videoId' in videoData)) {
-  //   notFound()
-  // }
+  clog('playlistData', playlistInfoResponse)
 
   return (
     <div className="flex gap-5">
       <div className="flex-1 min-w-0">
-        <CustomPlayer
-          videoUrl={
-            'https://webby-watch-platform-bucket.s3.eu-north-1.amazonaws.com/videos/43d81094-58c7-4a49-8409-3cf8dbd6b5a6/17:53:53Great Fairy Fountain - The Legend of Zelda Fingerstyle Guitar Cover (TAB).mp4'
-          }
-        />
+        <CustomPlayer videoUrl={video.data.videoUrl} />
 
         <div className="flex items-center justify-between mt-3 mb-2">
           <p className="text-neutral-300 text-[20px] font-bold">123123123</p>
@@ -86,6 +84,7 @@ export default async function PlaylistPage({ params }: Props) {
           />
         ))}
       </div>
+      {/* <PlaylistQueueContainer playlistId={playlistId} /> */}
     </div>
   )
 }
