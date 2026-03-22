@@ -17,7 +17,8 @@ import FollowButton from './FollowButton'
 export default async function UserProfileInfo({ id }: { id: string }) {
   const userData = await getUser(id)
   const session = await auth()
-  const isFollowing = await checkFollowing(id)
+  const isFollowingResponse = await checkFollowing(id)
+  const isFollowing = isFollowingResponse.data?.isFollowing ?? false
   const isOwner = session?.user.id === id
 
   if (!userData) {
@@ -60,7 +61,7 @@ export default async function UserProfileInfo({ id }: { id: string }) {
               <MailIcon className="w-4 h-4" />
             </ProfileActionButton>
 
-            <FollowButton targetUserId={id} initialIsFollowing={isFollowing?.data?.isFollowing ?? false} />
+            <FollowButton targetUserId={id} initialIsFollowing={isFollowing} />
           </div>
         )}
       </div>

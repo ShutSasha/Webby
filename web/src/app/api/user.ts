@@ -97,18 +97,23 @@ export async function leaveComplaint(
   }
 }
 
-export async function toggleFollow(targerId: string): Promise<BaseServerResponse<null> | null> {
+export async function toggleFollow(targerId: string): Promise<BaseServerResponse<null>> {
   try {
     const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/${targerId}/follow`)
 
     return response
   } catch (error: unknown) {
     serverLog('TOGGLE_FOLLOW_ERROR', error, true)
-    return null
+    return {
+      success: false,
+      data: null,
+      message: 'Toggle follow error',
+      errors: parseAxiosError(error),
+    }
   }
 }
 
-export async function checkFollowing(targerId: string): Promise<BaseServerResponse<{ isFollowing: boolean }> | null> {
+export async function checkFollowing(targerId: string): Promise<BaseServerResponse<{ isFollowing: boolean }>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<{ isFollowing: boolean }>>(
       `${endpoint}/is-following/${targerId}`,
@@ -117,7 +122,12 @@ export async function checkFollowing(targerId: string): Promise<BaseServerRespon
     return response
   } catch (error: unknown) {
     serverLog('IS_FOLLOWING_ERROR', error, true)
-    return null
+    return {
+      data: null,
+      success: false,
+      message: 'Check follow error',
+      errors: parseAxiosError(error),
+    }
   }
 }
 

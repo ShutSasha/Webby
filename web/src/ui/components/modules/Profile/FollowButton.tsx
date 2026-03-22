@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { toggleFollow } from '@/app/api/user'
 import UserPlusIcon from '@/assets/icons/Profile/ic_user_plus.svg'
 import UserMinusIcon from '@/assets/icons/shared/minus.svg'
-import { cn } from '@/lib/utils/utils'
+import { cn, extractServerMessage } from '@/lib/utils/utils'
 import { useToastStore } from '@/stores/toast-store'
 
 interface Props {
@@ -26,14 +26,21 @@ export default function FollowButton({ targetUserId, initialIsFollowing }: Props
     setIsFollowing(!prevStatus)
 
     startTransition(async () => {
-      const success = await toggleFollow(targetUserId)
+      try {
+        const response = await toggleFollow(targetUserId)
 
-      if (success?.success) {
-        router.refresh()
-        addToast(prevStatus ? 'Unfollowed user' : 'Following user', 'success')
-      } else {
+        if (response.success) {
+          router.refresh()
+          addToast(prevStatus ? 'Unfollowed user' : 'Following user', 'success')
+        } else {
+          setIsFollowing(prevStatus)
+          const msg = extractServerMessage(response.errors)
+
+          addToast(msg ?? 'Unexpected error while following', 'error')
+        }
+      } catch {
         setIsFollowing(prevStatus)
-        addToast('Something went wrong', 'error')
+        addToast('Something went wrong while following', 'error')
       }
     })
   }
