@@ -1,6 +1,6 @@
 import { playlists } from '@/lib/placeholder-data/profile'
 
-import PlaylistItem from '../Playlist/PlaylistItem'
+import PlaylistItem from '../Playlists/PlaylistItem'
 
 export default async function UserPlaylists() {
   // await, sync Public playlists

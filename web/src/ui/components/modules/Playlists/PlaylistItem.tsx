@@ -1,10 +1,12 @@
+import Link from 'next/link'
+
 import { PlaylistData } from '@/lib/placeholder-data/profile'
 
 import ImageBackground from '../Profile/ImageBackground'
 
 export default async function PlaylistItem(props: PlaylistData) {
   return (
-    <div className="relative group cursor-pointer">
+    <Link href={`/playlists/${props.id}`} className="relative group cursor-pointer">
       <ImageBackground src={props.src} />
       <p className="text-sm font-medium">{props.name}</p>
       <p className="text-[12px] text-neutral-500">{props.creator}</p>
@@ -14,6 +16,6 @@ export default async function PlaylistItem(props: PlaylistData) {
       >
         {props.videoCount} videos
       </div>
-    </div>
+    </Link>
   )
 }

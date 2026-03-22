@@ -3,6 +3,7 @@ import MainLayout from '@/ui/components/MainLayout'
 import CreateVideoButton from '@/ui/components/modules/Videos/CreateVideoButton'
 import VideoCard from '@/ui/components/modules/Videos/VideoCard'
 import PageToggle from '@/ui/components/PageToggle'
+import GridCardsContainer from '@/ui/components/shared/GridCardsContainer'
 
 export default function VideosPage() {
   return (
@@ -25,11 +26,11 @@ export default function VideosPage() {
         </div>
 
         {/* Room list goes here */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+        <GridCardsContainer>
           {Array.from({ length: 10 }).map((_, index) => (
             <VideoCard key={index} />
           ))}
-        </div>
+        </GridCardsContainer>
       </div>
     </MainLayout>
   )
