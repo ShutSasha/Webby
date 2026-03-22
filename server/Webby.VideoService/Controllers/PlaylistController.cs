@@ -24,7 +24,8 @@ public class PlaylistController : ControllerBase
       [FromQuery] int page = 1,
       [FromQuery] int pageSize = 10)
    {
-      var result = await _playlistService.GetUserPlaylists(userId, page, pageSize);
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var result = await _playlistService.GetUserPlaylists(requestUserId,userId, page, pageSize);
 
       return Ok(ApiResponse<PagedResponse<PlaylistDto>>.Ok(
          "Successfully retrieved user playlists",

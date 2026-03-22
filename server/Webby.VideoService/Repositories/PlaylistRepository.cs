@@ -49,10 +49,10 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
       await _context.SaveChangesAsync();
    }
 
-   public async Task<(List<Playlist>, int)> GetPaginatedUserPlaylists(Guid userId, int page, int pageSize)
+   public async Task<(List<Playlist>, int)> GetPaginatedUserPlaylists(bool shouldShowPrivate, Guid userId, int page, int pageSize)
    {
       var query = _context.Playlists
-         .Where(p => p.UserId == userId);
+         .Where(p => p.UserId == userId && (shouldShowPrivate || !p.IsPrivate));
 
       var totalCount = await query.CountAsync();
 
@@ -65,4 +65,5 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
 
       return (playlists, totalCount);
    }
+   
 }

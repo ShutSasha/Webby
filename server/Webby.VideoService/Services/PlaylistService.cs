@@ -32,6 +32,7 @@ public class PlaylistService : IPlaylistService
       {
          PlaylistId = Guid.NewGuid(),
          Description = request.Description,
+         IsPrivate = request.IsPrivate,
          Name = request.Name,
          UserId = userId
       };
@@ -41,13 +42,13 @@ public class PlaylistService : IPlaylistService
       return _mapper.Map<PlaylistDto>(playlist);
    }
 
-   public async Task<PagedResponse<PlaylistDto>> GetUserPlaylists(Guid userId, int page, int pageSize)
+   public async Task<PagedResponse<PlaylistDto>> GetUserPlaylists(Guid? requestUserId, Guid userId, int page, int pageSize)
    {
       page = page <= 0 ? 1 : page;
       pageSize = pageSize <= 0 ? 10 : pageSize;
 
       var (playlists, totalCount) = await _playlistRepository
-         .GetPaginatedUserPlaylists(userId, page, pageSize);
+         .GetPaginatedUserPlaylists(requestUserId == userId,userId, page, pageSize);
 
       return new PagedResponse<PlaylistDto>
       {
@@ -70,6 +71,7 @@ public class PlaylistService : IPlaylistService
 
       playlist.Description = request.Description;
       playlist.Name = request.Name;
+      playlist.IsPrivate = request.IsPrivate;
 
       await _playlistRepository.Update(playlist);
 
@@ -203,7 +205,8 @@ public class PlaylistService : IPlaylistService
          PlaylistId = playlist.PlaylistId,
          UserId = playlist.UserId,
          Name = playlist.Name,
-         Description = playlist.Description,
+         Description = playlist.Description ?? string.Empty,
+         IsPrivate = playlist.IsPrivate,
          CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
          PlaylistCover = lastVideo?.Video.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
       };
