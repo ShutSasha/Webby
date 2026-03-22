@@ -218,7 +218,7 @@ public class VideoService : IVideoService
       await _videoRepository.Update(video);
    }
 
-   public async Task<PagedResponse<VideoDto>> SearchVideo(SearchVideoOptions options)
+   public async Task<PagedResponse<VideoDto>> SearchVideo(SearchOptions options)
    {
       var skip = (options.Page - 1) * options.PageSize;
 

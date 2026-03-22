@@ -33,6 +33,7 @@ public class PlaylistService : IPlaylistService
          PlaylistId = Guid.NewGuid(),
          Description = request.Description,
          IsPrivate = request.IsPrivate,
+         CreatedAt = DateTime.UtcNow,
          Name = request.Name,
          UserId = userId
       };
@@ -188,7 +189,25 @@ public class PlaylistService : IPlaylistService
       await _playlistRepository.DeletePlaylistVideos(playlistVideosToDelete);
       return MapToPlaylistDto((await _playlistRepository.GetPlaylistDetails(playlistId))!);
    }
-   
+
+   public async Task<PagedResponse<PlaylistDto>> SearchPlaylists(SearchOptions searchOptions)
+   {
+      var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
+
+      var (playlists, totalPlaylists) = await _playlistRepository
+         .SearchPlaylistsAsync(searchOptions.SearchText, skip, searchOptions.PageSize);
+
+      var items = playlists.Select(MapToPlaylistDto).ToList();
+
+      return new PagedResponse<PlaylistDto>
+      {
+         Items = items,
+         TotalCount = totalPlaylists,
+         Page = searchOptions.Page,
+         PageSize = searchOptions.PageSize,
+      };
+   }
+
    private PlaylistDto MapToPlaylistDto(Playlist playlist)
    {
       var lastVideo = playlist.PlaylistVideos?

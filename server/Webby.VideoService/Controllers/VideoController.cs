@@ -32,7 +32,7 @@ public class VideoController: ControllerBase
 
    [HttpGet("search")]
    [SwaggerOperation("Search video route")]
-   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> SearchVideo([FromQuery] SearchVideoOptions searchOptions)
+   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> SearchVideo([FromQuery] SearchOptions searchOptions)
    {
       var videos = await _videoService.SearchVideo(searchOptions);
       return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video",videos));

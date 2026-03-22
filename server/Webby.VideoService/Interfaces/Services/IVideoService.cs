@@ -10,6 +10,6 @@ public interface IVideoService
    Task<GetVideoInformationResponse> GetVideoInformation(Guid videoId, Guid? userId);
    Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId,Guid? requestUserId,int page,int pageSize);
    Task UpdateVideoInformation(Guid userId, UpdateVideoRequest request);
-   Task<PagedResponse<VideoDto>> SearchVideo(SearchVideoOptions options);
+   Task<PagedResponse<VideoDto>> SearchVideo(SearchOptions options);
 
 }

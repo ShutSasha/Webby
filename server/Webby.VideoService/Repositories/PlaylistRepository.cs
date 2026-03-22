@@ -66,4 +66,63 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
       return (playlists, totalCount);
    }
    
+   public async Task<(List<Playlist> Items, int Total)> SearchPlaylistsAsync(
+      string? searchText,
+      int skip,
+      int take)
+   {
+      var baseQuery = _context.Playlists
+         .Where(p => !p.IsPrivate);
+
+      if (string.IsNullOrWhiteSpace(searchText))
+      {
+         var query = baseQuery.OrderByDescending(p => p.CreatedAt);
+
+         var count = await query.CountAsync();
+         var data = await query.Skip(skip).Take(take).ToListAsync();
+
+         return (data, count);
+      }
+
+      var search = searchText.Trim();
+      var likePattern = $"%{search}%";
+
+      if (search.Length < 3)
+      {
+         var query = baseQuery
+            .Where(p => p.Name.Contains(search))
+            .OrderByDescending(p => p.CreatedAt);
+
+         var count = await query.CountAsync();
+         var data = await query.Skip(skip).Take(take).ToListAsync();
+
+         return (data, count);
+      }
+
+      var filter = @"
+        FROM ""Playlists""
+        WHERE 
+            (""Name"" <% {0} OR ""Name"" ILIKE {1})
+            AND ""IsPrivate"" = FALSE
+    ";
+
+      var total = await _context.Playlists
+         .FromSqlRaw($"SELECT * {filter}", search, likePattern)
+         .CountAsync();
+
+      var items = await _context.Playlists
+         .FromSqlRaw($@"
+            SELECT *
+            {filter}
+            ORDER BY 
+                (CASE WHEN ""Name"" ILIKE {{1}} THEN 1 ELSE 0 END) DESC,
+                word_similarity({{0}}, ""Name"") DESC
+            LIMIT {{2}}
+            OFFSET {{3}}
+        ", search, likePattern, take, skip)
+         .ToListAsync();
+
+      return (items, total);
+   }
+   
 }

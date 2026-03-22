@@ -1,6 +1,6 @@
 ﻿namespace Webby.VideoService.Dtos.Video;
 
-public class SearchVideoOptions
+public class SearchOptions
 {
    public string? SearchText { get; set; }
    public int Page { get; set; } = 1;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Jwt;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Services;
@@ -34,11 +35,19 @@ public class PlaylistController : ControllerBase
 
    [HttpGet("{playlistId:guid}/details")]
    [SwaggerOperation("Get playlist information")]
-   //TODO: Give only first video from playlist (ORDER BY CREATED AT)
    public async Task<ActionResult<ApiResponse<GetPlaylistResponse>>> GetPlaylistInformation([FromRoute] Guid playlistId)
    {
       var playlistInformation = await _playlistService.GetPlaylistInformation(playlistId);
       return Ok(ApiResponse<GetPlaylistResponse>.Ok("Successfully retrieved playlist information", playlistInformation));
+   }
+
+   [HttpGet("search")]
+   [SwaggerOperation("Search playlists route")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistDto>>>> SearchPlaylists(
+      [FromQuery] SearchOptions searchOptions)
+   {
+      var searchPlaylistsResponse = await _playlistService.SearchPlaylists(searchOptions);
+      return Ok(ApiResponse<PagedResponse<PlaylistDto>>.Ok("Successfully retrieved public playlists",searchPlaylistsResponse));
    }
    
    [HttpPost]

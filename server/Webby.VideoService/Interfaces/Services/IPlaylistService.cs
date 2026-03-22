@@ -1,4 +1,5 @@
 ﻿using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Response;
 
 namespace Webby.VideoService.Interfaces.Services;
@@ -11,4 +12,5 @@ public interface IPlaylistService
    Task DeletePlaylist(Guid userId, Guid playlistId);
    Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId);
    Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds);
+   Task<PagedResponse<PlaylistDto>> SearchPlaylists(SearchOptions searchOptions);
 }
