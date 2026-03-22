@@ -96,71 +96,65 @@ public class PlaylistService : IPlaylistService
    }
    
    public async Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId)
-{
-    var playlist = await _playlistRepository.FindByIdWithVideos(playlistId);
+   {
+      var playlist = await _playlistRepository.FindByIdWithVideos(playlistId)
+                     ?? throw new ApiException("Get playlist information error", 404, "Playlist wasn't found");
 
-    if (playlist == null)
-    {
-        throw new ApiException("Get playlist information error", 404, "Playlist wasn't found");
-    }
-    
-    var playlistDto = MapToPlaylistDto(playlist);
-    
-    var videos = playlist.PlaylistVideos
-        .Select(pv => pv.Video)
-        .OrderByDescending(v => v.CreatedAt)
-        .ToList();
+      var playlistDto = MapToPlaylistDto(playlist);
 
-    var videoDtos = videos.Select(v => new VideoDto
-    {
-        VideoId = v.VideoId,
-        Name = v.Name,
-        Views = v.Views,
-        CreatedAt = v.CreatedAt,
-        PreviewUrl = v.PreviewUrl,
-        IsPrivate = v.IsPrivate,
-        User = null 
-    }).ToList();
+      var video = playlist.PlaylistVideos
+         .Select(pv => pv.Video)
+         .MaxBy(v => v.CreatedAt);
 
-    var userIds = videos
-       .Select(v => v.UserId.ToString())
-       .Distinct()
-       .ToList();
-    
+      VideoDto? videoDto = null;
 
-    if (userIds.Any())
-    {
-         var usersResponse = await _userClient.GetUsersByIdsAsync(
-             new GetUsersRequest { UserIds = { userIds } }
-         );
-
-         var usersDict = usersResponse.Users
-             .ToDictionary(
-                 u => Guid.Parse(u.UserId),
-                 u => new UserVideoDto
-                 {
-                     UserId = Guid.Parse(u.UserId),
-                     Username = u.Username,
-                     AvatarUrl = u.AvatarUrl
-                 });
-         
-         foreach (var videoDto in videoDtos)
+      if (video != null)
+      {
+         videoDto = new VideoDto
          {
-             var originalVideo = videos.First(v => v.VideoId == videoDto.VideoId);
+            VideoId = video.VideoId,
+            Name = video.Name,
+            Views = video.Views,
+            CreatedAt = video.CreatedAt,
+            PreviewUrl = video.PreviewUrl,
+            IsPrivate = video.IsPrivate
+         };
 
-             if (usersDict.TryGetValue(originalVideo.UserId, out var user))
-             {
-                 videoDto.User = user;
-             }
+         if (video.UserId != Guid.Empty)
+         {
+            try
+            {
+               var userResponse = await _userClient.GetUserByIdAsync(
+                  new GetUserRequest { UserId = video.UserId.ToString() }
+               );
+
+               if (userResponse != null)
+               {
+                  videoDto.User = new UserVideoDto
+                  {
+                     UserId = Guid.Parse(userResponse.UserId),
+                     Username = userResponse.Username,
+                     AvatarUrl = userResponse.AvatarUrl
+                  };
+               }
+            }
+            catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
+            {
+               throw new ApiException("Get playlist information error", 404, ex.Message);
+            }
+            catch (RpcException ex)
+            {
+               throw new ApiException("Get playlist information error", 500, ex.Message);
+            }
          }
-    }
-    
-    return new GetPlaylistResponse
-    {
-        Playlist = playlistDto,
-        Videos = videoDtos
-    };
-}
+      }
+
+      return new GetPlaylistResponse
+      {
+         Playlist = playlistDto,
+         FirstVideo = videoDto
+      };
+   }
    
    public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds)
    {
