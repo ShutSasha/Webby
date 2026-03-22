@@ -217,6 +217,27 @@ public class VideoService : IVideoService
       await _videoRepository.Update(video);
    }
 
+   public async Task<PagedResponse<VideoDto>> SearchVideo(SearchVideoOptions options)
+   {
+      var skip = (options.Page - 1) * options.PageSize;
+
+      var (videos, total) = await _videoRepository.SearchAsync(
+         options.SearchText,
+         skip,
+         options.PageSize);
+
+      var items = videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();
+      
+
+      return new PagedResponse<VideoDto>
+      {
+         Items = items,
+         TotalCount = total,
+         Page = options.Page,
+         PageSize = options.PageSize
+      };
+   }
+
 
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>
       videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();

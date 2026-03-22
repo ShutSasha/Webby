@@ -30,6 +30,14 @@ public class VideoController: ControllerBase
          getVideoInformationResult));
    }
 
+   [HttpGet("search")]
+   [SwaggerOperation("Search video route")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> SearchVideo([FromQuery] SearchVideoOptions searchOptions)
+   {
+      var videos = await _videoService.SearchVideo(searchOptions);
+      return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video",videos));
+   }
+
    [HttpGet("users/{userId:guid}")]
    [SwaggerOperation("Get user videos")]
    public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> GetUserVideos(

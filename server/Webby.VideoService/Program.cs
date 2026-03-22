@@ -3,6 +3,7 @@ using Amazon.S3;
 using Grpc.Net.Client.Web;
 using UserService;
 using Webby.VideoService.Extensions;
+using Webby.VideoService.Helpers.Seed;
 using Webby.VideoService.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,7 +42,6 @@ services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
-
 
 var app = builder.Build();
 

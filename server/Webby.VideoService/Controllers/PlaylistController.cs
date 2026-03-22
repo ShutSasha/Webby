@@ -33,6 +33,7 @@ public class PlaylistController : ControllerBase
 
    [HttpGet("{playlistId:guid}/details")]
    [SwaggerOperation("Get playlist information")]
+   //TODO: Give only first video from playlist (ORDER BY CREATED AT)
    public async Task<ActionResult<ApiResponse<GetPlaylistResponse>>> GetPlaylistInformation([FromRoute] Guid playlistId)
    {
       var playlistInformation = await _playlistService.GetPlaylistInformation(playlistId);
