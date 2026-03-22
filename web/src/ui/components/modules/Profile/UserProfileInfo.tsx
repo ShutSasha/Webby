@@ -69,7 +69,9 @@ export default async function UserProfileInfo({ id }: { id: string }) {
       {/* Right Part of user profile*/}
       <div className="flex flex-col gap-2">
         {session?.user.id === id && <EditProfileBtn userId={id} />}
-        {session && session?.user.id !== id && <ComplaintButton authorId={session.user.id} targetId={id} />}
+        {session && session?.user.id !== id && (
+          <ComplaintButton authorId={session.user.id} targetId={id} targetType="User" />
+        )}
 
         {userData.pinnedUserAchievements.length > 0 && (
           <UserAchievements achivements={userData.pinnedUserAchievements} />

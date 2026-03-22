@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { leaveComplaint } from '@/app/api/user'
 import ComplaintIcon from '@/assets/icons/Profile/ic_complaint.svg'
-import { cn } from '@/lib/utils/utils'
+import { cn, extractServerMessage } from '@/lib/utils/utils'
 import { useToastStore } from '@/stores/toast-store'
 
 import ProfileActionButton from './ProfileActionButton'
@@ -15,9 +15,10 @@ type Step = 'REASON' | 'DETAILS' | 'SUCCESS'
 type Props = {
   authorId: string | undefined
   targetId: string
+  targetType: 'Video' | 'User'
 }
 
-export default function ComplaintButton({ authorId, targetId }: Props) {
+export default function ComplaintButton({ authorId, targetId, targetType }: Props) {
   const addToast = useToastStore(state => state.addToast)
   const [step, setStep] = useState<Step>('REASON')
   const [selectedReason, setSelectedReason] = useState('')
@@ -48,13 +49,13 @@ export default function ComplaintButton({ authorId, targetId }: Props) {
         return
       }
 
-      const response = await leaveComplaint(authorId, targetId, selectedReason, description)
+      const response = await leaveComplaint(targetId, selectedReason, targetType, description)
 
       if (response?.success) {
         setStep('SUCCESS')
       } else {
-        const errorMessage = response.errors?.message || response.message || 'Something went wrong'
-        addToast(errorMessage, 'error')
+        const msg = extractServerMessage(response.errors)
+        addToast(msg ? msg : 'error while leaving complaint occured', 'error')
       }
     } catch (error) {
       console.error('Failed to send report', error)

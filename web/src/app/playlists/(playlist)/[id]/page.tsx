@@ -50,8 +50,8 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
               <PlusIcon className="size-4 text-emerald-500" />
               <p className="text-sm leading-3.5">Add to playlist</p>
             </button>
-            {/* TODO: change it to right API for video complaint */}
-            <ComplaintButton authorId={session?.user.id} targetId={'123'} />
+
+            <ComplaintButton authorId={session?.user.id} targetId={video.data.videoId} targetType="Video" />
           </div>
         </div>
 

@@ -70,17 +70,19 @@ export async function getUserFollowers(id: string): Promise<GetUserFollowersResp
   }
 }
 
+type TargetType = 'Video' | 'User'
+
 export async function leaveComplaint(
-  authorId: string,
   targetUserId: string,
   reasonType: string,
+  targetType: TargetType,
   additionalInfo: string,
 ): Promise<BaseServerResponse<null>> {
   try {
     const { data: response } = await $api.post<BaseServerResponse<null>>(`/complaints`, {
-      authorId,
-      targetUserId,
+      targetId: targetUserId,
       reasonType,
+      targetType,
       additionalInfo,
     })
 
