@@ -7,9 +7,10 @@ interface Props {
   isOpen: boolean
   onClose: () => void
   children: React.ReactNode
+  modalClasses?: string
 }
 
-export default function Modal({ isOpen, onClose, children }: Props) {
+export default function Modal({ isOpen, onClose, children, modalClasses }: Props) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function Modal({ isOpen, onClose, children }: Props) {
 
       <div
         className={`relative w-full max-w-[440px] border border-emerald-500 bg-neutral-800 shadow-2xl p-6 rounded-2xl
-          transition-all duration-400 ease-out
+          transition-all duration-400 ease-out ${modalClasses}
           ${isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8'}`}
       >
         <div className="text-neutral-300">{children}</div>

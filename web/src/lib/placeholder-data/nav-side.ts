@@ -19,7 +19,7 @@ export type NavItem = {
 
 export const navDesktopElements: NavItem[] = [
   { key: 'search', href: '/rooms', icon: SearchIcon, text: 'Search', iconSize: 'size-6' },
-  { key: 'playlists', href: '/', icon: PlaylistIcon, text: 'Playlists', iconSize: 'size-6' },
+  { key: 'playlists', href: '/playlists', icon: PlaylistIcon, text: 'Playlists', iconSize: 'size-6' },
   { key: 'messages', href: '/', icon: MailIcon, text: 'Messages', iconSize: 'size-6' },
   { key: 'notifications', href: '/', icon: NotificationIcon, text: 'Notifications', iconSize: 'size-6' },
 ]

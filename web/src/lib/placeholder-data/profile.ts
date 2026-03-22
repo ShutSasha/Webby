@@ -115,7 +115,7 @@ const videos: VideoData[] = [
 ]
 
 export interface PlaylistData {
-  id: number
+  id: string
   src: string
   name: string
   creator: string
@@ -124,105 +124,105 @@ export interface PlaylistData {
 
 const playlists: PlaylistData[] = [
   {
-    id: 1,
+    id: '1',
     src: 'https://i.ibb.co/4RLdNrBC/785ca39a2a95c19e66b01b3e0615d32c.jpg',
     name: 'Lo-Fi Chill Vibes',
     creator: 'AnimeBoy',
     videoCount: 12,
   },
   {
-    id: 2,
+    id: ' 2',
     src: 'https://i.ibb.co/sv7Lj07c/thumb-1920-614743.png',
     name: 'CS2 Pro Highlights',
     creator: 's1mple',
     videoCount: 45,
   },
   {
-    id: 3,
+    id: '3',
     src: 'https://i.ibb.co/gM4DRDtV/thumb-1920-1331367.png',
     name: 'Next.js 15 Masterclass',
     creator: 'WebbyDev',
     videoCount: 8,
   },
   {
-    id: 4,
+    id: '4',
     src: 'https://i.ibb.co/p6JQWBDg/fantasy-scene-anime-style.jpg',
     name: 'Fantasy Worlds OST',
     creator: 'Dreamer',
     videoCount: 23,
   },
   {
-    id: 5,
+    id: '5',
     src: 'https://i.ibb.co/ynq0NhJG/thumb-1920-135625.jpg',
     name: 'Deep Work Beats',
     creator: 'FocusMode',
     videoCount: 15,
   },
   {
-    id: 6,
+    id: '6',
     src: 'https://i.ibb.co/bgB69GMR/thumb-1920-569355.png',
     name: 'Your Name Soundtrack',
     creator: 'Radwimps Fan',
     videoCount: 10,
   },
   {
-    id: 7,
+    id: '7',
     src: 'https://i.ibb.co/5XN85kT8/thumb-1920-737474.png',
     name: 'Tailwind Mastery',
     creator: 'StyleKing',
     videoCount: 5,
   },
   {
-    id: 8,
+    id: '8',
     src: 'https://i.ibb.co/wF9rywMX/thumb-1920-1363137.png',
     name: 'Night City Life',
     creator: 'CyberPunk',
     videoCount: 32,
   },
   {
-    id: 9,
+    id: '9',
     src: 'https://i.ibb.co/60Ns8j8r/cd4af4dd04fcfba0a358cfdee5c039f7.jpg',
     name: 'Art Process: Scenery',
     creator: 'SkyArtist',
     videoCount: 7,
   },
   {
-    id: 10,
+    id: '10',
     src: 'https://i.ibb.co/twvv1WLG/thumb-1920-1311951.jpg',
     name: 'Summer Memories',
     creator: 'Traveler',
     videoCount: 19,
   },
   {
-    id: 11,
+    id: '11',
     src: 'https://i.ibb.co/pjP3rBDP/thumb-1920-736462.png',
     name: 'TypeScript Tips',
     creator: 'CodeNinja',
     videoCount: 14,
   },
   {
-    id: 12,
+    id: '12',
     src: 'https://i.ibb.co/5h0v3Mq7/thumb-1920-415519.jpg',
     name: 'Emotional Anime OST',
     creator: 'SadVibes',
     videoCount: 28,
   },
   {
-    id: 13,
+    id: '13',
     src: 'https://i.ibb.co/FShJxq8/anime-style-clouds.jpg',
     name: 'Cloud Watching',
     creator: 'NatureLover',
     videoCount: 6,
   },
   {
-    id: 14,
+    id: '14',
     src: 'https://i.ibb.co/WWJxpyRv/anime-moon-landscape-1.jpg',
     name: 'Moonlight Dreams',
     creator: 'Luna',
     videoCount: 11,
   },
   {
-    id: 15,
+    id: '15',
     src: 'https://i.ibb.co/d4fJc7FX/anime-moon-landscape.jpg',
     name: 'Midnight Study',
     creator: 'StudentX',

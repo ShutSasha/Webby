@@ -117,6 +117,7 @@ public class VideoService : IVideoService
          VideoId = videoId,
          Name = video.Name,
          Views = video.Views,
+         Description = video.Description,
          CreatedAt = video.CreatedAt,
          VideoUrl = video.VideoUrl,
          PreviewUrl = video.PreviewUrl,

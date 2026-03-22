@@ -50,6 +50,11 @@ input::-ms-reveal {
   }
 }
 
+html {
+  scrollbar-gutter: stable;
+  background-color: #171717;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

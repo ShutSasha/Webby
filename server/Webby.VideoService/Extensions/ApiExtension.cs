@@ -102,7 +102,7 @@ public static class ApiExtension
    {
       serviceCollection.AddGrpcClient<UserGrpcService.UserGrpcServiceClient>(o =>
       {
-         o.Address = new Uri("http://localhost:5002");
+         o.Address = new Uri("http://localhost:5004");
       });
    }
 }

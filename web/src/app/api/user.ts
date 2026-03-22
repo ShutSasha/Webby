@@ -75,7 +75,7 @@ export async function leaveComplaint(
   targetUserId: string,
   reasonType: string,
   additionalInfo: string,
-): Promise<BaseServerResponse<null> | null> {
+): Promise<BaseServerResponse<null>> {
   try {
     const { data: response } = await $api.post<BaseServerResponse<null>>(`/complaints`, {
       authorId,
@@ -87,7 +87,13 @@ export async function leaveComplaint(
     return response
   } catch (error: unknown) {
     serverLog('LEAVE_COMPLAINT_ERROR', error, true)
-    return null
+
+    return {
+      success: false,
+      data: null,
+      message: 'Create complaint error',
+      errors: parseAxiosError(error),
+    }
   }
 }
 

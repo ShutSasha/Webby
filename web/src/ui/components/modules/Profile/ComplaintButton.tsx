@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { leaveComplaint } from '@/app/api/user'
 import ComplaintIcon from '@/assets/icons/Profile/ic_complaint.svg'
 import { cn } from '@/lib/utils/utils'
+import { useToastStore } from '@/stores/toast-store'
 
 import ProfileActionButton from './ProfileActionButton'
 import Modal from '../../shared/Modal'
@@ -12,11 +13,12 @@ import Modal from '../../shared/Modal'
 type Step = 'REASON' | 'DETAILS' | 'SUCCESS'
 
 type Props = {
-  authorId: string
+  authorId: string | undefined
   targetId: string
 }
 
 export default function ComplaintButton({ authorId, targetId }: Props) {
+  const addToast = useToastStore(state => state.addToast)
   const [step, setStep] = useState<Step>('REASON')
   const [selectedReason, setSelectedReason] = useState('')
   const [description, setDescription] = useState('')
@@ -41,13 +43,22 @@ export default function ComplaintButton({ authorId, targetId }: Props) {
   const handleSubmit = async () => {
     setLoading(true)
     try {
+      if (!authorId) {
+        addToast('The user is not authenticated', 'error')
+        return
+      }
+
       const response = await leaveComplaint(authorId, targetId, selectedReason, description)
 
       if (response?.success) {
         setStep('SUCCESS')
+      } else {
+        const errorMessage = response.errors?.message || response.message || 'Something went wrong'
+        addToast(errorMessage, 'error')
       }
     } catch (error) {
       console.error('Failed to send report', error)
+      addToast('An unexpected error occurred', 'error')
     } finally {
       setLoading(false)
     }

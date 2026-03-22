@@ -5,12 +5,14 @@ import MediaHeader from '@/ui/components/common/MediaHeader'
 import MainLayout from '@/ui/components/MainLayout'
 import CreateRoomButton from '@/ui/components/modules/Rooms/CreateRoomButton'
 import RoomCard from '@/ui/components/modules/Rooms/RoomCard'
+import PageToggle from '@/ui/components/PageToggle'
+import GridCardsContainer from '@/ui/components/shared/GridCardsContainer'
 
 export default function RoomsPage() {
   return (
     <MainLayout>
       <div className="flex flex-col w-full bg-neutral-900 rounded-[20px] p-5 gap-4 box-border">
-        <MediaHeader searchPlaceholder="Search rooms..." actionSlot={<CreateRoomButton />} />
+        <MediaHeader searchPlaceholder="Search a room" actionSlot={<CreateRoomButton />} pageToggle={<PageToggle />} />
 
         <div className="flex justify-between">
           <div className="hidden lg:block">
@@ -26,11 +28,11 @@ export default function RoomsPage() {
         </div>
 
         {/* Room list goes here */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+        <GridCardsContainer>
           {Array.from({ length: 10 }).map((_, index) => (
             <RoomCard key={index} id={`${index}`} />
           ))}
-        </div>
+        </GridCardsContainer>
       </div>
     </MainLayout>
   )
