@@ -1,0 +1,777 @@
+basePath: /
+definitions:
+  docs.ApiResponse-PaginatedResponse[RoomListItem]:
+    properties:
+      data:
+        $ref: '#/definitions/docs.PaginatedResponse-docs_RoomListItem'
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  docs.ApiResponse-docs_CategoryResponse:
+    properties:
+      data:
+        $ref: '#/definitions/docs.CategoryResponse'
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  docs.ApiResponse-docs_PaginatedResponse-docs_CategoryResponse:
+    properties:
+      data:
+        $ref: '#/definitions/docs.PaginatedResponse-docs_CategoryResponse'
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  docs.ApiResponse-docs_RoomResponse:
+    properties:
+      data:
+        $ref: '#/definitions/docs.RoomResponse'
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  docs.CategoryResponse:
+    properties:
+      id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      name:
+        example: Gaming
+        type: string
+    type: object
+  docs.CreateCategoryRequest:
+    properties:
+      name:
+        example: Gaming
+        maxLength: 50
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
+  docs.Error400Response:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        example:
+          name: Name must be at least 2 characters
+        type: object
+      message:
+        example: Validation failed
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  docs.Error401Response:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        example:
+          message: Missing or invalid token
+        type: object
+      message:
+        example: Unauthorized
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  docs.Error403Response:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        example:
+          message: Admin only
+        type: object
+      message:
+        example: Forbidden
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  docs.Error404Response:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        example:
+          message: Object not found
+        type: object
+      message:
+        example: Not found
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  docs.Error409Response:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        example:
+          message: Object already exists
+        type: object
+      message:
+        example: Conflict
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  docs.Error500Response:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        example:
+          message: Database connection lost
+        type: object
+      message:
+        example: Internal server error
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  docs.PaginatedResponse-docs_CategoryResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/docs.CategoryResponse'
+        type: array
+      limit:
+        example: 10
+        type: integer
+      page:
+        example: 1
+        type: integer
+      total:
+        example: 100
+        type: integer
+    type: object
+  docs.PaginatedResponse-docs_RoomListItem:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/docs.RoomListItem'
+        type: array
+      limit:
+        example: 10
+        type: integer
+      page:
+        example: 1
+        type: integer
+      total:
+        example: 100
+        type: integer
+    type: object
+  docs.RoomListItem:
+    properties:
+      categoryId:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      hostId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      isPrivate:
+        example: false
+        type: boolean
+      name:
+        example: Room Name
+        type: string
+      thumbnail:
+        example: https://example.com/thumbnail.jpg
+        type: string
+    type: object
+  docs.RoomResponse:
+    properties:
+      categoryId:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      hostId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      isPrivate:
+        example: false
+        type: boolean
+      name:
+        example: Room Name
+        type: string
+      thumbnail:
+        example: https://example.com/thumbnail.jpg
+        type: string
+    type: object
+  docs.UpdateCategoryRequest:
+    properties:
+      name:
+        example: Education
+        maxLength: 50
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This API provides endpoints for managing rooms and categories.
+  title: Webby.RoomService
+  version: "1.0"
+paths:
+  /categories:
+    get:
+      description: |-
+        Retrieve a **paginated** list of room categories. Supports optional **search** by name.
+        **Query Parameters Validation:**
+        * `page`: must be >= 1 (default: 1)
+        * `limit`: must be between 1 and 100 (default: 10)
+        * `search`: optional string to filter categories by name (case-insensitive)
+      parameters:
+      - description: Search categories by name (optional)
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Page number (1-based, required >= 1)
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page (1-100)
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful retrieval with pagination metadata
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-docs_PaginatedResponse-docs_CategoryResponse'
+        "400":
+          description: 'Invalid query parameters: page <= 0, limit out of range, or
+            non-numeric values'
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      summary: List categories
+      tags:
+      - RoomCategory
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Create a new room category for organizing rooms.
+        **Validation Rules:**
+        * Name is **required** (cannot be null, empty, or whitespace-only)
+        * Name length must be **2-50 characters**
+        * Category name must be **unique** (409 Conflict if already exists)
+        **Security Note:**
+        * **ONLY ADMINISTRATORS** are authorized to perform this action.
+      parameters:
+      - description: '**Category data.** Name (2-50 chars, required, unique)'
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/docs.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Category successfully created
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-docs_CategoryResponse'
+        "400":
+          description: 'Invalid input data: name missing, empty, too short (<2), too
+            long (>50), or whitespace-only. Also: malformed JSON, wrong Content-Type'
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "403":
+          description: Not authorized - Admin role required
+          schema:
+            $ref: '#/definitions/docs.Error403Response'
+        "409":
+          description: 'Conflict: Category name already exists'
+          schema:
+            $ref: '#/definitions/docs.Error409Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new category
+      tags:
+      - RoomCategory
+  /categories/{id}:
+    delete:
+      description: |-
+        Delete a room category by ID. **Permanent action - cannot be undone.**
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+        **Security Note:**
+        * **ONLY ADMINISTRATORS** are authorized to perform this action.
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Category successfully deleted - No Content returned
+        "400":
+          description: Invalid UUID format in path
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "403":
+          description: Not authorized - Admin role required
+          schema:
+            $ref: '#/definitions/docs.Error403Response'
+        "404":
+          description: Category not found
+          schema:
+            $ref: '#/definitions/docs.Error404Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a category
+      tags:
+      - RoomCategory
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Update an existing room category by ID. Only the **name** field is updateable.
+        **Validation Rules:**
+        * Name is **required** (cannot be null, empty, or whitespace-only)
+        * Name length must be **2-50 characters**
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+        **Security Note:**
+        * **ONLY ADMINISTRATORS** are authorized to perform this action.
+      parameters:
+      - description: Category ID (UUID v4 format)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Category update data - Name (2-50 chars, required, non-whitespace)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/docs.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category successfully updated
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-docs_CategoryResponse'
+        "400":
+          description: 'Invalid input: name missing, empty, too short (<2), too long
+            (>50), whitespace-only, invalid UUID in path, or malformed JSON'
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "403":
+          description: Not authorized - Admin role required
+          schema:
+            $ref: '#/definitions/docs.Error403Response'
+        "404":
+          description: Category not found
+          schema:
+            $ref: '#/definitions/docs.Error404Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: Update a category
+      tags:
+      - RoomCategory
+  /rooms:
+    post:
+      consumes:
+      - multipart/form-data
+      description: |-
+        Create a new room with a name, **category ID**, privacy setting, and optional **thumbnail**.
+        **Validation Rules:**
+        * `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only
+        * `categoryId`: **required**, must be a valid UUID v4 format
+        * `isPrivate`: **required**, must be valid boolean ("true" or "false")
+        * `thumbnail`: optional file upload, max 2MB
+        **Security Note:**
+        * This action **requires authentication**
+      parameters:
+      - description: Room name (2-50 chars, required, non-whitespace)
+        in: formData
+        maxLength: 50
+        minLength: 2
+        name: name
+        required: true
+        type: string
+      - description: Category ID (UUID v4, required)
+        format: uuid
+        in: formData
+        name: categoryId
+        required: true
+        type: string
+      - description: 'Visibility flag (required): ''true'' or ''false'''
+        in: formData
+        name: isPrivate
+        required: true
+        type: string
+      - description: Room thumbnail image (optional, max 2MB)
+        in: formData
+        name: thumbnail
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Room successfully created
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-docs_RoomResponse'
+        "400":
+          description: 'Invalid input: name empty/too short/too long, invalid categoryId
+            UUID, invalid isPrivate boolean, file too large, wrong Content-Type, or
+            missing required fields'
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new room
+      tags:
+      - Rooms
+  /rooms/{id}:
+    delete:
+      description: |-
+        Delete a room by ID. **Permanent action - cannot be undone.**
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+        **Security Note:**
+        * This action **requires authentication**
+        * **Only the authorized room creator** can delete this room
+      parameters:
+      - description: Room ID (UUID v4 format)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Room successfully deleted - No Content returned
+        "400":
+          description: Invalid UUID format in path
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "403":
+          description: Not authorized - only creator or admin can delete
+          schema:
+            $ref: '#/definitions/docs.Error403Response'
+        "404":
+          description: Room not found
+          schema:
+            $ref: '#/definitions/docs.Error404Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a room
+      tags:
+      - Rooms
+    get:
+      description: |-
+        Retrieve a room by its ID.
+        **Access Rules:**
+        * **Public rooms** can be retrieved by any authenticated user
+        * **Private rooms** can only be retrieved by the room creator or administrators
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+        **Security Note:**
+        * This action **requires authentication**
+      parameters:
+      - description: Room ID (UUID v4 format)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Room successfully retrieved
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-docs_RoomResponse'
+        "400":
+          description: Invalid UUID format in path
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "403":
+          description: Access denied - private room and not owner
+          schema:
+            $ref: '#/definitions/docs.Error403Response'
+        "404":
+          description: Room not found
+          schema:
+            $ref: '#/definitions/docs.Error404Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: Get a room by ID
+      tags:
+      - Rooms
+    put:
+      consumes:
+      - multipart/form-data
+      description: |-
+        Update a room's name, **category ID**, privacy setting, and **thumbnail** by ID.
+        **Validation Rules:**
+        * `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only
+        * `categoryId`: **required**, must be a valid UUID v4 format
+        * `isPrivate`: **required**, must be valid boolean ("true" or "false")
+        * `thumbnail`: optional file upload, max 2MB
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+        **Security Note:**
+        * This action **requires authentication**
+        * **Only the authorized room creator** can update this room
+      parameters:
+      - description: Room ID (UUID v4 format)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Room name (2-50 chars, required)
+        in: formData
+        maxLength: 50
+        minLength: 2
+        name: name
+        required: true
+        type: string
+      - description: Category ID (UUID v4, required)
+        format: uuid
+        in: formData
+        name: categoryId
+        required: true
+        type: string
+      - description: Visibility flag ('true' or 'false', required)
+        in: formData
+        name: isPrivate
+        required: true
+        type: string
+      - description: New thumbnail image (optional, max 2MB)
+        in: formData
+        name: thumbnail
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Room successfully updated
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-docs_RoomResponse'
+        "400":
+          description: 'Invalid input: name validation failed, invalid UUID, invalid
+            boolean, file too large, or missing required fields'
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "403":
+          description: Not authorized - only creator or admin can update
+          schema:
+            $ref: '#/definitions/docs.Error403Response'
+        "404":
+          description: Room not found
+          schema:
+            $ref: '#/definitions/docs.Error404Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: Update a room
+      tags:
+      - Rooms
+  /rooms/my:
+    get:
+      description: |-
+        Retrieve a paginated list of all rooms created by the authenticated user.
+        **Query Parameter Validation:**
+        * `page`: **optional** (default: 1), must be >= 1, must be numeric
+        * `limit`: **optional** (default: 10), must be 1-100, must be numeric
+        **Security Note:**
+        * This action **requires authentication**
+        * Returns **only** the authenticated user's rooms
+        * List includes both public and private rooms owned by the user
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10, max: 100)'
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User's rooms successfully retrieved
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-PaginatedResponse[RoomListItem]'
+        "400":
+          description: 'Invalid query parameters: page or limit not numeric, or outside
+            valid range'
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: List authenticated user's rooms
+      tags:
+      - Rooms
+  /rooms/public:
+    get:
+      description: |-
+        Retrieve a paginated list of all publicly visible rooms in the system.
+        **Query Parameter Validation:**
+        * `page`: **optional** (default: 1), must be >= 1, must be numeric
+        * `limit`: **optional** (default: 10), must be 1-100, must be numeric
+        **Security Note:**
+        * This action **requires authentication**
+        * Returns **only** public rooms (private rooms are excluded)
+        * Pagination prevents excessive data retrieval
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10, max: 100)'
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Public rooms successfully retrieved
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-PaginatedResponse[RoomListItem]'
+        "400":
+          description: 'Invalid query parameters: page or limit not numeric, or outside
+            valid range'
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: List all public rooms
+      tags:
+      - Rooms
+securityDefinitions:
+  BearerAuth:
+    description: Type "**Bearer**" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
