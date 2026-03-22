@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import { pinAchievement, unpinAchievement } from '@/app/api/achievements'
 import MoreOptions from '@/assets/icons/shared/more-vertical.svg'
-import { clog, cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/utils'
 import { useToastStore } from '@/stores/toast-store'
 import SafeImage from '@/ui/components/shared/SafeImage'
 import { BLUR_DATA_URLS } from '@/ui/images'
@@ -56,10 +56,9 @@ export default function AchievementItem({
     setOpen(false)
     const response = await pinAchievement(achievementId)
 
-    clog('pin response from server', response)
-
-    if (response && 'error' in response) {
-      addToast('This achievement has not been unlocked yet.', 'error')
+    if (!response.success) {
+      const msg = response.errors?.message
+      addToast(msg ? msg : 'Unexpected error has occurred.', 'error')
       return
     }
 
@@ -70,8 +69,9 @@ export default function AchievementItem({
     setOpen(false)
     const response = await unpinAchievement(achievementId)
 
-    if (response && 'error' in response) {
-      addToast('Something went wrong', 'error')
+    if (!response.success) {
+      const msg = response.errors?.message
+      addToast(msg ? msg : 'Unexpected error has occurred.', 'error')
       return
     }
 
