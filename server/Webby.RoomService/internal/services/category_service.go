@@ -6,6 +6,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type CategoryRepository interface {
+	Create(name string) (uuid.UUID, error)
+	Delete(id uuid.UUID) error
+	List(search string, offset int, limit int) ([]models.Category, int64, error)
+	Update(id uuid.UUID, name string) error
+}
+
 type CategoryService struct {
 	repo CategoryRepository
 }
@@ -33,7 +40,9 @@ func (c *CategoryService) Delete(id uuid.UUID) error {
 }
 
 func (c *CategoryService) List(search string, page int, limit int) ([]models.Category, int64, error) {
-	categories, total, err := c.repo.List(search, page, limit)
+	offset := (page - 1) * limit
+	
+	categories, total, err := c.repo.List(search, offset, limit)
 	if err != nil {
 		return nil, 0, err
 	}

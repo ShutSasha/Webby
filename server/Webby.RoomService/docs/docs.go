@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/categories": {
             "get": {
-                "description": "Retrieve a **paginated** list of room categories. Supports optional **search** by name.\n**Query Parameters Validation:**\n* ` + "`" + `page` + "`" + `: must be \u003e= 1 (default: 1)\n* ` + "`" + `limit` + "`" + `: must be between 1 and 100 (default: 10)\n* ` + "`" + `search` + "`" + `: optional string to filter categories by name (case-insensitive)",
+                "description": "Retrieve a **paginated** list of room categories. Supports optional **search** by name.\n**Query Parameters Fallback:**\n* Invalid, missing, or non-numeric ` + "`" + `page` + "`" + ` values will default to **1**.\n* Invalid, missing, or non-numeric ` + "`" + `limit` + "`" + ` values (\u003c1) will default to **10**. Limits \u003e100 are capped at **100**.\n* ` + "`" + `search` + "`" + `: optional string to filter categories by name (case-insensitive)",
                 "produces": [
                     "application/json"
                 ],
@@ -33,19 +33,16 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "default": 1,
-                        "description": "Page number (1-based, required \u003e= 1)",
+                        "description": "Page number (defaults to 1 if invalid)",
                         "name": "page",
                         "in": "query"
                     },
                     {
-                        "maximum": 100,
-                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
-                        "description": "Items per page (1-100)",
+                        "description": "Items per page (defaults to 10 if invalid, max 100)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -55,12 +52,6 @@ const docTemplate = `{
                         "description": "Successful retrieval with pagination metadata",
                         "schema": {
                             "$ref": "#/definitions/docs.ApiResponse-docs_PaginatedResponse-docs_CategoryResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid query parameters: page \u003c= 0, limit out of range, or non-numeric values",
-                        "schema": {
-                            "$ref": "#/definitions/docs.Error400Response"
                         }
                     },
                     "500": {
@@ -1048,7 +1039,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/",
+	BasePath:         "/api/",
 	Schemes:          []string{},
 	Title:            "Webby.RoomService",
 	Description:      "This API provides endpoints for managing rooms and categories.",

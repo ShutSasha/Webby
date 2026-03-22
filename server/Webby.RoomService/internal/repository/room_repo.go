@@ -2,6 +2,9 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
+	"webby/internal/apperrors"
 	"webby/internal/models"
 
 	"github.com/google/uuid"
@@ -16,8 +19,10 @@ func NewRoomRepository(db *sql.DB) *RoomRepository {
 }
 
 func (r *RoomRepository) Create(room *models.Room) (uuid.UUID, error) {
-	if r.db == nil {
-		return uuid.Nil, ErrDatabaseConnection("database connection is nil")
+	const op = "repository.RoomRepository.Create"
+
+	if room == nil {
+		return uuid.Nil, fmt.Errorf("%s: %w: room cannot be nil", op, apperrors.ErrInvalidInput)
 	}
 
 	room.Id = uuid.New()
@@ -39,47 +44,43 @@ func (r *RoomRepository) Create(room *models.Room) (uuid.UUID, error) {
 	).Err()
 
 	if err != nil {
-		return uuid.Nil, ErrRoomCreationFailed(err.Error())
+		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
 	return room.Id, nil
 }
 
 func (r *RoomRepository) Delete(id uuid.UUID) error {
-	if r.db == nil {
-		return ErrDatabaseConnection("database connection is nil")
-	}
+	const op = "repository.RoomRepository.Delete"
 
 	if id == uuid.Nil {
-		return ErrRoomDeletionFailed("invalid room id")
+		return fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
 	query := `DELETE FROM rooms WHERE id = $1`
 
 	result, err := r.db.Exec(query, id)
 	if err != nil {
-		return ErrRoomDeletionFailed(err.Error())
+		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return ErrRoomDeletionFailed(err.Error())
+		return fmt.Errorf("%s: getting rows affected failed: %w", op, err)
 	}
 
 	if rowsAffected == 0 {
-		return ErrRoomNotFound(id.String())
+		return fmt.Errorf("%s: room %s: %w", op, id.String(), apperrors.ErrNotFound)
 	}
 
 	return nil
 }
 
 func (r *RoomRepository) GetById(id uuid.UUID) (*models.Room, error) {
-	if r.db == nil {
-		return nil, ErrDatabaseConnection("database connection is nil")
-	}
+	const op = "repository.RoomRepository.GetById"
 
 	if id == uuid.Nil {
-		return nil, ErrRoomNotFound("invalid room id")
+		return nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
 	query := `
@@ -100,22 +101,20 @@ func (r *RoomRepository) GetById(id uuid.UUID) (*models.Room, error) {
 	)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, ErrRoomNotFound(id.String())
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("%s: room %s: %w", op, id.String(), apperrors.ErrNotFound)
 		}
-		return nil, ErrRoomsFetchFailed(err.Error())
+		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
 
 	return &room, nil
 }
 
 func (r *RoomRepository) ListMy(userId uuid.UUID, page int, limit int) ([]models.Room, int64, error) {
-	if r.db == nil {
-		return nil, 0, ErrDatabaseConnection("database connection is nil")
-	}
+	const op = "repository.RoomRepository.ListMy"
 
 	if userId == uuid.Nil {
-		return nil, 0, ErrRoomsFetchFailed("invalid user id")
+		return nil, 0, fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
 	}
 
 	if page < 1 {
@@ -134,7 +133,7 @@ func (r *RoomRepository) ListMy(userId uuid.UUID, page int, limit int) ([]models
 	var total int64
 	err := r.db.QueryRow(countQuery, userId).Scan(&total)
 	if err != nil {
-		return nil, 0, ErrRoomsFetchFailed(err.Error())
+		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
 
 	query := `
@@ -147,7 +146,7 @@ func (r *RoomRepository) ListMy(userId uuid.UUID, page int, limit int) ([]models
 
 	rows, err := r.db.Query(query, userId, limit, offset)
 	if err != nil {
-		return nil, 0, ErrRoomsFetchFailed(err.Error())
+		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
 	defer rows.Close()
 
@@ -164,22 +163,20 @@ func (r *RoomRepository) ListMy(userId uuid.UUID, page int, limit int) ([]models
 			&room.CreatedAt,
 		)
 		if err != nil {
-			return nil, 0, ErrRoomsFetchFailed(err.Error())
+			return nil, 0, fmt.Errorf("%s: row scan failed: %w", op, err)
 		}
 		rooms = append(rooms, room)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, 0, ErrRoomsFetchFailed(err.Error())
+		return nil, 0, fmt.Errorf("%s: rows iteration error: %w", op, err)
 	}
 
 	return rooms, total, nil
 }
 
 func (r *RoomRepository) ListPublic(page int, limit int) ([]models.Room, int64, error) {
-	if r.db == nil {
-		return nil, 0, ErrDatabaseConnection("database connection is nil")
-	}
+	const op = "repository.RoomRepository.ListPublic"
 
 	if page < 1 {
 		page = 1
@@ -197,7 +194,7 @@ func (r *RoomRepository) ListPublic(page int, limit int) ([]models.Room, int64, 
 	var total int64
 	err := r.db.QueryRow(countQuery).Scan(&total)
 	if err != nil {
-		return nil, 0, ErrRoomsFetchFailed(err.Error())
+		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
 
 	query := `
@@ -210,7 +207,7 @@ func (r *RoomRepository) ListPublic(page int, limit int) ([]models.Room, int64, 
 
 	rows, err := r.db.Query(query, limit, offset)
 	if err != nil {
-		return nil, 0, ErrRoomsFetchFailed(err.Error())
+		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
 	defer rows.Close()
 
@@ -227,25 +224,23 @@ func (r *RoomRepository) ListPublic(page int, limit int) ([]models.Room, int64, 
 			&room.CreatedAt,
 		)
 		if err != nil {
-			return nil, 0, ErrRoomsFetchFailed(err.Error())
+			return nil, 0, fmt.Errorf("%s: row scan failed: %w", op, err)
 		}
 		rooms = append(rooms, room)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, 0, ErrRoomsFetchFailed(err.Error())
+		return nil, 0, fmt.Errorf("%s: rows iteration error: %w", op, err)
 	}
 
 	return rooms, total, nil
 }
 
 func (r *RoomRepository) Update(room *models.Room) (uuid.UUID, error) {
-	if r.db == nil {
-		return uuid.Nil, ErrDatabaseConnection("database connection is nil")
-	}
+	const op = "repository.RoomRepository.Update"
 
-	if room.Id == uuid.Nil {
-		return uuid.Nil, ErrRoomUpdateFailed("invalid room id")
+	if room == nil || room.Id == uuid.Nil {
+		return uuid.Nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
 	query := `
@@ -264,16 +259,16 @@ func (r *RoomRepository) Update(room *models.Room) (uuid.UUID, error) {
 	)
 
 	if err != nil {
-		return uuid.Nil, ErrRoomUpdateFailed(err.Error())
+		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return uuid.Nil, ErrRoomUpdateFailed(err.Error())
+		return uuid.Nil, fmt.Errorf("%s: getting rows affected failed: %w", op, err)
 	}
 
 	if rowsAffected == 0 {
-		return uuid.Nil, ErrRoomNotFound(room.Id.String())
+		return uuid.Nil, fmt.Errorf("%s: room %s: %w", op, room.Id.String(), apperrors.ErrNotFound)
 	}
 
 	return room.Id, nil

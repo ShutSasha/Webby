@@ -4,7 +4,9 @@ import (
 	"log/slog"
 	"net/http"
 	_ "webby/internal/handlers/docs"
-	errorWrapper "webby/internal/handlers/errors"
+	httpErrors "webby/internal/handlers/errors"
+	"webby/internal/handlers/responses"
+	"webby/pkg/http/render"
 
 	"github.com/google/uuid"
 )
@@ -14,7 +16,7 @@ type Creator interface {
 }
 
 func New(logger *slog.Logger, creator Creator) http.Handler {
-	return errorWrapper.MakeHandler(logger, createCategory(logger, creator))
+	return httpErrors.MakeHandler(logger, createCategory(logger, creator))
 }
 
 // createCategory godoc
@@ -38,16 +40,42 @@ func New(logger *slog.Logger, creator Creator) http.Handler {
 // @Failure      500 {object} docs.Error500Response "Internal server error"
 // @Security     BearerAuth
 // @Router       /categories [post]
-func createCategory(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
+func createCategory(logger *slog.Logger, creator Creator) httpErrors.APIFunc {
 	_ = logger.With(slog.String("operation", "httpserver.categories.create"))
 
-	type createCategoryRequest struct{}
+	type request struct {
+		Name string `json:"name" validate:"required,notblank,min=2,max=50"`
+	}
 
-	type categoryResponse struct{}
+	type response struct {
+		Id   uuid.UUID `json:"id"`
+		Name string    `json:"name"`
+	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		var req request
+		req, problems, err := render.DecodeValid[request](r)
+		if len(problems) > 0 {
+			logger.Debug("problems debug", slog.Any("problems", problems))
+			return responses.NewValidationError("Validation error", problems)
+		}
+		if err != nil {
+			return responses.NewApiError("Validation error", err)
+		}
 
-		w.WriteHeader(http.StatusCreated)
+		id, err := creator.Create(req.Name)
+		if err != nil {
+			return responses.NewApiError("Create category error", err)
+		}
+
+		render.Encode(w, r, http.StatusCreated, responses.ApiResponse[response]{
+			Success: true,
+			Message: "Category created",
+			Data: &response{
+				Id:   id,
+				Name: req.Name,
+			},
+		})
 		return nil
 	}
 }

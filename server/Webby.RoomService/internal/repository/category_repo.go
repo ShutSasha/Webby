@@ -2,9 +2,13 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
+	"webby/internal/apperrors"
 	"webby/internal/models"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type CategoryRepository struct {
@@ -18,13 +22,7 @@ func NewCategoryRepository(db *sql.DB) *CategoryRepository {
 }
 
 func (r *CategoryRepository) Create(name string) (uuid.UUID, error) {
-	if r.db == nil {
-		return uuid.Nil, ErrDatabaseConnection("database connection is nil")
-	}
-
-	if name == "" {
-		return uuid.Nil, ErrCategoryCreationFailed("category name cannot be empty")
-	}
+	const op = "repository.CategoryRepository.Create"
 
 	id := uuid.New()
 
@@ -35,28 +33,21 @@ func (r *CategoryRepository) Create(name string) (uuid.UUID, error) {
 
 	err := r.db.QueryRow(query, id, name).Err()
 	if err != nil {
-		return uuid.Nil, ErrCategoryCreationFailed(err.Error())
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			if pqErr.Code == "23505" {
+				return uuid.Nil, fmt.Errorf("%s: %w: category with name '%s' already exists", op, apperrors.ErrConflict, name)
+			}
+		}
+
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return id, nil
 }
 
-func (r *CategoryRepository) List(search string, page int, limit int) ([]models.Category, int64, error) {
-	if r.db == nil {
-		return nil, 0, ErrDatabaseConnection("database connection is nil")
-	}
-
-	if page < 1 {
-		page = 1
-	}
-	if limit < 1 {
-		limit = 10
-	}
-	if limit > 100 {
-		limit = 100
-	}
-
-	offset := (page - 1) * limit
+func (r *CategoryRepository) List(search string, offset int, limit int) ([]models.Category, int64, error) {
+	const op = "repository.CategoryRepository.List"
 
 	countQuery := `SELECT COUNT(*) FROM categories`
 	dataQuery := `
@@ -88,12 +79,12 @@ func (r *CategoryRepository) List(search string, page int, limit int) ([]models.
 
 	err := r.db.QueryRow(countQuery, countQueryArgs...).Scan(&total)
 	if err != nil {
-		return nil, 0, ErrCategoriesFetchFailed(err.Error())
+		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
 
 	rows, err := r.db.Query(dataQuery, queryArgs...)
 	if err != nil {
-		return nil, 0, ErrCategoriesFetchFailed(err.Error())
+		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
 	defer rows.Close()
 
@@ -105,29 +96,27 @@ func (r *CategoryRepository) List(search string, page int, limit int) ([]models.
 			&category.Name,
 		)
 		if err != nil {
-			return nil, 0, ErrCategoriesFetchFailed(err.Error())
+			return nil, 0, fmt.Errorf("%s: row scan failed: %w", op, err)
 		}
 		categories = append(categories, category)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, 0, ErrCategoriesFetchFailed(err.Error())
+		return nil, 0, fmt.Errorf("%s: rows iteration error: %w", op, err)
 	}
 
 	return categories, total, nil
 }
 
 func (r *CategoryRepository) Update(id uuid.UUID, name string) error {
-	if r.db == nil {
-		return ErrDatabaseConnection("database connection is nil")
-	}
+	const op = "repository.CategoryRepository.Update"
 
 	if id == uuid.Nil {
-		return ErrCategoryUpdateFailed("invalid category id")
+		return fmt.Errorf("%s: %w: invalid category id", op, apperrors.ErrInvalidInput)
 	}
 
 	if name == "" {
-		return ErrCategoryUpdateFailed("category name cannot be empty")
+		return fmt.Errorf("%s: %w: category name cannot be empty", op, apperrors.ErrInvalidInput)
 	}
 
 	query := `
@@ -138,44 +127,42 @@ func (r *CategoryRepository) Update(id uuid.UUID, name string) error {
 
 	result, err := r.db.Exec(query, name, id)
 	if err != nil {
-		return ErrCategoryUpdateFailed(err.Error())
+		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return ErrCategoryUpdateFailed(err.Error())
+		return fmt.Errorf("%s: getting rows affected failed: %w", op, err)
 	}
 
 	if rowsAffected == 0 {
-		return ErrCategoryNotFound(id.String())
+		return fmt.Errorf("%s: category %s: %w", op, id.String(), apperrors.ErrNotFound)
 	}
 
 	return nil
 }
 
 func (r *CategoryRepository) Delete(id uuid.UUID) error {
-	if r.db == nil {
-		return ErrDatabaseConnection("database connection is nil")
-	}
+	const op = "repository.CategoryRepository.Delete"
 
 	if id == uuid.Nil {
-		return ErrCategoryDeletionFailed("invalid category id")
+		return fmt.Errorf("%s: %w: invalid category id", op, apperrors.ErrInvalidInput)
 	}
 
 	query := `DELETE FROM categories WHERE id = $1`
 
 	result, err := r.db.Exec(query, id)
 	if err != nil {
-		return ErrCategoryDeletionFailed(err.Error())
+		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return ErrCategoryDeletionFailed(err.Error())
+		return fmt.Errorf("%s: getting rows affected failed: %w", op, err)
 	}
 
 	if rowsAffected == 0 {
-		return ErrCategoryNotFound(id.String())
+		return fmt.Errorf("%s: category %s: %w", op, id.String(), apperrors.ErrNotFound)
 	}
 
 	return nil

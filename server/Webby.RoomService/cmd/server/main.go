@@ -30,7 +30,7 @@ const (
 // @version         1.0
 // @description     This API provides endpoints for managing rooms and categories.
 // @host            localhost:8080
-// @BasePath        /
+// @BasePath        /api/
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization

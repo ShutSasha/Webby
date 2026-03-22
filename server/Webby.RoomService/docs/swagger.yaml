@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api/
 definitions:
   docs.ApiResponse-PaginatedResponse[RoomListItem]:
     properties:
@@ -248,9 +248,9 @@ paths:
     get:
       description: |-
         Retrieve a **paginated** list of room categories. Supports optional **search** by name.
-        **Query Parameters Validation:**
-        * `page`: must be >= 1 (default: 1)
-        * `limit`: must be between 1 and 100 (default: 10)
+        **Query Parameters Fallback:**
+        * Invalid, missing, or non-numeric `page` values will default to **1**.
+        * Invalid, missing, or non-numeric `limit` values (<1) will default to **10**. Limits >100 are capped at **100**.
         * `search`: optional string to filter categories by name (case-insensitive)
       parameters:
       - description: Search categories by name (optional)
@@ -258,16 +258,13 @@ paths:
         name: search
         type: string
       - default: 1
-        description: Page number (1-based, required >= 1)
+        description: Page number (defaults to 1 if invalid)
         in: query
-        minimum: 1
         name: page
         type: integer
       - default: 10
-        description: Items per page (1-100)
+        description: Items per page (defaults to 10 if invalid, max 100)
         in: query
-        maximum: 100
-        minimum: 1
         name: limit
         type: integer
       produces:
@@ -277,11 +274,6 @@ paths:
           description: Successful retrieval with pagination metadata
           schema:
             $ref: '#/definitions/docs.ApiResponse-docs_PaginatedResponse-docs_CategoryResponse'
-        "400":
-          description: 'Invalid query parameters: page <= 0, limit out of range, or
-            non-numeric values'
-          schema:
-            $ref: '#/definitions/docs.Error400Response'
         "500":
           description: Internal server error
           schema:

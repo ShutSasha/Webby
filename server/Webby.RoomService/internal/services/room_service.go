@@ -15,13 +15,6 @@ type RoomRepository interface {
 	Update(room *models.Room) (uuid.UUID, error)
 }
 
-type CategoryRepository interface {
-	Create(name string) (uuid.UUID, error)
-	Delete(id uuid.UUID) error
-	List(search string, page int, limit int) ([]models.Category, int64, error)
-	Update(id uuid.UUID, name string) error
-}
-
 type RoomService struct {
 	repo RoomRepository
 }

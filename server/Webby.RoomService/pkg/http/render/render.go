@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"webby/internal/apperrors"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -15,6 +16,10 @@ var validate *validator.Validate
 
 func init() {
 	validate = validator.New(validator.WithRequiredStructEnabled())
+
+	_ = validate.RegisterValidation("notblank", func(fl validator.FieldLevel) bool {
+		return strings.TrimSpace(fl.Field().String()) != ""
+	})
 
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -47,7 +52,7 @@ func DecodeValid[T any](r *http.Request) (T, map[string]string, error) {
 	problems := make(map[string]string)
 
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
-		return v, nil, fmt.Errorf("decode json: %w", err)
+		return v, nil, fmt.Errorf("%w: %w", apperrors.ErrInvalidInput, err)
 	}
 
 	if err := validate.Struct(v); err != nil {
@@ -57,12 +62,12 @@ func DecodeValid[T any](r *http.Request) (T, map[string]string, error) {
 				problems[fieldError.Field()] = formatErrorMessage(fieldError)
 			}
 		} else {
-			return v, nil, fmt.Errorf("validator error: %w", err)
+			return v, nil, fmt.Errorf("%w: %w", apperrors.ErrInvalidInput, err)
 		}
 	}
 
 	if len(problems) > 0 {
-		return v, problems, fmt.Errorf("validation failed: %d problems", len(problems))
+		return v, problems, fmt.Errorf("%w: %d problems", apperrors.ErrInvalidInput, len(problems))
 	}
 
 	return v, nil, nil
@@ -72,8 +77,14 @@ func formatErrorMessage(fe validator.FieldError) string {
 	switch fe.Tag() {
 	case "required":
 		return "this field is required"
+	case "notblank":
+		return "this field cannot be empty or contain only spaces"
 	case "email":
 		return "invalid email format"
+	case "uuid":
+		return "invalid UUID format"
+	case "url":
+		return "invalid URL format"
 	case "min":
 		if fe.Kind() == reflect.String {
 			return fmt.Sprintf("must be at least %s characters long", fe.Param())
@@ -89,6 +100,6 @@ func formatErrorMessage(fe validator.FieldError) string {
 	case "lte":
 		return fmt.Sprintf("must be less than or equal to %s", fe.Param())
 	default:
-		return fmt.Sprintf("invalid value (failed on '%s')", fe.Tag())
+		return fmt.Sprintf("validation failed on the '%s' tag", fe.Tag())
 	}
 }

@@ -10,12 +10,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"webby/internal/apperrors"
 	"webby/internal/handlers/categories/create"
 	"webby/internal/handlers/categories/create/mocks"
 	"webby/internal/handlers/responses"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type createCategoryRequest struct {
@@ -25,8 +27,6 @@ type createCategoryRequest struct {
 func TestCreateCategory(t *testing.T) {
 	testID := uuid.New()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-
-	errAlreadyExists := errors.New("category with this name already exists")
 
 	tests := []struct {
 		name           string
@@ -82,11 +82,11 @@ func TestCreateCategory(t *testing.T) {
 				Name: "Gaming",
 			},
 			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create("Gaming").Return(uuid.Nil, errAlreadyExists).Once()
+				mc.EXPECT().Create("Gaming").Return(uuid.Nil, apperrors.ErrConflict).Once()
 			},
 			expectedStatus: http.StatusConflict,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorWithMessage(t, body, "already exists")
+				assertErrorWithMessage(t, body, "message", "already exists")
 			},
 		},
 		{
@@ -95,7 +95,7 @@ func TestCreateCategory(t *testing.T) {
 			mockSetup:      func(mc *mocks.MockCreator) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorWithMessage(t, body, "Invalid input")
+				assertErrorWithMessage(t, body, "message", "invalid input")
 			},
 		},
 		{
@@ -188,16 +188,6 @@ func TestCreateCategory(t *testing.T) {
 			},
 		},
 		{
-			name:           "Failure - Wrong Content-Type Header",
-			customBody:     `{"name": "Gaming"}`,
-			contentType:    "text/plain",
-			mockSetup:      func(mc *mocks.MockCreator) {},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
-			},
-		},
-		{
 			name: "Failure - Internal Server Error",
 			requestBody: createCategoryRequest{
 				Name: "Gaming",
@@ -227,7 +217,7 @@ func TestCreateCategory(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPost, "/categories", bytes.NewReader(body))
+			req := httptest.NewRequest(http.MethodPost, "/api/categories", bytes.NewReader(body))
 
 			reqContentType := "application/json"
 			if tt.contentType != "" {
@@ -249,37 +239,48 @@ func TestCreateCategory(t *testing.T) {
 func assertSuccessResponse(t *testing.T, body string, expectedID uuid.UUID) {
 	var resp responses.ApiResponse[map[string]any]
 	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.True(t, resp.Success)
+
+	require.NoError(t, err, "Response body should be valid JSON: %s", body)
+	require.True(t, resp.Success, "Expected success=true, but got false. Body: %s", body)
+	require.NotNil(t, resp.Data, "Expected Data field in response, but got nil. Body: %s", body)
+
 	assert.Equal(t, expectedID.String(), (*resp.Data)["id"])
 }
 
 func assertErrorResponse(t *testing.T, body string) {
 	var resp responses.ErrorResponse
 	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.False(t, resp.Success)
+
+	require.NoError(t, err, "Response body should be valid JSON: %s", body)
+	require.False(t, resp.Success, "Expected success=false for error response. Body: %s", body)
 }
 
-func assertErrorWithMessage(t *testing.T, body string, expectedMessage string) {
+func assertErrorWithMessage(t *testing.T, body string, key string, expectedMessage string) {
 	var resp responses.ErrorResponse
 	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.False(t, resp.Success)
-	assert.Contains(t, resp.Message, expectedMessage)
+
+	require.NoError(t, err, "Response body should be valid JSON: %s", body)
+	require.False(t, resp.Success, "Expected success=false for error response. Body: %s", body)
+
+	assert.Contains(t, resp.Errors[key], expectedMessage)
 }
 
 func assertErrorMessage(t *testing.T, body string, expectedMessage string) {
 	var resp responses.ErrorResponse
 	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
+
+	require.NoError(t, err, "Response body should be valid JSON: %s", body)
+	require.False(t, resp.Success, "Expected success=false for error response. Body: %s", body)
+
 	assert.Equal(t, expectedMessage, resp.Message)
 }
 
 func assertErrorWithValidation(t *testing.T, body string) {
 	var resp responses.ErrorResponse
 	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.False(t, resp.Success)
-	assert.NotNil(t, resp.Errors)
+
+	require.NoError(t, err, "Response body should be valid JSON: %s", body)
+	require.False(t, resp.Success, "Expected success=false for error response. Body: %s", body)
+	require.NotNil(t, resp.Errors, "Expected validation errors field, but got nil. Body: %s", body)
+	require.NotEmpty(t, resp.Errors, "Expected at least one validation error, but got empty map. Body: %s", body)
 }

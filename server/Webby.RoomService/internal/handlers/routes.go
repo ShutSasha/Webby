@@ -44,7 +44,7 @@ func addRoutes(
 	roomService RoomService,
 	categoryService CategoryService,
 ) {
-	mux.Handle("/", http.NotFoundHandler())
+	mux.Handle("/api/", http.NotFoundHandler())
 
 	rooms.RegisterRooms(mux, []byte(cfg.JwtSecret), logger, roomService)
 	categories.RegisterCategories(mux, []byte(cfg.JwtSecret), logger, categoryService)

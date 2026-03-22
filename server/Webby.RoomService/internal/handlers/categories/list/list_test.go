@@ -145,29 +145,31 @@ func TestListCategories(t *testing.T) {
 			},
 		},
 		{
-			name: "Failure - Invalid Page Parameter",
+			name: "Success - Coerced Invalid Page Parameter to 1",
 			queryParams: map[string]string{
 				"page":  "0",
 				"limit": "10",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
+				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
+				assertPaginatedEmptySuccess(t, body)
 			},
 		},
 		{
-			name: "Failure - Invalid Limit Parameter (too high)",
+			name: "Success - Coerced Limit Parameter (too high) to 100",
 			queryParams: map[string]string{
 				"page":  "1",
 				"limit": "101",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
+				ml.EXPECT().List("", 1, 100).Return([]models.Category{}, int64(0), nil).Once()
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
+				assertPaginatedEmptySuccess(t, body)
 			},
 		},
 		{
@@ -185,81 +187,87 @@ func TestListCategories(t *testing.T) {
 			},
 		},
 		{
-			name: "Failure - Negative Page Number",
+			name: "Success - Coerced Negative Page Number to 1",
 			queryParams: map[string]string{
-				"page":  "-1",
+				"page":  "-5",
 				"limit": "10",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
+				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
+				assertPaginatedEmptySuccess(t, body)
 			},
 		},
 		{
-			name: "Failure - Zero Limit",
+			name: "Success - Coerced Zero Limit to 10",
 			queryParams: map[string]string{
 				"page":  "1",
 				"limit": "0",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
+				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
+				assertPaginatedEmptySuccess(t, body)
 			},
 		},
 		{
-			name: "Failure - Negative Limit",
+			name: "Success - Coerced Negative Limit to 10",
 			queryParams: map[string]string{
 				"page":  "1",
 				"limit": "-5",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
+				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
+				assertPaginatedEmptySuccess(t, body)
 			},
 		},
 		{
-			name: "Failure - Non-numeric Page Parameter",
+			name: "Success - Coerced Non-numeric Page Parameter to 1",
 			queryParams: map[string]string{
 				"page":  "abc",
 				"limit": "10",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
+				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
+				assertPaginatedEmptySuccess(t, body)
 			},
 		},
 		{
-			name: "Failure - Non-numeric Limit Parameter",
+			name: "Success - Coerced Non-numeric Limit Parameter to 10",
 			queryParams: map[string]string{
 				"page":  "1",
 				"limit": "xyz",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
+				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
+				assertPaginatedEmptySuccess(t, body)
 			},
 		},
 		{
-			name: "Failure - Extreme Large Number Overflow Page",
+			name: "Success - Coerced Extreme Large Number Overflow Page to 1",
 			queryParams: map[string]string{
 				"page":  "999999999999999999999999",
 				"limit": "10",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
+				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
+				assertPaginatedEmptySuccess(t, body)
 			},
 		},
 	}
@@ -297,7 +305,7 @@ func TestListCategories(t *testing.T) {
 }
 
 func assertPaginatedSuccess(t *testing.T, body string, page, limit, total, items int) {
-	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]interface{}]]
+	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]any]]
 	err := json.Unmarshal([]byte(body), &resp)
 	assert.NoError(t, err)
 	assert.True(t, resp.Success)
@@ -308,7 +316,7 @@ func assertPaginatedSuccess(t *testing.T, body string, page, limit, total, items
 }
 
 func assertPaginatedEmptySuccess(t *testing.T, body string) {
-	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]interface{}]]
+	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]any]]
 	err := json.Unmarshal([]byte(body), &resp)
 	assert.NoError(t, err)
 	assert.True(t, resp.Success)
@@ -332,7 +340,7 @@ func assertErrorMessage(t *testing.T, body string, msg string) {
 }
 
 func assertPaginatedPageAndTotal(t *testing.T, body string, page, total int) {
-	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]interface{}]]
+	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]any]]
 	err := json.Unmarshal([]byte(body), &resp)
 	assert.NoError(t, err)
 	assert.Equal(t, page, resp.Data.Page)

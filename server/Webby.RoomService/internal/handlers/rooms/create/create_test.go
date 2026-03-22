@@ -231,7 +231,7 @@ func TestCreateRoom(t *testing.T) {
 			req.Header.Set("Content-Type", writer.FormDataContentType())
 			w := httptest.NewRecorder()
 
-			handler.ServeHTTP(w, req)
+				handler.ServeHTTP(w, req)
 
 			assert.Equal(t, tt.expectedStatus, w.Code)
 			responseBody := w.Body.String()
