@@ -3,8 +3,10 @@ package delete
 import (
 	"log/slog"
 	"net/http"
+	"webby/internal/apperrors"
 	_ "webby/internal/handlers/docs"
 	errorWrapper "webby/internal/handlers/errors"
+	"webby/internal/handlers/responses"
 
 	"github.com/google/uuid"
 )
@@ -39,6 +41,16 @@ func deleteCategory(logger *slog.Logger, deleter Deleter) errorWrapper.APIFunc {
 	_ = logger.With(slog.String("operation", "httpserver.categories.delete"))
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		idStr := r.PathValue("id")
+
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			return responses.NewApiError("Validation error", apperrors.ErrInvalidInput)
+		}
+
+		if err := deleter.Delete(id); err != nil {
+			return responses.NewApiError("Delete category error", err)
+		}
 
 		w.WriteHeader(http.StatusNoContent)
 		return nil

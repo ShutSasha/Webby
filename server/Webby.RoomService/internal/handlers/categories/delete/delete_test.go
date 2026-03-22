@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"webby/internal/apperrors"
 	"webby/internal/handlers/categories/delete"
 	"webby/internal/handlers/categories/delete/mocks"
 	"webby/internal/handlers/responses"
@@ -56,7 +57,7 @@ func TestDeleteCategory(t *testing.T) {
 			name:   "Failure_CategoryNotFound",
 			pathID: validUUID.String(),
 			mockSetup: func(md *mocks.MockDeleter) {
-				md.EXPECT().Delete(validUUID).Return(errors.New("not found")).Once()
+				md.EXPECT().Delete(validUUID).Return(apperrors.ErrNotFound).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   validateErrorResponse,
@@ -79,10 +80,10 @@ func TestDeleteCategory(t *testing.T) {
 
 			handler := delete.New(logger, mockDeleter)
 
-			targetURL := "/categories/" + tt.pathID
+			targetURL := "/api/categories/" + tt.pathID
 			req := httptest.NewRequest(http.MethodDelete, targetURL, nil)
 			req.SetPathValue("id", tt.pathID)
-			
+
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, req)

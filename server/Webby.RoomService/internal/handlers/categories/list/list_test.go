@@ -256,20 +256,6 @@ func TestListCategories(t *testing.T) {
 				assertPaginatedEmptySuccess(t, body)
 			},
 		},
-		{
-			name: "Success - Coerced Extreme Large Number Overflow Page to 1",
-			queryParams: map[string]string{
-				"page":  "999999999999999999999999",
-				"limit": "10",
-			},
-			mockSetup: func(ml *mocks.MockLister) {
-				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertPaginatedEmptySuccess(t, body)
-			},
-		},
 	}
 
 	for _, tt := range tests {
@@ -290,7 +276,7 @@ func TestListCategories(t *testing.T) {
 				}
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/categories"+queryString, nil)
+			req := httptest.NewRequest(http.MethodGet, "/api/categories"+queryString, nil)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, req)

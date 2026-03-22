@@ -3,8 +3,11 @@ package update
 import (
 	"log/slog"
 	"net/http"
+	"webby/internal/apperrors"
 	_ "webby/internal/handlers/docs"
 	errorWrapper "webby/internal/handlers/errors"
+	"webby/internal/handlers/responses"
+	"webby/pkg/http/render"
 
 	"github.com/google/uuid"
 )
@@ -41,15 +44,48 @@ func New(logger *slog.Logger, updater Updater) http.Handler {
 // @Security     BearerAuth
 // @Router       /categories/{id} [put]
 func updateCategory(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
-	_ = logger.With(slog.String("operation", "httpserver.categories.update"))
+	log := logger.With(slog.String("operation", "httpserver.categories.update"))
 
-	type updateCategoryRequest struct{}
+	type request struct {
+		Name string `json:"name" validate:"required,notblank,min=2,max=50"`
+	}
 
-	type categoryResponse struct{}
+	type response struct {
+		Id   uuid.UUID `json:"id"`
+		Name string    `json:"name"`
+	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		idStr := r.PathValue("id")
 
-		w.WriteHeader(http.StatusOK)
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			log.Debug("invalid UUID format", slog.String("id", idStr))
+			return responses.NewApiError("Validation error", apperrors.ErrInvalidInput)
+		}
+
+		var req request
+		req, problems, err := render.DecodeValid[request](r)
+		if len(problems) > 0 {
+			log.Debug("problems debug", slog.Any("problems", problems))
+			return responses.NewValidationError("Validation error", problems)
+		}
+		if err != nil {
+			return responses.NewApiError("Validation error", err)
+		}
+
+		if err := updater.Update(id, req.Name); err != nil {
+			return responses.NewApiError("Update category error", err)
+		}
+
+		render.Encode(w, r, http.StatusOK, responses.ApiResponse[response]{
+			Success: true,
+			Message: "Category updated",
+			Data: &response{
+				Id:   id,
+				Name: req.Name,
+			},
+		})
 		return nil
 	}
 }

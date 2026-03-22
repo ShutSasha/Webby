@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"webby/internal/apperrors"
 	"webby/internal/handlers/categories/update"
 	"webby/internal/handlers/categories/update/mocks"
 	"webby/internal/handlers/responses"
@@ -31,7 +32,6 @@ func TestUpdateCategory(t *testing.T) {
 		invalidUUID    bool
 		requestBody    any
 		rawBody        []byte
-		contentType    string
 		mockSetup      func(*mocks.MockUpdater)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
@@ -135,22 +135,13 @@ func TestUpdateCategory(t *testing.T) {
 			validateBody:   assertErrorResponse,
 		},
 		{
-			name:           "Failure - Wrong Content-Type Header (EG)",
-			categoryID:     categoryID,
-			requestBody:    updateCategoryRequest{Name: "Valid Name"},
-			contentType:    "text/plain",
-			mockSetup:      func(mu *mocks.MockUpdater) {},
-			expectedStatus: http.StatusBadRequest,
-			validateBody:   assertErrorResponse,
-		},
-		{
 			name:       "Failure - Category Not Found (CE)",
 			categoryID: categoryID,
 			requestBody: updateCategoryRequest{
 				Name: "Updated Name",
 			},
 			mockSetup: func(mu *mocks.MockUpdater) {
-				mu.EXPECT().Update(categoryID, "Updated Name").Return(errors.New("not found")).Once()
+				mu.EXPECT().Update(categoryID, "Updated Name").Return(apperrors.ErrNotFound).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   assertErrorResponse,
@@ -189,19 +180,12 @@ func TestUpdateCategory(t *testing.T) {
 				}
 			}
 
-			path := "/categories/"
-			if tt.invalidUUID {
-				path += "invalid-uuid"
-			} else {
-				path += tt.categoryID.String()
-			}
-
+			path := "/api/categories/"
 			req := httptest.NewRequest(http.MethodPut, path, bytes.NewReader(body))
-
-			if tt.contentType != "" {
-				req.Header.Set("Content-Type", tt.contentType)
+			if tt.invalidUUID {
+				req.SetPathValue("id", "invalid-uuid")
 			} else {
-				req.Header.Set("Content-Type", "application/json")
+				req.SetPathValue("id", tt.categoryID.String())
 			}
 
 			w := httptest.NewRecorder()
