@@ -66,6 +66,17 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   const { playing, light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings } = state
 
+  useEffect(() => {
+    setState(prev => ({
+      ...prev,
+      played: 0,
+      loaded: 0,
+      duration: 0,
+      loadedSeconds: 0,
+      playedSeconds: 0,
+    }))
+  }, [videoUrl])
+
   const handlePlayPause = (e: React.MouseEvent) => {
     if (showSettings) {
       if (settingsContainerRef.current && !settingsContainerRef.current.contains(e.target as Node)) {
