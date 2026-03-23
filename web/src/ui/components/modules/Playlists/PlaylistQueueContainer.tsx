@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { AnimatePresence } from 'framer-motion'
+import { useSearchParams } from 'next/navigation'
 import { useDebouncedCallback } from 'use-debounce'
 
 import { getPlaylistVideos, PlaylistVideo } from '@/app/api/playlists'
@@ -24,6 +25,14 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
   const [fetchingMore, setFetchingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const observer = useRef<IntersectionObserver | null>(null)
+  const searchParams = useSearchParams()
+  const currentV = searchParams.get('v')
+
+  const [optimisticId, setOptimisticId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setOptimisticId(null)
+  }, [currentV])
 
   const lastVideoElementRef = useCallback(
     (node: HTMLDivElement) => {
@@ -131,6 +140,8 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
                       title={video.name}
                       thumbnail={video.previewUrl}
                       playlistId={playlistId}
+                      optimisticId={optimisticId}
+                      onOptimisticClick={() => setOptimisticId(video.videoId)}
                     />
                   </div>
                 )
@@ -142,6 +153,8 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
                   title={video.name}
                   thumbnail={video.previewUrl}
                   playlistId={playlistId}
+                  optimisticId={optimisticId}
+                  onOptimisticClick={() => setOptimisticId(video.videoId)}
                 />
               )
             })}

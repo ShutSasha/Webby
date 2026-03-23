@@ -18,21 +18,33 @@ interface Props {
   title: string
   thumbnail: string
   playlistId: string
+  optimisticId: string | null
+  onOptimisticClick: () => void
 }
 
-export default function VideoItem({ id, title, thumbnail, playlistId }: Props) {
+export default function VideoItem({ id, title, thumbnail, playlistId, optimisticId, onOptimisticClick }: Props) {
   const playing = usePlayerPlayStore(state => state.playing)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const videoId = searchParams.get('v')
-  const isActive = videoId === id
+  const actualVideoId = searchParams.get('v')
+
+  const isActuallyActive = actualVideoId === id
+  const isOptimisticallyActive = optimisticId === id
+
+  const isActive = isActuallyActive || isOptimisticallyActive
+
+  const isLoading = isOptimisticallyActive && !isActuallyActive
 
   const handlePlayPause = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
 
+    if (isLoading) return
+
     if (!isActive) {
-      router.push(`/playlists/${playlistId}?v=${id}`)
+      onOptimisticClick()
+
+      router.push(`/playlists/${playlistId}?v=${id}`, { scroll: false })
 
       if (!playing) togglePlay()
       return
@@ -50,11 +62,16 @@ export default function VideoItem({ id, title, thumbnail, playlistId }: Props) {
     >
       <Link
         href={`/playlists/${playlistId}?v=${id}`}
+        onClick={() => {
+          if (!isActive) onOptimisticClick()
+        }}
         className={cn(
           `flex items-center justify-between p-2 rounded-xl bg-neutral-800/50 hover:bg-neutral-800 transition-all
           duration-300 border-b-2 border-transparent group cursor-pointer`,
-          isActive && 'border-emerald-500 bg-neutral-800',
+          isActuallyActive && 'border-emerald-500 bg-neutral-800',
+          isOptimisticallyActive && 'border-amber-500 bg-neutral-800',
         )}
+        scroll={false}
       >
         <div className="flex items-center gap-3 overflow-hidden">
           <Image
@@ -81,10 +98,16 @@ export default function VideoItem({ id, title, thumbnail, playlistId }: Props) {
 
         <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
           <button
-            className="p-1.5 group/play hover:bg-neutral-300/10 rounded-full cursor-pointer"
+            className={cn(
+              'p-1.5 group/play rounded-full cursor-pointer flex items-center justify-center',
+              !isLoading && 'hover:bg-neutral-300/10',
+              isLoading && 'hover:bg-none',
+            )}
             onClick={handlePlayPause}
           >
-            {playing && isActive ? (
+            {isLoading ? (
+              <div className="size-4 border-2 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
+            ) : playing && isActuallyActive ? (
               <PauseIcon
                 className={`size-4 ${isActive ? 'text-neutral-300' : 'text-neutral-500'}
                   group-hover/play:text-neutral-300`}
