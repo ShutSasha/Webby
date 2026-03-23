@@ -13,6 +13,7 @@ import MinVolume from '@/assets/icons/Player/volume-min.svg'
 import MutedVolume from '@/assets/icons/Player/volume-muted.svg'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { usePlayerControls } from '@/lib/hooks/usePlayerControls'
+import { usePlayerHotkeys } from '@/lib/hooks/usePlayerHotkeys'
 import { usePlayerPlayStore, usePlayerStore } from '@/stores/player.store'
 
 import Duration from './Duration'
@@ -79,6 +80,15 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       playedSeconds: 0,
     }))
   }, [videoUrl])
+
+  usePlayerHotkeys({
+    playerRef,
+    hideTimeoutRef,
+    duration,
+    togglePlay,
+    setShowCustomControls,
+    setState,
+  })
 
   const handlePlayPause = (e: React.MouseEvent) => {
     if (showSettings) {
