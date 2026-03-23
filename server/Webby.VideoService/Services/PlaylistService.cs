@@ -6,6 +6,7 @@ using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
+using Webby.VideoService.Helpers.Playlist;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
@@ -196,12 +197,22 @@ public class PlaylistService : IPlaylistService
       return MapToPlaylistDto((await _playlistRepository.GetPlaylistDetails(playlistId))!);
    }
 
-   public async Task<PagedResponse<PlaylistDto>> SearchPlaylists(SearchOptions searchOptions)
+   public async Task<PagedResponse<PlaylistDto>> SearchPlaylists(Guid? requestUserId,SearchOptions searchOptions)
    {
       var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
 
+      var (AdditionalCondition, Params, Predicat ) = PlaylistSearchFilter.SearchPlaylistFilters(requestUserId);
       var (playlists, totalPlaylists) = await _playlistRepository
-         .SearchPlaylistsAsync(searchOptions.SearchText, skip, searchOptions.PageSize);
+         .SearchAsync(
+            "Playlists",
+            "Name",
+            searchOptions.SearchText,
+            skip,
+            searchOptions.PageSize,
+            AdditionalCondition,
+            Params,
+            predicateFactory: Predicat
+         );
 
       var items = playlists.Select(MapToPlaylistDto).ToList();
 

@@ -47,7 +47,8 @@ public class PlaylistController : ControllerBase
    public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistDto>>>> SearchPlaylists(
       [FromQuery] SearchOptions searchOptions)
    {
-      var searchPlaylistsResponse = await _playlistService.SearchPlaylists(searchOptions);
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var searchPlaylistsResponse = await _playlistService.SearchPlaylists(requestUserId,searchOptions);
       return Ok(ApiResponse<PagedResponse<PlaylistDto>>.Ok("Successfully retrieved public playlists",searchPlaylistsResponse));
    }
    
