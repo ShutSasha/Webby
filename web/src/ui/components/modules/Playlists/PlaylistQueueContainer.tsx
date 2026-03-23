@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useDebouncedCallback } from 'use-debounce'
 
@@ -13,36 +13,74 @@ type Props = {
   playlistId: string
 }
 
+const PAGE_SIZE = 20
+
 export default function PlaylistQueueContainer({ playlistId }: Props) {
   const [videos, setVideos] = useState<PlaylistVideo[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [fetchingMore, setFetchingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const observer = useRef<IntersectionObserver | null>(null)
+
+  const lastVideoElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (loading || fetchingMore) return
+      if (observer.current) observer.current.disconnect()
+
+      observer.current = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage(prevPage => prevPage + 1)
+        }
+      })
+
+      if (node) observer.current.observe(node)
+    },
+    [loading, fetchingMore, hasMore],
+  )
 
   const fetchVideos = useCallback(
-    async (searchQuery: string) => {
-      setLoading(true)
+    async (searchQuery: string, targetPage: number, isInitial: boolean) => {
+      if (isInitial) setLoading(true)
+      else setFetchingMore(true)
+
       try {
-        const response = await getPlaylistVideos(playlistId, searchQuery, 1, 50)
+        const response = await getPlaylistVideos(playlistId, searchQuery, targetPage, PAGE_SIZE)
 
         if (response.success && response.data) {
-          setVideos(response.data.items)
+          const newItems = response.data.items
+
+          setVideos(prev => (isInitial ? newItems : [...prev, ...newItems]))
+
+          setHasMore(newItems.length === PAGE_SIZE)
         }
       } catch (error) {
-        clog('SEARCH_ERROR', error)
+        clog('FETCH_ERROR', error)
       } finally {
         setLoading(false)
+        setFetchingMore(false)
       }
     },
     [playlistId],
   )
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
-    fetchVideos(value)
-  }, 300)
+    setPage(1)
+    setVideos([])
+    setHasMore(true)
+    fetchVideos(value, 1, true)
+  }, 400)
 
   useEffect(() => {
-    fetchVideos('')
-  }, [fetchVideos])
+    if (page > 1) {
+      fetchVideos(query, page, false)
+    }
+  }, [page])
+
+  useEffect(() => {
+    fetchVideos('', 1, true)
+  }, [])
 
   const handleSearchChange = (value: string) => {
     setQuery(value)
@@ -81,18 +119,39 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
       >
         {loading && videos.length === 0 ? (
           <p className="text-center text-neutral-500 py-10">Loading queue...</p>
-        ) : videos.length > 0 ? (
-          videos.map(video => (
-            <VideoItem
-              key={video.videoId}
-              id={video.videoId}
-              title={video.name}
-              thumbnail={video.previewUrl}
-              isActive={false}
-            />
-          ))
         ) : (
-          <p className="text-center text-neutral-500 py-10">No videos found</p>
+          <>
+            {videos.map((video, index) => {
+              if (videos.length === index + 1) {
+                return (
+                  <div ref={lastVideoElementRef} key={video.videoId}>
+                    <VideoItem id={video.videoId} title={video.name} thumbnail={video.previewUrl} isActive={false} />
+                  </div>
+                )
+              }
+              return (
+                <VideoItem
+                  key={video.videoId}
+                  id={video.videoId}
+                  title={video.name}
+                  thumbnail={video.previewUrl}
+                  isActive={false}
+                />
+              )
+            })}
+
+            {fetchingMore && (
+              <div className="flex justify-center py-4">
+                <div className="size-5 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!hasMore && videos.length > 0 && (
+              <p className="text-center text-xs text-neutral-600 py-4 italic">End of playlist</p>
+            )}
+
+            {!loading && videos.length === 0 && <p className="text-center text-neutral-500 py-10">No videos found</p>}
+          </>
         )}
       </div>
     </div>
