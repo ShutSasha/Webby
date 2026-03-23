@@ -29,7 +29,7 @@ export default async function PlaylistPage({ params }: Props) {
 
   return (
     <div className="flex gap-5">
-      <div className="h-fit min-w-0">
+      <div className="h-fit min-w-0 w-full">
         <PlayerContainer videoId={videoId} />
 
         <div className="flex items-center justify-between mt-3 mb-2">
