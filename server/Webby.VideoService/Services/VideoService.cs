@@ -240,11 +240,12 @@ public class VideoService : IVideoService
       };
    }
 
-   public async Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid playlistId, SearchOptions searchOptions)
+   public async Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId,Guid playlistId, SearchOptions searchOptions)
    {
       var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
       
-      var (filter, parameters,predicate) = VideoQueryFilters.ForPlaylist(playlistId);
+      var (filter, parameters,predicate) 
+         = VideoQueryFilters.ForPlaylist(playlistId, requestUserId );
       var (items, total) = await _videoRepository.SearchAsync(
          "Videos",
          "Name",
