@@ -22,4 +22,22 @@ public static class PlaylistSearchFilter
          context => p => !p.IsPrivate || p.UserId == requestUserId
       );
    }
+   
+   public static (
+      string Additional,
+      object[] Params,
+      Func<AppDbContext, Expression<Func<Models.Playlist, bool>>> PredicateFactory
+      ) SearchUserPlaylistsFilter(Guid? userId, bool shouldShowPrivate)
+   {
+      return (
+         @"
+            (
+                ""IsPrivate"" = FALSE
+                OR ""UserId"" = {2}
+            )
+            ",
+         new object[] { userId },
+         context => p => !p.IsPrivate || p.UserId == userId
+      );
+   }
 }
