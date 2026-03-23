@@ -19,8 +19,8 @@ export type Video = {
   previewUrl: string
   isPrivate: boolean
   createdAt: string
-  videoTags: string[]
-  description: string
+  videoTags: string[] | null
+  description: string | null
   user: VideoUser
 }
 

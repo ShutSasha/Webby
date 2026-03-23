@@ -67,7 +67,7 @@ export default async function VideoPage({ params }: Props) {
               <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />
             </div>
 
-            <VideoDescription text={description} views={views} date={createdAt} />
+            <VideoDescription text={description ?? ''} views={views} date={createdAt} />
           </div>
 
           <div className="w-[418px] flex flex-col gap-3">
