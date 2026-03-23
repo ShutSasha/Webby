@@ -22,8 +22,14 @@ export default function DesktopNav() {
           rounded-lg ${isExpanded ? 'w-60 items-start' : 'w-14 items-center'} text-sm leading-5`}
       >
         <div className={`flex w-full items-center ${isExpanded ? 'mb-3 flex-row justify-between' : 'flex-col'}`}>
-          <Link href={'/'}>
+          <Link href={'/'} className="flex items-center">
             <LogoIcon className="h-8 w-8 text-zinc-950" />
+            <p
+              className={`text-xl overflow-hidden whitespace-nowrap font-bold transition-all duration-300
+                ${isExpanded ? 'opacity-100 ml-3' : 'w-0 h-0 opacity-0'}`}
+            >
+              Webby
+            </p>
           </Link>
           <button onClick={toggleSideNav}>
             <ExpandIcon
