@@ -619,6 +619,21 @@
          "AuthenticationOptions": {
             "AuthenticationProviderKey": "Bearer"
          }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
       }
    ],
    "GlobalConfiguration": {

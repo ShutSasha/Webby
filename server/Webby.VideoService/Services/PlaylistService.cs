@@ -18,6 +18,7 @@ public class PlaylistService : IPlaylistService
    private readonly IPlaylistRepository _playlistRepository;
    private readonly IMapper _mapper;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
+   private readonly IVideoService _videoService;
    
    public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper, UserGrpcService.UserGrpcServiceClient userClient)
    {
@@ -32,6 +33,8 @@ public class PlaylistService : IPlaylistService
       {
          PlaylistId = Guid.NewGuid(),
          Description = request.Description,
+         IsPrivate = request.IsPrivate,
+         CreatedAt = DateTime.UtcNow,
          Name = request.Name,
          UserId = userId
       };
@@ -41,13 +44,13 @@ public class PlaylistService : IPlaylistService
       return _mapper.Map<PlaylistDto>(playlist);
    }
 
-   public async Task<PagedResponse<PlaylistDto>> GetUserPlaylists(Guid userId, int page, int pageSize)
+   public async Task<PagedResponse<PlaylistDto>> GetUserPlaylists(Guid? requestUserId, Guid userId, int page, int pageSize)
    {
       page = page <= 0 ? 1 : page;
       pageSize = pageSize <= 0 ? 10 : pageSize;
 
       var (playlists, totalCount) = await _playlistRepository
-         .GetPaginatedUserPlaylists(userId, page, pageSize);
+         .GetPaginatedUserPlaylists(requestUserId == userId,userId, page, pageSize);
 
       return new PagedResponse<PlaylistDto>
       {
@@ -70,6 +73,7 @@ public class PlaylistService : IPlaylistService
 
       playlist.Description = request.Description;
       playlist.Name = request.Name;
+      playlist.IsPrivate = request.IsPrivate;
 
       await _playlistRepository.Update(playlist);
 
@@ -94,71 +98,65 @@ public class PlaylistService : IPlaylistService
    }
    
    public async Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId)
-{
-    var playlist = await _playlistRepository.FindByIdWithVideos(playlistId);
+   {
+      var playlist = await _playlistRepository.FindByIdWithVideos(playlistId)
+                     ?? throw new ApiException("Get playlist information error", 404, "Playlist wasn't found");
 
-    if (playlist == null)
-    {
-        throw new ApiException("Get playlist information error", 404, "Playlist wasn't found");
-    }
-    
-    var playlistDto = MapToPlaylistDto(playlist);
-    
-    var videos = playlist.PlaylistVideos
-        .Select(pv => pv.Video)
-        .OrderByDescending(v => v.CreatedAt)
-        .ToList();
+      var playlistDto = MapToPlaylistDto(playlist);
 
-    var videoDtos = videos.Select(v => new VideoDto
-    {
-        VideoId = v.VideoId,
-        Name = v.Name,
-        Views = v.Views,
-        CreatedAt = v.CreatedAt,
-        PreviewUrl = v.PreviewUrl,
-        IsPrivate = v.IsPrivate,
-        User = null 
-    }).ToList();
+      var video = playlist.PlaylistVideos
+         .Select(pv => pv.Video)
+         .MaxBy(v => v.CreatedAt);
 
-    var userIds = videos
-       .Select(v => v.UserId.ToString())
-       .Distinct()
-       .ToList();
-    
+      VideoDto? videoDto = null;
 
-    if (userIds.Any())
-    {
-         var usersResponse = await _userClient.GetUsersByIdsAsync(
-             new GetUsersRequest { UserIds = { userIds } }
-         );
-
-         var usersDict = usersResponse.Users
-             .ToDictionary(
-                 u => Guid.Parse(u.UserId),
-                 u => new UserVideoDto
-                 {
-                     UserId = Guid.Parse(u.UserId),
-                     Username = u.Username,
-                     AvatarUrl = u.AvatarUrl
-                 });
-         
-         foreach (var videoDto in videoDtos)
+      if (video != null)
+      {
+         videoDto = new VideoDto
          {
-             var originalVideo = videos.First(v => v.VideoId == videoDto.VideoId);
+            VideoId = video.VideoId,
+            Name = video.Name,
+            Views = video.Views,
+            CreatedAt = video.CreatedAt,
+            PreviewUrl = video.PreviewUrl,
+            IsPrivate = video.IsPrivate
+         };
 
-             if (usersDict.TryGetValue(originalVideo.UserId, out var user))
-             {
-                 videoDto.User = user;
-             }
+         if (video.UserId != Guid.Empty)
+         {
+            try
+            {
+               var userResponse = await _userClient.GetUserByIdAsync(
+                  new GetUserRequest { UserId = video.UserId.ToString() }
+               );
+
+               if (userResponse != null)
+               {
+                  videoDto.User = new UserVideoDto
+                  {
+                     UserId = Guid.Parse(userResponse.UserId),
+                     Username = userResponse.Username,
+                     AvatarUrl = userResponse.AvatarUrl
+                  };
+               }
+            }
+            catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
+            {
+               throw new ApiException("Get playlist information error", 404, ex.Message);
+            }
+            catch (RpcException ex)
+            {
+               throw new ApiException("Get playlist information error", 500, ex.Message);
+            }
          }
-    }
-    
-    return new GetPlaylistResponse
-    {
-        Playlist = playlistDto,
-        Videos = videoDtos
-    };
-}
+      }
+
+      return new GetPlaylistResponse
+      {
+         Playlist = playlistDto,
+         FirstVideo = videoDto
+      };
+   }
    
    public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds)
    {
@@ -192,7 +190,25 @@ public class PlaylistService : IPlaylistService
       await _playlistRepository.DeletePlaylistVideos(playlistVideosToDelete);
       return MapToPlaylistDto((await _playlistRepository.GetPlaylistDetails(playlistId))!);
    }
-   
+
+   public async Task<PagedResponse<PlaylistDto>> SearchPlaylists(SearchOptions searchOptions)
+   {
+      var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
+
+      var (playlists, totalPlaylists) = await _playlistRepository
+         .SearchPlaylistsAsync(searchOptions.SearchText, skip, searchOptions.PageSize);
+
+      var items = playlists.Select(MapToPlaylistDto).ToList();
+
+      return new PagedResponse<PlaylistDto>
+      {
+         Items = items,
+         TotalCount = totalPlaylists,
+         Page = searchOptions.Page,
+         PageSize = searchOptions.PageSize,
+      };
+   }
+
    private PlaylistDto MapToPlaylistDto(Playlist playlist)
    {
       var lastVideo = playlist.PlaylistVideos?
@@ -203,7 +219,8 @@ public class PlaylistService : IPlaylistService
          PlaylistId = playlist.PlaylistId,
          UserId = playlist.UserId,
          Name = playlist.Name,
-         Description = playlist.Description,
+         Description = playlist.Description ?? string.Empty,
+         IsPrivate = playlist.IsPrivate,
          CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
          PlaylistCover = lastVideo?.Video.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
       };

@@ -1,5 +1,6 @@
 ﻿using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Response;
+using Webby.VideoService.Models;
 
 namespace Webby.VideoService.Interfaces.Services;
 
@@ -8,8 +9,10 @@ public interface IVideoService
    Task CreateVideo(Guid userId, CreateVideoRequest request);
    Task DeleteVideo(Guid userId, Guid videoId);
    Task<GetVideoInformationResponse> GetVideoInformation(Guid videoId, Guid? userId);
-
    Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId,Guid? requestUserId,int page,int pageSize);
    Task UpdateVideoInformation(Guid userId, UpdateVideoRequest request);
+   Task<PagedResponse<VideoDto>> SearchVideo(SearchOptions options);
+   Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid playlistId, SearchOptions searchOptions);
+
 
 }

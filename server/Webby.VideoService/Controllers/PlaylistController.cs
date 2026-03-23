@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Jwt;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Services;
@@ -24,7 +25,8 @@ public class PlaylistController : ControllerBase
       [FromQuery] int page = 1,
       [FromQuery] int pageSize = 10)
    {
-      var result = await _playlistService.GetUserPlaylists(userId, page, pageSize);
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var result = await _playlistService.GetUserPlaylists(requestUserId,userId, page, pageSize);
 
       return Ok(ApiResponse<PagedResponse<PlaylistDto>>.Ok(
          "Successfully retrieved user playlists",
@@ -37,6 +39,15 @@ public class PlaylistController : ControllerBase
    {
       var playlistInformation = await _playlistService.GetPlaylistInformation(playlistId);
       return Ok(ApiResponse<GetPlaylistResponse>.Ok("Successfully retrieved playlist information", playlistInformation));
+   }
+
+   [HttpGet("search")]
+   [SwaggerOperation("Search playlists route")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistDto>>>> SearchPlaylists(
+      [FromQuery] SearchOptions searchOptions)
+   {
+      var searchPlaylistsResponse = await _playlistService.SearchPlaylists(searchOptions);
+      return Ok(ApiResponse<PagedResponse<PlaylistDto>>.Ok("Successfully retrieved public playlists",searchPlaylistsResponse));
    }
    
    [HttpPost]

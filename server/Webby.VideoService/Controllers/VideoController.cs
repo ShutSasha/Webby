@@ -30,6 +30,24 @@ public class VideoController: ControllerBase
          getVideoInformationResult));
    }
 
+   [HttpGet("search")]
+   [SwaggerOperation("Search video route")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> SearchVideo([FromQuery] SearchOptions searchOptions)
+   {
+      var videos = await _videoService.SearchVideo(searchOptions);
+      return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video",videos));
+   }
+   
+   [HttpGet("{playlistId:guid}/search")]
+   [SwaggerOperation("Search video in playlist route")]
+   public async Task<ActionResult<PagedResponse<VideoDto>>> SearchVideoInPlaylist(
+      [FromRoute] Guid playlistId,
+      [FromQuery] SearchOptions searchOptions)
+   {
+      var pagesResponse = await _videoService.SearchVideoInPlaylist(playlistId, searchOptions);
+      return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video from playlist",pagesResponse));
+   }
+
    [HttpGet("users/{userId:guid}")]
    [SwaggerOperation("Get user videos")]
    public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> GetUserVideos(

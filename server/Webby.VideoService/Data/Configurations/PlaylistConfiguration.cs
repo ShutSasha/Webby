@@ -24,6 +24,9 @@ public class PlaylistConfiguration : IEntityTypeConfiguration<Playlist>
 
       builder.HasIndex(p => p.UserId);
 
+      builder.Property(p => p.IsPrivate)
+         .HasDefaultValue(false);
+
       builder.HasMany(p => p.PlaylistVideos)
          .WithOne(pv => pv.Playlist)
          .HasForeignKey(pv => pv.PlaylistId)
