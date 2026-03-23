@@ -89,7 +89,7 @@ public class DbSeeder
                 }
             }
             
-            var video = new Video
+            var video = new Models.Video
             {
                 VideoId = videoId,
                 UserId = authorId,

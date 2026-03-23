@@ -18,6 +18,7 @@ public class PlaylistService : IPlaylistService
    private readonly IPlaylistRepository _playlistRepository;
    private readonly IMapper _mapper;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
+   private readonly IVideoService _videoService;
    
    public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper, UserGrpcService.UserGrpcServiceClient userClient)
    {

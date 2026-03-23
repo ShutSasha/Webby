@@ -5,6 +5,7 @@ using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.Response;
+using Webby.VideoService.Helpers.Video;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
@@ -236,6 +237,32 @@ public class VideoService : IVideoService
          TotalCount = total,
          Page = options.Page,
          PageSize = options.PageSize
+      };
+   }
+
+   public async Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid playlistId, SearchOptions searchOptions)
+   {
+      var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
+      
+      var (filter, parameters,predicate) = VideoQueryFilters.ForPlaylist(playlistId);
+      var (items, total) = await _videoRepository.SearchAsync(
+         "Videos",
+         "Name",
+         searchOptions.SearchText,
+         skip,
+         searchOptions.PageSize,
+         filter,
+         parameters,
+         @"""CreatedAt"" DESC",
+         predicate
+      );
+
+      return new PagedResponse<VideoDto>()
+      {
+         Items = items.Select(v => _mapper.Map<VideoDto>(v)).ToList(),
+         Page = searchOptions.Page,
+         PageSize = searchOptions.PageSize,
+         TotalCount = total
       };
    }
 
