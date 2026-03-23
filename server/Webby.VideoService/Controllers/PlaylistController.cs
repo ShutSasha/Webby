@@ -66,7 +66,7 @@ public class PlaylistController : ControllerBase
    public async Task<ActionResult<ApiResponse>> AddVideoToPlaylist([FromBody] AddVideoToPlaylistRequest request)
    {
       await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds);
-      return Ok(ApiResponse.Ok("Successfully added videos to playlist"));
+      return Ok(ApiResponse.Ok("Successfully update playlist"));
    }
 
    [HttpPatch]
