@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { notFound, redirect } from 'next/navigation'
 
 import { getPlaylistInfo } from '@/app/api/playlists'
+import { getVideoInfo } from '@/app/api/videos'
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import PlayerContainer from '@/ui/components/modules/Playlists/PlayerContainer'
 import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer'
@@ -26,11 +27,17 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
     notFound()
   }
 
-  const { videoId, description, createdAt, views, name, user } = playlistInfoResponse.data.firstVideo
-
   if (!v) {
-    redirect(`/playlists/${playlistId}?v=${videoId}`)
+    redirect(`/playlists/${playlistId}?v=${playlistInfoResponse.data.firstVideo.videoId}`)
   }
+
+  const video = await getVideoInfo(v)
+
+  if (!video.success || !video.data) {
+    notFound()
+  }
+
+  const { videoId, description, createdAt, views, name, user } = video.data
 
   return (
     <div className="flex gap-5">

@@ -13,7 +13,7 @@ import MinVolume from '@/assets/icons/Player/volume-min.svg'
 import MutedVolume from '@/assets/icons/Player/volume-muted.svg'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { usePlayerControls } from '@/lib/hooks/usePlayerControls'
-import { usePlayerStore } from '@/stores/player.store'
+import { usePlayerPlayStore, usePlayerStore } from '@/stores/player.store'
 
 import Duration from './Duration'
 
@@ -44,9 +44,11 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     playerRef.current = player
   }, [])
 
+  const togglePlay = usePlayerPlayStore(state => state.togglePlay)
+  const playing = usePlayerPlayStore(state => state.playing)
+
   const initialState = {
     pip: false,
-    playing: false,
     light: false,
     muted: false,
     played: 0,
@@ -64,7 +66,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   const [state, setState] = useState<PlayerState>(initialState)
 
-  const { playing, light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings } = state
+  const { light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings } = state
 
   useEffect(() => {
     setState(prev => ({
@@ -86,7 +88,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       }
     }
 
-    setState(prevState => ({ ...prevState, playing: !prevState.playing }))
+    togglePlay()
   }
 
   const handleSetPlaybackRate = (event: React.SyntheticEvent<HTMLButtonElement>) => {

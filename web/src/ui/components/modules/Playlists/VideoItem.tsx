@@ -1,13 +1,16 @@
 'use client'
 
+import { MouseEvent } from 'react'
+
 import Image from 'next/image'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import TrashIcon from '@/assets/icons/ic_trash.svg'
 import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
 import { cn } from '@/lib/utils/utils'
+import { usePlayerPlayStore } from '@/stores/player.store'
 
 interface Props {
   id: string
@@ -17,9 +20,25 @@ interface Props {
 }
 
 export default function VideoItem({ id, title, thumbnail, playlistId }: Props) {
+  const playing = usePlayerPlayStore(state => state.playing)
+  const togglePlay = usePlayerPlayStore(state => state.togglePlay)
+  const router = useRouter()
   const searchParams = useSearchParams()
   const videoId = searchParams.get('v')
   const isActive = videoId === id
+
+  const handlePlayPause = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+
+    if (!isActive) {
+      router.push(`/playlists/${playlistId}?v=${id}`)
+
+      if (!playing) togglePlay()
+      return
+    }
+
+    togglePlay()
+  }
 
   return (
     <Link
@@ -54,8 +73,11 @@ export default function VideoItem({ id, title, thumbnail, playlistId }: Props) {
       </div>
 
       <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-        <button className="p-1.5 group/play hover:bg-neutral-300/10 rounded-full cursor-pointer">
-          {isActive ? (
+        <button
+          className="p-1.5 group/play hover:bg-neutral-300/10 rounded-full cursor-pointer"
+          onClick={handlePlayPause}
+        >
+          {playing && isActive ? (
             <PauseIcon
               className={`size-4 ${isActive ? 'text-neutral-300' : 'text-neutral-500'}
                 group-hover/play:text-neutral-300`}
