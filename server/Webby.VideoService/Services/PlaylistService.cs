@@ -97,7 +97,7 @@ public class PlaylistService : IPlaylistService
       await _playlistRepository.DeleteAsync(playlistId);
    }
    
-   public async Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId)
+   public async Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId, Guid? requestedUserId)
    {
       var playlist = await _playlistRepository.FindByIdWithVideos(playlistId)
                      ?? throw new ApiException("Get playlist information error", 404, "Playlist wasn't found");
@@ -119,7 +119,7 @@ public class PlaylistService : IPlaylistService
             Views = video.Views,
             CreatedAt = video.CreatedAt,
             PreviewUrl = video.PreviewUrl,
-            IsPrivate = video.IsPrivate
+            IsPrivate = video.IsPrivate,
          };
 
          if (video.UserId != Guid.Empty)
@@ -127,7 +127,11 @@ public class PlaylistService : IPlaylistService
             try
             {
                var userResponse = await _userClient.GetUserByIdAsync(
-                  new GetUserRequest { UserId = video.UserId.ToString() }
+                  new GetUserRequest
+                  {
+                     UserId = video.UserId.ToString(),
+                     RequestUserId = requestedUserId.ToString()
+                  }
                );
 
                if (userResponse != null)
@@ -136,7 +140,8 @@ public class PlaylistService : IPlaylistService
                   {
                      UserId = Guid.Parse(userResponse.UserId),
                      Username = userResponse.Username,
-                     AvatarUrl = userResponse.AvatarUrl
+                     AvatarUrl = userResponse.AvatarUrl,
+                     IsFollowed = userResponse.IsFollowed
                   };
                }
             }
