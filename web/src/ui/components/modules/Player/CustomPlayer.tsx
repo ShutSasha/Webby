@@ -44,6 +44,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     playerRef.current = player
   }, [])
 
+  const triggerEnded = usePlayerPlayStore(state => state.triggerEnded)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
   const playing = usePlayerPlayStore(state => state.playing)
 
@@ -295,6 +296,9 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         }}
         onPlay={() => setState(prev => ({ ...prev, playing: true }))}
         onPause={() => setState(prev => ({ ...prev, playing: false }))}
+        onEnded={() => {
+          triggerEnded()
+        }}
       />
 
       {/* Overlay */}

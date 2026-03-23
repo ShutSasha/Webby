@@ -80,7 +80,7 @@ export default function VideoItem({ id, title, thumbnail, playlistId, optimistic
             width={96}
             height={96}
             className={cn(
-              'object-cover size-10 rounded-lg',
+              'object-cover size-10 rounded-lg shrink-0',
               isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100',
             )}
           />
