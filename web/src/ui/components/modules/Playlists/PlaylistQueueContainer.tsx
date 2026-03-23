@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { AnimatePresence } from 'framer-motion'
 import { useDebouncedCallback } from 'use-debounce'
 
 import { getPlaylistVideos, PlaylistVideo } from '@/app/api/playlists'
@@ -120,7 +121,7 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
         {loading && videos.length === 0 ? (
           <p className="text-center text-neutral-500 py-10">Loading queue...</p>
         ) : (
-          <>
+          <AnimatePresence mode="popLayout">
             {videos.map((video, index) => {
               if (videos.length === index + 1) {
                 return (
@@ -156,7 +157,7 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
             )}
 
             {!loading && videos.length === 0 && <p className="text-center text-neutral-500 py-10">No videos found</p>}
-          </>
+          </AnimatePresence>
         )}
       </div>
     </div>
