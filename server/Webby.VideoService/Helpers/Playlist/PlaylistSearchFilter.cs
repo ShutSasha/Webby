@@ -31,13 +31,18 @@ public static class PlaylistSearchFilter
    {
       return (
          @"
-            (
+        (
+            ""UserId"" = {2}
+            AND (
                 ""IsPrivate"" = FALSE
-                OR ""UserId"" = {2}
+                OR {3} = TRUE
             )
-            ",
-         new object[] { userId },
-         context => p => !p.IsPrivate || p.UserId == userId
+        )
+        ",
+         new object[] { userId, shouldShowPrivate },
+         context => p =>
+            p.UserId == userId &&
+            (!p.IsPrivate || shouldShowPrivate)
       );
    }
 }
