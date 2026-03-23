@@ -1,6 +1,8 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 import TrashIcon from '@/assets/icons/ic_trash.svg'
 import PauseIcon from '@/assets/icons/Player/pause.svg'
@@ -11,12 +13,17 @@ interface Props {
   id: string
   title: string
   thumbnail: string
-  isActive?: boolean
+  playlistId: string
 }
 
-export default function VideoItem({ id, title, thumbnail, isActive }: Props) {
+export default function VideoItem({ id, title, thumbnail, playlistId }: Props) {
+  const searchParams = useSearchParams()
+  const videoId = searchParams.get('v')
+  const isActive = videoId === id
+
   return (
-    <div
+    <Link
+      href={`/playlists/${playlistId}?v=${id}`}
       className={cn(
         `flex items-center justify-between p-2 rounded-xl bg-neutral-800/50 hover:bg-neutral-800 transition-all
         duration-300 border-b-2 border-transparent group cursor-pointer`,
@@ -71,6 +78,6 @@ export default function VideoItem({ id, title, thumbnail, isActive }: Props) {
           />
         </button>
       </div>
-    </div>
+    </Link>
   )
 }

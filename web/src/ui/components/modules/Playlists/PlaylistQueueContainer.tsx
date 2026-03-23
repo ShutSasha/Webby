@@ -125,7 +125,12 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
               if (videos.length === index + 1) {
                 return (
                   <div ref={lastVideoElementRef} key={video.videoId}>
-                    <VideoItem id={video.videoId} title={video.name} thumbnail={video.previewUrl} isActive={false} />
+                    <VideoItem
+                      id={video.videoId}
+                      title={video.name}
+                      thumbnail={video.previewUrl}
+                      playlistId={playlistId}
+                    />
                   </div>
                 )
               }
@@ -135,7 +140,7 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
                   id={video.videoId}
                   title={video.name}
                   thumbnail={video.previewUrl}
-                  isActive={false}
+                  playlistId={playlistId}
                 />
               )
             })}

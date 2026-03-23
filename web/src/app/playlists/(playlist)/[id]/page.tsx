@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 import { getPlaylistInfo } from '@/app/api/playlists'
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
@@ -13,24 +13,29 @@ import { auth } from '@/workspace/auth'
 
 type Props = {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ v?: string }>
 }
 
-export default async function PlaylistPage({ params }: Props) {
+export default async function PlaylistPage({ params, searchParams }: Props) {
   const { id: playlistId } = await params
   const session = await auth()
   const playlistInfoResponse = await getPlaylistInfo(playlistId)
+  const { v } = await searchParams
 
   if (!playlistInfoResponse.success || !playlistInfoResponse.data) {
     notFound()
   }
 
-  const { user } = playlistInfoResponse.data.firstVideo
-  const { videoId, description, createdAt, views, name } = playlistInfoResponse.data.firstVideo
+  const { videoId, description, createdAt, views, name, user } = playlistInfoResponse.data.firstVideo
+
+  if (!v) {
+    redirect(`/playlists/${playlistId}?v=${videoId}`)
+  }
 
   return (
     <div className="flex gap-5">
       <div className="h-fit min-w-0 w-full">
-        <PlayerContainer videoId={videoId} />
+        <PlayerContainer videoId={v} />
 
         <div className="flex items-center justify-between mt-3 mb-2">
           <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
