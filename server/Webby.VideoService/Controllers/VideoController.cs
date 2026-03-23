@@ -44,7 +44,8 @@ public class VideoController: ControllerBase
       [FromRoute] Guid playlistId,
       [FromQuery] SearchOptions searchOptions)
    {
-      var pagesResponse = await _videoService.SearchVideoInPlaylist(playlistId, searchOptions);
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var pagesResponse = await _videoService.SearchVideoInPlaylist(requestUserId,playlistId, searchOptions);
       return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video from playlist",pagesResponse));
    }
 
