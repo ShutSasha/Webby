@@ -37,7 +37,8 @@ public class PlaylistController : ControllerBase
    [SwaggerOperation("Get playlist information")]
    public async Task<ActionResult<ApiResponse<GetPlaylistResponse>>> GetPlaylistInformation([FromRoute] Guid playlistId)
    {
-      var playlistInformation = await _playlistService.GetPlaylistInformation(playlistId);
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var playlistInformation = await _playlistService.GetPlaylistInformation(playlistId, requestUserId);
       return Ok(ApiResponse<GetPlaylistResponse>.Ok("Successfully retrieved playlist information", playlistInformation));
    }
 
