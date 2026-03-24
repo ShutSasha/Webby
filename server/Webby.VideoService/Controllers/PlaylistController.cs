@@ -23,13 +23,21 @@ public class PlaylistController : ControllerBase
    public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistPreviewDto>>>> GetUserPlaylists(
       [FromRoute] Guid userId,
       [FromQuery] SearchOptions searchOptions,
-      [FromQuery] Guid? videoId)
+      [FromQuery] string? videoId)
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+
+      Guid? videoIdGuid = null;
+
+      if (!string.IsNullOrWhiteSpace(videoId) && Guid.TryParse(videoId, out var parsedVideoId))
+      {
+         videoIdGuid = parsedVideoId;
+      }
+
       var result = await _playlistService
          .GetUserPlaylists(
             requestUserId,
-            videoId,
+            videoIdGuid,
             userId,
             searchOptions);
 
@@ -68,7 +76,6 @@ public class PlaylistController : ControllerBase
    }
    
    //TODO: Measure response time in stress testing
-   //TODO: Add check if user can add this video (privacy check)
    [HttpPost("videos")]
    [SwaggerOperation("Add or delete videos in playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> AddVideoToPlaylist([FromBody] AddVideoToPlaylistRequest request)
