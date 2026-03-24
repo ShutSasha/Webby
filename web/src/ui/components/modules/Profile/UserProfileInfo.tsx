@@ -5,7 +5,6 @@ import { checkFollowing, getUser } from '@/app/api/user'
 import MailIcon from '@/assets/icons/ic_mail.svg'
 import { cn } from '@/lib/utils/utils'
 import EditProfileBtn from '@/ui/components/modules/Profile/EditProfileBtn'
-import ProfileActionButton from '@/ui/components/modules/Profile/ProfileActionButton'
 import { UserAchievements } from '@/ui/components/modules/Profile/UserAchivments'
 import UserBioSection from '@/ui/components/modules/Profile/UserBioSection'
 import { BLUR_DATA_URLS } from '@/ui/images'
@@ -13,6 +12,7 @@ import { auth } from '@/workspace/auth'
 
 import ComplaintButton from './ComplaintButton'
 import FollowButton from './FollowButton'
+import ActionButton from '../../shared/ActionButton'
 
 export default async function UserProfileInfo({ id }: { id: string }) {
   const userData = await getUser(id)
@@ -57,9 +57,9 @@ export default async function UserProfileInfo({ id }: { id: string }) {
 
         {!isOwner && (
           <div className="flex items-center gap-2">
-            <ProfileActionButton label="Chat">
+            <ActionButton label="Chat">
               <MailIcon className="w-4 h-4" />
-            </ProfileActionButton>
+            </ActionButton>
 
             <FollowButton targetUserId={id} initialIsFollowing={isFollowing} />
           </div>

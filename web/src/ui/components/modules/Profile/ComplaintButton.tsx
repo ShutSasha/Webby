@@ -7,7 +7,7 @@ import ComplaintIcon from '@/assets/icons/Profile/ic_complaint.svg'
 import { cn, extractServerMessage } from '@/lib/utils/utils'
 import { useToastStore } from '@/stores/toast-store'
 
-import ProfileActionButton from './ProfileActionButton'
+import ActionButton from '../../shared/ActionButton'
 import Modal from '../../shared/Modal'
 
 type Step = 'REASON' | 'DETAILS' | 'SUCCESS'
@@ -67,9 +67,9 @@ export default function ComplaintButton({ authorId, targetId, targetType }: Prop
 
   return (
     <>
-      <ProfileActionButton onClick={() => setIsOpen(true)} label="Leave complaint" btnClassName="self-end">
+      <ActionButton onClick={() => setIsOpen(true)} label="Leave complaint" btnClassName="self-end">
         <ComplaintIcon className="w-4 h-4" />
-      </ProfileActionButton>
+      </ActionButton>
       <Modal isOpen={isOpen} onClose={handleClose}>
         <div className="flex flex-col w-full gap-3">
           {step === 'REASON' && targetType === 'User' && (

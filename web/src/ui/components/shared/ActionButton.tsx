@@ -2,15 +2,14 @@
 
 import { ReactNode } from 'react'
 
-interface ProfileActionButtonProps {
+interface Props {
   children: ReactNode
   label: string
   onClick?: () => void
-
   btnClassName?: string
 }
 
-export default function ProfileActionButton({ children, label, onClick, btnClassName }: ProfileActionButtonProps) {
+export default function ActionButton({ children, label, onClick, btnClassName }: Props) {
   return (
     <button
       onClick={onClick}
