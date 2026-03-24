@@ -112,8 +112,6 @@ export async function searchPlaylists(
       `${endpoint}/search?SearchText=${encodeURIComponent(query)}&Page=${page}&PageSize=${pageSize}`,
     )
 
-    clog('playlists', response)
-
     return response
   } catch (error: unknown) {
     serverLog('GET_PLAYLISTS_WHILE_SEARCH_ERROR', error, true)
@@ -122,6 +120,41 @@ export async function searchPlaylists(
       data: null,
       success: false,
       message: `Failed to retrieve playlists from playlist search`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+// TODO: CHANGE RESPONSE TYPES AFTER PULL NEW COMMITS
+export type UserPlaylistDetails = Omit<PlaylistDetails, 'userId'>
+
+export type UserPlaylistsSearchData = {
+  items: UserPlaylistDetails[]
+  page: number
+  pageSize: number
+  totalCount: number
+}
+
+export async function searchUserPlaylists(
+  userId: string,
+  query: string,
+  page: number,
+  pageSize: number,
+  targetVideoId?: string | undefined,
+): Promise<BaseServerResponse<UserPlaylistsSearchData>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<UserPlaylistsSearchData>>(
+      `${endpoint}/${userId}?SearchText=${encodeURIComponent(query)}&Page=${page}&PageSize=${pageSize}&videoId=${targetVideoId ?? ''}`,
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_USER_PLAYLISTS_WHILE_SEARCH_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to retrieve user playlists from playlist search`,
       errors: parseAxiosError(error),
     }
   }

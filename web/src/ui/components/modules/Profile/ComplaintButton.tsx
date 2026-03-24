@@ -156,7 +156,7 @@ function ReasonButton({ reason, onClick }: { reason: string; onClick: () => void
   return (
     <button
       onClick={onClick}
-      className="w-full border border-neutral-700 rounded-lg py-3 px-4 text-left cursor-pointer bg-neutral-900/50
+      className="w-full border border-neutral-700 rounded-2xl py-3 px-4 text-left cursor-pointer bg-neutral-900/50
         hover:bg-neutral-800 hover:border-emerald-500 transition-all text-neutral-200"
     >
       {reason}

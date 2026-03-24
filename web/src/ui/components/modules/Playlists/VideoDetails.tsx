@@ -2,10 +2,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import { getVideoInfo } from '@/app/api/videos'
-import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
-import ActionButton from '../../shared/ActionButton'
+import SaveToPlaylistButton from '../../shared/SaveToPlaylistButton'
 import CustomPlayer from '../Player/CustomPlayer'
 import ComplaintButton from '../Profile/ComplaintButton'
 import FollowButton from '../Profile/FollowButton'
@@ -37,9 +36,7 @@ export default async function VideoDetails({ v, userId }: Props) {
       <div className="flex items-center justify-between mt-3 mb-2">
         <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
         <div className="flex gap-3 items-center">
-          <ActionButton label="Add to playlist" btnClassName="self-end">
-            <PlusIcon className="size-4 text-emerald-500" />
-          </ActionButton>
+          <SaveToPlaylistButton userId={userId} />
 
           <ComplaintButton authorId={userId} targetId={videoId} targetType="Video" />
         </div>
