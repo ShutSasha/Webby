@@ -233,7 +233,6 @@ public class PlaylistService : IPlaylistService
    }
    
    //TODO: Added countOfVideos and playlistCover
-
    public async Task<PagedResponse<PlaylistDto>> SearchPlaylists(Guid? requestUserId, SearchOptions searchOptions)
    {
       var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
@@ -251,8 +250,10 @@ public class PlaylistService : IPlaylistService
             predicateFactory: Predicat
          );
 
-
-      var items = playlists.Select(MapToPlaylistDto).ToList();
+      var playlistIds = playlists.Select(p => p.PlaylistId).ToList();
+      var detailedPlaylists = await _playlistRepository.GetPlaylistsDetails(playlistIds);
+      
+      var items = detailedPlaylists.Select(MapToPlaylistDto).ToList();
 
       return new PagedResponse<PlaylistDto>
       {
@@ -293,7 +294,8 @@ public class PlaylistService : IPlaylistService
             PlaylistCover = p.PlaylistVideos
                                .MaxBy(pv => pv.Video.CreatedAt)?.Video.PreviewUrl 
                             ?? DefaultLinks.PlaylistEmptyLink,
-            IsVideoAdded = videoId.HasValue && addedSet.Contains(p.PlaylistId)
+            IsVideoAdded = videoId.HasValue && addedSet.Contains(p.PlaylistId),
+            IsPrivate = p.IsPrivate
          })
          .ToList();
    }
