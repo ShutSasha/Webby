@@ -7,4 +7,5 @@ public class PlaylistPreviewDto
    public required string PlaylistCover { get; set; }
    public required int CountOfVideos { get; set; }
    public required bool IsVideoAdded { get; set; } = false;
+   public required bool IsPrivate { get; set; }
 }

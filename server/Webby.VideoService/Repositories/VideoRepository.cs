@@ -32,5 +32,16 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
 
       return (videos, totalCount);
    }
-   
+
+   public async Task<bool> CheckVideosCount(List<Guid> videoIds)
+   {
+      return await _context.Videos.Where(v => videoIds.Contains(v.VideoId)).CountAsync() == videoIds.Count;
+   }
+
+   public async Task<bool> CheckForbiddenVideos(List<Guid> playlistVideosIds, Guid requestUserId)
+   {
+      return await _context.Videos.AnyAsync(v => playlistVideosIds.Contains(v.VideoId)
+                                      && v.IsPrivate
+                                      && v.UserId != requestUserId);
+   }
 }

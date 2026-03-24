@@ -13,6 +13,7 @@ public interface IVideoService
    Task UpdateVideoInformation(Guid userId, UpdateVideoRequest request);
    Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchOptions options);
    Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId, Guid playlistId, SearchOptions searchOptions);
+   Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId);
 
 
 }
