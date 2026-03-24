@@ -62,8 +62,9 @@ func run(ctx context.Context, w io.Writer) error {
 
 	roomRepository := repository.NewRoomRepository(db)
 	categoryRepository := repository.NewCategoryRepository(db)
+	fileStorage := repository.NewFileStorage(config)
 
-	roomService := services.NewRoomService(roomRepository)
+	roomService := services.NewRoomService(roomRepository, fileStorage)
 	categoryService := services.NewCategoryService(categoryRepository)
 
 	logger.Info("repositories initialized")

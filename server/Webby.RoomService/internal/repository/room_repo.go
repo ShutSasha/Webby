@@ -28,8 +28,8 @@ func (r *RoomRepository) Create(room *models.Room) (uuid.UUID, error) {
 	room.Id = uuid.New()
 
 	query := `
-		INSERT INTO rooms (id, host_id, category_id, name, thumbnail, is_private, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO rooms (id, host_id, category_id, name, thumbnail, token, is_private, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	`
 
 	err := r.db.QueryRow(
@@ -39,6 +39,7 @@ func (r *RoomRepository) Create(room *models.Room) (uuid.UUID, error) {
 		room.CategoryId,
 		room.Name,
 		room.Thumbnail,
+		room.Token,
 		room.IsPrivate,
 		room.CreatedAt,
 	).Err()
@@ -84,7 +85,7 @@ func (r *RoomRepository) GetById(id uuid.UUID) (*models.Room, error) {
 	}
 
 	query := `
-		SELECT id, host_id, category_id, name, thumbnail, is_private, created_at
+		SELECT id, host_id, category_id, name, thumbnail, token, is_private, created_at
 		FROM rooms
 		WHERE id = $1
 	`
@@ -96,6 +97,7 @@ func (r *RoomRepository) GetById(id uuid.UUID) (*models.Room, error) {
 		&room.CategoryId,
 		&room.Name,
 		&room.Thumbnail,
+		&room.Token,
 		&room.IsPrivate,
 		&room.CreatedAt,
 	)
@@ -103,6 +105,41 @@ func (r *RoomRepository) GetById(id uuid.UUID) (*models.Room, error) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("%s: room %s: %w", op, id.String(), apperrors.ErrNotFound)
+		}
+		return nil, fmt.Errorf("%s: query failed: %w", op, err)
+	}
+
+	return &room, nil
+}
+
+func (r *RoomRepository) GetByToken(token string) (*models.Room, error) {
+	const op = "repository.RoomRepository.GetByToken"
+
+	if token == "" {
+		return nil, fmt.Errorf("%s: %w: token cannot be empty", op, apperrors.ErrInvalidInput)
+	}
+
+	query := `
+		SELECT id, host_id, category_id, name, thumbnail, token, is_private, created_at
+		FROM rooms
+		WHERE token = $1
+	`
+
+	var room models.Room
+	err := r.db.QueryRow(query, token).Scan(
+		&room.Id,
+		&room.HostId,
+		&room.CategoryId,
+		&room.Name,
+		&room.Thumbnail,
+		&room.Token,
+		&room.IsPrivate,
+		&room.CreatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("%s: room with token %s: %w", op, token, apperrors.ErrNotFound)
 		}
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -137,7 +174,7 @@ func (r *RoomRepository) ListMy(userId uuid.UUID, page int, limit int) ([]models
 	}
 
 	query := `
-		SELECT id, host_id, category_id, name, thumbnail, is_private, created_at
+		SELECT id, host_id, category_id, name, thumbnail, token, is_private, created_at
 		FROM rooms
 		WHERE host_id = $1
 		ORDER BY created_at DESC
@@ -159,6 +196,7 @@ func (r *RoomRepository) ListMy(userId uuid.UUID, page int, limit int) ([]models
 			&room.CategoryId,
 			&room.Name,
 			&room.Thumbnail,
+			&room.Token,
 			&room.IsPrivate,
 			&room.CreatedAt,
 		)
@@ -175,7 +213,7 @@ func (r *RoomRepository) ListMy(userId uuid.UUID, page int, limit int) ([]models
 	return rooms, total, nil
 }
 
-func (r *RoomRepository) ListPublic(page int, limit int) ([]models.Room, int64, error) {
+func (r *RoomRepository) ListPublic(page int, limit int, search string, categoryId *uuid.UUID) ([]models.Room, int64, error) {
 	const op = "repository.RoomRepository.ListPublic"
 
 	if page < 1 {
@@ -190,22 +228,40 @@ func (r *RoomRepository) ListPublic(page int, limit int) ([]models.Room, int64, 
 
 	offset := (page - 1) * limit
 
-	countQuery := `SELECT COUNT(*) FROM rooms WHERE is_private = false`
+	whereClause := "WHERE is_private = false"
+	countArgs := []any{}
+	paramN := 1
+
+	if search != "" {
+		whereClause += fmt.Sprintf(" AND name ILIKE $%d", paramN)
+		countArgs = append(countArgs, "%"+search+"%")
+		paramN++
+	}
+
+	if categoryId != nil {
+		whereClause += fmt.Sprintf(" AND category_id = $%d", paramN)
+		countArgs = append(countArgs, *categoryId)
+		paramN++
+	}
+
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM rooms %s`, whereClause)
 	var total int64
-	err := r.db.QueryRow(countQuery).Scan(&total)
+	err := r.db.QueryRow(countQuery, countArgs...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
 
-	query := `
-		SELECT id, host_id, category_id, name, thumbnail, is_private, created_at
+	query := fmt.Sprintf(`
+		SELECT id, host_id, category_id, name, thumbnail, token, is_private, created_at
 		FROM rooms
-		WHERE is_private = false
+		%s
 		ORDER BY created_at DESC
-		LIMIT $1 OFFSET $2
-	`
+		LIMIT $%d OFFSET $%d
+	`, whereClause, paramN, paramN+1)
 
-	rows, err := r.db.Query(query, limit, offset)
+	dataArgs := append(countArgs, limit, offset)
+
+	rows, err := r.db.Query(query, dataArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
@@ -220,6 +276,7 @@ func (r *RoomRepository) ListPublic(page int, limit int) ([]models.Room, int64, 
 			&room.CategoryId,
 			&room.Name,
 			&room.Thumbnail,
+			&room.Token,
 			&room.IsPrivate,
 			&room.CreatedAt,
 		)

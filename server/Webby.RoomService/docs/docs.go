@@ -296,7 +296,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "format": "uuid",
-                        "description": "Category ID (UUID v4, required)",
+                        "description": "Category ID (required)",
                         "name": "categoryId",
                         "in": "formData",
                         "required": true
@@ -323,7 +323,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid input: name empty/too short/too long, invalid categoryId UUID, invalid isPrivate boolean, file too large, wrong Content-Type, or missing required fields",
+                        "description": "Invalid input: name empty/too short/too long, invalid categoryId UUID, invalid isPrivate boolean, file too large or missing required fields",
                         "schema": {
                             "$ref": "#/definitions/docs.Error400Response"
                         }
@@ -405,12 +405,7 @@ const docTemplate = `{
         },
         "/rooms/public": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve a paginated list of all publicly visible rooms in the system.\n**Query Parameter Validation:**\n* ` + "`" + `page` + "`" + `: **optional** (default: 1), must be \u003e= 1, must be numeric\n* ` + "`" + `limit` + "`" + `: **optional** (default: 10), must be 1-100, must be numeric\n**Security Note:**\n* This action **requires authentication**\n* Returns **only** public rooms (private rooms are excluded)\n* Pagination prevents excessive data retrieval",
+                "description": "Retrieve a paginated list of all publicly visible rooms in the system.\n**Query Parameter Validation:**\n* ` + "`" + `page` + "`" + `: **optional** (default: 1), must be \u003e= 1, must be numeric\n* ` + "`" + `limit` + "`" + `: **optional** (default: 10), must be 1-100, must be numeric\n* ` + "`" + `search` + "`" + `: **optional**, filters rooms by name (case-insensitive partial match)\n* ` + "`" + `category` + "`" + `: **optional**, filters rooms by category ID (UUID v4 format)\n**Security Note:**\n* Returns **only** public rooms (private rooms are excluded)\n* Pagination prevents excessive data retrieval",
                 "produces": [
                     "application/json"
                 ],
@@ -432,6 +427,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Items per page (default: 10, max: 100)",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search rooms by name (optional, case-insensitive)",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by category ID (optional, UUID v4 format)",
+                        "name": "category",
                         "in": "query"
                     }
                 ],
@@ -463,6 +470,74 @@ const docTemplate = `{
                 }
             }
         },
+        "/rooms/token": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve room information using its unique invite token.\n**Request Body Validation:**\n* ` + "`" + `token` + "`" + `: **required**, cannot be empty or whitespace-only\n**Security Note:**\n* This action **requires authentication**",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Get a room by invite token",
+                "parameters": [
+                    {
+                        "description": "Room invite token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "token": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Room successfully retrieved by token",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ApiResponse-docs_RoomResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or missing token",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error400Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid authentication token",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error401Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Room with given token not found",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error404Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error500Response"
+                        }
+                    }
+                }
+            }
+        },
         "/rooms/{id}": {
             "get": {
                 "security": [
@@ -470,7 +545,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve a room by its ID.\n**Access Rules:**\n* **Public rooms** can be retrieved by any authenticated user\n* **Private rooms** can only be retrieved by the room creator or administrators\n**Path Parameter Validation:**\n* ` + "`" + `id` + "`" + `: must be a valid UUID v4 format\n**Security Note:**\n* This action **requires authentication**",
+                "description": "Retrieve a room by its ID.\n**Access Rules:**\n* Only the **room creator (host)** can retrieve the room by ID\n**Path Parameter Validation:**\n* ` + "`" + `id` + "`" + `: must be a valid UUID v4 format\n**Security Note:**\n* This action **requires authentication**",
                 "produces": [
                     "application/json"
                 ],
@@ -507,7 +582,7 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Access denied - private room and not owner",
+                        "description": "Access denied - only the room creator can retrieve",
                         "schema": {
                             "$ref": "#/definitions/docs.Error403Response"
                         }
@@ -689,6 +764,11 @@ const docTemplate = `{
                 "data": {
                     "$ref": "#/definitions/docs.PaginatedResponse-docs_RoomListItem"
                 },
+                "errors": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
                 "message": {
                     "type": "string",
                     "example": "Operation completed successfully"
@@ -704,6 +784,11 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/docs.CategoryResponse"
+                },
+                "errors": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
                 },
                 "message": {
                     "type": "string",
@@ -721,6 +806,11 @@ const docTemplate = `{
                 "data": {
                     "$ref": "#/definitions/docs.PaginatedResponse-docs_CategoryResponse"
                 },
+                "errors": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
                 "message": {
                     "type": "string",
                     "example": "Operation completed successfully"
@@ -736,6 +826,11 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/docs.RoomResponse"
+                },
+                "errors": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
                 },
                 "message": {
                     "type": "string",
@@ -777,6 +872,11 @@ const docTemplate = `{
         "docs.Error400Response": {
             "type": "object",
             "properties": {
+                "data": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
                 "errors": {
                     "type": "object",
                     "additionalProperties": {
@@ -799,6 +899,11 @@ const docTemplate = `{
         "docs.Error401Response": {
             "type": "object",
             "properties": {
+                "data": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
                 "errors": {
                     "type": "object",
                     "additionalProperties": {
@@ -821,6 +926,11 @@ const docTemplate = `{
         "docs.Error403Response": {
             "type": "object",
             "properties": {
+                "data": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
                 "errors": {
                     "type": "object",
                     "additionalProperties": {
@@ -843,6 +953,11 @@ const docTemplate = `{
         "docs.Error404Response": {
             "type": "object",
             "properties": {
+                "data": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
                 "errors": {
                     "type": "object",
                     "additionalProperties": {
@@ -865,6 +980,11 @@ const docTemplate = `{
         "docs.Error409Response": {
             "type": "object",
             "properties": {
+                "data": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
                 "errors": {
                     "type": "object",
                     "additionalProperties": {
@@ -887,6 +1007,11 @@ const docTemplate = `{
         "docs.Error500Response": {
             "type": "object",
             "properties": {
+                "data": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
                 "errors": {
                     "type": "object",
                     "additionalProperties": {
@@ -978,6 +1103,10 @@ const docTemplate = `{
                 "thumbnail": {
                     "type": "string",
                     "example": "https://example.com/thumbnail.jpg"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "abc123def456ghij"
                 }
             }
         },
@@ -1007,6 +1136,10 @@ const docTemplate = `{
                 "thumbnail": {
                     "type": "string",
                     "example": "https://example.com/thumbnail.jpg"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "abc123def456ghij"
                 }
             }
         },

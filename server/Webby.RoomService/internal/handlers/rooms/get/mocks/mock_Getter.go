@@ -3,9 +3,11 @@
 package mocks
 
 import (
-	models "webby/internal/models"
+	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+
+	models "webby/internal/models"
 
 	uuid "github.com/google/uuid"
 )
@@ -23,9 +25,9 @@ func (_m *MockGetter) EXPECT() *MockGetter_Expecter {
 	return &MockGetter_Expecter{mock: &_m.Mock}
 }
 
-// GetById provides a mock function with given fields: id
-func (_m *MockGetter) GetById(id uuid.UUID) (*models.Room, error) {
-	ret := _m.Called(id)
+// GetById provides a mock function with given fields: ctx, roomId, userId
+func (_m *MockGetter) GetById(ctx context.Context, roomId uuid.UUID, userId uuid.UUID) (*models.Room, error) {
+	ret := _m.Called(ctx, roomId, userId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetById")
@@ -33,19 +35,19 @@ func (_m *MockGetter) GetById(id uuid.UUID) (*models.Room, error) {
 
 	var r0 *models.Room
 	var r1 error
-	if rf, ok := ret.Get(0).(func(uuid.UUID) (*models.Room, error)); ok {
-		return rf(id)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (*models.Room, error)); ok {
+		return rf(ctx, roomId, userId)
 	}
-	if rf, ok := ret.Get(0).(func(uuid.UUID) *models.Room); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *models.Room); ok {
+		r0 = rf(ctx, roomId, userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Room)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(uuid.UUID) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = rf(ctx, roomId, userId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -59,14 +61,16 @@ type MockGetter_GetById_Call struct {
 }
 
 // GetById is a helper method to define mock.On call
-//   - id uuid.UUID
-func (_e *MockGetter_Expecter) GetById(id interface{}) *MockGetter_GetById_Call {
-	return &MockGetter_GetById_Call{Call: _e.mock.On("GetById", id)}
+//   - ctx context.Context
+//   - roomId uuid.UUID
+//   - userId uuid.UUID
+func (_e *MockGetter_Expecter) GetById(ctx interface{}, roomId interface{}, userId interface{}) *MockGetter_GetById_Call {
+	return &MockGetter_GetById_Call{Call: _e.mock.On("GetById", ctx, roomId, userId)}
 }
 
-func (_c *MockGetter_GetById_Call) Run(run func(id uuid.UUID)) *MockGetter_GetById_Call {
+func (_c *MockGetter_GetById_Call) Run(run func(ctx context.Context, roomId uuid.UUID, userId uuid.UUID)) *MockGetter_GetById_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(uuid.UUID))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
 	})
 	return _c
 }
@@ -76,7 +80,7 @@ func (_c *MockGetter_GetById_Call) Return(_a0 *models.Room, _a1 error) *MockGett
 	return _c
 }
 
-func (_c *MockGetter_GetById_Call) RunAndReturn(run func(uuid.UUID) (*models.Room, error)) *MockGetter_GetById_Call {
+func (_c *MockGetter_GetById_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) (*models.Room, error)) *MockGetter_GetById_Call {
 	_c.Call.Return(run)
 	return _c
 }

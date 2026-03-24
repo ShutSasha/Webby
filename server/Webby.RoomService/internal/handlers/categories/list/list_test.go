@@ -311,14 +311,14 @@ func assertPaginatedEmptySuccess(t *testing.T, body string) {
 }
 
 func assertErrorResponse(t *testing.T, body string) {
-	var resp responses.ErrorResponse
+	var resp responses.ApiResponse[struct{}]
 	err := json.Unmarshal([]byte(body), &resp)
 	assert.NoError(t, err)
 	assert.False(t, resp.Success)
 }
 
 func assertErrorMessage(t *testing.T, body string, msg string) {
-	var resp responses.ErrorResponse
+	var resp responses.ApiResponse[struct{}]
 	err := json.Unmarshal([]byte(body), &resp)
 	assert.NoError(t, err)
 	assert.False(t, resp.Success)

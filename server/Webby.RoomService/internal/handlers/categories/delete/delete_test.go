@@ -106,7 +106,7 @@ func validateNoContent(t *testing.T, body string) {
 
 func validateErrorResponse(t *testing.T, body string) {
 	t.Helper()
-	var resp responses.ErrorResponse
+	var resp responses.ApiResponse[struct{}]
 	if err := json.Unmarshal([]byte(body), &resp); err != nil {
 		t.Errorf("failed to unmarshal JSON response: %v", err)
 		return
@@ -119,7 +119,7 @@ func validateErrorResponse(t *testing.T, body string) {
 func validateErrorMessage(expectedMessage string) func(t *testing.T, body string) {
 	return func(t *testing.T, body string) {
 		t.Helper()
-		var resp responses.ErrorResponse
+		var resp responses.ApiResponse[struct{}]
 		if err := json.Unmarshal([]byte(body), &resp); err != nil {
 			t.Errorf("failed to unmarshal JSON response: %v", err)
 			return

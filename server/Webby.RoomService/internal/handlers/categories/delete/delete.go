@@ -38,20 +38,23 @@ func New(logger *slog.Logger, deleter Deleter) http.Handler {
 // @Security     BearerAuth
 // @Router       /categories/{id} [delete]
 func deleteCategory(logger *slog.Logger, deleter Deleter) errorWrapper.APIFunc {
-	_ = logger.With(slog.String("operation", "httpserver.categories.delete"))
+	log := logger.With(slog.String("operation", "httpserver.categories.delete"))
 
 	return func(w http.ResponseWriter, r *http.Request) error {
 		idStr := r.PathValue("id")
 
 		id, err := uuid.Parse(idStr)
 		if err != nil {
+			log.Debug("Validation error", slog.Any("err", err.Error()))
 			return responses.NewApiError("Validation error", apperrors.ErrInvalidInput)
 		}
 
 		if err := deleter.Delete(id); err != nil {
+			log.Debug("Delete category error", slog.Any("err", err.Error()))
 			return responses.NewApiError("Delete category error", err)
 		}
 
+		log.Debug("Category successfully deleted", slog.String("id", idStr))
 		w.WriteHeader(http.StatusNoContent)
 		return nil
 	}

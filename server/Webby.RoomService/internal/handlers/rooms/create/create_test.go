@@ -2,264 +2,231 @@ package create_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+
+	"webby/internal/apperrors"
 	"webby/internal/handlers/responses"
 	"webby/internal/handlers/rooms/create"
 	"webby/internal/handlers/rooms/create/mocks"
 	"webby/internal/models"
 
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
-func TestCreateRoom(t *testing.T) {
+func TestCreateRoom_Success(t *testing.T) {
 	categoryID := uuid.New()
+	testUserID := uuid.New()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	tests := []struct {
-		name           string
-		roomData       map[string]any
-		mockSetup      func(*mocks.MockCreator)
-		expectedStatus int
-		validateBody   func(t *testing.T, body string)
+		name        string
+		roomData    map[string]string
+		fileName    string
+		fileContent []byte
+		isPrivate   bool
 	}{
 		{
-			name: "Success - Public Room Created",
-			roomData: map[string]any{
-				"name":       "Gaming Room",
-				"categoryId": categoryID.String(),
-				"isPrivate":  "false",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create(mock.MatchedBy(func(r *models.Room) bool {
-					return r.Name == "Gaming Room" && r.CategoryId == categoryID && !r.IsPrivate
-				})).Return(uuid.New(), nil).Once()
-			},
-			expectedStatus: http.StatusCreated,
-			validateBody: func(t *testing.T, body string) {
-				assertSuccessResponse(t, body)
-			},
+			name:      "Public Room Created",
+			roomData:  map[string]string{"name": "Gaming Room", "categoryId": categoryID.String(), "isPrivate": "false"},
+			isPrivate: false,
 		},
 		{
-			name: "Success - Private Room Created",
-			roomData: map[string]any{
-				"name":       "Private Gaming Room",
-				"categoryId": categoryID.String(),
-				"isPrivate":  "true",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create(mock.MatchedBy(func(r *models.Room) bool {
-					return r.Name == "Private Gaming Room" && r.CategoryId == categoryID && r.IsPrivate
-				})).Return(uuid.New(), nil).Once()
-			},
-			expectedStatus: http.StatusCreated,
-			validateBody: func(t *testing.T, body string) {
-				assertSuccessResponse(t, body)
-			},
+			name:      "Private Room Created",
+			roomData:  map[string]string{"name": "Private Gaming Room", "categoryId": categoryID.String(), "isPrivate": "true"},
+			isPrivate: true,
 		},
 		{
-			name: "Failure - Invalid Name Too Short",
-			roomData: map[string]any{
-				"name":       "G",
-				"categoryId": categoryID.String(),
-				"isPrivate":  "false",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-			},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
-			},
+			name:      "Name Exactly 2 Characters",
+			roomData:  map[string]string{"name": "Go", "categoryId": categoryID.String(), "isPrivate": "false"},
+			isPrivate: false,
 		},
 		{
-			name: "Failure - Invalid Name Too Long",
-			roomData: map[string]any{
-				"name":       "This room name is way too long and definitely exceeds the maximum limit of fifty characters",
-				"categoryId": categoryID.String(),
-				"isPrivate":  "false",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-			},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
-			},
+			name:      "Name Exactly 50 Characters",
+			roomData:  map[string]string{"name": strings.Repeat("A", 50), "categoryId": categoryID.String(), "isPrivate": "true"},
+			isPrivate: true,
 		},
 		{
-			name: "Failure - Missing Required Field Name",
-			roomData: map[string]any{
-				"categoryId": categoryID.String(),
-				"isPrivate":  "false",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-			},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
-			},
+			name:        "With Thumbnail Upload",
+			roomData:    map[string]string{"name": "Art Room", "categoryId": categoryID.String(), "isPrivate": "false"},
+			fileName:    "thumb.png",
+			fileContent: []byte("fake-image-data"),
+			isPrivate:   false,
 		},
 		{
-			name: "Failure - Invalid CategoryId UUID",
-			roomData: map[string]any{
-				"name":       "Gaming Room",
-				"categoryId": "invalid-uuid",
-				"isPrivate":  "false",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-			},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
-			},
-		},
-		{
-			name: "Failure - Service Generic Error",
-			roomData: map[string]any{
-				"name":       "Gaming Room",
-				"categoryId": categoryID.String(),
-				"isPrivate":  "false",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create(mock.Anything).Return(uuid.UUID{}, errors.New("database error")).Once()
-			},
-			expectedStatus: http.StatusInternalServerError,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorMessage(t, body, "Internal server error")
-			},
-		},
-		{
-			name: "Failure - Missing CategoryId Field",
-			roomData: map[string]any{
-				"name":      "Gaming Room",
-				"isPrivate": "false",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-			},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
-			},
-		},
-		{
-			name: "Failure - Missing IsPrivate Field",
-			roomData: map[string]any{
-				"name":       "Gaming Room",
-				"categoryId": categoryID.String(),
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-			},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
-			},
-		},
-		{
-			name: "Failure - Invalid IsPrivate Boolean",
-			roomData: map[string]any{
-				"name":       "Gaming Room",
-				"categoryId": categoryID.String(),
-				"isPrivate":  "maybe",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-			},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
-			},
-		},
-		{
-			name: "Success - Name Exactly 2 Characters (Min Boundary)",
-			roomData: map[string]any{
-				"name":       "Go",
-				"categoryId": categoryID.String(),
-				"isPrivate":  "false",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create(mock.MatchedBy(func(r *models.Room) bool {
-					return r.Name == "Go" && r.CategoryId == categoryID && !r.IsPrivate
-				})).Return(uuid.New(), nil).Once()
-			},
-			expectedStatus: http.StatusCreated,
-			validateBody: func(t *testing.T, body string) {
-				assertSuccessResponse(t, body)
-			},
-		},
-		{
-			name: "Success - Name Exactly 50 Characters (Max Boundary)",
-			roomData: map[string]any{
-				"name":       "12345678901234567890123456789012345678901234567890",
-				"categoryId": categoryID.String(),
-				"isPrivate":  "true",
-			},
-			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create(mock.MatchedBy(func(r *models.Room) bool {
-					return r.Name == "12345678901234567890123456789012345678901234567890" && r.CategoryId == categoryID && r.IsPrivate
-				})).Return(uuid.New(), nil).Once()
-			},
-			expectedStatus: http.StatusCreated,
-			validateBody: func(t *testing.T, body string) {
-				assertSuccessResponse(t, body)
-			},
+			name:        "Thumbnail Exactly 2MB",
+			roomData:    map[string]string{"name": "Art Room", "categoryId": categoryID.String(), "isPrivate": "false"},
+			fileName:    "thumb.png",
+			fileContent: make([]byte, 2*1024*1024),
+			isPrivate:   false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCreator := mocks.NewMockCreator(t)
-			tt.mockSetup(mockCreator)
+			expectedRoom := &models.Room{Id: uuid.New(), Name: tt.roomData["name"]}
+
+			expectCreate(mockCreator, tt.roomData["name"], categoryID, tt.isPrivate, testUserID, tt.fileContent, tt.fileName, expectedRoom, nil)
 
 			handler := create.New(logger, mockCreator)
-
-			body := &bytes.Buffer{}
-			writer := multipart.NewWriter(body)
-
-			for key, value := range tt.roomData {
-				writer.WriteField(key, value.(string))
-			}
-
-			writer.Close()
-
-			req := httptest.NewRequest("POST", "/rooms", body)
-			req.Header.Set("Content-Type", writer.FormDataContentType())
+			req := buildMultipartRequest(t, testUserID, tt.roomData, tt.fileName, tt.fileContent, false)
 			w := httptest.NewRecorder()
 
-				handler.ServeHTTP(w, req)
+			handler.ServeHTTP(w, req)
 
-			assert.Equal(t, tt.expectedStatus, w.Code)
-			responseBody := w.Body.String()
-			tt.validateBody(t, responseBody)
-
-			mockCreator.AssertExpectations(t)
+			require.Equal(t, http.StatusCreated, w.Code)
+			assertSuccessResponse(t, w.Body.Bytes())
 		})
 	}
 }
 
-func assertSuccessResponse(t *testing.T, body string) {
+func TestCreateRoom_ValidationErrors(t *testing.T) {
+	categoryID := uuid.New()
+	testUserID := uuid.New()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	tests := []struct {
+		name        string
+		mutateData  func(map[string]string)
+		fileName    string
+		fileContent []byte
+		malformed   bool
+	}{
+		{name: "Name Exactly 1 Character", mutateData: func(m map[string]string) { m["name"] = "G" }},
+		{name: "Name Exactly 51 Characters", mutateData: func(m map[string]string) { m["name"] = strings.Repeat("A", 51) }},
+		{name: "Name Whitespace Only", mutateData: func(m map[string]string) { m["name"] = "     " }},
+		{name: "Missing Name Field", mutateData: func(m map[string]string) { delete(m, "name") }},
+		{name: "Invalid CategoryId UUID", mutateData: func(m map[string]string) { m["categoryId"] = "invalid-uuid-format" }},
+		{name: "Missing CategoryId Field", mutateData: func(m map[string]string) { delete(m, "categoryId") }},
+		{name: "Invalid IsPrivate Boolean", mutateData: func(m map[string]string) { m["isPrivate"] = "not-a-bool" }},
+		{name: "Missing IsPrivate Field", mutateData: func(m map[string]string) { delete(m, "isPrivate") }},
+		{name: "Thumbnail Exceeds 2MB", fileName: "huge.png", fileContent: make([]byte, 2*1024*1024+1)},
+		{name: "Empty File Upload", fileName: "empty.png", fileContent: []byte{}},
+		{name: "Malformed Multipart Form Data", malformed: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockCreator := mocks.NewMockCreator(t)
+			handler := create.New(logger, mockCreator)
+
+			data := map[string]string{
+				"name":       "Valid Room Name",
+				"categoryId": categoryID.String(),
+				"isPrivate":  "false",
+			}
+
+			if tt.mutateData != nil {
+				tt.mutateData(data)
+			}
+
+			req := buildMultipartRequest(t, testUserID, data, tt.fileName, tt.fileContent, tt.malformed)
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, req)
+
+			fmt.Println("body", w.Body)
+			require.Equal(t, http.StatusBadRequest, w.Code)
+			assertErrorResponse(t, w.Body.Bytes())
+		})
+	}
+}
+
+func TestCreateRoom_InternalError(t *testing.T) {
+	categoryID := uuid.New()
+	testUserID := uuid.New()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	mockCreator := mocks.NewMockCreator(t)
+
+	data := map[string]string{
+		"name":       "Gaming Room",
+		"categoryId": categoryID.String(),
+		"isPrivate":  "false",
+	}
+
+	expectCreate(mockCreator, data["name"], categoryID, false, testUserID, nil, "", nil, apperrors.ErrInternal)
+
+	handler := create.New(logger, mockCreator)
+	req := buildMultipartRequest(t, testUserID, data, "", nil, false)
+	w := httptest.NewRecorder()
+
+	handler.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusInternalServerError, w.Code)
+
+	var resp responses.ApiResponse[struct{}]
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	require.Equal(t, "Internal server error", resp.Message)
+	require.False(t, resp.Success)
+}
+
+func expectCreate(mc *mocks.MockCreator, name string, categoryID uuid.UUID, isPrivate bool, hostID uuid.UUID, thumbData []byte, thumbName string, retRoom *models.Room, retErr error) {
+	mc.EXPECT().Create(
+		mock.Anything,
+		mock.MatchedBy(func(r *models.Room) bool {
+			return r.Name == name && r.CategoryId == categoryID && r.IsPrivate == isPrivate && r.HostId == hostID
+		}),
+		mock.MatchedBy(func(data []byte) bool {
+			if len(thumbData) == 0 {
+				return len(data) == 0
+			}
+			return bytes.Equal(data, thumbData)
+		}),
+		mock.MatchedBy(func(fn string) bool { return fn == thumbName }),
+	).Return(retRoom, retErr).Once()
+}
+
+func buildMultipartRequest(t *testing.T, userID uuid.UUID, data map[string]string, fileName string, fileContent []byte, malformed bool) *http.Request {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	for key, value := range data {
+		require.NoError(t, writer.WriteField(key, value))
+	}
+
+	if fileName != "" {
+		part, err := writer.CreateFormFile("thumbnail", fileName)
+		require.NoError(t, err)
+		_, err = part.Write(fileContent)
+		require.NoError(t, err)
+	}
+
+	if !malformed {
+		require.NoError(t, writer.Close())
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/rooms", body)
+
+	if malformed {
+		req.Header.Set("Content-Type", "multipart/form-data; boundary=invalidboundary")
+	} else {
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+	}
+
+	ctx := context.WithValue(req.Context(), "userID", userID.String())
+	return req.WithContext(ctx)
+}
+
+func assertSuccessResponse(t *testing.T, body []byte) {
 	var resp responses.ApiResponse[map[string]any]
-	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.True(t, resp.Success)
-	assert.NotNil(t, resp.Data)
+	require.NoError(t, json.Unmarshal(body, &resp))
+	require.True(t, resp.Success)
+	require.NotNil(t, resp.Data)
 }
 
-func assertErrorResponse(t *testing.T, body string) {
-	var resp responses.ErrorResponse
-	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.False(t, resp.Success)
-}
-
-func assertErrorMessage(t *testing.T, body string, expectedMessage string) {
-	var resp responses.ErrorResponse
-	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.Equal(t, expectedMessage, resp.Message)
+func assertErrorResponse(t *testing.T, body []byte) {
+	var resp responses.ApiResponse[struct{}]
+	require.NoError(t, json.Unmarshal(body, &resp))
+	require.False(t, resp.Success)
 }

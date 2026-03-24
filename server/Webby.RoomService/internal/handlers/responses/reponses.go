@@ -8,7 +8,8 @@ import (
 type ApiResponse[T any] struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
-	Data    *T     `json:"data,omitempty"`
+	Data    *T     `json:"data"`
+	Errors  map[string]string `json:"errors"`
 }
 
 type PaginatedResponse[T any] struct {
@@ -18,14 +19,14 @@ type PaginatedResponse[T any] struct {
 	Total int `json:"total"`
 }
 
-type ErrorResponse struct {
-	Success bool              `json:"success"`
-	Message string            `json:"message"`
-	Errors  map[string]string `json:"errors,omitempty"`
-}
+// type ErrorResponse struct {
+// 	Success bool              `json:"success"`
+// 	Message string            `json:"message"`
+// 	Errors  map[string]string `json:"errors,omitempty"`
+// }
 
 func Error(w http.ResponseWriter, r *http.Request, statusCode int, message string, problems map[string]string) {
-	render.Encode(w, r, statusCode, ErrorResponse{
+	render.Encode(w, r, statusCode, ApiResponse[struct{}]{
 		Success: false,
 		Message: message,
 		Errors:  problems,

@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	context "context"
 	models "webby/internal/models"
 
 	mock "github.com/stretchr/testify/mock"
@@ -23,9 +24,9 @@ func (_m *MockUpdater) EXPECT() *MockUpdater_Expecter {
 	return &MockUpdater_Expecter{mock: &_m.Mock}
 }
 
-// Update provides a mock function with given fields: room
-func (_m *MockUpdater) Update(room *models.Room) (uuid.UUID, error) {
-	ret := _m.Called(room)
+// Update provides a mock function with given fields: ctx, room, thumbnailData, thumbnailFilename, userId
+func (_m *MockUpdater) Update(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (uuid.UUID, error) {
+	ret := _m.Called(ctx, room, thumbnailData, thumbnailFilename, userId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -33,19 +34,19 @@ func (_m *MockUpdater) Update(room *models.Room) (uuid.UUID, error) {
 
 	var r0 uuid.UUID
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*models.Room) (uuid.UUID, error)); ok {
-		return rf(room)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Room, []byte, string, uuid.UUID) (uuid.UUID, error)); ok {
+		return rf(ctx, room, thumbnailData, thumbnailFilename, userId)
 	}
-	if rf, ok := ret.Get(0).(func(*models.Room) uuid.UUID); ok {
-		r0 = rf(room)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Room, []byte, string, uuid.UUID) uuid.UUID); ok {
+		r0 = rf(ctx, room, thumbnailData, thumbnailFilename, userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(uuid.UUID)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*models.Room) error); ok {
-		r1 = rf(room)
+	if rf, ok := ret.Get(1).(func(context.Context, *models.Room, []byte, string, uuid.UUID) error); ok {
+		r1 = rf(ctx, room, thumbnailData, thumbnailFilename, userId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -59,14 +60,18 @@ type MockUpdater_Update_Call struct {
 }
 
 // Update is a helper method to define mock.On call
+//   - ctx context.Context
 //   - room *models.Room
-func (_e *MockUpdater_Expecter) Update(room interface{}) *MockUpdater_Update_Call {
-	return &MockUpdater_Update_Call{Call: _e.mock.On("Update", room)}
+//   - thumbnailData []byte
+//   - thumbnailFilename string
+//   - userId uuid.UUID
+func (_e *MockUpdater_Expecter) Update(ctx interface{}, room interface{}, thumbnailData interface{}, thumbnailFilename interface{}, userId interface{}) *MockUpdater_Update_Call {
+	return &MockUpdater_Update_Call{Call: _e.mock.On("Update", ctx, room, thumbnailData, thumbnailFilename, userId)}
 }
 
-func (_c *MockUpdater_Update_Call) Run(run func(room *models.Room)) *MockUpdater_Update_Call {
+func (_c *MockUpdater_Update_Call) Run(run func(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID)) *MockUpdater_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*models.Room))
+		run(args[0].(context.Context), args[1].(*models.Room), args[2].([]byte), args[3].(string), args[4].(uuid.UUID))
 	})
 	return _c
 }
@@ -76,7 +81,7 @@ func (_c *MockUpdater_Update_Call) Return(_a0 uuid.UUID, _a1 error) *MockUpdater
 	return _c
 }
 
-func (_c *MockUpdater_Update_Call) RunAndReturn(run func(*models.Room) (uuid.UUID, error)) *MockUpdater_Update_Call {
+func (_c *MockUpdater_Update_Call) RunAndReturn(run func(context.Context, *models.Room, []byte, string, uuid.UUID) (uuid.UUID, error)) *MockUpdater_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

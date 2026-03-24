@@ -13,12 +13,20 @@ type Config struct {
 	ConnectionString string     `yaml:"connectionString"`
 	JwtSecret        string     `yaml:"jwtSecret"`
 	Http             HttpConfig `yaml:"http"`
+	Aws              AwsConfig  `yaml:"aws"`
 }
 
 type HttpConfig struct {
 	Host    string        `yaml:"host"`
 	Port    int           `yaml:"port"`
 	Timeout time.Duration `yaml:"timeout"`
+}
+
+type AwsConfig struct {
+	AccessKey string `yaml:"accessKey"`
+	SecretKey string `yaml:"secretKey"`
+	Region    string `yaml:"region"`
+	Bucket    string `yaml:"bucket"`
 }
 
 func MustLoad() *Config {

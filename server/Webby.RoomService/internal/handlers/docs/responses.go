@@ -6,6 +6,7 @@ type ApiResponse[T any] struct {
 	Success bool   `json:"success" example:"true"`
 	Message string `json:"message" example:"Operation completed successfully"`
 	Data    *T     `json:"data,omitempty"`
+	Errors  string    `json:"errors" example:"null" extensions:"x-nullable"`
 }
 
 type PaginatedResponse[T any] struct {
@@ -19,36 +20,42 @@ type Error400Response struct {
 	Success bool              `json:"success" example:"false"`
 	Message string            `json:"message" example:"Validation failed"`
 	Errors  map[string]string `json:"errors" example:"name:Name must be at least 2 characters"`
+	Data    string               `json:"data" example:"null" extensions:"x-nullable"`
 }
 
 type Error401Response struct {
 	Success bool              `json:"success" example:"false"`
 	Message string            `json:"message" example:"Unauthorized"`
 	Errors  map[string]string `json:"errors" example:"message:Missing or invalid token"`
+	Data    string               `json:"data" example:"null" extensions:"x-nullable"`
 }
 
 type Error403Response struct {
 	Success bool              `json:"success" example:"false"`
 	Message string            `json:"message" example:"Forbidden"`
 	Errors  map[string]string `json:"errors" example:"message:Admin only"`
+	Data    string               `json:"data" example:"null" extensions:"x-nullable"`
 }
 
 type Error404Response struct {
 	Success bool              `json:"success" example:"false"`
 	Message string            `json:"message" example:"Not found"`
 	Errors  map[string]string `json:"errors" example:"message:Object not found"`
+	Data    string               `json:"data" example:"null" extensions:"x-nullable"`
 }
 
 type Error409Response struct {
 	Success bool              `json:"success" example:"false"`
 	Message string            `json:"message" example:"Conflict"`
 	Errors  map[string]string `json:"errors" example:"message:Object already exists"`
+	Data    string               `json:"data" example:"null" extensions:"x-nullable"`
 }
 
 type Error500Response struct {
 	Success bool              `json:"success" example:"false"`
 	Message string            `json:"message" example:"Internal server error"`
 	Errors  map[string]string `json:"errors" example:"message:Database connection lost"`
+	Data    string               `json:"data" example:"null" extensions:"x-nullable"`
 }
 
 type CategoryResponse struct {
@@ -71,6 +78,7 @@ type RoomResponse struct {
 	IsPrivate  bool      `json:"isPrivate" example:"false"`
 	HostId     uuid.UUID `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
 	Thumbnail  string    `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
+	Token      string    `json:"token" example:"abc123def456ghij"`
 }
 
 type RoomListItem struct {
@@ -80,6 +88,7 @@ type RoomListItem struct {
 	IsPrivate  bool      `json:"isPrivate" example:"false"`
 	HostId     uuid.UUID `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
 	Thumbnail  string    `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
+	Token      string    `json:"token" example:"abc123def456ghij"`
 }
 
 type CreateRoomRequest struct {

@@ -40,6 +40,8 @@ func MakeHandler(logger *slog.Logger, h APIFunc) http.HandlerFunc {
 				statusCode = http.StatusNotFound
 			case errors.Is(err, apperrors.ErrInvalidInput):
 				statusCode = http.StatusBadRequest
+			case errors.Is(err, apperrors.ErrForbidden):
+				statusCode = http.StatusForbidden
 			default:
 				logger.Error("internal server error", slog.String("error", err.Error()))
 				responses.Error(w, r, statusCode, "Internal server error", map[string]string{
@@ -48,7 +50,6 @@ func MakeHandler(logger *slog.Logger, h APIFunc) http.HandlerFunc {
 				return
 			}
 
-			logger.Error("displayTitle", slog.Any("err", err))
 			responses.Error(w, r, statusCode, displayTitle, map[string]string{
 				"message": unwrappedErr.Error(),
 			})

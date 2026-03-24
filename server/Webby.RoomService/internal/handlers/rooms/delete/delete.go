@@ -1,16 +1,19 @@
 package delete
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
+	"webby/internal/apperrors"
 	_ "webby/internal/handlers/docs"
 	errorWrapper "webby/internal/handlers/errors"
+	"webby/internal/handlers/responses"
 
 	"github.com/google/uuid"
 )
 
 type Deleter interface {
-	Delete(id uuid.UUID) error
+	Delete(ctx context.Context, id uuid.UUID, userId uuid.UUID) error
 }
 
 func New(logger *slog.Logger, deleter Deleter) http.Handler {
@@ -37,9 +40,23 @@ func New(logger *slog.Logger, deleter Deleter) http.Handler {
 // @Security     BearerAuth
 // @Router       /rooms/{id} [delete]
 func deleteRoom(logger *slog.Logger, deleter Deleter) errorWrapper.APIFunc {
-	_ = logger.With(slog.String("operation", "httpserver.rooms.delete"))
+	log := logger.With(slog.String("operation", "httpserver.rooms.delete"))
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		idStr := r.PathValue("id")
+
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			log.Debug("invalid UUID format", slog.String("id", idStr))
+			return responses.NewApiError("Validation error", apperrors.ErrInvalidInput)
+		}
+
+		userIdStr := r.Context().Value("userID").(string)
+		userId, _ := uuid.Parse(userIdStr)
+
+		if err := deleter.Delete(r.Context(), id, userId); err != nil {
+			return responses.NewApiError("Delete room error", err)
+		}
 
 		w.WriteHeader(http.StatusNoContent)
 		return nil

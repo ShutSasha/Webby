@@ -4,6 +4,10 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/docs.PaginatedResponse-docs_RoomListItem'
+      errors:
+        example: "null"
+        type: string
+        x-nullable: true
       message:
         example: Operation completed successfully
         type: string
@@ -15,6 +19,10 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/docs.CategoryResponse'
+      errors:
+        example: "null"
+        type: string
+        x-nullable: true
       message:
         example: Operation completed successfully
         type: string
@@ -26,6 +34,10 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/docs.PaginatedResponse-docs_CategoryResponse'
+      errors:
+        example: "null"
+        type: string
+        x-nullable: true
       message:
         example: Operation completed successfully
         type: string
@@ -37,6 +49,10 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/docs.RoomResponse'
+      errors:
+        example: "null"
+        type: string
+        x-nullable: true
       message:
         example: Operation completed successfully
         type: string
@@ -65,6 +81,10 @@ definitions:
     type: object
   docs.Error400Response:
     properties:
+      data:
+        example: "null"
+        type: string
+        x-nullable: true
       errors:
         additionalProperties:
           type: string
@@ -80,6 +100,10 @@ definitions:
     type: object
   docs.Error401Response:
     properties:
+      data:
+        example: "null"
+        type: string
+        x-nullable: true
       errors:
         additionalProperties:
           type: string
@@ -95,6 +119,10 @@ definitions:
     type: object
   docs.Error403Response:
     properties:
+      data:
+        example: "null"
+        type: string
+        x-nullable: true
       errors:
         additionalProperties:
           type: string
@@ -110,6 +138,10 @@ definitions:
     type: object
   docs.Error404Response:
     properties:
+      data:
+        example: "null"
+        type: string
+        x-nullable: true
       errors:
         additionalProperties:
           type: string
@@ -125,6 +157,10 @@ definitions:
     type: object
   docs.Error409Response:
     properties:
+      data:
+        example: "null"
+        type: string
+        x-nullable: true
       errors:
         additionalProperties:
           type: string
@@ -140,6 +176,10 @@ definitions:
     type: object
   docs.Error500Response:
     properties:
+      data:
+        example: "null"
+        type: string
+        x-nullable: true
       errors:
         additionalProperties:
           type: string
@@ -205,6 +245,9 @@ definitions:
       thumbnail:
         example: https://example.com/thumbnail.jpg
         type: string
+      token:
+        example: abc123def456ghij
+        type: string
     type: object
   docs.RoomResponse:
     properties:
@@ -225,6 +268,9 @@ definitions:
         type: string
       thumbnail:
         example: https://example.com/thumbnail.jpg
+        type: string
+      token:
+        example: abc123def456ghij
         type: string
     type: object
   docs.UpdateCategoryRequest:
@@ -454,7 +500,7 @@ paths:
         name: name
         required: true
         type: string
-      - description: Category ID (UUID v4, required)
+      - description: Category ID (required)
         format: uuid
         in: formData
         name: categoryId
@@ -478,8 +524,7 @@ paths:
             $ref: '#/definitions/docs.ApiResponse-docs_RoomResponse'
         "400":
           description: 'Invalid input: name empty/too short/too long, invalid categoryId
-            UUID, invalid isPrivate boolean, file too large, wrong Content-Type, or
-            missing required fields'
+            UUID, invalid isPrivate boolean, file too large or missing required fields'
           schema:
             $ref: '#/definitions/docs.Error400Response'
         "401":
@@ -544,8 +589,7 @@ paths:
       description: |-
         Retrieve a room by its ID.
         **Access Rules:**
-        * **Public rooms** can be retrieved by any authenticated user
-        * **Private rooms** can only be retrieved by the room creator or administrators
+        * Only the **room creator (host)** can retrieve the room by ID
         **Path Parameter Validation:**
         * `id`: must be a valid UUID v4 format
         **Security Note:**
@@ -572,7 +616,7 @@ paths:
           schema:
             $ref: '#/definitions/docs.Error401Response'
         "403":
-          description: Access denied - private room and not owner
+          description: Access denied - only the room creator can retrieve
           schema:
             $ref: '#/definitions/docs.Error403Response'
         "404":
@@ -719,8 +763,9 @@ paths:
         **Query Parameter Validation:**
         * `page`: **optional** (default: 1), must be >= 1, must be numeric
         * `limit`: **optional** (default: 10), must be 1-100, must be numeric
+        * `search`: **optional**, filters rooms by name (case-insensitive partial match)
+        * `category`: **optional**, filters rooms by category ID (UUID v4 format)
         **Security Note:**
-        * This action **requires authentication**
         * Returns **only** public rooms (private rooms are excluded)
         * Pagination prevents excessive data retrieval
       parameters:
@@ -735,6 +780,14 @@ paths:
         minimum: 1
         name: limit
         type: integer
+      - description: Search rooms by name (optional, case-insensitive)
+        in: query
+        name: search
+        type: string
+      - description: Filter by category ID (optional, UUID v4 format)
+        in: query
+        name: category
+        type: string
       produces:
       - application/json
       responses:
@@ -755,9 +808,55 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/docs.Error500Response'
+      summary: List all public rooms
+      tags:
+      - Rooms
+  /rooms/token:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Retrieve room information using its unique invite token.
+        **Request Body Validation:**
+        * `token`: **required**, cannot be empty or whitespace-only
+        **Security Note:**
+        * This action **requires authentication**
+      parameters:
+      - description: Room invite token
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            token:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Room successfully retrieved by token
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-docs_RoomResponse'
+        "400":
+          description: Invalid request body or missing token
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "404":
+          description: Room with given token not found
+          schema:
+            $ref: '#/definitions/docs.Error404Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
       security:
       - BearerAuth: []
-      summary: List all public rooms
+      summary: Get a room by invite token
       tags:
       - Rooms
 securityDefinitions:

@@ -1,50 +1,130 @@
 package services
 
 import (
+	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
+	"path/filepath"
+	"webby/internal/apperrors"
 	"webby/internal/models"
 
 	"github.com/google/uuid"
 )
 
+const defaultThumbnail = "https://webby-watch-platform-bucket.s3.eu-north-1.amazonaws.com/rooms/default-room-preview.jpg"
+
 type RoomRepository interface {
 	Create(room *models.Room) (uuid.UUID, error)
 	Delete(id uuid.UUID) error
 	GetById(id uuid.UUID) (*models.Room, error)
+	GetByToken(token string) (*models.Room, error)
 	ListMy(userId uuid.UUID, page int, limit int) ([]models.Room, int64, error)
-	ListPublic(page int, limit int) ([]models.Room, int64, error)
+	ListPublic(page int, limit int, search string, categoryId *uuid.UUID) ([]models.Room, int64, error)
 	Update(room *models.Room) (uuid.UUID, error)
 }
 
+type FileRepository interface {
+	Save(ctx context.Context, key string, data []byte) (string, error)
+	Remove(ctx context.Context, key string) error
+}
+
 type RoomService struct {
-	repo RoomRepository
+	roomRepo RoomRepository
+	fileRepo FileRepository
 }
 
-func NewRoomService(repo RoomRepository) *RoomService {
+func NewRoomService(repo RoomRepository, fileRepo FileRepository) *RoomService {
 	return &RoomService{
-		repo: repo,
+		roomRepo: repo,
+		fileRepo: fileRepo,
 	}
 }
 
-func (r *RoomService) Create(room *models.Room) (uuid.UUID, error) {
-	id, err := r.repo.Create(room)
+func generateFileKey(roomID uuid.UUID, filename string) string {
+	ext := filepath.Ext(filename)
+	return fmt.Sprintf("rooms/%s/thumbnail%s", roomID.String(), ext)
+}
+
+func generateToken() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("failed to generate token: %w", err)
+	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+func (r *RoomService) Create(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string) (*models.Room, error) {
+	token, err := generateToken()
 	if err != nil {
-		return uuid.Nil, err
+		return nil, err
+	}
+	room.Token = token
+
+	id, err := r.roomRepo.Create(room)
+	if err != nil {
+		return nil, err
 	}
 
-	return id, nil
+	var thumbnailURL string
+	if len(thumbnailData) > 0 && thumbnailFilename != "" {
+		key := generateFileKey(id, thumbnailFilename)
+		thumbnailURL, err = r.fileRepo.Save(ctx, key, thumbnailData)
+		if err != nil {
+			return nil, fmt.Errorf("thumbnail upload failed: %w", err)
+		}
+		room.Thumbnail = thumbnailURL
+	} else {
+		room.Thumbnail = defaultThumbnail
+	}
+
+	room.Id = id
+	if _, err := r.roomRepo.Update(room); err != nil {
+		return nil, fmt.Errorf("failed to update room thumbnail: %w", err)
+	}
+
+	return room, nil
 }
 
-func (r *RoomService) Delete(id uuid.UUID) error {
-	err := r.repo.Delete(id)
+func (r *RoomService) Delete(ctx context.Context, id uuid.UUID, userId uuid.UUID) error {
+	room, err := r.roomRepo.GetById(id)
 	if err != nil {
 		return err
+	}
+
+	if room.HostId != userId {
+		return apperrors.ErrForbidden
+	}
+
+	if err := r.roomRepo.Delete(id); err != nil {
+		return err
+	}
+
+	if room.Thumbnail != "" && room.Thumbnail != defaultThumbnail {
+		key := fmt.Sprintf("rooms/%s/thumbnail", id.String())
+		if err := r.fileRepo.Remove(ctx, key); err != nil {
+			return nil
+		}
 	}
 
 	return nil
 }
 
-func (r *RoomService) GetById(id uuid.UUID) (*models.Room, error) {
-	room, err := r.repo.GetById(id)
+func (r *RoomService) GetById(ctx context.Context, roomId uuid.UUID, userId uuid.UUID) (*models.Room, error) {
+	room, err := r.roomRepo.GetById(roomId)
+	if err != nil {
+		return nil, err
+	}
+
+	if room.HostId != userId {
+		return nil, apperrors.ErrForbidden
+	}
+
+	return room, nil
+}
+
+func (r *RoomService) GetByToken(token string) (*models.Room, error) {
+	room, err := r.roomRepo.GetByToken(token)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +133,7 @@ func (r *RoomService) GetById(id uuid.UUID) (*models.Room, error) {
 }
 
 func (r *RoomService) ListMy(userId uuid.UUID, page int, limit int) ([]models.Room, int64, error) {
-	rooms, total, err := r.repo.ListMy(userId, page, limit)
+	rooms, total, err := r.roomRepo.ListMy(userId, page, limit)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -61,8 +141,8 @@ func (r *RoomService) ListMy(userId uuid.UUID, page int, limit int) ([]models.Ro
 	return rooms, total, nil
 }
 
-func (r *RoomService) ListPublic(page int, limit int) ([]models.Room, int64, error) {
-	rooms, total, err := r.repo.ListPublic(page, limit)
+func (r *RoomService) ListPublic(page int, limit int, search string, categoryId *uuid.UUID) ([]models.Room, int64, error) {
+	rooms, total, err := r.roomRepo.ListPublic(page, limit, search, categoryId)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -70,8 +150,35 @@ func (r *RoomService) ListPublic(page int, limit int) ([]models.Room, int64, err
 	return rooms, total, nil
 }
 
-func (r *RoomService) Update(room *models.Room) (uuid.UUID, error) {
-	id, err := r.repo.Update(room)
+func (r *RoomService) Update(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (uuid.UUID, error) {
+	existingRoom, err := r.roomRepo.GetById(room.Id)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if existingRoom.HostId != userId {
+		return uuid.Nil, apperrors.ErrForbidden
+	}
+
+	if len(thumbnailData) > 0 && thumbnailFilename != "" {
+		if existingRoom.Thumbnail != "" && existingRoom.Thumbnail != defaultThumbnail {
+			oldKey := fmt.Sprintf("rooms/%s/thumbnail", room.Id.String())
+			_ = r.fileRepo.Remove(ctx, oldKey)
+		}
+
+		key := generateFileKey(room.Id, thumbnailFilename)
+		thumbnailURL, err := r.fileRepo.Save(ctx, key, thumbnailData)
+		if err != nil {
+			return uuid.Nil, fmt.Errorf("thumbnail upload failed: %w", err)
+		}
+		room.Thumbnail = thumbnailURL
+	} else if room.Thumbnail == "" && existingRoom.Thumbnail != defaultThumbnail {
+		oldKey := fmt.Sprintf("rooms/%s/thumbnail", room.Id.String())
+		_ = r.fileRepo.Remove(ctx, oldKey)
+		room.Thumbnail = defaultThumbnail
+	}
+
+	id, err := r.roomRepo.Update(room)
 	if err != nil {
 		return uuid.Nil, err
 	}

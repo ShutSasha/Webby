@@ -1,144 +1,150 @@
 package delete_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"webby/internal/apperrors"
 	"webby/internal/handlers/responses"
 	"webby/internal/handlers/rooms/delete"
 	"webby/internal/handlers/rooms/delete/mocks"
 
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
-func TestDeleteRoom(t *testing.T) {
+func buildRequest(roomID string, userID uuid.UUID) *http.Request {
+	req := httptest.NewRequest(http.MethodDelete, "/rooms/"+roomID, nil)
+	req.SetPathValue("id", roomID)
+	ctx := context.WithValue(req.Context(), "userID", userID.String())
+	return req.WithContext(ctx)
+}
+
+func parseErrorResponse(t *testing.T, body *io.Reader) responses.ApiResponse[struct{}] {
+	t.Helper()
+	var resp responses.ApiResponse[struct{}]
+	err := json.NewDecoder(*body).Decode(&resp)
+	require.NoError(t, err)
+	return resp
+}
+
+func TestDeleteRoom_Success(t *testing.T) {
 	roomID := uuid.New()
+	userID := uuid.New()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	mockDeleter := mocks.NewMockDeleter(t)
+	mockDeleter.EXPECT().Delete(mock.Anything, roomID, userID).Return(nil).Once()
+
+	handler := delete.New(logger, mockDeleter)
+	req := buildRequest(roomID.String(), userID)
+	w := httptest.NewRecorder()
+
+	handler.ServeHTTP(w, req)
+	fmt.Println("Body", w.Body)
+	require.Equal(t, http.StatusNoContent, w.Code)
+	require.Empty(t, w.Body.String())
+}
+
+func TestDeleteRoom_ValidationErrors(t *testing.T) {
+	userID := uuid.New()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	tests := []struct {
-		name           string
-		roomID         uuid.UUID
-		mockSetup      func(*mocks.MockDeleter)
-		expectedStatus int
-		validateBody   func(t *testing.T, body string)
+		name   string
+		roomID string
 	}{
 		{
-			name:   "Success - Room Deleted",
-			roomID: roomID,
-			mockSetup: func(md *mocks.MockDeleter) {
-				md.EXPECT().Delete(roomID).Return(nil).Once()
-			},
-			expectedStatus: http.StatusNoContent,
-			validateBody: func(t *testing.T, body string) {
-				// 204 No Content should have empty body
-				assert.Empty(t, body)
-			},
+			name:   "Invalid UUID Format - Not a UUID",
+			roomID: "invalid-string",
 		},
 		{
-			name:   "Failure - Invalid UUID Path Parameter",
-			roomID: uuid.UUID{},
-			mockSetup: func(md *mocks.MockDeleter) {
-				// Mock should not be called for invalid UUID
-			},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				var resp responses.ErrorResponse
-				err := json.Unmarshal([]byte(body), &resp)
-				assert.NoError(t, err)
-				assert.False(t, resp.Success)
-			},
+			name:   "Invalid UUID Format - Empty String",
+			roomID: "",
 		},
 		{
-			name:   "Failure - Room Not Found",
-			roomID: roomID,
-			mockSetup: func(md *mocks.MockDeleter) {
-				md.EXPECT().Delete(roomID).Return(errors.New("not found")).Once()
-			},
-			expectedStatus: http.StatusNotFound,
-			validateBody: func(t *testing.T, body string) {
-				var resp responses.ErrorResponse
-				err := json.Unmarshal([]byte(body), &resp)
-				assert.NoError(t, err)
-				assert.False(t, resp.Success)
-			},
-		},
-		{
-			name:   "Failure - Not Authorized to Delete",
-			roomID: roomID,
-			mockSetup: func(md *mocks.MockDeleter) {
-				md.EXPECT().Delete(roomID).Return(errors.New("access denied")).Once()
-			},
-			expectedStatus: http.StatusForbidden,
-			validateBody: func(t *testing.T, body string) {
-				var resp responses.ErrorResponse
-				err := json.Unmarshal([]byte(body), &resp)
-				assert.NoError(t, err)
-				assert.False(t, resp.Success)
-			},
-		},
-		{
-			name:   "Failure - Service Generic Error",
-			roomID: roomID,
-			mockSetup: func(md *mocks.MockDeleter) {
-				md.EXPECT().Delete(roomID).Return(errors.New("database error")).Once()
-			},
-			expectedStatus: http.StatusInternalServerError,
-			validateBody: func(t *testing.T, body string) {
-				var resp responses.ErrorResponse
-				err := json.Unmarshal([]byte(body), &resp)
-				assert.NoError(t, err)
-				assert.False(t, resp.Success)
-				assert.Equal(t, "Internal server error", resp.Message)
-			},
+			name:   "Invalid UUID Format - Partial UUID",
+			roomID: "123e4567-e89b-12d3-a456",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Arrange
 			mockDeleter := mocks.NewMockDeleter(t)
-			tt.mockSetup(mockDeleter)
-
 			handler := delete.New(logger, mockDeleter)
-
-			path := "/rooms/" + tt.roomID.String()
-			req := httptest.NewRequest("DELETE", path, nil)
+			req := buildRequest(tt.roomID, userID)
 			w := httptest.NewRecorder()
 
-			// Act
 			handler.ServeHTTP(w, req)
 
-			// Assert
-			assert.Equal(t, tt.expectedStatus, w.Code)
-			responseBody := w.Body.String()
-			tt.validateBody(t, responseBody)
+			require.Equal(t, http.StatusBadRequest, w.Code)
 
-			// Verify mock expectations
-			mockDeleter.AssertExpectations(t)
+			var resp responses.ApiResponse[struct{}]
+			err := json.Unmarshal(w.Body.Bytes(), &resp)
+			require.NoError(t, err)
+			require.False(t, resp.Success)
 		})
 	}
 }
 
-func assertNoContent(t *testing.T, body string) {
-	assert.Empty(t, body)
-}
+func TestDeleteRoom_ServiceErrors(t *testing.T) {
+	roomID := uuid.New()
+	userID := uuid.New()
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
-func assertErrorResponse(t *testing.T, body string) {
-	var resp responses.ErrorResponse
-	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.False(t, resp.Success)
-}
+	tests := []struct {
+		name           string
+		mockError      error
+		expectedStatus int
+		expectedMsg    string
+	}{
+		{
+			name:           "Room Not Found",
+			mockError:      apperrors.ErrNotFound,
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:           "Not Authorized to Delete",
+			mockError:      apperrors.ErrForbidden,
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "Internal Server Error",
+			mockError:      errors.New("database error"),
+			expectedStatus: http.StatusInternalServerError,
+			expectedMsg:    "Internal server error",
+		},
+	}
 
-func assertErrorMessage(t *testing.T, body string, expectedMessage string) {
-	var resp responses.ErrorResponse
-	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.False(t, resp.Success)
-	assert.Equal(t, expectedMessage, resp.Message)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockDeleter := mocks.NewMockDeleter(t)
+			mockDeleter.EXPECT().Delete(mock.Anything, roomID, userID).Return(tt.mockError).Once()
+
+			handler := delete.New(logger, mockDeleter)
+			req := buildRequest(roomID.String(), userID)
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, req)
+			fmt.Println("body", w.Body)
+			require.Equal(t, tt.expectedStatus, w.Code)
+
+			var resp responses.ApiResponse[struct{}]
+			err := json.Unmarshal(w.Body.Bytes(), &resp)
+			require.NoError(t, err)
+			require.False(t, resp.Success)
+
+			if tt.expectedMsg != "" {
+				require.Equal(t, tt.expectedMsg, resp.Message)
+			}
+		})
+	}
 }

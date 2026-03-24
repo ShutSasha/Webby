@@ -14,6 +14,7 @@ import (
 	"webby/internal/handlers/rooms/create"
 	"webby/internal/handlers/rooms/delete"
 	"webby/internal/handlers/rooms/get"
+	getByToken "webby/internal/handlers/rooms/get_by_token"
 	listMy "webby/internal/handlers/rooms/list_my"
 	listPublic "webby/internal/handlers/rooms/list_public"
 	"webby/internal/handlers/rooms/update"
@@ -26,6 +27,7 @@ type RoomService interface {
 	listMy.MyLister
 	listPublic.PublicLister
 	get.Getter
+	getByToken.TokenGetter
 	update.Updater
 	delete.Deleter
 }

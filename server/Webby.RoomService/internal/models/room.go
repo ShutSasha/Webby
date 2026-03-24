@@ -12,6 +12,7 @@ type Room struct {
 	CategoryId uuid.UUID
 	Name       string
 	Thumbnail  string
+	Token      string
 	IsPrivate  bool
 	CreatedAt  time.Time
 }

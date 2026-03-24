@@ -218,7 +218,7 @@ func assertSuccessResponse(t *testing.T, body string) {
 }
 
 func assertErrorResponse(t *testing.T, body string) {
-	var resp responses.ErrorResponse
+	var resp responses.ApiResponse[struct{}]
 	if err := json.Unmarshal([]byte(body), &resp); err != nil {
 		t.Fatalf("failed to unmarshal error response: %v", err)
 	}
@@ -228,7 +228,7 @@ func assertErrorResponse(t *testing.T, body string) {
 }
 
 func assertErrorMessage(t *testing.T, body string, expectedMessage string) {
-	var resp responses.ErrorResponse
+	var resp responses.ApiResponse[struct{}]
 	if err := json.Unmarshal([]byte(body), &resp); err != nil {
 		t.Fatalf("failed to unmarshal error response: %v", err)
 	}

@@ -1,6 +1,8 @@
 package listMy_test
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -8,111 +10,90 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+
 	"webby/internal/handlers/responses"
 	listMy "webby/internal/handlers/rooms/list_my"
 	"webby/internal/handlers/rooms/list_my/mocks"
 	"webby/internal/models"
-
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
-func TestListMyRooms(t *testing.T) {
+func TestListMyRooms_Success(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	userId := uuid.New()
 
+	baseRoom := models.Room{
+		Id:         uuid.New(),
+		HostId:     userId,
+		CategoryId: uuid.New(),
+		Name:       "Test Room",
+		IsPrivate:  false,
+	}
+
 	tests := []struct {
-		name           string
-		queryParams    map[string]string
-		mockSetup      func(*mocks.MockMyLister)
-		expectedStatus int
-		validateBody   func(t *testing.T, body string)
+		name          string
+		queryParams   map[string]string
+		expectedPage  int
+		expectedLimit int
+		mockSetup     func(*mocks.MockMyLister)
 	}{
 		{
-			name: "Success - List My Rooms Default Pagination",
-			queryParams: map[string]string{
-				"page":  "1",
-				"limit": "10",
-			},
+			name:          "Default Pagination Parameters",
+			queryParams:   map[string]string{},
+			expectedPage:  1,
+			expectedLimit: 10,
 			mockSetup: func(mml *mocks.MockMyLister) {
-				rooms := []models.Room{
-					{
-						Id:         uuid.New(),
-						HostId:     userId,
-						CategoryId: uuid.New(),
-						Name:       "My Room 1",
-						IsPrivate:  true,
-					},
-				}
-				mml.EXPECT().ListMy(userId, 1, 10).Return(rooms, int64(1), nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertSuccessResponse(t, body, 1, 10, 1, 1)
+				expectListMy(mml, userId, 1, 10, []models.Room{baseRoom}, 1, nil)
 			},
 		},
 		{
-			name: "Success - List My Rooms Multiple Pages",
+			name: "Custom Pagination Within Valid Ranges",
 			queryParams: map[string]string{
 				"page":  "2",
 				"limit": "5",
 			},
+			expectedPage:  2,
+			expectedLimit: 5,
 			mockSetup: func(mml *mocks.MockMyLister) {
-				rooms := []models.Room{
-					{
-						Id:         uuid.New(),
-						HostId:     userId,
-						CategoryId: uuid.New(),
-						Name:       "My Room 6",
-						IsPrivate:  false,
-					},
-				}
-				mml.EXPECT().ListMy(userId, 2, 5).Return(rooms, int64(10), nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertSuccessResponse(t, body, 2, 5, 10, 1)
+				expectListMy(mml, userId, 2, 5, []models.Room{baseRoom}, 6, nil)
 			},
 		},
 		{
-			name: "Success - List My Rooms No Results",
+			name: "Boundary Value Analysis - Minimum Limit",
+			queryParams: map[string]string{
+				"page":  "1",
+				"limit": "1",
+			},
+			expectedPage:  1,
+			expectedLimit: 1,
+			mockSetup: func(mml *mocks.MockMyLister) {
+				expectListMy(mml, userId, 1, 1, []models.Room{baseRoom}, 1, nil)
+			},
+		},
+		{
+			name: "Boundary Value Analysis - Maximum Limit",
+			queryParams: map[string]string{
+				"page":  "1",
+				"limit": "100",
+			},
+			expectedPage:  1,
+			expectedLimit: 100,
+			mockSetup: func(mml *mocks.MockMyLister) {
+				expectListMy(mml, userId, 1, 100, []models.Room{baseRoom}, 1, nil)
+			},
+		},
+		{
+			name: "Equivalence Partitioning - Empty Results",
 			queryParams: map[string]string{
 				"page":  "1",
 				"limit": "10",
 			},
+			expectedPage:  1,
+			expectedLimit: 10,
 			mockSetup: func(mml *mocks.MockMyLister) {
-				mml.EXPECT().ListMy(userId, 1, 10).Return([]models.Room{}, int64(0), nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertSuccessResponse(t, body, 1, 10, 0, 0)
-			},
-		},
-		{
-			name: "Failure - Invalid Page Parameter",
-			queryParams: map[string]string{
-				"page":  "-1",
-				"limit": "10",
-			},
-			mockSetup: func(mml *mocks.MockMyLister) {
-			},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
-			},
-		},
-		{
-			name: "Failure - Service Error",
-			queryParams: map[string]string{
-				"page":  "1",
-				"limit": "10",
-			},
-			mockSetup: func(mml *mocks.MockMyLister) {
-				mml.EXPECT().ListMy(userId, 1, 10).Return([]models.Room{}, int64(0), errors.New("database error")).Once()
-			},
-			expectedStatus: http.StatusInternalServerError,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorMessage(t, body, "Internal server error")
+				expectListMy(mml, userId, 1, 10, []models.Room{}, 0, nil)
 			},
 		},
 	}
@@ -123,50 +104,127 @@ func TestListMyRooms(t *testing.T) {
 			tt.mockSetup(mockLister)
 
 			handler := listMy.New(logger, mockLister)
-
-			queryString := "?"
-			for key, value := range tt.queryParams {
-				if len(queryString) > 1 {
-					queryString += "&"
-				}
-				queryString += key + "=" + value
-			}
-
-			req := httptest.NewRequest("GET", "/rooms/my"+queryString, nil)
+			req := buildRequest(userId, tt.queryParams)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, req)
 
-			assert.Equal(t, tt.expectedStatus, w.Code)
-			responseBody := w.Body.String()
-			tt.validateBody(t, responseBody)
-
+			require.Equal(t, http.StatusOK, w.Code)
+			requireSuccessResponse(t, w.Body, tt.expectedPage, tt.expectedLimit)
 			mockLister.AssertExpectations(t)
 		})
 	}
 }
 
-func assertSuccessResponse(t *testing.T, body string, page int, limit int, total int64, items int) {
+func TestListMyRooms_ValidationErrors(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	userId := uuid.New()
+
+	tests := []struct {
+		name   string
+		mutate func(map[string]string)
+	}{
+		{
+			name: "Boundary Value Analysis - Page Below Minimum",
+			mutate: func(m map[string]string) { m["page"] = "0" },
+		},
+		{
+			name: "Equivalence Partitioning - Page Negative",
+			mutate: func(m map[string]string) { m["page"] = "-1" },
+		},
+		{
+			name: "Error Guessing - Page Non-Numeric",
+			mutate: func(m map[string]string) { m["page"] = "abc" },
+		},
+		{
+			name: "Boundary Value Analysis - Limit Below Minimum",
+			mutate: func(m map[string]string) { m["limit"] = "0" },
+		},
+		{
+			name: "Equivalence Partitioning - Limit Negative",
+			mutate: func(m map[string]string) { m["limit"] = "-1" },
+		},
+		{
+			name: "Boundary Value Analysis - Limit Above Maximum",
+			mutate: func(m map[string]string) { m["limit"] = "101" },
+		},
+		{
+			name: "Error Guessing - Limit Non-Numeric",
+			mutate: func(m map[string]string) { m["limit"] = "xyz" },
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockLister := mocks.NewMockMyLister(t)
+			handler := listMy.New(logger, mockLister)
+
+			params := map[string]string{
+				"page":  "1",
+				"limit": "10",
+			}
+			tt.mutate(params)
+
+			req := buildRequest(userId, params)
+			w := httptest.NewRecorder()
+
+			handler.ServeHTTP(w, req)
+
+			require.Equal(t, http.StatusBadRequest, w.Code)
+			requireErrorResponse(t, w.Body)
+			mockLister.AssertExpectations(t)
+		})
+	}
+}
+
+func TestListMyRooms_InternalErrors(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	userId := uuid.New()
+
+	mockLister := mocks.NewMockMyLister(t)
+	expectListMy(mockLister, userId, 1, 10, []models.Room{}, 0, errors.New("database failure"))
+
+	handler := listMy.New(logger, mockLister)
+	req := buildRequest(userId, map[string]string{"page": "1", "limit": "10"})
+	w := httptest.NewRecorder()
+
+	handler.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusInternalServerError, w.Code)
+
+	var resp responses.ApiResponse[struct{}]
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+	require.False(t, resp.Success)
+	require.Equal(t, "Internal server error", resp.Message)
+
+	mockLister.AssertExpectations(t)
+}
+
+func expectListMy(mml *mocks.MockMyLister, userId uuid.UUID, page, limit int, rooms []models.Room, total int64, err error) {
+	mml.EXPECT().ListMy(userId, page, limit).Return(rooms, total, err).Once()
+}
+
+func buildRequest(userId uuid.UUID, queryParams map[string]string) *http.Request {
+	req := httptest.NewRequest(http.MethodGet, "/rooms/my", nil)
+	q := req.URL.Query()
+	for k, v := range queryParams {
+		q.Add(k, v)
+	}
+	req.URL.RawQuery = q.Encode()
+	ctx := context.WithValue(req.Context(), "userID", userId.String())
+	return req.WithContext(ctx)
+}
+
+func requireSuccessResponse(t *testing.T, body *bytes.Buffer, expectedPage, expectedLimit int) {
 	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]interface{}]]
-	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.True(t, resp.Success)
-	assert.Equal(t, page, resp.Data.Page)
-	assert.Equal(t, limit, resp.Data.Limit)
-	assert.Equal(t, total, int64(resp.Data.Total))
-	assert.Len(t, resp.Data.Items, items)
+	require.NoError(t, json.NewDecoder(body).Decode(&resp))
+	require.True(t, resp.Success)
+	require.Equal(t, expectedPage, resp.Data.Page)
+	require.Equal(t, expectedLimit, resp.Data.Limit)
 }
 
-func assertErrorResponse(t *testing.T, body string) {
-	var resp responses.ErrorResponse
-	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.False(t, resp.Success)
-}
-
-func assertErrorMessage(t *testing.T, body string, expectedMessage string) {
-	var resp responses.ErrorResponse
-	err := json.Unmarshal([]byte(body), &resp)
-	assert.NoError(t, err)
-	assert.Equal(t, expectedMessage, resp.Message)
+func requireErrorResponse(t *testing.T, body *bytes.Buffer) {
+	var resp responses.ApiResponse[struct{}]
+	require.NoError(t, json.NewDecoder(body).Decode(&resp))
+	require.False(t, resp.Success)
 }

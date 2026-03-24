@@ -248,7 +248,7 @@ func assertSuccessResponse(t *testing.T, body string, expectedID uuid.UUID) {
 }
 
 func assertErrorResponse(t *testing.T, body string) {
-	var resp responses.ErrorResponse
+	var resp responses.ApiResponse[struct{}]
 	err := json.Unmarshal([]byte(body), &resp)
 
 	require.NoError(t, err, "Response body should be valid JSON: %s", body)
@@ -256,7 +256,7 @@ func assertErrorResponse(t *testing.T, body string) {
 }
 
 func assertErrorWithMessage(t *testing.T, body string, key string, expectedMessage string) {
-	var resp responses.ErrorResponse
+	var resp responses.ApiResponse[struct{}]
 	err := json.Unmarshal([]byte(body), &resp)
 
 	require.NoError(t, err, "Response body should be valid JSON: %s", body)
@@ -266,7 +266,7 @@ func assertErrorWithMessage(t *testing.T, body string, key string, expectedMessa
 }
 
 func assertErrorMessage(t *testing.T, body string, expectedMessage string) {
-	var resp responses.ErrorResponse
+	var resp responses.ApiResponse[struct{}]
 	err := json.Unmarshal([]byte(body), &resp)
 
 	require.NoError(t, err, "Response body should be valid JSON: %s", body)
@@ -276,7 +276,7 @@ func assertErrorMessage(t *testing.T, body string, expectedMessage string) {
 }
 
 func assertErrorWithValidation(t *testing.T, body string) {
-	var resp responses.ErrorResponse
+	var resp responses.ApiResponse[struct{}]
 	err := json.Unmarshal([]byte(body), &resp)
 
 	require.NoError(t, err, "Response body should be valid JSON: %s", body)
