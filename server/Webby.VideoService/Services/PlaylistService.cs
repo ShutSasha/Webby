@@ -20,14 +20,15 @@ public class PlaylistService : IPlaylistService
    private readonly IPlaylistRepository _playlistRepository;
    private readonly IMapper _mapper;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
-   private readonly IVideoService _videoService;
+   private readonly IVideoRepository _videoRepository;
 
    public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper,
-      UserGrpcService.UserGrpcServiceClient userClient)
+      UserGrpcService.UserGrpcServiceClient userClient, IVideoRepository videoRepository)
    {
       _playlistRepository = playlistRepository;
       _mapper = mapper;
       _userClient = userClient;
+      _videoRepository = videoRepository;
    }
 
    public async Task<PlaylistDto> CreatePlaylist(Guid userId, CreatePlaylistRequest request)
@@ -199,20 +200,23 @@ public class PlaylistService : IPlaylistService
       };
    }
 
-   public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds)
+   public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds, Guid requestUserId)
    {
       if (videoIds == null || !videoIds.Any())
          throw new ApiException("Attach video error", 400, "No videos to add");
 
-      var playlist = await _playlistRepository.GetPlaylistDetails(playlistId);
+      var playlist = await _playlistRepository.GetPlaylistDetails(playlistId)
+                     ?? throw new ApiException("Attach video to playlist error", 404, "Playlist wasn't found");
 
-      if (playlist == null)
-         throw new ApiException("Attach to playlist error", 404, "Playlist wasn't found");
+      if (playlist.UserId != requestUserId)
+      {
+         throw new ApiException("Attach video to playlist error", 403, "You can't update this playlist");
+      }
 
       var existingVideoIds = playlist.PlaylistVideos
          .Select(pv => pv.VideoId)
          .ToHashSet();
-
+      
       var playlistVideosToDelete = playlist.PlaylistVideos
          .Where(p => videoIds.Contains(p.VideoId))
          .ToList();
@@ -226,6 +230,25 @@ public class PlaylistService : IPlaylistService
             VideoId = videoId
          })
          .ToList();
+
+      var playlistVideoIds = playlistVideos.Select(pv => pv.VideoId).ToList();
+      
+
+      if (playlistVideoIds.Count > 0)
+      {
+         var isAllVideosInDb = await _videoRepository.CheckVideosCount(playlistVideoIds);
+         if (!isAllVideosInDb)
+         {
+            throw new ApiException("Update playlist error", 404, "Videos wasn't found");
+         }
+
+         var hasForbiddenVideos = await _videoRepository.CheckForbiddenVideos(playlistVideoIds, requestUserId);
+         
+         if (hasForbiddenVideos)
+         {
+            throw new ApiException("Add video to playlist error", 403, "You can't add private videos");
+         }
+      }
 
       await _playlistRepository.AddPlaylistVideos(playlistVideos);
       await _playlistRepository.DeletePlaylistVideos(playlistVideosToDelete);

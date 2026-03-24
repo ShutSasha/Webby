@@ -79,7 +79,8 @@ public class VideoService : IVideoService
       {
          await _playlistService.AttachVideoToPlaylist(
             request.PlaylistId.Value,
-            [videoId]
+            [videoId],
+            userId
          );
       }
       
@@ -170,7 +171,8 @@ public class VideoService : IVideoService
       {
          await _playlistService.AttachVideoToPlaylist(
             request.PlaylistId.Value,
-            new List<Guid> { request.VideoId });
+            [request.VideoId],
+            userId);
       }
       
       if (request.VideoFile != null)
@@ -273,6 +275,15 @@ public class VideoService : IVideoService
       };
    }
 
+   public async Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId)
+   {
+      var privateVideos = await _videoRepository
+         .GetByPredicate(v => v.IsPrivate 
+                              && videoIds.Contains(v.VideoId) 
+                              && v.UserId != requestUserId);
+
+      return privateVideos?.Any() ?? false;
+   }
 
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>
       videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();

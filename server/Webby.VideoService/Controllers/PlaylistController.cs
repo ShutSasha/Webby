@@ -73,7 +73,9 @@ public class PlaylistController : ControllerBase
    [SwaggerOperation("Add or delete videos in playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> AddVideoToPlaylist([FromBody] AddVideoToPlaylistRequest request)
    {
-      await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds);
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      
+      await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds, requestUserId.Value);
       return Ok(ApiResponse.Ok("Successfully update playlist"));
    }
 
