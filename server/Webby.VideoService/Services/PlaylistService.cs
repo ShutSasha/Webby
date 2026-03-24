@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Net.NetworkInformation;
+using AutoMapper;
 using Grpc.Core;
 using UserService;
 using Webby.VideoService.Constants;
@@ -6,6 +7,7 @@ using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
+using Webby.VideoService.Helpers.Playlist;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
@@ -19,8 +21,9 @@ public class PlaylistService : IPlaylistService
    private readonly IMapper _mapper;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
    private readonly IVideoService _videoService;
-   
-   public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper, UserGrpcService.UserGrpcServiceClient userClient)
+
+   public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper,
+      UserGrpcService.UserGrpcServiceClient userClient)
    {
       _playlistRepository = playlistRepository;
       _mapper = mapper;
@@ -44,22 +47,57 @@ public class PlaylistService : IPlaylistService
       return _mapper.Map<PlaylistDto>(playlist);
    }
 
-   public async Task<PagedResponse<PlaylistDto>> GetUserPlaylists(Guid? requestUserId, Guid userId, int page, int pageSize)
+   public async Task<PagedResponse<PlaylistPreviewDto>> GetUserPlaylists
+   (
+      Guid? requestUserId,
+      Guid? videoId,
+      Guid userId,
+      SearchOptions searchOptions
+   )
    {
-      page = page <= 0 ? 1 : page;
-      pageSize = pageSize <= 0 ? 10 : pageSize;
+      var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
 
-      var (playlists, totalCount) = await _playlistRepository
-         .GetPaginatedUserPlaylists(requestUserId == userId,userId, page, pageSize);
+      var (additionalCondition, parameters, predicate)
+         = PlaylistSearchFilter.SearchUserPlaylistsFilter(userId, requestUserId == userId);
 
-      return new PagedResponse<PlaylistDto>
+      var playlists = await _playlistRepository.SearchAsync(
+         "Playlists",
+         "Name",
+         searchOptions.SearchText,
+         skip,
+         searchOptions.PageSize,
+         additionalCondition,
+         parameters,
+         predicateFactory: predicate
+      );
+      
+      var playlistIds = playlists.Items
+         .Select(p => p.PlaylistId)
+         .ToList();
+      
+      HashSet<Guid> addedSet = [];
+
+      if (videoId.HasValue && playlistIds.Count > 0)
       {
-         Items = playlists.Select(MapToPlaylistDto).ToList(),
-         Page = page,
-         PageSize = pageSize,
-         TotalCount = totalCount
-      };
+         addedSet = await _playlistRepository
+            .GetPlaylistIdsContainingVideo(videoId.Value, playlistIds);
+      }
 
+      var detailedPlaylists = await _playlistRepository.GetPlaylistsDetails(playlistIds);
+
+      var playlistsPreviews = MapToPreviewDtos(
+         detailedPlaylists,
+         videoId,
+         addedSet
+      );
+
+      return new PagedResponse<PlaylistPreviewDto>
+      {
+         Items = playlistsPreviews,
+         PageSize = searchOptions.PageSize,
+         Page = searchOptions.Page,
+         TotalCount = playlists.Total
+      };
    }
 
    public async Task<PlaylistDto> UpdatePlaylist(UpdatePlaylistRequest request)
@@ -96,7 +134,7 @@ public class PlaylistService : IPlaylistService
 
       await _playlistRepository.DeleteAsync(playlistId);
    }
-   
+
    public async Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId, Guid? requestedUserId)
    {
       var playlist = await _playlistRepository.FindByIdWithVideos(playlistId)
@@ -162,7 +200,7 @@ public class PlaylistService : IPlaylistService
          FirstVideo = videoDto
       };
    }
-   
+
    public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds)
    {
       if (videoIds == null || !videoIds.Any())
@@ -171,7 +209,7 @@ public class PlaylistService : IPlaylistService
       var playlist = await _playlistRepository.GetPlaylistDetails(playlistId);
 
       if (playlist == null)
-         throw new ApiException("Attach to playlist error", 404,"Playlist wasn't found");
+         throw new ApiException("Attach to playlist error", 404, "Playlist wasn't found");
 
       var existingVideoIds = playlist.PlaylistVideos
          .Select(pv => pv.VideoId)
@@ -196,12 +234,23 @@ public class PlaylistService : IPlaylistService
       return MapToPlaylistDto((await _playlistRepository.GetPlaylistDetails(playlistId))!);
    }
 
-   public async Task<PagedResponse<PlaylistDto>> SearchPlaylists(SearchOptions searchOptions)
+   public async Task<PagedResponse<PlaylistDto>> SearchPlaylists(Guid? requestUserId, SearchOptions searchOptions)
    {
       var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
 
+      var (AdditionalCondition, Params, Predicat) = PlaylistSearchFilter.SearchPlaylistFilters(requestUserId);
       var (playlists, totalPlaylists) = await _playlistRepository
-         .SearchPlaylistsAsync(searchOptions.SearchText, skip, searchOptions.PageSize);
+         .SearchAsync(
+            "Playlists",
+            "Name",
+            searchOptions.SearchText,
+            skip,
+            searchOptions.PageSize,
+            AdditionalCondition,
+            Params,
+            predicateFactory: Predicat
+         );
+
 
       var items = playlists.Select(MapToPlaylistDto).ToList();
 
@@ -229,5 +278,24 @@ public class PlaylistService : IPlaylistService
          CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
          PlaylistCover = lastVideo?.Video.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
       };
+   }
+   
+   private List<PlaylistPreviewDto> MapToPreviewDtos(
+      IEnumerable<Playlist> playlists,
+      Guid? videoId,
+      HashSet<Guid> addedSet)
+   {
+      return playlists
+         .Select(p => new PlaylistPreviewDto
+         {
+            PlaylistId = p.PlaylistId,
+            Name = p.Name,
+            CountOfVideos = p.PlaylistVideos.Count,
+            PlaylistCover = p.PlaylistVideos
+                               .MaxBy(pv => pv.Video.CreatedAt)?.Video.PreviewUrl 
+                            ?? DefaultLinks.PlaylistEmptyLink,
+            IsVideoAdded = videoId.HasValue && addedSet.Contains(p.PlaylistId)
+         })
+         .ToList();
    }
 }

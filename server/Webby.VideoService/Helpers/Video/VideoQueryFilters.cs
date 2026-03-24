@@ -32,4 +32,22 @@ public static class VideoQueryFilters
                          && (v.UserId == requestUserId || !v.IsPrivate)
       );
    }
+
+   public static (
+      string Additional,
+      object[] Params,
+      Func<AppDbContext, Expression<Func<Models.Video, bool>>> PredicateFactory
+      ) SearchVideoFilter(Guid? requestUserId)
+   {
+      return (
+         @"
+        (
+            ""IsPrivate"" = FALSE
+            OR ""UserId"" = {2}
+        )
+        ",
+         new object[] { requestUserId },
+         context => v => !v.IsPrivate || v.UserId == requestUserId
+      );
+   }
 }

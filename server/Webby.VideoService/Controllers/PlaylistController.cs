@@ -20,15 +20,20 @@ public class PlaylistController : ControllerBase
 
    [HttpGet("{userId:guid}")]
    [SwaggerOperation("Get user playlists")]
-   public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistDto>>>> GetUserPlaylists(
+   public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistPreviewDto>>>> GetUserPlaylists(
       [FromRoute] Guid userId,
-      [FromQuery] int page = 1,
-      [FromQuery] int pageSize = 10)
+      [FromQuery] SearchOptions searchOptions,
+      [FromQuery] Guid? videoId)
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
-      var result = await _playlistService.GetUserPlaylists(requestUserId,userId, page, pageSize);
+      var result = await _playlistService
+         .GetUserPlaylists(
+            requestUserId,
+            videoId,
+            userId,
+            searchOptions);
 
-      return Ok(ApiResponse<PagedResponse<PlaylistDto>>.Ok(
+      return Ok(ApiResponse<PagedResponse<PlaylistPreviewDto>>.Ok(
          "Successfully retrieved user playlists",
          result));
    }
@@ -47,9 +52,11 @@ public class PlaylistController : ControllerBase
    public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistDto>>>> SearchPlaylists(
       [FromQuery] SearchOptions searchOptions)
    {
-      var searchPlaylistsResponse = await _playlistService.SearchPlaylists(searchOptions);
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var searchPlaylistsResponse = await _playlistService.SearchPlaylists(requestUserId,searchOptions);
       return Ok(ApiResponse<PagedResponse<PlaylistDto>>.Ok("Successfully retrieved public playlists",searchPlaylistsResponse));
    }
+   
    
    [HttpPost]
    [SwaggerOperation("Create user playlist","AUTH REQUIRED")]
@@ -60,13 +67,14 @@ public class PlaylistController : ControllerBase
       return Ok(ApiResponse<PlaylistDto>.Ok("Successfully created playlist",playlistCreationResult));
    }
    
+   
    //TODO: Measure response time in stress testing
    [HttpPost("videos")]
    [SwaggerOperation("Add or delete videos in playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> AddVideoToPlaylist([FromBody] AddVideoToPlaylistRequest request)
    {
       await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds);
-      return Ok(ApiResponse.Ok("Successfully added videos to playlist"));
+      return Ok(ApiResponse.Ok("Successfully update playlist"));
    }
 
    [HttpPatch]

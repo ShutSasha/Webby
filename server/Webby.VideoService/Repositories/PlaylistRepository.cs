@@ -43,6 +43,15 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
 
    }
 
+   public async Task<List<Playlist>> GetPlaylistsDetails(List<Guid> playlistIds)
+   {
+      return await _context.Playlists
+         .Where(p => playlistIds.Contains(p.PlaylistId))
+         .Include(p => p.PlaylistVideos)
+         .ThenInclude(pv => pv.Video)
+         .ToListAsync();
+   }
+
    public async Task DeletePlaylistVideos(List<PlaylistVideo> videosToDelete)
    {
       _context.PlaylistVideos.RemoveRange(videosToDelete);
@@ -124,5 +133,22 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
 
       return (items, total);
    }
+
+   public async Task<bool> CheckIsVideoAdded(Guid videoId, Guid playlistId)
+   {
+      return await _context.PlaylistVideos
+         .AnyAsync(pv => pv.VideoId == videoId && pv.PlaylistId == playlistId);
+   }
    
+   public async Task<HashSet<Guid>> GetPlaylistIdsContainingVideo(
+      Guid videoId,
+      List<Guid> playlistIds)
+   {
+      var ids = await _context.PlaylistVideos
+         .Where(pv => pv.VideoId == videoId && playlistIds.Contains(pv.PlaylistId))
+         .Select(pv => pv.PlaylistId)
+         .ToListAsync();
+
+      return ids.ToHashSet();
+   }
 }

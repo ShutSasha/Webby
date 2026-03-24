@@ -219,18 +219,24 @@ public class VideoService : IVideoService
       await _videoRepository.Update(video);
    }
 
-   public async Task<PagedResponse<VideoDto>> SearchVideo(SearchOptions options)
+   public async Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchOptions options)
    {
       var skip = (options.Page - 1) * options.PageSize;
-
+      var (additionalConditional, parameters, predicate) = VideoQueryFilters.SearchVideoFilter(requestUserId);
+      
       var (videos, total) = await _videoRepository.SearchAsync(
+         "Videos",
+         "Name",
          options.SearchText,
          skip,
-         options.PageSize);
+         options.PageSize,
+         additionalConditional,
+         parameters,
+         predicateFactory: predicate
+         );
 
       var items = videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();
       
-
       return new PagedResponse<VideoDto>
       {
          Items = items,

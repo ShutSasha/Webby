@@ -9,7 +9,7 @@ public class MappingProfiles : Profile
 {
    public MappingProfiles()
    {
-      CreateMap<Playlist, PlaylistDto>();
+      CreateMap<Models.Playlist, PlaylistDto>();
       CreateMap<Models.Video, VideoDto>();
    }
 }
