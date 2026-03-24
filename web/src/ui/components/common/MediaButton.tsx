@@ -9,10 +9,21 @@ import Modal from '../shared/Modal'
 type MediaButtonProps = {
   actionLabel: string
   children?: React.ReactNode
+  isOpen?: boolean
+  setIsOpen?: (isOpen: boolean) => void
 }
 
-export default function MediaButton({ actionLabel, children }: MediaButtonProps) {
-  const [isOpen, setIsOpen] = useState(false)
+export default function MediaButton({
+  actionLabel,
+  children,
+  isOpen: externalIsOpen,
+  setIsOpen: externalSetIsOpen,
+}: MediaButtonProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false)
+  const isControlled = externalIsOpen !== undefined && externalSetIsOpen !== undefined
+
+  const isOpen = isControlled ? externalIsOpen : internalIsOpen
+  const setIsOpen = isControlled ? externalSetIsOpen : setInternalIsOpen
 
   return (
     <>

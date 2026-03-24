@@ -1,9 +1,11 @@
 'use client'
 import { ChangeEvent, MouseEvent, useState } from 'react'
 
+import { useRouter } from 'next/navigation'
+
 import { createUserPlaylist } from '@/app/api/playlists'
 import EditPenIcon from '@/assets/icons/shared/edit-pen.svg'
-import { clog, serverLog } from '@/lib/utils/utils'
+import { extractServerMessage, serverLog } from '@/lib/utils/utils'
 import { useToastStore } from '@/stores/toast-store'
 import MediaButton from '@/ui/components/common/MediaButton'
 import Input from '@/ui/components/Input'
@@ -11,9 +13,11 @@ import Button from '@/ui/components/shared/Button'
 
 export default function CreatePlaylistButton() {
   const addToast = useToastStore(state => state.addToast)
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [isPrivate, setIsPrivate] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
   const [name, setName] = useState<string>('')
+  const router = useRouter()
 
   const togglePrivate = () => setIsPrivate(prev => !prev)
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)
@@ -24,21 +28,26 @@ export default function CreatePlaylistButton() {
       setLoading(true)
       const response = await createUserPlaylist(name, isPrivate)
 
-      // TODO: remove log after test endpoint
-      clog('CREATE USER PLAYLIST RESPONSE', response)
-
       if (response.success) {
         addToast('User playlist has been created successfully', 'success')
+
+        setIsModalOpen(false)
+        setName('')
+        setIsPrivate(false)
+        router.refresh()
+      } else {
+        const msg = extractServerMessage(response.errors)
+        addToast(msg ?? `Something went wrong while creating ${name} playlist`, 'error')
       }
     } catch (error: unknown) {
       serverLog('Handle submit for create user playlist', error, true)
     } finally {
-      setLoading(true)
+      setLoading(false)
     }
   }
 
   return (
-    <MediaButton actionLabel="Create a playlist">
+    <MediaButton actionLabel="Create a playlist" isOpen={isModalOpen} setIsOpen={setIsModalOpen}>
       <h3 className="text-neutral-300 text-center mb-4 font-semibold text-xl">Create a new playlist</h3>
       <div className="relative mb-4">
         <label htmlFor="playlist-name" className="sr-only">
