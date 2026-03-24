@@ -19,14 +19,16 @@ type Props = {
 const PAGE_SIZE = 20
 
 export default function PlaylistQueueContainer({ playlistId }: Props) {
+  //TODO: extract logic to hook
   const endedSignal = usePlayerPlayStore(state => state.endedSignal)
   const router = useRouter()
   const [videos, setVideos] = useState<PlaylistVideo[]>([])
-  const [loading, setLoading] = useState(true)
-  const [query, setQuery] = useState('')
-  const [page, setPage] = useState(1)
-  const [fetchingMore, setFetchingMore] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [query, setQuery] = useState<string>('')
+  const [appliedQuery, setAppliedQuery] = useState<string>('')
+  const [page, setPage] = useState<number>(1)
+  const [fetchingMore, setFetchingMore] = useState<boolean>(false)
+  const [hasMore, setHasMore] = useState<boolean>(true)
   const observer = useRef<IntersectionObserver | null>(null)
   const searchParams = useSearchParams()
   const currentV = searchParams.get('v')
@@ -110,6 +112,7 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
     setPage(1)
     setVideos([])
     setHasMore(true)
+    setAppliedQuery(value)
     fetchVideos(value, 1, true)
   }, 400)
 
@@ -200,7 +203,11 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
               <p className="text-center text-xs text-neutral-600 py-4 italic">End of playlist</p>
             )}
 
-            {!loading && videos.length === 0 && <p className="text-center text-neutral-500 py-10">No videos found</p>}
+            {!loading && videos.length === 0 && (
+              <p className="text-center text-neutral-500 py-10">
+                {appliedQuery.trim() !== '' ? 'No videos found' : 'Playlist is empty'}
+              </p>
+            )}
           </AnimatePresence>
         )}
       </div>

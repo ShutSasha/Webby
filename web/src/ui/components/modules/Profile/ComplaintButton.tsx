@@ -72,11 +72,29 @@ export default function ComplaintButton({ authorId, targetId, targetType }: Prop
       </ProfileActionButton>
       <Modal isOpen={isOpen} onClose={handleClose}>
         <div className="flex flex-col w-full gap-3">
-          {step === 'REASON' && (
+          {step === 'REASON' && targetType === 'User' && (
             <>
-              <h2 className="text-xl font-semibold text-white mb-2 text-center">Why are you reporting?</h2>
+              <h2 className="text-xl font-semibold text-neutral-300 mb-2 text-center">Why are you reporting?</h2>
               <div className="flex flex-col gap-3">
                 {['Spam', 'Harassment', 'Inappropriate content', 'Scam / Fraud', 'Other'].map(r => (
+                  <ReasonButton key={r} reason={r} onClick={() => handleSelectReason(r)} />
+                ))}
+              </div>
+            </>
+          )}
+
+          {step === 'REASON' && targetType === 'Video' && (
+            <>
+              <h2 className="text-xl font-semibold text-neutral-300 mb-2 text-center">Why are you reporting?</h2>
+              <div className="flex flex-col gap-3">
+                {[
+                  'Harassment or bullying',
+                  'Violence',
+                  'Explicit content',
+                  'Scam or fraud',
+                  'Misinformation',
+                  'Other',
+                ].map(r => (
                   <ReasonButton key={r} reason={r} onClick={() => handleSelectReason(r)} />
                 ))}
               </div>

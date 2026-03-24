@@ -14,12 +14,12 @@ export default function ProfileActionButton({ children, label, onClick, btnClass
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 bg-neutral-800 rounded-full transition-all duration-300
-        hover:bg-neutral-700/40 cursor-pointer active:scale-90 group border border-transparent ${btnClassName}`}
+      className={`flex items-center gap-2 px-4 py-2 bg-black/40 rounded-full transition-all duration-500 ease-in-out
+        cursor-pointer active:scale-90 group border border-transparent hover:border-neutral-700/70 ${btnClassName}`}
     >
       {children}
 
-      <span className="text-neutral-300 text-sm font-medium leading-none">{label}</span>
+      <span className="text-neutral-200 text-sm leading-none">{label}</span>
     </button>
   )
 }

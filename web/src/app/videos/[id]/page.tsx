@@ -8,6 +8,7 @@ import MainLayout from '@/ui/components/MainLayout'
 import CustomPlayer from '@/ui/components/modules/Player/CustomPlayer'
 import ComplaintButton from '@/ui/components/modules/Profile/ComplaintButton'
 import FollowButton from '@/ui/components/modules/Profile/FollowButton'
+import ProfileActionButton from '@/ui/components/modules/Profile/ProfileActionButton'
 import AsideVideoCard from '@/ui/components/modules/Videos/AsideVideoCard'
 import VideoDescription from '@/ui/components/modules/Videos/VideoDescription'
 import { BLUR_DATA_URLS } from '@/ui/images'
@@ -40,13 +41,9 @@ export default async function VideoPage({ params }: Props) {
             <div className="flex items-center justify-between mt-3 mb-2">
               <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
               <div className="flex gap-3 items-center">
-                <button
-                  className="flex items-center gap-2 px-4 py-2 bg-neutral-800 rounded-full transition-all duration-300
-                    hover:bg-neutral-700/40 cursor-pointer active:scale-90 group border border-transparent"
-                >
+                <ProfileActionButton label="Add to playlist" btnClassName="self-end">
                   <PlusIcon className="size-4 text-emerald-500" />
-                  <p className="text-sm leading-3.5">Add to playlist</p>
-                </button>
+                </ProfileActionButton>
 
                 <ComplaintButton authorId={session?.user.id} targetId={videoId} targetType="Video" />
               </div>

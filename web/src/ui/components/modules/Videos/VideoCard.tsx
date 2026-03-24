@@ -88,7 +88,7 @@ export default function VideoCard() {
                 onClick={e => {
                   e.preventDefault()
                   e.stopPropagation()
-                  console.log('Add to playlist')
+
                   setIsMenuOpen(false)
                 }}
               >
@@ -101,7 +101,7 @@ export default function VideoCard() {
                 onClick={e => {
                   e.preventDefault()
                   e.stopPropagation()
-                  console.log('Report')
+
                   setIsMenuOpen(false)
                 }}
               >
