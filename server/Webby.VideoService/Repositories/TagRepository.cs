@@ -29,4 +29,15 @@ public class TagRepository : GenericRepository<Models.Tag>, ITagRepository
       await _context.VideoTags.AddRangeAsync(videoTags);
       await _context.SaveChangesAsync();
    }
+
+   public async Task<List<Tag>> GetVideoTags(List<Guid>? videoTags)
+   {
+      if (videoTags == null || !videoTags.Any())
+         return [];
+
+      return await _context.Tags
+         .AsNoTracking()
+         .Where(t => videoTags.Contains(t.TagId))
+         .ToListAsync();
+   }
 }

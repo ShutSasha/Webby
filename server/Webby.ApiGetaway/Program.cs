@@ -7,6 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 5L * 1024 * 1024 * 1024;
+});
+
 services.AddOpenApi();
 services.AddCorsPolicy("AllowWebOrigin");
 services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));

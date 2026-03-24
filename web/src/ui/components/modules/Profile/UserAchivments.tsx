@@ -1,20 +1,30 @@
 import Image from 'next/image'
 
-export async function UserAchievements() {
+import { Achievement } from '@/types/achivement'
+import { BLUR_DATA_URLS } from '@/ui/images'
+
+type Props = {
+  achivements: Achievement[]
+}
+
+export async function UserAchievements({ achivements }: Props) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <p>Badges</p>
+    <div className="flex flex-col gap-1.5 self-end">
+      <p>Achievements</p>
       <hr className="text-emerald-400 w-full" />
       <div className="flex items-center gap-4">
-        {[...new Array(3)].map((_, index) => (
+        {achivements.map(achivement => (
           <Image
-            key={index}
-            src="https://i.ibb.co/ch9ZCDTr/badge1.png"
+            key={achivement.achievementId}
+            src={achivement.iconUrl}
             alt=""
-            width={200}
-            height={200}
-            loading="lazy"
-            className="cursor-pointer h-[60px] w-[60px] lg:h-[90px] lg:w-[90px]"
+            width={180}
+            height={180}
+            preload
+            loading="eager"
+            placeholder="blur"
+            blurDataURL={BLUR_DATA_URLS['neutral800']}
+            className="cursor-pointer size-[60px] md:size-[90px] object-cover rounded-full"
           />
         ))}
       </div>

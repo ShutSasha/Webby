@@ -1,7 +1,8 @@
 import axios from 'axios'
-import { cookies } from 'next/headers'
 
+import { getGlobalToken, setGlobalToken, triggerSessionUpdate } from '@/lib/utils/auth-token'
 import { clog } from '@/lib/utils/utils'
+import { auth } from '@/workspace/auth'
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api'
 
@@ -10,19 +11,47 @@ const $api = axios.create({
 })
 
 $api.interceptors.request.use(async config => {
+  let token: string | null = null
+
+  if (typeof window === 'undefined') {
+    const session = await auth()
+    token = session?.user?.accessToken || null
+  } else {
+    token = getGlobalToken()
+  }
+
+  clog('token', token)
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+
   clog('req SERVER HTTP headers', config.headers)
 
   return config
 })
 
-// TODO: catch 401 or error with invalid accessToken for signOut method
 $api.interceptors.response.use(
-  config => {
-    return config
-  },
+  response => response,
   async error => {
-    // interceptor response logic
-    throw error
+    const originalRequest = error.config
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      const newSession = await triggerSessionUpdate()
+      const newToken = newSession?.user?.accessToken
+
+      if (newToken) {
+        setGlobalToken(newToken)
+
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
+
+        return $api(originalRequest)
+      }
+    }
+
+    return Promise.reject(error)
   },
 )
 

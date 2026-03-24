@@ -1,11 +1,12 @@
 ﻿using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Helpers.Response;
 
 namespace Webby.VideoService.Interfaces.Services;
 
 public interface IPlaylistService
 {
    Task<PlaylistDto> CreatePlaylist(Guid userId, CreatePlaylistRequest request);
-   Task<List<PlaylistDto>> GetUserPlaylists(Guid userId);
+   Task<PagedResponse<PlaylistDto>> GetUserPlaylists(Guid userId, int page, int pageSize);
    Task<PlaylistDto> UpdatePlaylist(UpdatePlaylistRequest request);
    Task DeletePlaylist(Guid userId, Guid playlistId);
    Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId);

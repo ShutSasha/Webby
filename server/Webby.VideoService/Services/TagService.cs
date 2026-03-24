@@ -53,4 +53,64 @@ public class TagService : ITagService
 
       await _tagRepository.AddVideoTags(videoTags);
    }
+
+   public async Task<List<string>> GetTagNames(List<VideoTag>? videoTags)
+   {
+      var tags = await _tagRepository.GetVideoTags(videoTags.Select(vt => vt.TagId).ToList());
+      return tags
+         .Select(t => t.Name)
+         .ToList();
+   }
+
+   public async Task SyncVideoTags(Video video, List<string> tagNames)
+   {
+      var normalized = tagNames
+         .Select(t => t.Trim().ToLower())
+         .Distinct()
+         .ToList();
+
+      var existingTags = await _tagRepository.GetTagsByNames(normalized);
+
+      var existingTagNames = existingTags
+         .Select(t => t.Name.ToLower())
+         .ToHashSet();
+      
+      var newTags = normalized
+         .Where(n => !existingTagNames.Contains(n))
+         .Select(n => new Tag { Name = n })
+         .ToList();
+
+      if (newTags.Any())
+      {
+         await _tagRepository.AddTags(newTags);
+         existingTags.AddRange(newTags);
+      }
+      
+      var finalTags = existingTags;
+
+      var finalTagIds = finalTags.Select(t => t.TagId).ToHashSet();
+      var currentTagIds = video.VideoTags.Select(vt => vt.TagId).ToHashSet();
+      
+      var toRemove = video.VideoTags
+         .Where(vt => !finalTagIds.Contains(vt.TagId))
+         .ToList();
+
+      foreach (var vt in toRemove)
+      {
+         video.VideoTags.Remove(vt);
+      }
+      
+      var toAdd = finalTags
+         .Where(t => !currentTagIds.Contains(t.TagId))
+         .Select(t => new VideoTag
+         {
+            VideoId = video.VideoId,
+            TagId = t.TagId
+         });
+
+      foreach (var vt in toAdd)
+      {
+         video.VideoTags.Add(vt);
+      }
+   }
 }

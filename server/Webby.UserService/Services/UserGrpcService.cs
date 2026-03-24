@@ -15,28 +15,22 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       _logger = logger;
    }
 
-   // public override async Task<UserResponse> GetUserById(GetUserRequest request, ServerCallContext context)
-   // {
-   //    // var user = await _userRepository.FindById(Guid.Parse(request.UserId));
-   //    // if (user == null)
-   //    //    throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
-   //    //
-   //    // var response = new UserResponse
-   //    // {
-   //    //    UserId = user.UserId.ToString(),
-   //    //    Username = user.Username,
-   //    //    AvatarUrl = user.AvatarUrl
-   //    // };
-   //    // Console.WriteLine($"RESPONSE FROM GRPC SERVER {response} ");
-   //    //
-   //    // return response;
-   //    return new UserResponse { UserId = "1", Username = "Test", AvatarUrl = "" };
-   // }
-   
    public override async Task<UserResponse> GetUserById(GetUserRequest request, ServerCallContext context)
    {
-      var response = new UserResponse { UserId = "1", Username = "Test", AvatarUrl = "" };
-      return await Task.FromResult(response);
+      var user = await _userRepository.FindById(Guid.Parse(request.UserId));
+      if (user == null)
+         throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
+      
+      var response = new UserResponse
+      {
+         UserId = user.UserId.ToString(),
+         Username = user.Username,
+         AvatarUrl = user.AvatarUrl,
+         IsFollowed = request.RequestUserId != string.Empty && await _userRepository
+            .HasUserFollow(Guid.Parse(request.UserId),Guid.Parse(request.RequestUserId))
+      };
+      
+      return response;
    }
 
    public override async Task<GetUsersResponse> GetUsersByIds(GetUsersRequest request, ServerCallContext context)

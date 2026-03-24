@@ -2,14 +2,14 @@ import Link from 'next/link'
 
 type FollowConnectionsProps = {
   userId: string
-  followersCount?: number
-  followsCount?: number
+  followersCount: number
+  followsCount: number
 }
 
 export default async function FollowConnections({
   userId,
-  followersCount = 0,
-  followsCount = 0,
+  followersCount,
+  followsCount ,
 }: FollowConnectionsProps) {
   const linkStyles = 'underline hover:text-emerald-400 transition-colors duration-300'
 

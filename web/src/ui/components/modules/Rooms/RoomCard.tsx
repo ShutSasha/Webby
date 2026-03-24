@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import UsersIcon from '@/assets/icons/ic_users.svg'
+import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {
   id: string
@@ -11,15 +12,17 @@ export default function RoomCard({ id }: Props) {
   return (
     <Link
       href={`/rooms/${id}`}
-      className="relative overflow-hidden flex rounded-xl h-[180px] py-3 px-2.5 cursor-pointer group"
+      className="relative aspect-video overflow-hidden flex rounded-xl py-3 px-2.5 cursor-pointer group"
     >
       {/* Background Image */}
       <Image
         src="https://cdn.magicdecor.in/com/2023/10/20174720/Anime-Scenery-Wallpaper-for-Walls-710x488.jpg"
         alt="Background"
         fill
-        priority
+        loading="lazy"
         className="object-cover z-0 transition-transform duration-600 group-hover:scale-115"
+        placeholder="blur"
+        blurDataURL={BLUR_DATA_URLS['neutral900']}
       />
       {/* Overlay */}
       <div className="absolute inset-0 z-1 bg-black/40 transition-all duration-500 group-hover:bg-black/30" />
@@ -49,6 +52,8 @@ export default function RoomCard({ id }: Props) {
               width={24}
               height={24}
               className="rounded-full object-cover h-7 w-7 border border-emerald-500"
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URLS['neutral700']}
             />
             <p className="text-neutral-100/85 font-black text-[12px] leading-4">Username</p>
           </div>
