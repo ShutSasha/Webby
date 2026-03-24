@@ -12,7 +12,6 @@ export type PlaylistDetails = {
   playlistId: string
   userId: string
   name: string
-  description: string
   countOfVideos: number
   playlistCover: string
   isPrivate: boolean
@@ -20,7 +19,7 @@ export type PlaylistDetails = {
 
 export type PlaylistData = {
   playlist: PlaylistDetails
-  firstVideo: Omit<Video, 'videoUrl'>
+  firstVideo?: Omit<Video, 'videoUrl'>
 }
 
 export async function getPlaylistInfo(playlistId: string): Promise<BaseServerResponse<PlaylistData>> {
@@ -60,8 +59,6 @@ export async function getPlaylistVideos(
       `/videos/${playlistId}/search?SearchText=${encodeURIComponent(query)}&Page=${page}&PageSize=${pageSize}`,
     )
 
-    clog('videos', response)
-
     return response
   } catch (error: unknown) {
     serverLog('GET_PLAYLIST_VIDEOS_WHILE_SEARCH_ERROR', error, true)
@@ -93,6 +90,38 @@ export async function createUserPlaylist(
       data: null,
       success: false,
       message: `Failed to create playlist "${name}". Please try again later.`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+type PlaylistsSearchData = {
+  items: PlaylistDetails[]
+  page: number
+  pageSize: number
+  totalCount: number
+}
+
+export async function searchPlaylists(
+  query: string,
+  page: number,
+  pageSize: number,
+): Promise<BaseServerResponse<PlaylistsSearchData>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<PlaylistsSearchData>>(
+      `${endpoint}/search?SearchText=${encodeURIComponent(query)}&Page=${page}&PageSize=${pageSize}`,
+    )
+
+    clog('playlists', response)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_PLAYLISTS_WHILE_SEARCH_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to retrieve playlists from playlist search`,
       errors: parseAxiosError(error),
     }
   }

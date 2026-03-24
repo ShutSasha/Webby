@@ -1,32 +1,36 @@
 import Image from 'next/image'
-import { notFound } from 'next/navigation'
 
 import { getVideoInfo } from '@/app/api/videos'
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
-import PlayerContainer from './PlayerContainer'
+import CustomPlayer from '../Player/CustomPlayer'
 import ComplaintButton from '../Profile/ComplaintButton'
 import FollowButton from '../Profile/FollowButton'
 import VideoDescription from '../Videos/VideoDescription'
+import VideoNotFound from '../Videos/VideoNotFound'
 
 type Props = {
-  v: string
+  v: string | undefined
   userId: string | undefined
 }
 
 export default async function VideoDetails({ v, userId }: Props) {
+  if (!v) {
+    return <VideoNotFound />
+  }
+
   const video = await getVideoInfo(v)
 
   if (!video.success || !video.data) {
-    notFound()
+    return <VideoNotFound />
   }
 
-  const { videoId, description, createdAt, views, name, user } = video.data
+  const { videoId, description, createdAt, views, name, user, videoUrl } = video.data
 
   return (
     <div className="h-fit min-w-0 w-full">
-      <PlayerContainer videoId={v} />
+      <CustomPlayer videoUrl={videoUrl} />
 
       <div className="flex items-center justify-between mt-3 mb-2">
         <p className="text-neutral-300 text-[20px] font-bold">{name}</p>

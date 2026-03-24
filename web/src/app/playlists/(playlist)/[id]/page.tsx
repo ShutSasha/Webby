@@ -23,7 +23,7 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
     notFound()
   }
 
-  if (!v) {
+  if (!v && playlistInfoResponse.data.firstVideo) {
     redirect(`/playlists/${playlistId}?v=${playlistInfoResponse.data.firstVideo.videoId}`)
   }
 

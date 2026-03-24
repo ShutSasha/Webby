@@ -1,19 +1,24 @@
-import PlaylistItem from '@/ui/components/modules/Playlists/PlaylistItem'
-import GridCardsContainer from '@/ui/components/shared/GridCardsContainer'
+import { Suspense } from 'react'
 
-export default function Page() {
+import PlaylistSearchContainer from '@/ui/components/modules/Playlists/PlaylistSearchContainer'
+
+type Props = {
+  searchParams: Promise<{ page?: string; query?: string }>
+}
+
+export default async function Page({ searchParams }: Props) {
+  const { page, query } = await searchParams
+  const safeQuery = query || ''
+
+  let currentPage = parseInt(page ?? '1', 10)
+
+  if (Number.isNaN(currentPage) || currentPage < 1) {
+    currentPage = 1
+  }
+
   return (
-    <GridCardsContainer>
-      {Array.from({ length: 10 }).map((_, index) => (
-        <PlaylistItem
-          key={index}
-          id={'98b84aad-372d-4c06-861a-fd361d2cbcb4'}
-          src="https://i.ibb.co/wF9rywMX/thumb-1920-1363137.png"
-          name="name"
-          creator="creator"
-          videoCount={1}
-        />
-      ))}
-    </GridCardsContainer>
+    <Suspense key={`${currentPage}+${safeQuery}`}>
+      <PlaylistSearchContainer page={currentPage} query={safeQuery} />
+    </Suspense>
   )
 }
