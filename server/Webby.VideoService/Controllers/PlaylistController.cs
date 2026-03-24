@@ -49,7 +49,7 @@ public class PlaylistController : ControllerBase
 
    [HttpGet("search")]
    [SwaggerOperation("Search playlists route")]
-   public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistDto>>>> SearchPlaylists(
+   public async Task<ActionResult<ApiResponse<PagedResponse<SearchPlaylistDto>>>> SearchPlaylists(
       [FromQuery] SearchOptions searchOptions)
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);

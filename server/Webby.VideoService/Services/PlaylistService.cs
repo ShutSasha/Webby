@@ -231,31 +231,48 @@ public class PlaylistService : IPlaylistService
       await _playlistRepository.DeletePlaylistVideos(playlistVideosToDelete);
       return MapToPlaylistDto((await _playlistRepository.GetPlaylistDetails(playlistId))!);
    }
-   
-   //TODO: Added countOfVideos and playlistCover
-   public async Task<PagedResponse<PlaylistDto>> SearchPlaylists(Guid? requestUserId, SearchOptions searchOptions)
+
+   public async Task<PagedResponse<SearchPlaylistDto>> SearchPlaylists(
+      Guid? requestUserId,
+      SearchOptions searchOptions)
    {
       var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
 
-      var (AdditionalCondition, Params, Predicat) = PlaylistSearchFilter.SearchPlaylistFilters(requestUserId);
-      var (playlists, totalPlaylists) = await _playlistRepository
-         .SearchAsync(
-            "Playlists",
-            "Name",
-            searchOptions.SearchText,
-            skip,
-            searchOptions.PageSize,
-            AdditionalCondition,
-            Params,
-            predicateFactory: Predicat
-         );
+      var (additionalCondition, parameters, predicate) =
+         PlaylistSearchFilter.SearchPlaylistFilters(requestUserId);
+
+      var (playlists, totalPlaylists) = await _playlistRepository.SearchAsync(
+         "Playlists",
+         "Name",
+         searchOptions.SearchText,
+         skip,
+         searchOptions.PageSize,
+         additionalCondition,
+         parameters,
+         predicateFactory: predicate
+      );
 
       var playlistIds = playlists.Select(p => p.PlaylistId).ToList();
       var detailedPlaylists = await _playlistRepository.GetPlaylistsDetails(playlistIds);
-      
-      var items = detailedPlaylists.Select(MapToPlaylistDto).ToList();
 
-      return new PagedResponse<PlaylistDto>
+      var userIds = detailedPlaylists
+         .Select(p => p.UserId.ToString())
+         .Distinct()
+         .ToList();
+
+      var users = await _userClient.GetUsersByIdsAsync(new GetUsersRequest
+         { UserIds = {userIds }
+   }
+   );
+
+
+   var usersDict = users.Users.ToDictionary(u => u.UserId, u => u);
+      
+      var items = detailedPlaylists
+         .Select(p => MapToSearchPlaylistDto(p, usersDict))
+         .ToList();
+
+      return new PagedResponse<SearchPlaylistDto>
       {
          Items = items,
          TotalCount = totalPlaylists,
@@ -275,6 +292,27 @@ public class PlaylistService : IPlaylistService
          UserId = playlist.UserId,
          Name = playlist.Name,
          IsPrivate = playlist.IsPrivate,
+         CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
+         PlaylistCover = lastVideo?.Video.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
+      };
+   }
+   
+   private SearchPlaylistDto MapToSearchPlaylistDto(
+      Playlist playlist,
+      Dictionary<string, UserResponse> usersDict)
+   {
+      var lastVideo = playlist.PlaylistVideos?
+         .MaxBy(pv => pv.Video.CreatedAt);
+      
+      usersDict.TryGetValue(playlist.UserId.ToString(), out var user);
+
+      return new SearchPlaylistDto
+      {
+         PlaylistId = playlist.PlaylistId,
+         UserId = playlist.UserId,
+         Name = playlist.Name,
+         IsPrivate = playlist.IsPrivate,
+         Username = user?.Username ?? "Deleted user",
          CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
          PlaylistCover = lastVideo?.Video.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
       };
