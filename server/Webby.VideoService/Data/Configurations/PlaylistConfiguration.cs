@@ -16,9 +16,6 @@ public class PlaylistConfiguration : IEntityTypeConfiguration<Playlist>
          .IsRequired()
          .HasMaxLength(500);
 
-      builder.Property(p => p.Description)
-         .HasMaxLength(1000);
-
       builder.Property(p => p.UserId)
          .IsRequired();
 

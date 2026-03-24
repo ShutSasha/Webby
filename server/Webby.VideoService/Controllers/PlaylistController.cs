@@ -67,8 +67,8 @@ public class PlaylistController : ControllerBase
       return Ok(ApiResponse<PlaylistDto>.Ok("Successfully created playlist",playlistCreationResult));
    }
    
-   
    //TODO: Measure response time in stress testing
+   //TODO: Add check if user can add this video (privacy check)
    [HttpPost("videos")]
    [SwaggerOperation("Add or delete videos in playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> AddVideoToPlaylist([FromBody] AddVideoToPlaylistRequest request)
