@@ -74,3 +74,26 @@ export async function getPlaylistVideos(
     }
   }
 }
+
+export async function createUserPlaylist(
+  name: string,
+  isPrivate: boolean,
+): Promise<BaseServerResponse<PlaylistDetails>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<PlaylistDetails>>(`${endpoint}`, {
+      name,
+      isPrivate,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('CREATE_USER_PLAYLIST_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to create playlist "${name}". Please try again later.`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
