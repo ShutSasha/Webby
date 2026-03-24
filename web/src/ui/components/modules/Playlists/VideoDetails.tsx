@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 import { getVideoInfo } from '@/app/api/videos'
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
@@ -44,7 +45,7 @@ export default async function VideoDetails({ v, userId }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <Link href={`/profile/${user.userId}`} className="flex items-center gap-3">
         <Image
           src={user.avatarUrl}
           className="size-9 object-cover rounded-full"
@@ -57,7 +58,7 @@ export default async function VideoDetails({ v, userId }: Props) {
         />
         <p className="text-[16px] font-medium">{user.username}</p>
         <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />
-      </div>
+      </Link>
 
       <VideoDescription text={description ?? ''} views={views} date={createdAt} />
     </div>

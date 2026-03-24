@@ -12,10 +12,17 @@ import Modal from '../../shared/Modal'
 
 type Step = 'REASON' | 'DETAILS' | 'SUCCESS'
 
+type TargetType = 'Video' | 'User'
+
 type Props = {
   authorId: string | undefined
   targetId: string
-  targetType: 'Video' | 'User'
+  targetType: TargetType
+}
+
+const COMPLAINT_REASONS: Record<TargetType, string[]> = {
+  User: ['Spam', 'Harassment', 'Inappropriate content', 'Scam / Fraud', 'Other'],
+  Video: ['Harassment or bullying', 'Violence', 'Explicit content', 'Scam or fraud', 'Misinformation', 'Other'],
 }
 
 export default function ComplaintButton({ authorId, targetId, targetType }: Props) {
@@ -25,6 +32,8 @@ export default function ComplaintButton({ authorId, targetId, targetType }: Prop
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+
+  const currentReasons = COMPLAINT_REASONS[targetType] || []
 
   const handleClose = () => {
     setIsOpen(false)
@@ -72,29 +81,11 @@ export default function ComplaintButton({ authorId, targetId, targetType }: Prop
       </ActionButton>
       <Modal isOpen={isOpen} onClose={handleClose}>
         <div className="flex flex-col w-full gap-3">
-          {step === 'REASON' && targetType === 'User' && (
+          {step === 'REASON' && (
             <>
               <h2 className="text-xl font-semibold text-neutral-300 mb-2 text-center">Why are you reporting?</h2>
               <div className="flex flex-col gap-3">
-                {['Spam', 'Harassment', 'Inappropriate content', 'Scam / Fraud', 'Other'].map(r => (
-                  <ReasonButton key={r} reason={r} onClick={() => handleSelectReason(r)} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {step === 'REASON' && targetType === 'Video' && (
-            <>
-              <h2 className="text-xl font-semibold text-neutral-300 mb-2 text-center">Why are you reporting?</h2>
-              <div className="flex flex-col gap-3">
-                {[
-                  'Harassment or bullying',
-                  'Violence',
-                  'Explicit content',
-                  'Scam or fraud',
-                  'Misinformation',
-                  'Other',
-                ].map(r => (
+                {currentReasons.map(r => (
                   <ReasonButton key={r} reason={r} onClick={() => handleSelectReason(r)} />
                 ))}
               </div>
