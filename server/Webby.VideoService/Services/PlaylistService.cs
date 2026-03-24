@@ -35,7 +35,6 @@ public class PlaylistService : IPlaylistService
       var playlist = new Playlist()
       {
          PlaylistId = Guid.NewGuid(),
-         Description = request.Description,
          IsPrivate = request.IsPrivate,
          CreatedAt = DateTime.UtcNow,
          Name = request.Name,
@@ -108,8 +107,7 @@ public class PlaylistService : IPlaylistService
       {
          throw new ApiException("Update playlist error", 404, "Playlist wasn't found");
       }
-
-      playlist.Description = request.Description;
+      
       playlist.Name = request.Name;
       playlist.IsPrivate = request.IsPrivate;
 
@@ -233,6 +231,8 @@ public class PlaylistService : IPlaylistService
       await _playlistRepository.DeletePlaylistVideos(playlistVideosToDelete);
       return MapToPlaylistDto((await _playlistRepository.GetPlaylistDetails(playlistId))!);
    }
+   
+   //TODO: Added countOfVideos and playlistCover
 
    public async Task<PagedResponse<PlaylistDto>> SearchPlaylists(Guid? requestUserId, SearchOptions searchOptions)
    {
@@ -273,7 +273,6 @@ public class PlaylistService : IPlaylistService
          PlaylistId = playlist.PlaylistId,
          UserId = playlist.UserId,
          Name = playlist.Name,
-         Description = playlist.Description ?? string.Empty,
          IsPrivate = playlist.IsPrivate,
          CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
          PlaylistCover = lastVideo?.Video.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
