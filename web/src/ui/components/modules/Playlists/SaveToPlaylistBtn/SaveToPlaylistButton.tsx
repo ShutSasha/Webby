@@ -1,11 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-
-import { useDebouncedCallback } from 'use-debounce'
+import { useCallback, useState } from 'react'
 
 import { searchUserPlaylists, UserPlaylistDetails } from '@/app/api/playlists'
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
+import { useInfiniteSearch } from '@/lib/hooks/useInfiniteSearch'
 
 import PlaylistItem from './PlaylistItem'
 import Search from './Search'
@@ -17,93 +16,34 @@ type Props = {
   userId: string
 }
 
-const PAGE_SIZE = 10
-
 export default function SaveToPlaylistButton({ videoId, userId }: Props) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const [playlists, setPlaylists] = useState<UserPlaylistDetails[]>([])
-
-  const [loading, setLoading] = useState(false)
-  const [appliedQuery, setAppliedQuery] = useState('')
-
-  const [page, setPage] = useState(1)
-  const [fetchingMore, setFetchingMore] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
-
-  const observer = useRef<IntersectionObserver | null>(null)
-
-  const handleClose = () => {
-    setIsOpen(false)
-    setTimeout(() => {
-      setAppliedQuery('')
-      setPage(1)
-      setPlaylists([])
-    }, 300)
-  }
-
-  const lastElementRef = useCallback(
-    (node: HTMLDivElement) => {
-      if (loading || fetchingMore) return
-      if (observer.current) observer.current.disconnect()
-
-      observer.current = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && hasMore) {
-          setPage(prevPage => prevPage + 1)
-        }
-      })
-
-      if (node) observer.current.observe(node)
-    },
-    [loading, fetchingMore, hasMore],
-  )
-
-  const fetchPlaylists = useCallback(
-    async (searchQuery: string, targetPage: number, isInitial: boolean) => {
-      if (isInitial) setLoading(true)
-      else setFetchingMore(true)
-
-      try {
-        const response = await searchUserPlaylists(userId, searchQuery, targetPage, PAGE_SIZE, videoId)
-
-        if (response.success && response.data) {
-          const newItems = response.data.items
-
-          setPlaylists(prev => (isInitial ? newItems : [...prev, ...newItems]))
-          setHasMore(newItems.length === PAGE_SIZE)
-        }
-      } catch (error) {
-        console.error('FETCH_PLAYLISTS_ERROR', error)
-      } finally {
-        setLoading(false)
-        setFetchingMore(false)
-      }
+  const fetchPlaylistsFn = useCallback(
+    (query: string, page: number, pageSize: number) => {
+      return searchUserPlaylists(userId, query, page, pageSize, videoId)
     },
     [userId, videoId],
   )
 
-  const debouncedSearch = useDebouncedCallback((value: string) => {
-    setPage(1)
-    setPlaylists([])
-    setHasMore(true)
-    setAppliedQuery(value)
-    fetchPlaylists(value, 1, true)
-  }, 400)
+  const {
+    items: playlists,
+    loading,
+    fetchingMore,
+    hasMore,
+    appliedQuery,
+    lastElementRef,
+    handleSearchChange,
+    reset,
+  } = useInfiniteSearch<UserPlaylistDetails>({
+    fetchFn: fetchPlaylistsFn,
+    pageSize: 15,
+    enabled: isOpen && !!userId,
+  })
 
-  useEffect(() => {
-    if (isOpen && playlists.length === 0 && appliedQuery === '') {
-      fetchPlaylists('', 1, true)
-    }
-  }, [isOpen, fetchPlaylists, playlists.length, appliedQuery])
-
-  useEffect(() => {
-    if (page > 1) {
-      fetchPlaylists(appliedQuery, page, false)
-    }
-  }, [page, appliedQuery, fetchPlaylists])
-
-  const handleSearchChange = (value: string) => {
-    debouncedSearch(value)
+  const handleClose = () => {
+    setIsOpen(false)
+    setTimeout(reset, 300)
   }
 
   return (
@@ -154,6 +94,10 @@ export default function SaveToPlaylistButton({ videoId, userId }: Props) {
               <div className="flex justify-center py-4">
                 <div className="size-5 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
               </div>
+            )}
+
+            {!hasMore && playlists.length > 0 && (
+              <p className="text-center text-xs text-neutral-600 py-4 italic">End of list</p>
             )}
           </div>
         </div>
