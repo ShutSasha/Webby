@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { AnimatePresence } from 'framer-motion'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useDebouncedCallback } from 'use-debounce'
 
 import { getPlaylistVideos, PlaylistVideo } from '@/app/api/playlists'
 import SearchIcon from '@/assets/icons/ic_search.svg'
-import { clog } from '@/lib/utils/utils'
-import { usePlayerPlayStore } from '@/stores/player.store'
+import { usePlaylistAutoPlay } from '@/lib/hooks/usePlaylistAutoPlay'
+import { serverLog } from '@/lib/utils/utils'
 import VideoItem from '@/ui/components/modules/Playlists/VideoItem'
 
 type Props = {
@@ -19,53 +19,29 @@ type Props = {
 const PAGE_SIZE = 20
 
 export default function PlaylistQueueContainer({ playlistId }: Props) {
-  //TODO: extract logic to hook
-  const endedSignal = usePlayerPlayStore(state => state.endedSignal)
-  const router = useRouter()
   const [videos, setVideos] = useState<PlaylistVideo[]>([])
+
   const [loading, setLoading] = useState<boolean>(true)
   const [query, setQuery] = useState<string>('')
   const [appliedQuery, setAppliedQuery] = useState<string>('')
+
   const [page, setPage] = useState<number>(1)
   const [fetchingMore, setFetchingMore] = useState<boolean>(false)
   const [hasMore, setHasMore] = useState<boolean>(true)
+
   const observer = useRef<IntersectionObserver | null>(null)
+
   const searchParams = useSearchParams()
   const currentV = searchParams.get('v')
 
   const [optimisticId, setOptimisticId] = useState<string | null>(null)
 
-  const latestVideos = useRef(videos)
-
-  useEffect(() => {
-    latestVideos.current = videos
-  }, [videos])
-
-  useEffect(() => {
-    setOptimisticId(null)
-  }, [currentV])
-
-  useEffect(() => {
-    if (endedSignal === 0) return
-
-    const currentVideos = latestVideos.current
-    const currentIndex = currentVideos.findIndex(v => v.videoId === currentV)
-
-    if (currentIndex !== -1 && currentIndex < currentVideos.length - 1) {
-      const nextVideoId = currentVideos[currentIndex + 1].videoId
-
-      setOptimisticId(nextVideoId)
-
-      router.push(`/playlists/${playlistId}?v=${nextVideoId}`, { scroll: false })
-    } else {
-      const isPlaying = usePlayerPlayStore.getState().playing
-      if (isPlaying) {
-        setTimeout(() => {
-          usePlayerPlayStore.getState().togglePlay()
-        }, 50)
-      }
-    }
-  }, [endedSignal])
+  usePlaylistAutoPlay({
+    videos,
+    currentV,
+    playlistId,
+    setOptimisticId,
+  })
 
   const lastVideoElementRef = useCallback(
     (node: HTMLDivElement) => {
@@ -99,7 +75,7 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
           setHasMore(newItems.length === PAGE_SIZE)
         }
       } catch (error) {
-        clog('FETCH_ERROR', error)
+        serverLog('FETCH_ERROR', error)
       } finally {
         setLoading(false)
         setFetchingMore(false)
@@ -117,14 +93,18 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
   }, 400)
 
   useEffect(() => {
+    setOptimisticId(null)
+  }, [currentV])
+
+  useEffect(() => {
     if (page > 1) {
-      fetchVideos(query, page, false)
+      fetchVideos(appliedQuery, page, false)
     }
-  }, [page])
+  }, [page, appliedQuery, fetchVideos])
 
   useEffect(() => {
     fetchVideos('', 1, true)
-  }, [])
+  }, [fetchVideos])
 
   const handleSearchChange = (value: string) => {
     setQuery(value)

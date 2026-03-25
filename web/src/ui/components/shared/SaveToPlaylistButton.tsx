@@ -18,16 +18,17 @@ type Props = {
   userId: string | undefined
 }
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 
 export default function SaveToPlaylistButton({ userId }: Props) {
-  const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-
+  
+  const [playlists, setPlaylists] = useState<UserPlaylistDetails[]>([])
+  
+  const [loading, setLoading] = useState(false)
   const [query, setQuery] = useState('')
   const [appliedQuery, setAppliedQuery] = useState('')
 
-  const [playlists, setPlaylists] = useState<UserPlaylistDetails[]>([])
   const [page, setPage] = useState(1)
   const [fetchingMore, setFetchingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -196,7 +197,9 @@ function VideoItem({ image, name, count }: VideoItemProps) {
         blurDataURL={BLUR_DATA_URLS['neutral800']}
       />
       <div className="flex flex-col">
-        <p className="text-sm text-neutral-300">{name}</p>
+        <p className="text-sm text-neutral-300 line-clamp-1" title={name}>
+          {name}
+        </p>
         <p className="text-sm text-neutral-500">{count > 1 ? 'videos' : 'video'}</p>
       </div>
     </div>
