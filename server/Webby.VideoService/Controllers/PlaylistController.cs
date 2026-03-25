@@ -93,7 +93,6 @@ public class PlaylistController : ControllerBase
       var userId = JwtHelper.ExtractUserId(HttpContext)!;
       var updatePlaylistResult = await _playlistService.UpdatePlaylist(userId.Value,request);
       return Ok(ApiResponse<PlaylistDto>.Ok("Successfully updated playlist", updatePlaylistResult));
-      
    }
    
    [HttpDelete("{playlistId:guid}")]
