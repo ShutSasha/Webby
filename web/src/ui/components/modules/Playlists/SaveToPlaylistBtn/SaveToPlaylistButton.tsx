@@ -1,32 +1,30 @@
 'use client'
 
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import Image from 'next/image'
 import { useDebouncedCallback } from 'use-debounce'
 
 import { searchUserPlaylists, UserPlaylistDetails } from '@/app/api/playlists'
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
-import SearchIcon from '@/assets/icons/ic_search.svg'
-import { BLUR_DATA_URLS } from '@/ui/images'
 
-import ActionButton from './ActionButton'
-import Modal from './Modal'
-import Input from '../Input'
+import PlaylistItem from './PlaylistItem'
+import Search from './Search'
+import ActionButton from '../../../shared/ActionButton'
+import Modal from '../../../shared/Modal'
 
 type Props = {
+  videoId: string
   userId: string
 }
 
 const PAGE_SIZE = 10
 
-export default function SaveToPlaylistButton({ userId }: Props) {
+export default function SaveToPlaylistButton({ videoId, userId }: Props) {
   const [isOpen, setIsOpen] = useState(false)
 
   const [playlists, setPlaylists] = useState<UserPlaylistDetails[]>([])
 
   const [loading, setLoading] = useState(false)
-  const [query, setQuery] = useState('')
   const [appliedQuery, setAppliedQuery] = useState('')
 
   const [page, setPage] = useState(1)
@@ -38,7 +36,6 @@ export default function SaveToPlaylistButton({ userId }: Props) {
   const handleClose = () => {
     setIsOpen(false)
     setTimeout(() => {
-      setQuery('')
       setAppliedQuery('')
       setPage(1)
       setPlaylists([])
@@ -67,7 +64,7 @@ export default function SaveToPlaylistButton({ userId }: Props) {
       else setFetchingMore(true)
 
       try {
-        const response = await searchUserPlaylists(userId, searchQuery, targetPage, PAGE_SIZE)
+        const response = await searchUserPlaylists(userId, searchQuery, targetPage, PAGE_SIZE, videoId)
 
         if (response.success && response.data) {
           const newItems = response.data.items
@@ -82,7 +79,7 @@ export default function SaveToPlaylistButton({ userId }: Props) {
         setFetchingMore(false)
       }
     },
-    [userId],
+    [userId, videoId],
   )
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
@@ -94,20 +91,18 @@ export default function SaveToPlaylistButton({ userId }: Props) {
   }, 400)
 
   useEffect(() => {
-    if (isOpen && userId && playlists.length === 0 && appliedQuery === '') {
+    if (isOpen && playlists.length === 0 && appliedQuery === '') {
       fetchPlaylists('', 1, true)
     }
-  }, [isOpen, userId, fetchPlaylists, playlists.length, appliedQuery])
+  }, [isOpen, fetchPlaylists, playlists.length, appliedQuery])
 
   useEffect(() => {
-    if (page > 1 && userId) {
+    if (page > 1) {
       fetchPlaylists(appliedQuery, page, false)
     }
-  }, [page, appliedQuery, fetchPlaylists, userId])
+  }, [page, appliedQuery, fetchPlaylists])
 
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setQuery(value)
+  const handleSearchChange = (value: string) => {
     debouncedSearch(value)
   }
 
@@ -118,15 +113,7 @@ export default function SaveToPlaylistButton({ userId }: Props) {
       </ActionButton>
       <Modal isOpen={isOpen} onClose={handleClose}>
         <div className="flex flex-col w-full gap-4">
-          <div className="relative">
-            <SearchIcon className="size-4 absolute top-1/2 -translate-y-1/2 left-3 text-neutral-700" />
-            <Input
-              className="w-full py-2 rounded-lg pl-9 text-neutral-300 placeholder:text-neutral-700"
-              placeholder="Search your playlist or among your playlists idk"
-              value={query}
-              onChange={handleSearchChange}
-            />
-          </div>
+          <Search handleSearchChange={handleSearchChange} />
 
           <div className="flex flex-col max-h-[400px] overflow-y-auto">
             {loading && playlists.length === 0 ? (
@@ -141,11 +128,14 @@ export default function SaveToPlaylistButton({ userId }: Props) {
               playlists.map((playlist, index) => {
                 const isLast = playlists.length === index + 1
                 const item = (
-                  <VideoItem
+                  <PlaylistItem
                     key={playlist.playlistId}
+                    playlistId={playlist.playlistId}
                     image={playlist.playlistCover}
                     name={playlist.name}
                     count={playlist.countOfVideos}
+                    isVideoAdded={playlist.isVideoAdded}
+                    videoId={videoId}
                   />
                 )
 
@@ -169,37 +159,5 @@ export default function SaveToPlaylistButton({ userId }: Props) {
         </div>
       </Modal>
     </>
-  )
-}
-
-type VideoItemProps = {
-  image: string
-  name: string
-  count: number
-}
-
-function VideoItem({ image, name, count }: VideoItemProps) {
-  return (
-    <div
-      className="flex gap-4 items-center hover:bg-black/40 py-2 px-2.5 mr-1 transition-colors duration-300 ease-in-out
-        rounded-xl cursor-pointer"
-    >
-      <Image
-        src={image}
-        width={100}
-        height={100}
-        alt=""
-        className="aspect-square size-10 object-cover rounded-lg"
-        loading="lazy"
-        placeholder="blur"
-        blurDataURL={BLUR_DATA_URLS['neutral800']}
-      />
-      <div className="flex flex-col">
-        <p className="text-sm text-neutral-300 line-clamp-1" title={name}>
-          {name}
-        </p>
-        <p className="text-sm text-neutral-500">{count > 1 ? 'videos' : 'video'}</p>
-      </div>
-    </div>
   )
 }

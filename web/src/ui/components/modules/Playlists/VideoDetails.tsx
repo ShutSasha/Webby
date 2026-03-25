@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { getVideoInfo } from '@/app/api/videos'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
-import SaveToPlaylistButton from '../../shared/SaveToPlaylistButton'
+import SaveToPlaylistButton from './SaveToPlaylistBtn/SaveToPlaylistButton'
 import CustomPlayer from '../Player/CustomPlayer'
 import ComplaintButton from '../Profile/ComplaintButton'
 import FollowButton from '../Profile/FollowButton'
@@ -36,7 +36,7 @@ export default async function VideoDetails({ v, userId }: Props) {
       <div className="flex items-center justify-between mt-3 mb-2">
         <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
         <div className="flex gap-3 items-center">
-          {userId && <SaveToPlaylistButton userId={userId} />}
+          {userId && <SaveToPlaylistButton userId={userId} videoId={videoId} />}
 
           <ComplaintButton authorId={userId} targetId={videoId} targetType="Video" />
         </div>
