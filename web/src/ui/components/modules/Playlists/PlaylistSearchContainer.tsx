@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { searchPlaylists, SearchPlaylsit } from '@/app/api/playlists'
 
-import PlaylistItem from './PlaylistItem'
+import PlaylistItem, { PlaylistItemSkeleton } from './PlaylistItem'
 import GridCardsContainer from '../../shared/GridCardsContainer'
 
 type Props = {
@@ -75,9 +75,11 @@ export default function PlaylistSearchContainer({ query }: Props) {
 
   if (loading && playlists.length === 0) {
     return (
-      <div className="flex flex-1 items-center justify-center py-20">
-        <div className="size-8 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
-      </div>
+      <GridCardsContainer>
+        {[...new Array(20)].map((_, idx) => (
+          <PlaylistItemSkeleton key={idx} />
+        ))}
+      </GridCardsContainer>
     )
   }
 
