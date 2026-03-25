@@ -38,6 +38,7 @@ export type UserPlaylistDetails = BasePlaylist & {
 export type PlaylistInfo = {
   playlist: PlaylistDetails
   firstVideo?: Omit<Video, 'videoUrl'>
+  hiddenVideosCount: number
 }
 
 export async function getPlaylistInfo(playlistId: string): Promise<BaseServerResponse<PlaylistInfo>> {
@@ -160,10 +161,7 @@ export async function searchUserPlaylists(
   }
 }
 
-export async function togglePlaylistVideo(
-  playlistId: string,
-  videoId: string,
-): Promise<BaseServerResponse<null>> {
+export async function togglePlaylistVideo(playlistId: string, videoId: string): Promise<BaseServerResponse<null>> {
   try {
     const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/videos`, {
       playlistId,

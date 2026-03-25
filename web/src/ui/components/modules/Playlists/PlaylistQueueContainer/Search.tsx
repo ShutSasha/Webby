@@ -19,7 +19,7 @@ export default function Search({ loading, handleSearchChange }: Props) {
   }
 
   return (
-    <div className="relative">
+    <div className="relative mb-3">
       <SearchIcon className="absolute top-1/2 -translate-y-1/2 left-4 h-5 w-5 text-neutral-600" aria-hidden="true" />
       <input
         id="search"

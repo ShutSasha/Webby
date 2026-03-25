@@ -10,15 +10,18 @@ import { useInfiniteSearch } from '@/lib/hooks/useInfiniteSearch'
 import { usePlaylistAutoPlay } from '@/lib/hooks/usePlaylistAutoPlay'
 import VideoItem from '@/ui/components/modules/Playlists/VideoItem'
 
+import PlaylistContainerHeader from './PlaylistContainerHeader'
 import PlaylistQueueFooter from './PlaylistQueueFooter'
 import QueueContainer from './QueueContainer'
 import Search from './Search'
 
 type Props = {
   playlistId: string
+  hiddenVideosCount: number
+  playlistName: string
 }
 
-export default function PlaylistQueueContainer({ playlistId }: Props) {
+export default function PlaylistQueueContainer({ playlistId, hiddenVideosCount, playlistName }: Props) {
   const searchParams = useSearchParams()
   const currentV = searchParams.get('v')
   const [optimisticId, setOptimisticId] = useState<string | null>(null)
@@ -55,7 +58,8 @@ export default function PlaylistQueueContainer({ playlistId }: Props) {
   }, [currentV])
 
   return (
-    <div className="w-[300px] xl:w-[320px] 2xl:w-[368px] flex flex-col gap-3 h-[90vh] shrink-0">
+    <div className="w-[300px] xl:w-[320px] 2xl:w-[368px] flex flex-col h-[90vh] shrink-0">
+      <PlaylistContainerHeader playlistName={playlistName} hiddenVideosCount={hiddenVideosCount} />
       <Search loading={loading} handleSearchChange={handleSearchChange} />
       <QueueContainer>
         {loading && videos.length === 0 ? (
