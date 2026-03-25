@@ -8,7 +8,7 @@ public interface IPlaylistService
 {
    Task<PlaylistDto> CreatePlaylist(Guid userId, CreatePlaylistRequest request);
    Task<PagedResponse<PlaylistPreviewDto>> GetUserPlaylists(Guid? requestUserId, Guid? videoId, Guid userId, SearchOptions searchOptions);
-   Task<PlaylistDto> UpdatePlaylist(UpdatePlaylistRequest request);
+   Task<PlaylistDto> UpdatePlaylist(Guid requestUserId, UpdatePlaylistRequest request);
    Task DeletePlaylist(Guid userId, Guid playlistId);
    Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId, Guid? requestedUserId);
    Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds, Guid requestUserId);

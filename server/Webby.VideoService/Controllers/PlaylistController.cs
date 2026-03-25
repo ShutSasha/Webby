@@ -62,7 +62,7 @@ public class PlaylistController : ControllerBase
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
       var searchPlaylistsResponse = await _playlistService.SearchPlaylists(requestUserId,searchOptions);
-      return Ok(ApiResponse<PagedResponse<PlaylistDto>>.Ok("Successfully retrieved public playlists",searchPlaylistsResponse));
+      return Ok(ApiResponse<PagedResponse<SearchPlaylistDto>>.Ok("Successfully retrieved public playlists",searchPlaylistsResponse));
    }
    
    
@@ -90,7 +90,8 @@ public class PlaylistController : ControllerBase
    [SwaggerOperation("Update playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse<PlaylistDto>>> UpdatePlaylist([FromBody] UpdatePlaylistRequest request)
    {
-      var updatePlaylistResult = await _playlistService.UpdatePlaylist(request);
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      var updatePlaylistResult = await _playlistService.UpdatePlaylist(userId.Value,request);
       return Ok(ApiResponse<PlaylistDto>.Ok("Successfully updated playlist", updatePlaylistResult));
       
    }

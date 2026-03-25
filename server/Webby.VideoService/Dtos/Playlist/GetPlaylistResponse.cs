@@ -7,4 +7,5 @@ public class GetPlaylistResponse
 {
    public PlaylistDto Playlist { get; set; }
    public VideoDto? FirstVideo { get; set; }
+   public int HiddenVideosCount { get; set; }
 }

@@ -252,19 +252,13 @@ public class VideoService : IVideoService
    {
       var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
       
-      var (filter, parameters,predicate) 
-         = VideoQueryFilters.ForPlaylist(playlistId, requestUserId );
-      var (items, total) = await _videoRepository.SearchAsync(
-         "Videos",
-         "Name",
+      var (items, total) = await _videoRepository.SearchVideosInPlaylistAsync(
+         playlistId,
+         requestUserId,
          searchOptions.SearchText,
          skip,
-         searchOptions.PageSize,
-         filter,
-         parameters,
-         @"""CreatedAt"" DESC",
-         predicate
-      );
+         searchOptions.PageSize
+         );
 
       return new PagedResponse<VideoDto>()
       {
