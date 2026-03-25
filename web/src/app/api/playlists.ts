@@ -8,6 +8,13 @@ import { Video } from './videos'
 
 const endpoint = '/playlists'
 
+export type PaginatedData<T> = {
+  items: T[]
+  page: number
+  pageSize: number
+  totalCount: number
+}
+
 export type BasePlaylist = {
   playlistId: string
   name: string
@@ -16,21 +23,20 @@ export type BasePlaylist = {
   isPrivate: boolean
 }
 
-export type SearchPlaylsit = BasePlaylist & {
+export type PlaylistDetails = BasePlaylist & {
   userId: string
+}
+
+export type SearchPlaylsit = PlaylistDetails & {
   username: string
 }
 
-export type CreatePlaylist = BasePlaylist & {
-  userId: string
-}
-
-export type PlaylistInfoDetails = BasePlaylist & {
-  userId: string
+export type UserPlaylistDetails = BasePlaylist & {
+  isVideoAdded: boolean
 }
 
 export type PlaylistInfo = {
-  playlist: PlaylistInfoDetails
+  playlist: PlaylistDetails
   firstVideo?: Omit<Video, 'videoUrl'>
 }
 
@@ -53,21 +59,16 @@ export async function getPlaylistInfo(playlistId: string): Promise<BaseServerRes
 
 export type PlaylistVideo = Optional<Video, 'user'>
 
-type PlaylistVideosData = {
-  items: PlaylistVideo[]
-  page: number
-  pageSize: number
-  totalCount: number
-}
+type PlaylistVideosResponse = PaginatedData<PlaylistVideo>
 
 export async function getPlaylistVideos(
   playlistId: string,
   query: string,
   page: number,
   pageSize: number,
-): Promise<BaseServerResponse<PlaylistVideosData>> {
+): Promise<BaseServerResponse<PlaylistVideosResponse>> {
   try {
-    const { data: response } = await $api.get<BaseServerResponse<PlaylistVideosData>>(
+    const { data: response } = await $api.get<BaseServerResponse<PlaylistVideosResponse>>(
       `/videos/${playlistId}/search?SearchText=${encodeURIComponent(query)}&Page=${page}&PageSize=${pageSize}`,
     )
 
@@ -87,9 +88,9 @@ export async function getPlaylistVideos(
 export async function createUserPlaylist(
   name: string,
   isPrivate: boolean,
-): Promise<BaseServerResponse<CreatePlaylist>> {
+): Promise<BaseServerResponse<PlaylistDetails>> {
   try {
-    const { data: response } = await $api.post<BaseServerResponse<CreatePlaylist>>(`${endpoint}`, {
+    const { data: response } = await $api.post<BaseServerResponse<PlaylistDetails>>(`${endpoint}`, {
       name,
       isPrivate,
     })
@@ -107,12 +108,7 @@ export async function createUserPlaylist(
   }
 }
 
-type PlaylistsSearchData = {
-  items: SearchPlaylsit[]
-  page: number
-  pageSize: number
-  totalCount: number
-}
+type PlaylistsSearchData = PaginatedData<SearchPlaylsit>
 
 export async function searchPlaylists(
   query: string,
@@ -137,16 +133,7 @@ export async function searchPlaylists(
   }
 }
 
-export type UserPlaylistDetails = BasePlaylist & {
-  isVideoAdded: boolean
-}
-
-export type UserPlaylistsSearchData = {
-  items: UserPlaylistDetails[]
-  page: number
-  pageSize: number
-  totalCount: number
-}
+export type UserPlaylistsSearchData = PaginatedData<UserPlaylistDetails>
 
 export async function searchUserPlaylists(
   userId: string,
