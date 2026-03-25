@@ -1,30 +1,42 @@
 'use server'
 
 import $api from '@/app/api'
-import { clog, parseAxiosError, serverLog } from '@/lib/utils/utils'
+import { parseAxiosError, serverLog } from '@/lib/utils/utils'
 import { BaseServerResponse, Optional } from '@/types/general'
 
 import { Video } from './videos'
 
 const endpoint = '/playlists'
 
-export type PlaylistDetails = {
+export type BasePlaylist = {
   playlistId: string
-  userId: string
   name: string
   countOfVideos: number
   playlistCover: string
   isPrivate: boolean
 }
 
-export type PlaylistData = {
-  playlist: PlaylistDetails
+export type SearchPlaylsit = BasePlaylist & {
+  userId: string
+  username: string
+}
+
+export type CreatePlaylist = BasePlaylist & {
+  userId: string
+}
+
+export type PlaylistInfoDetails = BasePlaylist & {
+  userId: string
+}
+
+export type PlaylistInfo = {
+  playlist: PlaylistInfoDetails
   firstVideo?: Omit<Video, 'videoUrl'>
 }
 
-export async function getPlaylistInfo(playlistId: string): Promise<BaseServerResponse<PlaylistData>> {
+export async function getPlaylistInfo(playlistId: string): Promise<BaseServerResponse<PlaylistInfo>> {
   try {
-    const { data: response } = await $api.get<BaseServerResponse<PlaylistData>>(`${endpoint}/${playlistId}/details`)
+    const { data: response } = await $api.get<BaseServerResponse<PlaylistInfo>>(`${endpoint}/${playlistId}/details`)
 
     return response
   } catch (error: unknown) {
@@ -75,9 +87,9 @@ export async function getPlaylistVideos(
 export async function createUserPlaylist(
   name: string,
   isPrivate: boolean,
-): Promise<BaseServerResponse<PlaylistDetails>> {
+): Promise<BaseServerResponse<CreatePlaylist>> {
   try {
-    const { data: response } = await $api.post<BaseServerResponse<PlaylistDetails>>(`${endpoint}`, {
+    const { data: response } = await $api.post<BaseServerResponse<CreatePlaylist>>(`${endpoint}`, {
       name,
       isPrivate,
     })
@@ -96,7 +108,7 @@ export async function createUserPlaylist(
 }
 
 type PlaylistsSearchData = {
-  items: PlaylistDetails[]
+  items: SearchPlaylsit[]
   page: number
   pageSize: number
   totalCount: number
@@ -125,8 +137,9 @@ export async function searchPlaylists(
   }
 }
 
-// TODO: CHANGE RESPONSE TYPES AFTER PULL NEW COMMITS
-export type UserPlaylistDetails = Omit<PlaylistDetails, 'userId'>
+export type UserPlaylistDetails = BasePlaylist & {
+  isVideoAdded: boolean
+}
 
 export type UserPlaylistsSearchData = {
   items: UserPlaylistDetails[]

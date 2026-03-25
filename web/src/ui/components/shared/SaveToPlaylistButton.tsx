@@ -8,7 +8,6 @@ import { useDebouncedCallback } from 'use-debounce'
 import { searchUserPlaylists, UserPlaylistDetails } from '@/app/api/playlists'
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import SearchIcon from '@/assets/icons/ic_search.svg'
-import { clog } from '@/lib/utils/utils'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import ActionButton from './ActionButton'

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { PlaylistDetails, searchPlaylists } from '@/app/api/playlists'
+import { searchPlaylists, SearchPlaylsit } from '@/app/api/playlists'
 
 import PlaylistItem from './PlaylistItem'
 import GridCardsContainer from '../../shared/GridCardsContainer'
@@ -14,7 +14,7 @@ type Props = {
 const PAGE_SIZE = 20
 
 export default function PlaylistSearchContainer({ query }: Props) {
-  const [playlists, setPlaylists] = useState<PlaylistDetails[]>([])
+  const [playlists, setPlaylists] = useState<SearchPlaylsit[]>([])
 
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -103,7 +103,7 @@ export default function PlaylistSearchContainer({ query }: Props) {
               id={playlist.playlistId}
               src={playlist.playlistCover}
               name={playlist.name}
-              creator="NOT FOUND"
+              creator={playlist.username}
               videoCount={playlist.countOfVideos}
             />
           )
