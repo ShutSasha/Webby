@@ -88,7 +88,8 @@ public class PlaylistService : IPlaylistService
       var playlistsPreviews = MapToPreviewDtos(
          detailedPlaylists,
          videoId,
-         addedSet
+         addedSet,
+         requestUserId
       );
 
       return new PagedResponse<PlaylistPreviewDto>
@@ -100,7 +101,7 @@ public class PlaylistService : IPlaylistService
       };
    }
 
-   public async Task<PlaylistDto> UpdatePlaylist(UpdatePlaylistRequest request)
+   public async Task<PlaylistDto> UpdatePlaylist(Guid requestUserId,UpdatePlaylistRequest request)
    {
       var playlist = await _playlistRepository.FindById(request.PlaylistId);
 
@@ -114,7 +115,7 @@ public class PlaylistService : IPlaylistService
 
       await _playlistRepository.Update(playlist);
 
-      return MapToPlaylistDto(playlist);
+      return MapToPlaylistDto(playlist,requestUserId);
    }
 
    public async Task DeletePlaylist(Guid userId, Guid playlistId)
@@ -139,11 +140,18 @@ public class PlaylistService : IPlaylistService
       var playlist = await _playlistRepository.FindByIdWithVideos(playlistId)
                      ?? throw new ApiException("Get playlist information error", 404, "Playlist wasn't found");
 
-      var playlistDto = MapToPlaylistDto(playlist);
+      var playlistDto = MapToPlaylistDto(playlist,requestedUserId);
 
-      var video = playlist.PlaylistVideos
+      var visiblePlaylistVideos = playlist.PlaylistVideos
+         .Where(pv => !pv.Video.IsPrivate || pv.Video.UserId == requestedUserId)
+         .ToList();
+
+      playlistDto.CountOfVideos = visiblePlaylistVideos.Count;
+
+      var video = visiblePlaylistVideos
+         .OrderByDescending(pv => pv.CreatedAt)
          .Select(pv => pv.Video)
-         .MaxBy(v => v.CreatedAt);
+         .FirstOrDefault();
 
       VideoDto? videoDto = null;
 
@@ -193,10 +201,15 @@ public class PlaylistService : IPlaylistService
          }
       }
 
+      var unavailableCount = playlist.PlaylistVideos
+         .Select(pv => pv.Video)
+         .Count(v => v.IsPrivate && v.UserId != requestedUserId);
+      
       return new GetPlaylistResponse
       {
          Playlist = playlistDto,
-         FirstVideo = videoDto
+         FirstVideo = videoDto,
+         HiddenVideosCount = unavailableCount
       };
    }
 
@@ -227,12 +240,12 @@ public class PlaylistService : IPlaylistService
          .Select(videoId => new PlaylistVideo
          {
             PlaylistId = playlistId,
-            VideoId = videoId
+            VideoId = videoId,
+            CreatedAt = DateTime.UtcNow,
          })
          .ToList();
 
       var playlistVideoIds = playlistVideos.Select(pv => pv.VideoId).ToList();
-      
 
       if (playlistVideoIds.Count > 0)
       {
@@ -252,7 +265,7 @@ public class PlaylistService : IPlaylistService
 
       await _playlistRepository.AddPlaylistVideos(playlistVideos);
       await _playlistRepository.DeletePlaylistVideos(playlistVideosToDelete);
-      return MapToPlaylistDto((await _playlistRepository.GetPlaylistDetails(playlistId))!);
+      return MapToPlaylistDto((await _playlistRepository.GetPlaylistDetails(playlistId))!,requestUserId);
    }
 
    public async Task<PagedResponse<SearchPlaylistDto>> SearchPlaylists(
@@ -292,7 +305,7 @@ public class PlaylistService : IPlaylistService
    var usersDict = users.Users.ToDictionary(u => u.UserId, u => u);
       
       var items = detailedPlaylists
-         .Select(p => MapToSearchPlaylistDto(p, usersDict))
+         .Select(p => MapToSearchPlaylistDto(p,requestUserId, usersDict))
          .ToList();
 
       return new PagedResponse<SearchPlaylistDto>
@@ -304,10 +317,12 @@ public class PlaylistService : IPlaylistService
       };
    }
 
-   private PlaylistDto MapToPlaylistDto(Playlist playlist)
+   private PlaylistDto MapToPlaylistDto(Playlist playlist,Guid? requestUserId)
    {
       var lastVideo = playlist.PlaylistVideos?
-         .MaxBy(pv => pv.Video.CreatedAt);
+         .OrderByDescending(pv => pv.CreatedAt)
+         .Select(pv => pv.Video!)
+         .FirstOrDefault(v => !v.IsPrivate || v.UserId == requestUserId);
 
       return new PlaylistDto
       {
@@ -316,17 +331,20 @@ public class PlaylistService : IPlaylistService
          Name = playlist.Name,
          IsPrivate = playlist.IsPrivate,
          CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
-         PlaylistCover = lastVideo?.Video.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
+         PlaylistCover = lastVideo?.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
       };
    }
    
    private SearchPlaylistDto MapToSearchPlaylistDto(
       Playlist playlist,
+      Guid? requestUserId,
       Dictionary<string, UserResponse> usersDict)
    {
       var lastVideo = playlist.PlaylistVideos?
-         .MaxBy(pv => pv.Video.CreatedAt);
-      
+         .OrderByDescending(pv => pv.CreatedAt)
+         .Select(pv => pv.Video!)
+         .FirstOrDefault(v => !v.IsPrivate || v.UserId == requestUserId);
+
       usersDict.TryGetValue(playlist.UserId.ToString(), out var user);
 
       return new SearchPlaylistDto
@@ -337,26 +355,33 @@ public class PlaylistService : IPlaylistService
          IsPrivate = playlist.IsPrivate,
          Username = user?.Username ?? "Deleted user",
          CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
-         PlaylistCover = lastVideo?.Video.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
+         PlaylistCover = lastVideo?.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
       };
    }
    
    private List<PlaylistPreviewDto> MapToPreviewDtos(
       IEnumerable<Playlist> playlists,
       Guid? videoId,
-      HashSet<Guid> addedSet)
+      HashSet<Guid> addedSet,
+      Guid? requestUserId)
    {
       return playlists
-         .Select(p => new PlaylistPreviewDto
+         .Select(p => 
          {
-            PlaylistId = p.PlaylistId,
-            Name = p.Name,
-            CountOfVideos = p.PlaylistVideos.Count,
-            PlaylistCover = p.PlaylistVideos
-                               .MaxBy(pv => pv.Video.CreatedAt)?.Video.PreviewUrl 
-                            ?? DefaultLinks.PlaylistEmptyLink,
-            IsVideoAdded = videoId.HasValue && addedSet.Contains(p.PlaylistId),
-            IsPrivate = p.IsPrivate
+            var lastVideo = p.PlaylistVideos
+               .OrderByDescending(pv => pv.CreatedAt)
+               .Select(pv => pv.Video!)
+               .FirstOrDefault(v => !v.IsPrivate || v.UserId == requestUserId);
+
+            return new PlaylistPreviewDto
+            {
+               PlaylistId = p.PlaylistId,
+               Name = p.Name,
+               CountOfVideos = p.PlaylistVideos.Count,
+               PlaylistCover = lastVideo?.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink,
+               IsVideoAdded = videoId.HasValue && addedSet.Contains(p.PlaylistId),
+               IsPrivate = p.IsPrivate
+            };
          })
          .ToList();
    }

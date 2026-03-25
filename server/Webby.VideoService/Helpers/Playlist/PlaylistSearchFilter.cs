@@ -13,13 +13,22 @@ public static class PlaylistSearchFilter
    {
       return (
          @"
+        (
             (
                 ""IsPrivate"" = FALSE
-                OR ""UserId"" = {2}
+                OR ""UserId"" = {0}
             )
-            ",
+            AND EXISTS (
+                SELECT 1 
+                FROM ""PlaylistVideos"" pv
+                WHERE pv.""PlaylistId"" = ""Playlists"".""PlaylistId""
+            )
+        )
+        ",
          new object[] { requestUserId },
-         context => p => !p.IsPrivate || p.UserId == requestUserId
+         context => p => 
+            (!p.IsPrivate || p.UserId == requestUserId) &&
+            context.PlaylistVideos.Any(pv => pv.PlaylistId == p.PlaylistId)
       );
    }
    
