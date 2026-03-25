@@ -36,7 +36,7 @@ export default async function VideoDetails({ v, userId }: Props) {
       <div className="flex items-center justify-between mt-3 mb-2">
         <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
         <div className="flex gap-3 items-center">
-          <SaveToPlaylistButton userId={userId} />
+          {userId && <SaveToPlaylistButton userId={userId} />}
 
           <ComplaintButton authorId={userId} targetId={videoId} targetType="Video" />
         </div>

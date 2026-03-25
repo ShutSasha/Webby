@@ -15,16 +15,16 @@ import Modal from './Modal'
 import Input from '../Input'
 
 type Props = {
-  userId: string | undefined
+  userId: string
 }
 
 const PAGE_SIZE = 10
 
 export default function SaveToPlaylistButton({ userId }: Props) {
   const [isOpen, setIsOpen] = useState(false)
-  
+
   const [playlists, setPlaylists] = useState<UserPlaylistDetails[]>([])
-  
+
   const [loading, setLoading] = useState(false)
   const [query, setQuery] = useState('')
   const [appliedQuery, setAppliedQuery] = useState('')
@@ -63,8 +63,6 @@ export default function SaveToPlaylistButton({ userId }: Props) {
 
   const fetchPlaylists = useCallback(
     async (searchQuery: string, targetPage: number, isInitial: boolean) => {
-      if (!userId) return
-
       if (isInitial) setLoading(true)
       else setFetchingMore(true)
 
@@ -96,10 +94,10 @@ export default function SaveToPlaylistButton({ userId }: Props) {
   }, 400)
 
   useEffect(() => {
-    if (isOpen && userId && playlists.length === 0 && query === '') {
+    if (isOpen && userId && playlists.length === 0 && appliedQuery === '') {
       fetchPlaylists('', 1, true)
     }
-  }, [isOpen, userId, fetchPlaylists, playlists.length, query])
+  }, [isOpen, userId, fetchPlaylists, playlists.length, appliedQuery])
 
   useEffect(() => {
     if (page > 1 && userId) {

@@ -4,7 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 
 import { getPlaylistInfo } from '@/app/api/playlists'
 import PlayerSkeleton from '@/ui/components/modules/Playlists/PlayerSkeleton'
-import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer'
+import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer/PlaylistQueueContainer'
 import VideoDetails from '@/ui/components/modules/Playlists/VideoDetails'
 import { auth } from '@/workspace/auth'
 
