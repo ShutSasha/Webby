@@ -4,7 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 
 import { getPlaylistInfo } from '@/app/api/playlists'
 import PlayerSkeleton from '@/ui/components/modules/Playlists/PlayerSkeleton'
-import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer'
+import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer/PlaylistQueueContainer'
 import VideoDetails from '@/ui/components/modules/Playlists/VideoDetails'
 import { auth } from '@/workspace/auth'
 
@@ -23,8 +23,10 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
     notFound()
   }
 
-  if (!v && playlistInfoResponse.data.firstVideo) {
-    redirect(`/playlists/${playlistId}?v=${playlistInfoResponse.data.firstVideo.videoId}`)
+  const { firstVideo, hiddenVideosCount, playlist } = playlistInfoResponse.data
+
+  if (!v && firstVideo) {
+    redirect(`/playlists/${playlistId}?v=${firstVideo.videoId}`)
   }
 
   return (
@@ -32,7 +34,7 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
       <Suspense key={v} fallback={<PlayerSkeleton />}>
         <VideoDetails userId={session?.user.id} v={v} />
       </Suspense>
-      <PlaylistQueueContainer playlistId={playlistId} />
+      <PlaylistQueueContainer playlistId={playlistId} hiddenVideosCount={hiddenVideosCount} playlistName={playlist.name}/>
     </div>
   )
 }

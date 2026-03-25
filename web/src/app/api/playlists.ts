@@ -38,6 +38,7 @@ export type UserPlaylistDetails = BasePlaylist & {
 export type PlaylistInfo = {
   playlist: PlaylistDetails
   firstVideo?: Omit<Video, 'videoUrl'>
+  hiddenVideosCount: number
 }
 
 export async function getPlaylistInfo(playlistId: string): Promise<BaseServerResponse<PlaylistInfo>> {
@@ -155,6 +156,26 @@ export async function searchUserPlaylists(
       data: null,
       success: false,
       message: `Failed to retrieve user playlists from playlist search`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function togglePlaylistVideo(playlistId: string, videoId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/videos`, {
+      playlistId,
+      videoIds: [videoId],
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('TOGGLE_VIDEO_IN_PLAYLIST_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to toggle video in playlist`,
       errors: parseAxiosError(error),
     }
   }

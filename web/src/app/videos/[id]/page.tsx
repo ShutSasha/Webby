@@ -2,16 +2,14 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 
 import { getVideoInfo } from '@/app/api/videos'
-import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import { clog } from '@/lib/utils/utils'
 import MainLayout from '@/ui/components/MainLayout'
 import CustomPlayer from '@/ui/components/modules/Player/CustomPlayer'
+import SaveToPlaylistButton from '@/ui/components/modules/Playlists/SaveToPlaylistBtn/SaveToPlaylistButton'
 import ComplaintButton from '@/ui/components/modules/Profile/ComplaintButton'
 import FollowButton from '@/ui/components/modules/Profile/FollowButton'
 import AsideVideoCard from '@/ui/components/modules/Videos/AsideVideoCard'
 import VideoDescription from '@/ui/components/modules/Videos/VideoDescription'
-import ActionButton from '@/ui/components/shared/ActionButton'
-import SaveToPlaylistButton from '@/ui/components/shared/SaveToPlaylistButton'
 import { BLUR_DATA_URLS } from '@/ui/images'
 import { auth } from '@/workspace/auth'
 
@@ -42,7 +40,7 @@ export default async function VideoPage({ params }: Props) {
             <div className="flex items-center justify-between mt-3 mb-2">
               <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
               <div className="flex gap-3 items-center">
-                {session?.user.id && <SaveToPlaylistButton userId={session.user.id} />}
+                {session?.user.id && <SaveToPlaylistButton userId={session.user.id} videoId={videoId} />}
 
                 <ComplaintButton authorId={session?.user.id} targetId={videoId} targetType="Video" />
               </div>
