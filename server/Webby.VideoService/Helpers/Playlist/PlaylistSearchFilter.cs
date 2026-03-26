@@ -16,7 +16,7 @@ public static class PlaylistSearchFilter
         (
             (
                 ""IsPrivate"" = FALSE
-                OR ""UserId"" = {0}
+                OR ""UserId"" = {2}
             )
             AND EXISTS (
                 SELECT 1 

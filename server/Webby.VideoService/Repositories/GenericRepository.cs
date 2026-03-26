@@ -123,9 +123,9 @@ public class GenericRepository<T> : IRepository<T> where T : class
 
        if (!string.IsNullOrWhiteSpace(searchText))
        {
-          query = query.Where(e => EF.Property<string>(e, columnName).Contains(search));
+          query = query.Where(e => EF.Functions.ILike(EF.Property<string>(e, columnName), $"%{search}%"));
        }
-       
+
        query = query.OrderByDescending(e => EF.Property<object>(e, "CreatedAt"));
 
        var count = await query.CountAsync();
