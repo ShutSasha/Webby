@@ -1,10 +1,10 @@
-import { notFound, redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 
 import { getUserAchievements } from '@/app/api/achievements'
-import { clog } from '@/lib/utils/utils'
 import AchievementItem from '@/ui/components/modules/Profile/Settings/Achievements/AchievementItem'
 import Splitter from '@/ui/components/modules/Profile/Settings/Achievements/Splitter'
 import UserHeader from '@/ui/components/modules/Profile/Settings/UserHeader'
+import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
 type Props = {
@@ -16,14 +16,22 @@ export default async function AchievementsPage({ params }: Props) {
   const session = await auth()
   const userAchievements = await getUserAchievements(userId)
 
-  clog('userAchievements', userAchievements)
-
   if (!session?.user) {
     redirect('/login')
   }
 
   if (!userAchievements.success || !userAchievements.data) {
-    notFound()
+    return (
+      <div className="flex flex-col gap-6 pb-10 h-full">
+        <UserHeader image={session.user.image} username={session.user.username} />
+        <div className="flex-1 mt-10">
+          <EmptyState
+            title="Couldn't load achievements"
+            description="We ran into a problem while retrieving the achievements. Please try refreshing the page."
+          />
+        </div>
+      </div>
+    )
   }
 
   const pinned = userAchievements.data.pinnedAchievements

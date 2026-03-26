@@ -1,11 +1,12 @@
 import { Suspense } from 'react'
 
-import { notFound, redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 
 import { getPlaylistInfo } from '@/app/api/playlists'
 import PlayerSkeleton from '@/ui/components/modules/Playlists/PlayerSkeleton'
 import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer/PlaylistQueueContainer'
 import VideoDetails from '@/ui/components/modules/Playlists/VideoDetails'
+import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
 type Props = {
@@ -20,7 +21,14 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
   const [session, playlistInfoResponse] = await Promise.all([sessionPromise, playlistInfoPromise])
 
   if (!playlistInfoResponse.success || !playlistInfoResponse.data) {
-    notFound()
+    return (
+      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+        <EmptyState
+          title="Playlist not found"
+          description="This playlist doesn't exist, is private, or has been deleted."
+        />
+      </div>
+    )
   }
 
   const { firstVideo, hiddenVideosCount, playlist } = playlistInfoResponse.data
