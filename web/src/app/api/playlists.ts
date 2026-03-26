@@ -27,7 +27,7 @@ export type PlaylistDetails = BasePlaylist & {
   userId: string
 }
 
-export type SearchPlaylsit = PlaylistDetails & {
+export type SearchPlaylist = PlaylistDetails & {
   username: string
 }
 
@@ -109,7 +109,7 @@ export async function createUserPlaylist(
   }
 }
 
-type PlaylistsSearchData = PaginatedData<SearchPlaylsit>
+type PlaylistsSearchData = PaginatedData<SearchPlaylist>
 
 export async function searchPlaylists(
   query: string,
@@ -134,7 +134,7 @@ export async function searchPlaylists(
   }
 }
 
-export type UserPlaylistsSearchData = PaginatedData<UserPlaylistDetails>
+export type UserPlaylistsSearchData = PaginatedData<BasePlaylist>
 
 export async function searchUserPlaylists(
   userId: string,

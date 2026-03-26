@@ -1,19 +1,19 @@
-import PlaylistItem from '@/ui/components/modules/Playlists/PlaylistItem'
-import GridCardsContainer from '@/ui/components/shared/GridCardsContainer'
+import PlaylistAuthPlaceholder from '@/ui/components/modules/Playlists/PlaylistAuthPlaceholder'
+import PlaylistUserSearchContainer from '@/ui/components/modules/Playlists/PlaylistUserSearchContainer'
+import { auth } from '@/workspace/auth'
 
-export default function Page() {
-  return (
-    <GridCardsContainer>
-      {Array.from({ length: 10 }).map((_, index) => (
-        <PlaylistItem
-          key={index}
-          id={'98b84aad-372d-4c06-861a-fd361d2cbcb4'}
-          src="https://i.ibb.co/V7LDjpM/anime-style-clouds.jpg"
-          name="name"
-          creator="creator"
-          videoCount={1}
-        />
-      ))}
-    </GridCardsContainer>
-  )
+type Props = {
+  searchParams: Promise<{ query?: string }>
+}
+
+export default async function Page({ searchParams }: Props) {
+  const { query } = await searchParams
+  const safeQuery = query || ''
+  const session = await auth()
+
+  if (!session?.user) {
+    return <PlaylistAuthPlaceholder />
+  }
+
+  return <PlaylistUserSearchContainer query={safeQuery} userId={session.user.id} />
 }
