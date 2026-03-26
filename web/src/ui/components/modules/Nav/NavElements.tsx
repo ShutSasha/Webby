@@ -1,7 +1,12 @@
+'use client'
+
 import { ComponentProps, FC, SVGProps } from 'react'
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+
+import { cn } from '@/lib/utils/utils'
 
 type DesktopNavProps = {
   href: ComponentProps<typeof Link>['href']
@@ -10,6 +15,7 @@ type DesktopNavProps = {
   text: string
   className?: string
   iconSize: string
+  isUserProfile?: boolean
 }
 
 type MobileNavProps = {
@@ -21,29 +27,57 @@ type MobileNavProps = {
   toggleMobileNav: () => void
 }
 
-export function DesktopNavElement({ isExpanded, href, Icon, text, className, iconSize }: DesktopNavProps) {
+export function DesktopNavElement({
+  isExpanded,
+  href,
+  Icon,
+  text,
+  className,
+  iconSize,
+  isUserProfile,
+}: DesktopNavProps) {
+  const pathname = usePathname()
+
+  const isActive = href === '/' ? pathname === href : pathname.startsWith(href as string)
+
   return (
     <Link
       href={href}
-      className={`flex h-fit cursor-pointer flex-col items-center rounded-sm ${className} ${
-        isExpanded
-          ? 'flex-row transition-colors duration-300 ease-out hover:bg-emerald-500 hover:text-neutral-800'
-          : 'flex-col hover:text-emerald-500'
-        }`}
+      className={cn(
+        'group flex items-center rounded-xl transition-all duration-300 ease-out cursor-pointer',
+        isExpanded ? 'px-3 py-2.5' : 'p-2.5 justify-center',
+        isActive
+          ? 'bg-emerald-500/10 text-emerald-500 font-semibold'
+          : 'text-neutral-400 hover:bg-neutral-800/60 hover:text-neutral-100',
+        className,
+      )}
     >
-      <div className={`w-full flex-1 flex flex-row items-center ${isExpanded ? 'gap-2 p-1 ' : 'gap-0 p-0 '}`}>
-        {typeof Icon === 'string' ? (
-          <Image src={Icon} alt={text} width={24} height={24} className={`${iconSize} object-cover rounded-full`} />
-        ) : (
-          <Icon className={`${iconSize} shrink-0`} />
+      {typeof Icon === 'string' ? (
+        <Image
+          src={Icon}
+          alt={text}
+          width={24}
+          height={24}
+          className={cn(iconSize, 'object-cover rounded-full transition-transform group-hover:scale-105')}
+        />
+      ) : (
+        <Icon
+          className={cn(
+            iconSize,
+            `shrink-0 transition-all duration-300 ${isUserProfile ? 'stroke-1' : 'stroke-2 '}`,
+            isActive ? 'text-emerald-500' : 'group-hover:text-emerald-400',
+          )}
+        />
+      )}
+
+      <span
+        className={cn(
+          'overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
+          isExpanded ? 'w-auto opacity-100 ml-3' : 'w-0 opacity-0 ml-0',
         )}
-        <p
-          className={`overflow-hidden whitespace-nowrap transition-opacity font-medium
-            ${isExpanded ? 'opacity-100 ' : 'w-0 h-0 opacity-0'}`}
-        >
-          {text}
-        </p>
-      </div>
+      >
+        {text}
+      </span>
     </Link>
   )
 }

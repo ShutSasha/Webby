@@ -5,6 +5,8 @@ import { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+import { cn } from '@/lib/utils/utils'
+
 type Tab = {
   label: string
   href: Route
@@ -19,7 +21,7 @@ export default function PageToggle() {
   const pathname = usePathname()
 
   return (
-    <div className="flex rounded-2xl bg-neutral-800 order-2 lg:order-1 relative">
+    <div className="flex rounded-xl bg-neutral-900/60 p-1 border border-neutral-800 order-2 lg:order-1 relative">
       {TABS.map(tab => {
         const isActive = pathname === tab.href
 
@@ -27,15 +29,18 @@ export default function PageToggle() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`relative px-4 py-1.5 font-semibold md:px-5 md:py-2 z-10 block md:font-bold uppercase text-[14px]
-            leading-5.5 transition-colors duration-300
-            ${isActive ? 'text-neutral-900' : 'text-neutral-600 hover:text-neutral-300'}`}
+            className={cn(
+              `relative px-4 py-1.5 md:px-5 md:py-2 z-10 block font-semibold md:font-bold uppercase text-[13px]
+              tracking-wide`,
+              'transition-colors duration-300 rounded-lg',
+              isActive ? 'text-neutral-100' : 'text-neutral-500 hover:text-neutral-300',
+            )}
           >
             {isActive && (
               <motion.div
                 layoutId="active-pill"
-                className="absolute inset-0 bg-emerald-500 rounded-2xl -z-10"
-                transition={{ type: 'spring', bounce: 0.2, duration: 0.45 }}
+                className="absolute inset-0 bg-neutral-800 rounded-lg -z-10 shadow-sm border border-neutral-700/50"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
             )}
             {tab.label}
