@@ -78,6 +78,7 @@ public class UserController : ControllerBase
       return Ok(ApiResponse.Ok("Successfully unlock user achievement"));
    }
 
+   //TODO: Add check of pinned achievements
    [HttpPost("achievements/{achievementId:guid}")]
    [SwaggerOperation("Pin user achievement","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> PinUserAchievement([FromRoute] Guid achievementId)

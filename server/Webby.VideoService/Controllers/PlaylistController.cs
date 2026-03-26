@@ -17,7 +17,7 @@ public class PlaylistController : ControllerBase
    {
       _playlistService = playlistService;
    }
-
+   
    [HttpGet("{userId:guid}")]
    [SwaggerOperation("Get user playlists")]
    public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistPreviewDto>>>> GetUserPlaylists(
@@ -45,6 +45,13 @@ public class PlaylistController : ControllerBase
          "Successfully retrieved user playlists",
          result));
    }
+   
+   [HttpGet("{playlistId:guid}/videos/{videoId:guid}/exists")]
+   public async Task<ActionResult<ApiResponse<bool>>> CheckIfVideoExists([FromRoute] Guid playlistId, Guid videoId)
+   {
+      var checkVideoExistResult = await _playlistService.CheckIfVideoExistInPlaylist(playlistId, videoId);
+      return Ok(ApiResponse<bool>.Ok("Successfully retrieve information",checkVideoExistResult));
+   }
 
    [HttpGet("{playlistId:guid}/details")]
    [SwaggerOperation("Get playlist information")]
@@ -55,6 +62,7 @@ public class PlaylistController : ControllerBase
       return Ok(ApiResponse<GetPlaylistResponse>.Ok("Successfully retrieved playlist information", playlistInformation));
    }
 
+   //TODO: Check query for 3+ characters search (SQL Part)
    [HttpGet("search")]
    [SwaggerOperation("Search playlists route")]
    public async Task<ActionResult<ApiResponse<PagedResponse<SearchPlaylistDto>>>> SearchPlaylists(
@@ -64,7 +72,6 @@ public class PlaylistController : ControllerBase
       var searchPlaylistsResponse = await _playlistService.SearchPlaylists(requestUserId,searchOptions);
       return Ok(ApiResponse<PagedResponse<SearchPlaylistDto>>.Ok("Successfully retrieved public playlists",searchPlaylistsResponse));
    }
-   
    
    [HttpPost]
    [SwaggerOperation("Create user playlist","AUTH REQUIRED")]
@@ -103,5 +110,6 @@ public class PlaylistController : ControllerBase
       await _playlistService.DeletePlaylist(userId.Value, playlistId);
       return Ok(ApiResponse.Ok("Successfully delete playlist"));
    }
+   
    
 }

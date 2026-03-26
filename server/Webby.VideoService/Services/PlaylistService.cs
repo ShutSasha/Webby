@@ -317,6 +317,9 @@ public class PlaylistService : IPlaylistService
       };
    }
 
+   public async Task<bool> CheckIfVideoExistInPlaylist(Guid playlistId, Guid videoId)
+      => await _playlistRepository.CheckIsVideoAdded(videoId,playlistId);
+   
    private PlaylistDto MapToPlaylistDto(Playlist playlist,Guid? requestUserId)
    {
       var lastVideo = playlist.PlaylistVideos?
