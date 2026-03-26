@@ -61,8 +61,8 @@ public class PlaylistController : ControllerBase
       var playlistInformation = await _playlistService.GetPlaylistInformation(playlistId, requestUserId);
       return Ok(ApiResponse<GetPlaylistResponse>.Ok("Successfully retrieved playlist information", playlistInformation));
    }
-
-   //TODO: Check query for 3+ characters search (SQL Part)
+   
+   
    [HttpGet("search")]
    [SwaggerOperation("Search playlists route")]
    public async Task<ActionResult<ApiResponse<PagedResponse<SearchPlaylistDto>>>> SearchPlaylists(

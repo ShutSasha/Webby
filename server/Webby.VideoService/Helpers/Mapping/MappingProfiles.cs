@@ -11,5 +11,6 @@ public class MappingProfiles : Profile
    {
       CreateMap<Models.Playlist, PlaylistDto>();
       CreateMap<Models.Video, VideoDto>();
+      CreateMap<Models.Video, UploadVideoResponse>();
    }
 }

@@ -6,9 +6,12 @@ using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Helpers.Video;
+using Webby.VideoService.Interfaces.Helpers;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
+using Webby.VideoService.Models.Enums;
+using Webby.VideoService.Services.Background;
 
 namespace Webby.VideoService.Services;
 
@@ -20,7 +23,9 @@ public class VideoService : IVideoService
    private readonly IPlaylistService _playlistService;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
    private readonly IMapper _mapper;
-   public VideoService(IVideoRepository videoRepository, IStorageService storageService, ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, IMapper mapper)
+   private readonly IBackgroundTaskQueue _queue;
+   private readonly IServiceScopeFactory _scopeFactory;
+   public VideoService(IVideoRepository videoRepository, IStorageService storageService, ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, IMapper mapper, IBackgroundTaskQueue queue, IServiceScopeFactory scopeFactory)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
@@ -28,58 +33,85 @@ public class VideoService : IVideoService
       _playlistService = playlistService;
       _userClient = userClient;
       _mapper = mapper;
+      _queue = queue;
+      _scopeFactory = scopeFactory;
    }
-   
+
+   public async Task<UploadVideoResponse> UploadVideoFile(Guid userId, UploadVideoRequest request)
+   {
+      if (request.VideoFile == null || request.VideoFile.Length == 0)
+         throw new ArgumentException("File is empty");
+
+      var videoId = Guid.NewGuid();
+
+      var video = new Video
+      {
+         VideoId = videoId,
+         Name = request.VideoFile.FileName,
+         UserId = userId,
+         VideoUploadStatus =VideoStatus.Uploading,
+         CreatedAt = DateTime.UtcNow,
+         IsPrivate = false
+      };
+
+      await _videoRepository.Add(video);
+      
+      var tempPath = Path.Combine(Path.GetTempPath(), $"{videoId}_{request.VideoFile.FileName}");
+
+      await using (var stream = File.Create(tempPath))
+      {
+         await request.VideoFile.CopyToAsync(stream);
+      }
+      
+      _queue.Enqueue(async token =>
+      {
+         using var scope = _scopeFactory.CreateScope();
+
+         var processor = scope.ServiceProvider
+            .GetRequiredService<VideoUploadProcessor>();
+
+         await processor.ProcessUpload(
+            videoId,
+            tempPath,
+            request.VideoFile.ContentType,
+            token);
+      });
+
+      return _mapper.Map<UploadVideoResponse>(video);
+   }
+
    public async Task CreateVideo(Guid userId, CreateVideoRequest request)
    {
-      var videoId = Guid.NewGuid();
+      var video = await _videoRepository.FindById(request.VideoId)
+                  ?? throw new ApiException("Create video error", 404, "Video wasn't found");
       
-      string videoUrl;
-      await using (var videoStream = request.VideoFile.OpenReadStream())
-      {
-         videoUrl = await _storageService.UploadFileAsync(
-            videoId,
-            "videos",
-            request.VideoFile.FileName,
-            videoStream,
-            request.VideoFile.ContentType
-         );
-      }
-
       await using var previewStream = request.PreviewFile.OpenReadStream();
+      
       var previewUrl = await _storageService.UploadFileAsync(
-         videoId,
+         video.VideoId,
          "previews",
          request.PreviewFile.FileName,
          previewStream,
          request.PreviewFile.ContentType
       );
-      
-      var video = new Video
-      {
-         VideoId = videoId,
-         UserId = userId,
-         Name = request.Name,
-         Description = request.Description,
-         Views = 0,
-         CreatedAt = DateTime.UtcNow,
-         VideoUrl = videoUrl,
-         PreviewUrl = previewUrl,
-         IsPrivate = request.IsPrivate
-      };
 
-      await _videoRepository.Add(video);
+      video.Name = request.Name;
+      video.Description = request.Description;
+      video.PreviewUrl = previewUrl;
+      video.IsPrivate = request.IsPrivate;
+      
+      await _videoRepository.Update(video);
       
       if (request.VideoTags != null && request.VideoTags.Any())
       {
-         await _tagService.EnsureCreateTags(request.VideoTags, videoId);
+         await _tagService.EnsureCreateTags(request.VideoTags, video.VideoId);
       }
       
       if (request.PlaylistId.HasValue)
       {
          await _playlistService.AttachVideoToPlaylist(
             request.PlaylistId.Value,
-            [videoId],
+            [video.VideoId],
             userId
          );
       }
@@ -281,4 +313,5 @@ public class VideoService : IVideoService
 
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>
       videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();
+   
 }

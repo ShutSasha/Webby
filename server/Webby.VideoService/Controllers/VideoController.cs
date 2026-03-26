@@ -63,13 +63,21 @@ public class VideoController: ControllerBase
    }
    
    //TODO: add recommendation videos route
-   
-   
-   //TODO: add background service for async uploading files
-   [HttpPost]
-   [SwaggerOperation("Create video route", "AUTH REQUIRED")]
+
+
+   [HttpPost("upload")]
+   [SwaggerOperation("Upload video file route", "AUTH REQUIRED")]
    [RequestSizeLimit(5L * 1024 * 1024 * 1024)]
    [RequestFormLimits(MultipartBodyLengthLimit = 5L * 1024 * 1024 * 1024)]
+   public async Task<ActionResult<ApiResponse<UploadVideoResponse>>> UploadFileVideo([FromForm] UploadVideoRequest request)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      var uploadResponse = await _videoService.UploadVideoFile(userId.Value, request);
+      return Ok(ApiResponse<UploadVideoResponse>.Ok("Successfully prepared for uploading video file",uploadResponse));
+   }
+   
+   [HttpPost]
+   [SwaggerOperation("Add information to video", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> CreateVideo([FromForm] CreateVideoRequest request)
    {
       var userId = JwtHelper.ExtractUserId(HttpContext)!;

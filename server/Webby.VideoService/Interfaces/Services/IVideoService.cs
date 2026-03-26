@@ -6,6 +6,7 @@ namespace Webby.VideoService.Interfaces.Services;
 
 public interface IVideoService
 {
+   Task<UploadVideoResponse> UploadVideoFile(Guid userId, UploadVideoRequest request);
    Task CreateVideo(Guid userId, CreateVideoRequest request);
    Task DeleteVideo(Guid userId, Guid videoId);
    Task<GetVideoInformationResponse> GetVideoInformation(Guid videoId, Guid? userId);

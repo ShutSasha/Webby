@@ -20,15 +20,13 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
       builder.Property(v => v.Description)
          .HasMaxLength(1000);
 
-      builder.Property(v => v.VideoUrl)
-         .IsRequired();
-
-      builder.Property(v => v.PreviewUrl)
-         .IsRequired();
-
       builder.Property(v => v.Views)
          .HasDefaultValue(0);
 
+      builder.Property(v => v.VideoUploadStatus)
+         .HasConversion<string>()
+         .IsRequired();
+      
       builder.Property(v => v.IsPrivate)
          .HasDefaultValue(false);
       

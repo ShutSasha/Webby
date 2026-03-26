@@ -5,16 +5,14 @@ namespace Webby.VideoService.Dtos.Video;
 
 public class CreateVideoRequest
 {
+   [Required] 
+   public Guid VideoId { get; set; }
+   
    [Required]
    public string Name { get; set; }
    
    [Required]
    public string? Description { get; set; }
-   
-   [Required]
-   [MaxFileSize(3L * 1024 * 1024 *1024, ErrorMessage = "Video size can't exceed 3GB")]
-
-   public IFormFile VideoFile { get; set; }
    
    [MaxFileSize(20 * 1024 * 1024, ErrorMessage = "Preview size can't exceed 20MB")]
    public IFormFile PreviewFile { get; set; }
