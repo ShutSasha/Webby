@@ -177,7 +177,7 @@ public class UserService : IUserService
 
    public async Task<List<UserFollowersDto>> GetUserFollowers(Guid userId)
    {
-      _ = _userRepository.FindById(userId)
+      _ = await _userRepository.FindById(userId)
           ?? throw new ApiException("Get user followers error", 404, "User wasn't found");
       
       var userFollowers = await _userRepository
@@ -190,8 +190,8 @@ public class UserService : IUserService
 
    public async Task<List<UserFollowersDto>> GetUserFollows(Guid userId)
    {
-      _ = _userRepository.FindById(userId)
-          ?? throw new ApiException("Get user follows error", 404, "User wasn't found");
+      _ = await _userRepository.FindById(userId)
+          ?? throw new ApiException("Get user followers error", 404, "User wasn't found");
       
       var userFollows = await _userRepository
          .GetUserFollows(userId);
