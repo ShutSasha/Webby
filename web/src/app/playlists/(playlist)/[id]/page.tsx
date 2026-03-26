@@ -14,10 +14,10 @@ type Props = {
 }
 
 export default async function PlaylistPage({ params, searchParams }: Props) {
-  const { id: playlistId } = await params
-  const session = await auth()
-  const playlistInfoResponse = await getPlaylistInfo(playlistId)
-  const { v } = await searchParams
+  const [{ id: playlistId }, { v }] = await Promise.all([params, searchParams])
+  const sessionPromise = auth()
+  const playlistInfoPromise = getPlaylistInfo(playlistId)
+  const [session, playlistInfoResponse] = await Promise.all([sessionPromise, playlistInfoPromise])
 
   if (!playlistInfoResponse.success || !playlistInfoResponse.data) {
     notFound()
@@ -32,9 +32,13 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
   return (
     <div className="flex gap-5">
       <Suspense key={v} fallback={<PlayerSkeleton />}>
-        <VideoDetails userId={session?.user.id} v={v} />
+        <VideoDetails userId={session?.user.id} v={v} playlistId={playlistId} />
       </Suspense>
-      <PlaylistQueueContainer playlistId={playlistId} hiddenVideosCount={hiddenVideosCount} playlistName={playlist.name}/>
+      <PlaylistQueueContainer
+        playlistId={playlistId}
+        hiddenVideosCount={hiddenVideosCount}
+        playlistName={playlist.name}
+      />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+import { checkVideoInPlaylist } from '@/app/api/playlists'
 import { getVideoInfo } from '@/app/api/videos'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
@@ -14,16 +15,24 @@ import VideoNotFound from '../Videos/VideoNotFound'
 type Props = {
   v: string | undefined
   userId: string | undefined
+  playlistId?: string
 }
 
-export default async function VideoDetails({ v, userId }: Props) {
+export default async function VideoDetails({ v, userId, playlistId }: Props) {
   if (!v) {
     return <VideoNotFound />
   }
 
-  const video = await getVideoInfo(v)
+  const [video, playlistCheck] = await Promise.all([
+    getVideoInfo(v),
+    playlistId ? checkVideoInPlaylist(playlistId, v) : Promise.resolve({ success: true, data: true }),
+  ])
 
   if (!video.success || !video.data) {
+    return <VideoNotFound />
+  }
+
+  if (playlistId && !playlistCheck.data) {
     return <VideoNotFound />
   }
 

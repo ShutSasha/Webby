@@ -1,16 +1,9 @@
-import Image from 'next/image'
-import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 
-import { getVideoInfo } from '@/app/api/videos'
-import { clog } from '@/lib/utils/utils'
 import MainLayout from '@/ui/components/MainLayout'
-import CustomPlayer from '@/ui/components/modules/Player/CustomPlayer'
-import SaveToPlaylistButton from '@/ui/components/modules/Playlists/SaveToPlaylistBtn/SaveToPlaylistButton'
-import ComplaintButton from '@/ui/components/modules/Profile/ComplaintButton'
-import FollowButton from '@/ui/components/modules/Profile/FollowButton'
+import PlayerSkeleton from '@/ui/components/modules/Playlists/PlayerSkeleton'
+import VideoDetails from '@/ui/components/modules/Playlists/VideoDetails'
 import AsideVideoCard from '@/ui/components/modules/Videos/AsideVideoCard'
-import VideoDescription from '@/ui/components/modules/Videos/VideoDescription'
-import { BLUR_DATA_URLS } from '@/ui/images'
 import { auth } from '@/workspace/auth'
 
 type Props = {
@@ -20,50 +13,14 @@ type Props = {
 export default async function VideoPage({ params }: Props) {
   const { id } = await params
   const session = await auth()
-  const videoInfoResponse = await getVideoInfo(id)
-
-  clog('video data', videoInfoResponse)
-
-  if (!videoInfoResponse.success || !videoInfoResponse.data) {
-    notFound()
-  }
-
-  const { videoId, videoUrl, name, user, description, views, createdAt } = videoInfoResponse.data
-  const isOwner = session?.user.id === user.userId
 
   return (
     <MainLayout>
       <div className="flex flex-col w-full bg-neutral-900 rounded-[20px] p-5 gap-4 box-border">
         <div className="flex gap-5">
-          <div className="flex-1 min-w-0">
-            <CustomPlayer videoUrl={videoUrl} />
-
-            <div className="flex items-center justify-between mt-3 mb-2">
-              <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
-              <div className="flex gap-3 items-center">
-                {session?.user.id && <SaveToPlaylistButton userId={session.user.id} videoId={videoId} />}
-
-                <ComplaintButton authorId={session?.user.id} targetId={videoId} targetType="Video" />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Image
-                src={user.avatarUrl}
-                className="size-9 object-cover rounded-full"
-                alt=""
-                width={50}
-                height={50}
-                loading="lazy"
-                placeholder="blur"
-                blurDataURL={BLUR_DATA_URLS['neutral900']}
-              />
-              <p className="text-[16px] font-medium">{user.username}</p>
-              {!isOwner && <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />}
-            </div>
-
-            <VideoDescription text={description ?? ''} views={views} date={createdAt} />
-          </div>
+          <Suspense key={id} fallback={<PlayerSkeleton />}>
+            <VideoDetails v={id} userId={session?.user.id} />
+          </Suspense>
 
           <div className="w-[418px] flex flex-col gap-3">
             {[...new Array(20)].map((_, index) => (
