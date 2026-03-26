@@ -29,6 +29,7 @@ export default async function VideoPage({ params }: Props) {
   }
 
   const { videoId, videoUrl, name, user, description, views, createdAt } = videoInfoResponse.data
+  const isOwner = session?.user.id === user.userId
 
   return (
     <MainLayout>
@@ -58,7 +59,7 @@ export default async function VideoPage({ params }: Props) {
                 blurDataURL={BLUR_DATA_URLS['neutral900']}
               />
               <p className="text-[16px] font-medium">{user.username}</p>
-              <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />
+              {!isOwner && <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />}
             </div>
 
             <VideoDescription text={description ?? ''} views={views} date={createdAt} />

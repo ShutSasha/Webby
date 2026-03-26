@@ -28,6 +28,7 @@ export default async function VideoDetails({ v, userId }: Props) {
   }
 
   const { videoId, description, createdAt, views, name, user, videoUrl } = video.data
+  const isOwner = userId === user.userId
 
   return (
     <div className="h-fit min-w-0 w-full">
@@ -42,20 +43,22 @@ export default async function VideoDetails({ v, userId }: Props) {
         </div>
       </div>
 
-      <Link href={`/profile/${user.userId}`} className="flex items-center gap-3">
-        <Image
-          src={user.avatarUrl}
-          className="size-9 object-cover rounded-full"
-          alt=""
-          width={50}
-          height={50}
-          loading="lazy"
-          placeholder="blur"
-          blurDataURL={BLUR_DATA_URLS['neutral900']}
-        />
-        <p className="text-[16px] font-medium">{user.username}</p>
-        <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />
-      </Link>
+      <div className="flex items-center gap-3">
+        <Link href={`/profile/${user.userId}`} className="flex items-center gap-3">
+          <Image
+            src={user.avatarUrl}
+            className="size-9 object-cover rounded-full"
+            alt=""
+            width={50}
+            height={50}
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL={BLUR_DATA_URLS['neutral900']}
+          />
+          <p className="text-[16px] font-medium">{user.username}</p>
+        </Link>
+        {!isOwner && <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />}
+      </div>
 
       <VideoDescription text={description ?? ''} views={views} date={createdAt} />
     </div>
