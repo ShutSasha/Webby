@@ -58,9 +58,9 @@ export default function ComplaintButton({ authorId, targetId, targetType }: Prop
         return
       }
 
-      const response = await leaveComplaint(targetId, selectedReason, targetType, description)
+      const response = await leaveComplaint(targetId, selectedReason, targetType, description.trim())
 
-      if (response?.success) {
+      if (response.success) {
         setStep('SUCCESS')
       } else {
         const msg = extractServerMessage(response.errors)
@@ -95,7 +95,9 @@ export default function ComplaintButton({ authorId, targetId, targetType }: Prop
           {step === 'DETAILS' && (
             <>
               <h2 className="text-xl font-semibold text-neutral-300 text-center">Details</h2>
-              <p className="text-sm text-neutral-400 text-center -mt-2">Reason: {selectedReason}</p>
+              <p className="text-sm text-neutral-500 text-center -mt-1 mb-2">
+                You can skip this or add more info (optional)
+              </p>
 
               <textarea
                 autoFocus
@@ -115,7 +117,7 @@ export default function ComplaintButton({ authorId, targetId, targetType }: Prop
                   Back
                 </button>
                 <button
-                  disabled={loading || !description.trim()}
+                  disabled={loading}
                   onClick={handleSubmit}
                   className={cn(
                     `flex-2 py-2 bg-emerald-500 hover:bg-emerald-400 rounded-xl text-neutral-900 font-medium
