@@ -42,7 +42,7 @@ export function DesktopNavElement({
   )
 
   const content = (
-    <div className="relative z-10 flex items-center w-full justify-center">
+    <div className={cn('relative z-10 flex items-center w-full', !isExpanded && 'justify-center')}>
       {typeof Icon === 'string' ? (
         <Image
           src={Icon}
@@ -61,18 +61,14 @@ export function DesktopNavElement({
         />
       )}
 
-      <motion.span
-        initial={false}
-        animate={{
-          width: isExpanded ? 'auto' : 0,
-          opacity: isExpanded ? 1 : 0,
-          marginLeft: isExpanded ? 12 : 0,
-        }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="overflow-hidden whitespace-nowrap"
+      <span
+        className={cn(
+          'overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
+          isExpanded ? 'w-auto opacity-100 ml-3' : 'w-0 opacity-0 ml-0',
+        )}
       >
         {text}
-      </motion.span>
+      </span>
     </div>
   )
 
