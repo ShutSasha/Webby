@@ -3,8 +3,8 @@ import { useState } from 'react'
 
 import Link from 'next/link'
 
-import ExpandIcon from '@/assets/icons/ic_expand.svg'
 import LogoIcon from '@/assets/icons/ic_logo.svg'
+import ExpandIcon from '@/assets/icons/Nav/arrow-right-from-line.svg'
 import { navDesktopElements } from '@/lib/placeholder-data/nav-side'
 import { cn } from '@/lib/utils/utils'
 
@@ -49,7 +49,10 @@ export default function DesktopNav() {
               transition-colors shrink-0"
           >
             <ExpandIcon
-              className={cn('size-5 transition-transform duration-300', isExpanded ? 'rotate-180' : 'rotate-0')}
+              className={cn(
+                'size-5 transition-transform duration-300 stroke-[1.5px]',
+                isExpanded ? 'rotate-180' : 'rotate-0',
+              )}
             />
           </button>
         </div>

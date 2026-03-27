@@ -4,12 +4,10 @@ import Link from 'next/link'
 
 import LogoIcon from '@/assets/icons/ic_logo.svg'
 import MenuIcon from '@/assets/icons/ic_menu.svg'
-// TODO CHECK THIS ICON IN OTHER COMPONENTS
-import NotificationIcon from '@/assets/icons/ic_notifications.svg'
-// import MailIcon from '@/assets/icons/ic_mail.svg'
-import PlaylistIcon from '@/assets/icons/ic_playlist.svg'
 import SearchIcon from '@/assets/icons/ic_search.svg'
+import BellIcon from '@/assets/icons/Nav/bell.svg'
 import ChatsIcon from '@/assets/icons/Nav/chats.svg'
+import PlaylistIcon from '@/assets/icons/Nav/list-video.svg'
 import VideosIcon from '@/assets/icons/Nav/tv-minimal-play.svg'
 import RoomsIcon from '@/assets/icons/Nav/tv.svg'
 
@@ -27,7 +25,7 @@ export const navDesktopElements: NavItem[] = [
   { key: 'rooms', href: '/rooms', icon: RoomsIcon, text: 'Rooms', iconSize: 'size-6' },
   { key: 'playlists', href: '/playlists', icon: PlaylistIcon, text: 'Playlists', iconSize: 'size-6' },
   { key: 'chats', href: '/chats', icon: ChatsIcon, text: 'Chats', iconSize: 'size-6' },
-  { key: 'notifications', href: '/notifications', icon: NotificationIcon, text: 'Notifications', iconSize: 'size-6' },
+  { key: 'notifications', href: '/notifications', icon: BellIcon, text: 'Notifications', iconSize: 'size-6' },
 ]
 
 export const navMobileElements: NavItem[] = [

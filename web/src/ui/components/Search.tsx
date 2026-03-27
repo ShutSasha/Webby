@@ -41,7 +41,7 @@ export default function Search({
 
   return (
     <div className={`relative ${containerClassName}`}>
-      <SearchIcon className={`${iconClassName} absolute top-1/2 -translate-y-1/2`} aria-hidden="true" />
+      <SearchIcon className={`${iconClassName} absolute top-1/2 -translate-y-1/2 stroke-[1.5px]`} aria-hidden="true" />
       <label htmlFor="search" className="sr-only">
         Search
       </label>

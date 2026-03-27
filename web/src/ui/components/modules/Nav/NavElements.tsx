@@ -64,7 +64,7 @@ export function DesktopNavElement({
         <Icon
           className={cn(
             iconSize,
-            `shrink-0 transition-all duration-300 ${isUserProfile ? 'stroke-1' : 'stroke-2 '}`,
+            `shrink-0 transition-all duration-300 ${isUserProfile ? 'stroke-1' : 'stroke-[1.5px]'}`,
             isActive ? 'text-emerald-500' : 'group-hover:text-emerald-400',
           )}
         />
