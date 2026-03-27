@@ -10,7 +10,9 @@ type Props = {
 
 export default function MediaHeader({ searchPlaceholder, pageToggle, actionSlot }: Props) {
   return (
-    <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-4">
+    <div
+      className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 pb-4 border-b border-neutral-800/60"
+    >
       {pageToggle}
       <Suspense>
         <Search
