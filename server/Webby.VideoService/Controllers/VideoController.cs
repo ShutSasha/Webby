@@ -115,7 +115,8 @@ public class VideoController: ControllerBase
    [SwaggerOperation("Cancel uploading video route", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> CancelVideo([FromRoute] Guid videoId)
    {
-      await _videoService.CancelVideoUploading(videoId);
+      var userId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false)!;
+      await _videoService.CancelVideoUploading(userId.Value,videoId);
       return Ok(ApiResponse.Ok("Successfully cancel video upload"));
    }
    

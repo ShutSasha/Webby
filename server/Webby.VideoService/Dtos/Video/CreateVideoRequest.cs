@@ -14,6 +14,7 @@ public class CreateVideoRequest
    [Required]
    public string? Description { get; set; }
    
+   [Required]
    [MaxFileSize(20 * 1024 * 1024, ErrorMessage = "Preview size can't exceed 20MB")]
    public IFormFile PreviewFile { get; set; }
    

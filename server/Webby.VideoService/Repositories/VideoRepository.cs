@@ -61,6 +61,7 @@ public async Task<(List<Video> Items, int Total)> SearchVideosInPlaylistAsync(
      FROM ""PlaylistVideos"" pv
      JOIN ""Videos"" v ON v.""VideoId"" = pv.""VideoId""
      WHERE pv.""PlaylistId"" = @playlistId
+       AND v.""IsPublished"" = TRUE
        AND (v.""IsPrivate"" = FALSE OR v.""UserId"" = @requestUserId)
        AND (
            v.""VideoUploadStatus"" = @statusReady 
@@ -98,7 +99,7 @@ public async Task<(List<Video> Items, int Total)> SearchVideosInPlaylistAsync(
    
    parameters.Add(new NpgsqlParameter("@take", take));
    parameters.Add(new NpgsqlParameter("@skip", skip));
-   
+
    var items = await _context.Videos
       .FromSqlRaw(query, parameters.ToArray())
       .ToListAsync();

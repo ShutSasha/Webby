@@ -1,4 +1,5 @@
-﻿using Webby.VideoService.Helpers.Exception;
+﻿using NReco.VideoInfo;
+using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models.Enums;
@@ -16,9 +17,13 @@ public class VideoUploadProcessor(IVideoRepository videoRepository, IStorageServ
       var video = await videoRepository.FindById(videoId);
       string? videoFileUrl = null;
       bool isVideoDeleted = false;
-      
+   
       try
       {
+         var ffProbe = new FFProbe();
+         var videoInfo = ffProbe.GetMediaInfo(filePath);
+         video!.Duration = videoInfo.Duration;
+
          logger.LogInformation($"Uploading file to storage");
          await using var stream = File.OpenRead(filePath);
 
@@ -30,7 +35,8 @@ public class VideoUploadProcessor(IVideoRepository videoRepository, IStorageServ
             contentType
          );
 
-         video!.VideoUrl = videoFileUrl;
+         video.VideoUrl = videoFileUrl;
+         await videoRepository.Update(video);
 
          File.Delete(filePath);
       }
@@ -47,7 +53,6 @@ public class VideoUploadProcessor(IVideoRepository videoRepository, IStorageServ
             {
                throw new ApiException("File rollback delete error", 500, deleteEx.Message);
             }
-
          }
 
          video!.VideoUploadStatus = VideoStatus.Failed;
@@ -58,7 +63,7 @@ public class VideoUploadProcessor(IVideoRepository videoRepository, IStorageServ
          if (!string.IsNullOrEmpty(videoFileUrl))
          {
             await videoRepository.ReloadAsync(video!);
-            
+         
             logger.LogInformation($"Check video with status {video!.VideoUploadStatus}");
             if (video is { VideoUploadStatus: VideoStatus.Canceled })
             {

@@ -51,7 +51,8 @@ public class VideoService : IVideoService
          UserId = userId,
          VideoUploadStatus =VideoStatus.Uploading,
          CreatedAt = DateTime.UtcNow,
-         IsPrivate = false
+         IsPrivate = false,
+         IsPublished = false
       };
 
       await _videoRepository.Add(video);
@@ -84,6 +85,11 @@ public class VideoService : IVideoService
    {
       var video = await _videoRepository.FindById(request.VideoId)
                   ?? throw new ApiException("Create video error", 404, "Video wasn't found");
+
+      if (userId != video.UserId)
+      {
+         throw new ApiException("Publish video error", 403, "You can't publish this video");
+      }
       
       await using var previewStream = request.PreviewFile.OpenReadStream();
       
@@ -99,6 +105,7 @@ public class VideoService : IVideoService
       video.Description = request.Description;
       video.PreviewUrl = previewUrl;
       video.IsPrivate = request.IsPrivate;
+      video.IsPublished = true;
       
       await _videoRepository.Update(video);
       
@@ -312,11 +319,16 @@ public class VideoService : IVideoService
       return privateVideos?.Any() ?? false;
    }
 
-   public async Task CancelVideoUploading(Guid videoId)
+   public async Task CancelVideoUploading(Guid requestUserId, Guid videoId)
    {
       var video = await _videoRepository.FindById(videoId)
                   ?? throw new ApiException("Cancel video uploading", 404, "Video wasn't found");
 
+      if (requestUserId != video.UserId)
+      {
+         throw new ApiException("Publish video error", 403, "You can't publish this video");
+      }
+      
       switch (video.VideoUploadStatus)
       {
          case VideoStatus.Uploading:

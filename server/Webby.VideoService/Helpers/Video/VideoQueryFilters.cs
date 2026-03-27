@@ -13,22 +13,23 @@ public static class VideoQueryFilters
    {
       return (
          @"
-      (
-          ""VideoId"" IN (
-              SELECT ""VideoId""
-              FROM ""PlaylistVideos""
-              WHERE ""PlaylistId"" = {2}
-          )
-          AND (
-              ""UserId"" = {3}
-              OR ""IsPrivate"" = FALSE
-          )
-          AND (
-              ""VideoUploadStatus"" = {4}
-              OR (""UserId"" = {3} AND ""VideoUploadStatus"" = {5})
-          )
-      )
-      ",
+   (
+       ""VideoId"" IN (
+           SELECT ""VideoId""
+           FROM ""PlaylistVideos""
+           WHERE ""PlaylistId"" = {2}
+       )
+       AND ""IsPublished"" = TRUE
+       AND (
+           ""UserId"" = {3}
+           OR ""IsPrivate"" = FALSE
+       )
+       AND (
+           ""VideoUploadStatus"" = {4}
+           OR (""UserId"" = {3} AND ""VideoUploadStatus"" = {5})
+       )
+   )
+   ",
          new object[] 
          { 
             playlistId, 
@@ -45,6 +46,7 @@ public static class VideoQueryFilters
                             v.VideoUploadStatus == VideoStatus.Ready || 
                             (v.UserId == requestUserId && v.VideoUploadStatus == VideoStatus.Uploading)
                          )
+                         && v.IsPublished == true
       );
    }
 
@@ -56,13 +58,30 @@ public static class VideoQueryFilters
    {
       return (
          @"
-        (
-            ""IsPrivate"" = FALSE
-            OR ""UserId"" = {2}
-        )
-        ",
-         new object[] { requestUserId },
-         context => v => !v.IsPrivate || v.UserId == requestUserId
+      (
+          ""IsPublished"" = TRUE
+          AND (
+              ""IsPrivate"" = FALSE
+              OR ""UserId"" = {2}
+          )
+          AND (
+              ""VideoUploadStatus"" = {3}
+              OR (""UserId"" = {2} AND ""VideoUploadStatus"" = {4})
+          )
+      )
+      ",
+         new object[] 
+         { 
+            requestUserId ?? (object)DBNull.Value,
+            VideoStatus.Ready.ToString(),
+            VideoStatus.Uploading.ToString()
+         },
+         context => v => v.IsPublished == true
+                         && (!v.IsPrivate || v.UserId == requestUserId)
+                         && (
+                            v.VideoUploadStatus == VideoStatus.Ready || 
+                            (v.UserId == requestUserId && v.VideoUploadStatus == VideoStatus.Uploading)
+                         )
       );
    }
 }

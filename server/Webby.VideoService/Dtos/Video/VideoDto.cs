@@ -14,6 +14,7 @@ public class VideoDto
    public required bool IsPrivate { get; set; }
    public DateTime CreatedAt { get; set; }
    public VideoStatus VideoUploadStatus { get; set; }
+   public TimeSpan Duration { get; set; }
    public List<string>? VideoTags { get; set; }
    public UserVideoDto? User { get; set; }
 }
