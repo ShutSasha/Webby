@@ -104,7 +104,7 @@ public class VideoController: ControllerBase
    }
 
    [HttpDelete("{videoId:guid}/cancel")]
-   [SwaggerOperation("Cancel uploading video route")]
+   [SwaggerOperation("Cancel uploading video route", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> CancelVideo([FromRoute] Guid videoId)
    {
       await _videoService.CancelVideoUploading(videoId);

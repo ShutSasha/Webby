@@ -205,25 +205,6 @@ public class VideoService : IVideoService
             userId);
       }
       
-      if (request.VideoFile != null)
-      {
-         if (!string.IsNullOrEmpty(video.VideoUrl))
-         {
-            await _storageService.DeleteFileAsync(video.VideoUrl);
-         }
-
-         await using var stream = request.VideoFile.OpenReadStream();
-
-         var videoUrl = await _storageService.UploadFileAsync(
-            video.VideoId,
-            "videos",
-            request.VideoFile.FileName,
-            stream,
-            request.VideoFile.ContentType);
-
-         video.VideoUrl = videoUrl;
-      }
-      
       if (request.PreviewFile != null)
       {
          if (!string.IsNullOrEmpty(video.PreviewUrl))
@@ -316,7 +297,6 @@ public class VideoService : IVideoService
 
       switch (video.VideoUploadStatus)
       {
-         case VideoStatus.Pending:
          case VideoStatus.Uploading:
             video.VideoUploadStatus = VideoStatus.Canceled;
             await _videoRepository.Update(video);
