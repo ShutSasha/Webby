@@ -16,4 +16,5 @@ public interface IVideoService
    Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId, Guid playlistId, SearchOptions searchOptions);
    Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId);
    Task CancelVideoUploading(Guid videoId);
+   Task<bool> CheckUploadStatus(Guid videoId);
 }

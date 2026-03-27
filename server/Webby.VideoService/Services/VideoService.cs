@@ -131,11 +131,16 @@ public class VideoService : IVideoService
       await _storageService.DeleteFileAsync(video.PreviewUrl);
       await _videoRepository.DeleteAsync(videoId);
    }
-   
+
    public async Task<GetVideoInformationResponse> GetVideoInformation(Guid videoId, Guid? userId)
    {
       var video = await _videoRepository.GetVideoInformationById(videoId)
                   ?? throw new ApiException("Get video information error", 404, "Video wasn't found");
+
+      if (video.VideoUploadStatus is VideoStatus.Ready)
+      {
+         throw new ApiException("Get video information error", 400, "Video is not uploaded yet");
+      }
 
       var userResponse = await _userClient.GetUserByIdAsync(new GetUserRequest
       {
@@ -277,6 +282,23 @@ public class VideoService : IVideoService
          Page = searchOptions.Page,
          PageSize = searchOptions.PageSize,
          TotalCount = total
+      };
+   }
+
+   public async Task<bool> CheckUploadStatus(Guid videoId)
+   {
+      var video = await _videoRepository.FindById(videoId);
+      
+      if (video == null) 
+      {
+         return false; 
+      }
+   
+      return video.VideoUploadStatus switch
+      {
+         VideoStatus.Ready => true,
+         VideoStatus.Canceled or VideoStatus.Failed or VideoStatus.Uploading => false,
+         _ => false 
       };
    }
 

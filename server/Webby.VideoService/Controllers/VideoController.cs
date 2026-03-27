@@ -38,6 +38,14 @@ public class VideoController: ControllerBase
       var videos = await _videoService.SearchVideo(requestUserId,searchOptions);
       return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video",videos));
    }
+
+   [HttpGet("{videoId:guid}/check-upload-status")]
+   [SwaggerOperation("Checks if video is uploaded to storage")]
+   public async Task<ActionResult<ApiResponse<bool>>> CheckUploadStatus([FromRoute] Guid videoId)
+   {
+      var isVideoUploaded = await _videoService.CheckUploadStatus(videoId);
+      return Ok(ApiResponse<bool>.Ok("Successfully extract video status",isVideoUploaded));
+   }
    
    [HttpGet("{playlistId:guid}/search")]
    [SwaggerOperation("Search video in playlist route")]
