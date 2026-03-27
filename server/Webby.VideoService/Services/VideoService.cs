@@ -47,7 +47,7 @@ public class VideoService : IVideoService
       var video = new Video
       {
          VideoId = videoId,
-         Name = request.VideoFile.FileName,
+         Name = Path.GetFileNameWithoutExtension(request.VideoFile.FileName),
          UserId = userId,
          VideoUploadStatus =VideoStatus.Uploading,
          CreatedAt = DateTime.UtcNow,
@@ -115,7 +115,6 @@ public class VideoService : IVideoService
             userId
          );
       }
-      
    }
 
    public async Task DeleteVideo(Guid userId, Guid videoId)
@@ -193,7 +192,6 @@ public class VideoService : IVideoService
 
       if (video.UserId != userId)
          throw new ApiException("Update information error", 403, "You don't have permission for updating this video");
-      
       
       video.Name = request.Name;
       video.Description = request.Description;
@@ -309,6 +307,33 @@ public class VideoService : IVideoService
                               && v.UserId != requestUserId);
 
       return privateVideos?.Any() ?? false;
+   }
+
+   public async Task CancelVideoUploading(Guid videoId)
+   {
+      var video = await _videoRepository.FindById(videoId)
+                  ?? throw new ApiException("Cancel video uploading", 404, "Video wasn't found");
+
+      switch (video.VideoUploadStatus)
+      {
+         case VideoStatus.Pending:
+         case VideoStatus.Uploading:
+            video.VideoUploadStatus = VideoStatus.Canceled;
+            await _videoRepository.Update(video);
+            break;
+
+         case VideoStatus.Ready:
+            if (!string.IsNullOrEmpty(video.VideoUrl))
+               await _storageService.DeleteFileAsync(video.VideoUrl);
+
+            await _videoRepository.DeleteAsync(videoId);
+            break;
+
+         case VideoStatus.Failed:
+         case VideoStatus.Canceled:
+            await _videoRepository.DeleteAsync(videoId);
+            break;
+      }
    }
 
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>

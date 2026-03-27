@@ -13,6 +13,7 @@ public interface IRepository<TEntity> where TEntity : class
    Task<IEnumerable<TEntity>> GetByPredicate(Expression<Func<TEntity, bool>> predicate);
    Task<int> CountAsync();
    Task DeleteRange(IEnumerable<TEntity> entities);
+   Task ReloadAsync(TEntity entity);
 
    Task<(List<TEntity> Items, int Total)> SearchAsync(
       string tableName,

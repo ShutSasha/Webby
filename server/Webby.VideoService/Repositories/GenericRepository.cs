@@ -91,6 +91,11 @@ public class GenericRepository<T> : IRepository<T> where T : class
       _dbSet.RemoveRange(entities);
       await _context.SaveChangesAsync();
    }
+   public async Task ReloadAsync(T entity)
+   {
+      await _dbSet.Entry(entity).ReloadAsync();
+   }
+   
 
    public async Task<(List<T> Items, int Total)> SearchAsync(
     string tableName,

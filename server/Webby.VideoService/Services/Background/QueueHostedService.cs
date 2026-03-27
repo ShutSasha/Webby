@@ -27,6 +27,11 @@ public class QueuedHostedService : BackgroundService
 
             await workItem(stoppingToken);
          }
+         catch (OperationCanceledException)
+         {
+            _logger.LogInformation("Background task queue is stopping.");
+            break; 
+         }
          catch (Exception ex)
          {
             _logger.LogError(ex, "Error occurred executing background task");

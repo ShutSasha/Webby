@@ -102,5 +102,13 @@ public class VideoController: ControllerBase
       await _videoService.DeleteVideo(userId.Value, videoId);
       return Ok(ApiResponse.Ok("Successfully delete video"));
    }
+
+   [HttpDelete("{videoId:guid}/cancel")]
+   [SwaggerOperation("Cancel uploading video route")]
+   public async Task<ActionResult<ApiResponse>> CancelVideo([FromRoute] Guid videoId)
+   {
+      await _videoService.CancelVideoUploading(videoId);
+      return Ok(ApiResponse.Ok("Successfully cancel video upload"));
+   }
    
 }

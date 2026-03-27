@@ -5,5 +5,6 @@ public enum VideoStatus
    Pending,
    Uploading,
    Ready,
-   Failed
+   Failed,
+   Canceled,
 }
