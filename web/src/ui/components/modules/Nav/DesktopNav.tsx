@@ -32,7 +32,12 @@ export default function DesktopNav() {
           )}
         >
           <Link href={'/'} className={cn('flex items-center group', isExpanded ? 'gap-3' : 'justify-center')}>
-            <LogoIcon className="size-8 text-emerald-500 transition-transform group-hover:scale-110 shrink-0" />
+            <LogoIcon
+              className={cn(
+                'size-8 text-neutral-50 transition-transform group-hover:scale-110 shrink-0',
+                'bg-linear-to-br from-emerald-400 to-emerald-600 rounded-[10px]',
+              )}
+            />
             <span
               className={cn(
                 'text-2xl tracking-tight font-bold text-neutral-100 transition-all duration-300',
