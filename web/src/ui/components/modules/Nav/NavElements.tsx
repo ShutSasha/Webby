@@ -2,6 +2,7 @@
 
 import { ComponentProps, FC, SVGProps } from 'react'
 
+import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -44,40 +45,53 @@ export function DesktopNavElement({
     <Link
       href={href}
       className={cn(
-        'group flex items-center rounded-xl transition-all duration-300 ease-out cursor-pointer',
+        'relative group flex items-center rounded-xl transition-colors duration-300 ease-out cursor-pointer',
         isExpanded ? 'px-3 py-2.5' : 'p-2.5 justify-center',
-        isActive
-          ? 'bg-emerald-500/10 text-emerald-500 font-semibold'
-          : 'text-neutral-400 hover:bg-neutral-800/60 hover:text-neutral-100',
+        isActive ? 'text-emerald-500 font-semibold' : 'text-neutral-400 hover:bg-neutral-800/60 hover:text-neutral-100',
         className,
       )}
     >
-      {typeof Icon === 'string' ? (
-        <Image
-          src={Icon}
-          alt={text}
-          width={24}
-          height={24}
-          className={cn(iconSize, 'object-cover rounded-full transition-transform group-hover:scale-105')}
-        />
-      ) : (
-        <Icon
-          className={cn(
-            iconSize,
-            `shrink-0 transition-all duration-300 ${isUserProfile ? 'stroke-1' : 'stroke-[1.5px]'}`,
-            isActive ? 'text-emerald-500' : 'group-hover:text-emerald-400',
-          )}
+      {isActive && (
+        <motion.div
+          layoutId="sidebar-active-indicator"
+          className="absolute inset-0 bg-emerald-500/10 rounded-xl border border-emerald-500/20"
+          initial={false}
+          transition={{
+            type: 'spring',
+            stiffness: 350,
+            damping: 30,
+          }}
         />
       )}
 
-      <span
-        className={cn(
-          'overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
-          isExpanded ? 'w-auto opacity-100 ml-3' : 'w-0 opacity-0 ml-0',
+      <div className={cn('relative z-10 flex items-center w-full', !isExpanded && 'justify-center')}>
+        {typeof Icon === 'string' ? (
+          <Image
+            src={Icon}
+            alt={text}
+            width={24}
+            height={24}
+            className={cn(iconSize, 'object-cover rounded-full transition-transform group-hover:scale-105')}
+          />
+        ) : (
+          <Icon
+            className={cn(
+              iconSize,
+              `shrink-0 transition-all duration-300 ${isUserProfile ? 'stroke-1' : 'stroke-[1.5px]'}`,
+              isActive ? 'text-emerald-500' : 'group-hover:text-emerald-400',
+            )}
+          />
         )}
-      >
-        {text}
-      </span>
+
+        <span
+          className={cn(
+            'overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out',
+            isExpanded ? 'w-auto opacity-100 ml-3' : 'w-0 opacity-0 ml-0',
+          )}
+        >
+          {text}
+        </span>
+      </div>
     </Link>
   )
 }
