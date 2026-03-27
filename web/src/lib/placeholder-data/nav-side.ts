@@ -13,14 +13,15 @@ import RoomsIcon from '@/assets/icons/Nav/tv.svg'
 
 export type NavItem = {
   key: string
-  href: ComponentProps<typeof Link>['href']
+  href?: ComponentProps<typeof Link>['href']
   icon: FC<SVGProps<SVGSVGElement>>
   text: string
   iconSize: string
+  action?: 'search' | 'other_action'
 }
 
 export const navDesktopElements: NavItem[] = [
-  { key: 'search', href: '/', icon: SearchIcon, text: 'Search', iconSize: 'size-6' },
+  { key: 'search', action: 'search', icon: SearchIcon, text: 'Search', iconSize: 'size-6' },
   { key: 'videos', href: '/videos', icon: VideosIcon, text: 'Videos', iconSize: 'size-6' },
   { key: 'rooms', href: '/rooms', icon: RoomsIcon, text: 'Rooms', iconSize: 'size-6' },
   { key: 'playlists', href: '/playlists', icon: PlaylistIcon, text: 'Playlists', iconSize: 'size-6' },
