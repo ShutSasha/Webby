@@ -12,6 +12,7 @@
     <PackageReference Include="NReco.VideoInfo" Version="1.2.1" />
     <Protobuf Include="Protos\user.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\video.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\media.proto" GrpcServices="Server" />
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="AWSSDK.S3" Version="4.0.18.7" />
     <PackageReference Include="Google.Protobuf" Version="3.28.3" />

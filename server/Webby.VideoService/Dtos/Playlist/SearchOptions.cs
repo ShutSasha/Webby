@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Webby.VideoService.Dtos.Video;
+namespace Webby.VideoService.Dtos.Playlist;
 
 public class SearchOptions
 {

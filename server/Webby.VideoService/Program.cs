@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Amazon.S3;
 using Grpc.Net.Client.Web;
 using UserService;
+using Webby.MediaService.GrpcServer;
 using Webby.VideoService.Extensions;
 using Webby.VideoService.Helpers.Seed;
 using Webby.VideoService.Middlewares;
@@ -28,7 +29,10 @@ services.AddSingleton<IAmazonS3>(AwsS3ClientFactory.CreateS3Client(configuration
 
 services.ConfigureOptionDependencies(configuration);
 
-services.AddGrpc();
+services.AddGrpc(options =>
+{
+    options.Interceptors.Add<GrpcExceptionInterceptor>();
+});
 services.AddRepositories();
 services.AddServices();
 
@@ -61,6 +65,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
 app.MapGrpcService<VideoGrpcService>().EnableGrpcWeb();
+app.MapGrpcService<MediaGrpcService>().EnableGrpcWeb();
 
 app.UseRouting();
 app.MapControllers();

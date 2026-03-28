@@ -1,4 +1,5 @@
-﻿using Webby.VideoService.Dtos.Video;
+﻿using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Models;
 
@@ -6,6 +7,7 @@ namespace Webby.VideoService.Interfaces.Services;
 
 public interface IVideoService
 {
+   Task<Video> GetVideoById(Guid videoId);
    Task<UploadVideoResponse> UploadVideoFile(Guid userId, UploadVideoRequest request);
    Task CreateVideo(Guid userId, CreateVideoRequest request);
    Task DeleteVideo(Guid userId, Guid videoId);
