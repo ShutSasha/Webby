@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package media;
+
+option go_package = "webby/internal/grpc/mediapb";
+
+service MediaService {
+  rpc GetVideo(GetVideoRequest) returns (VideoResponse);
+  rpc GetPlaylist(GetPlaylistRequest) returns (PlaylistResponse);
+}
+
+message GetVideoRequest {
+  string id = 1;
+}
+
+message VideoResponse {
+  string id = 1;
+  string title = 2;
+  string thumbnail = 3;
+  string videoUrl = 4;
+  string previewUrl = 5;
+}
+
+message GetPlaylistRequest {
+  string id = 1;
+}
+
+message PlaylistResponse {
+  string id = 1;
+  string title = 2;
+  string thumbnail = 3;
+  repeated VideoResponse videos = 4;
+}

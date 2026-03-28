@@ -10,9 +10,10 @@
         }
       ],
       "UpstreamPathTemplate": "/auth/swagger/v1/swagger.json",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/auth/sign-in",
       "DownstreamScheme": "http",
@@ -23,9 +24,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/sign-in",
-      "UpstreamHttpMethod": ["POST"]
+      "UpstreamHttpMethod": [
+        "POST"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/auth/sign-up",
       "DownstreamScheme": "http",
@@ -36,12 +38,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/sign-up",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AllowAnonymous": true
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/auth/verify-user",
       "DownstreamScheme": "http",
@@ -52,12 +55,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/verify-user",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AllowAnonymous": true
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/auth/resend-verification-code",
       "DownstreamScheme": "http",
@@ -68,12 +72,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/resend-verification-code",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AllowAnonymous": true
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/auth/google-auth",
       "DownstreamScheme": "http",
@@ -84,12 +89,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/google-auth",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AllowAnonymous": true
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/auth/refresh",
       "DownstreamScheme": "http",
@@ -100,12 +106,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/refresh",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AllowAnonymous": true
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/auth/change-password",
       "DownstreamScheme": "http",
@@ -116,12 +123,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/change-password",
-      "UpstreamHttpMethod": ["PATCH"],
+      "UpstreamHttpMethod": [
+        "PATCH"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/auth/reset-password",
       "DownstreamScheme": "http",
@@ -132,9 +140,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/reset-password",
-      "UpstreamHttpMethod": ["PATCH"]
+      "UpstreamHttpMethod": [
+        "PATCH"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/auth/check",
       "DownstreamScheme": "http",
@@ -145,12 +154,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/check",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/docs/user-service/v1/swagger.json",
       "DownstreamScheme": "http",
@@ -161,12 +171,13 @@
         }
       ],
       "UpstreamPathTemplate": "/user/swagger/v1/swagger.json",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "AuthenticationOptions": {
         "AllowAnonymous": true
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/users/is-following/{targetId}",
       "DownstreamScheme": "http",
@@ -177,12 +188,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/is-following/{targetId}",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/users/{userId}",
       "DownstreamScheme": "http",
@@ -193,9 +205,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/{userId}",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/users/",
       "DownstreamScheme": "http",
@@ -206,12 +219,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/",
-      "UpstreamHttpMethod": ["PATCH"],
+      "UpstreamHttpMethod": [
+        "PATCH"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/users/update-user-avatar/{userId}",
       "DownstreamScheme": "http",
@@ -222,12 +236,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/update-user-avatar/{userId}",
-      "UpstreamHttpMethod": ["PATCH"],
+      "UpstreamHttpMethod": [
+        "PATCH"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/users/{followId}/follow",
       "DownstreamScheme": "http",
@@ -238,12 +253,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/{followId}/follow",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/users/achievements/unlock",
       "DownstreamScheme": "http",
@@ -254,12 +270,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/achievements/unlock",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/users/achievements/{achievementId}",
       "DownstreamScheme": "http",
@@ -270,12 +287,14 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/achievements/{achievementId}",
-      "UpstreamHttpMethod": ["POST", "DELETE"],
+      "UpstreamHttpMethod": [
+        "POST",
+        "DELETE"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/users/{userId}/follows",
       "DownstreamScheme": "http",
@@ -286,12 +305,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/{userId}/follows",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/users/{userId}/followers",
       "DownstreamScheme": "http",
@@ -302,12 +322,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/{userId}/followers",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/achievements",
       "DownstreamScheme": "http",
@@ -318,9 +339,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/achievements",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/achievements",
       "DownstreamScheme": "http",
@@ -331,7 +353,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/achievements",
-      "UpstreamHttpMethod": ["POST", "PUT"],
+      "UpstreamHttpMethod": [
+        "POST",
+        "PUT"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       },
@@ -339,7 +364,6 @@
         "Role": "Moderator"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/achievements/{achievementId}",
       "DownstreamScheme": "http",
@@ -350,7 +374,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/achievements/{achievementId}",
-      "UpstreamHttpMethod": ["DELETE"],
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       },
@@ -358,7 +384,6 @@
         "Role": "Moderator"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/achievements/{userId}",
       "DownstreamScheme": "http",
@@ -369,9 +394,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/achievements/{userId}",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/complaints/{userId}",
       "DownstreamScheme": "http",
@@ -382,7 +408,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/complaints/{userId}",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       },
@@ -390,7 +418,6 @@
         "Role": "Moderator"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/complaints",
       "DownstreamScheme": "http",
@@ -401,12 +428,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/complaints",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/docs/video-service/v1/swagger.json",
       "DownstreamScheme": "http",
@@ -417,9 +445,10 @@
         }
       ],
       "UpstreamPathTemplate": "/video/swagger/v1/swagger.json",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/playlists/{userId}",
       "DownstreamScheme": "http",
@@ -430,9 +459,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/playlists/{userId}",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/playlists/{playlistId}/details",
       "DownstreamScheme": "http",
@@ -443,9 +473,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/playlists/{playlistId}/details",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/playlists",
       "DownstreamScheme": "http",
@@ -456,12 +487,14 @@
         }
       ],
       "UpstreamPathTemplate": "/api/playlists",
-      "UpstreamHttpMethod": ["POST", "PATCH"],
+      "UpstreamHttpMethod": [
+        "POST",
+        "PATCH"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/playlists/videos",
       "DownstreamScheme": "http",
@@ -472,12 +505,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/playlists/videos",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/playlists/{playlistId}",
       "DownstreamScheme": "http",
@@ -488,12 +522,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/playlists/{playlistId}",
-      "UpstreamHttpMethod": ["DELETE"],
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/videos/{videoId}",
       "DownstreamScheme": "http",
@@ -504,12 +539,13 @@
         }
       ],
       "UpstreamPathTemplate": "/api/videos/{videoId}",
-      "UpstreamHttpMethod": ["DELETE"],
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/videos/{videoId}",
       "DownstreamScheme": "http",
@@ -520,9 +556,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/videos/{videoId}",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/videos/users/{userId}",
       "DownstreamScheme": "http",
@@ -533,9 +570,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/videos/users/{userId}",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/api/videos",
       "DownstreamScheme": "http",
@@ -546,12 +584,14 @@
         }
       ],
       "UpstreamPathTemplate": "/api/videos",
-      "UpstreamHttpMethod": ["POST", "PATCH"],
+      "UpstreamHttpMethod": [
+        "POST",
+        "PATCH"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
-
     {
       "DownstreamPathTemplate": "/api/videos/search",
       "DownstreamScheme": "http",
@@ -562,9 +602,10 @@
         }
       ],
       "UpstreamPathTemplate": "/api/videos",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
-
     {
       "DownstreamPathTemplate": "/swagger/doc.json",
       "DownstreamScheme": "http",
@@ -575,7 +616,9 @@
         }
       ],
       "UpstreamPathTemplate": "/room/swagger/v1/swagger.json",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "AuthenticationOptions": {
         "AllowAnonymous": true
       }
@@ -590,7 +633,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/categories",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       },
@@ -608,7 +653,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/categories/{id}",
-      "UpstreamHttpMethod": ["DELETE"],
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       },
@@ -626,7 +673,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/categories/{id}",
-      "UpstreamHttpMethod": ["PUT"],
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       },
@@ -644,7 +693,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/categories",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/rooms",
@@ -656,7 +707,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/rooms",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
@@ -671,7 +724,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/rooms/my",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
@@ -686,7 +741,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/rooms/public",
-      "UpstreamHttpMethod": ["GET"]
+      "UpstreamHttpMethod": [
+        "GET"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/rooms/{id}",
@@ -698,7 +755,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/rooms/{id}",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
@@ -713,7 +772,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/rooms/{id}",
-      "UpstreamHttpMethod": ["PUT"],
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
@@ -728,7 +789,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/rooms/{id}",
-      "UpstreamHttpMethod": ["DELETE"],
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
@@ -743,7 +806,60 @@
         }
       ],
       "UpstreamPathTemplate": "/api/rooms/token",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }

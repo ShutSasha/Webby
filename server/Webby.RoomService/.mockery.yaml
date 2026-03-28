@@ -15,3 +15,6 @@ packages:
   webby/internal/handlers/rooms:
     config:
       recursive: true
+  webby/internal/handlers/roomqueues:
+    config:
+      recursive: true

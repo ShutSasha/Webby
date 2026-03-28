@@ -1,6 +1,7 @@
 package getByToken
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	_ "webby/internal/handlers/docs"
@@ -13,7 +14,7 @@ import (
 )
 
 type TokenGetter interface {
-	GetByToken(token string) (*models.Room, error)
+	GetByToken(ctx context.Context, token string, userId uuid.UUID) (*models.Room, error)
 }
 
 func New(logger *slog.Logger, tokenGetter TokenGetter) http.Handler {
@@ -65,7 +66,10 @@ func getByToken(logger *slog.Logger, tokenGetter TokenGetter) errorWrapper.APIFu
 			return responses.NewApiError("Validation error", err)
 		}
 
-		room, err := tokenGetter.GetByToken(req.Token)
+		userIdStr := r.Context().Value("userID").(string)
+		userId, _ := uuid.Parse(userIdStr)
+
+		room, err := tokenGetter.GetByToken(r.Context(), req.Token, userId)
 		if err != nil {
 			log.Error("Get room by token error", slog.String("err", err.Error()))
 			return responses.NewApiError("Get room by token error", err)

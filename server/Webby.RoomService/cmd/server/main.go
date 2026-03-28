@@ -14,6 +14,7 @@ import (
 	"time"
 	"webby/internal/config"
 	"webby/internal/database"
+	grpcClient "webby/internal/grpc"
 	httpserver "webby/internal/handlers"
 	"webby/internal/repository"
 	"webby/internal/services"
@@ -61,11 +62,21 @@ func run(ctx context.Context, w io.Writer) error {
 	logger.Info("database connected successfully")
 
 	roomRepository := repository.NewRoomRepository(db)
+	roomMemberRepository := repository.NewRoomMemberRepository(db)
 	categoryRepository := repository.NewCategoryRepository(db)
+	queueItemRepository := repository.NewQueueItemRepository(db)
 	fileStorage := repository.NewFileStorage(config)
 
-	roomService := services.NewRoomService(roomRepository, fileStorage)
+	mediaClient, err := grpcClient.NewMediaClient(config.Grpc.MediaServiceAddress)
+	if err != nil {
+		logger.Error("media service gRPC connection failed", slog.String("error", err.Error()))
+		return err
+	}
+	defer mediaClient.Close()
+
+	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage)
 	categoryService := services.NewCategoryService(categoryRepository)
+	queueItemService := services.NewQueueItemService(queueItemRepository, mediaClient, roomMemberRepository)
 
 	logger.Info("repositories initialized")
 
@@ -74,6 +85,7 @@ func run(ctx context.Context, w io.Writer) error {
 		logger,
 		roomService,
 		categoryService,
+		queueItemService,
 	)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(config.Http.Host, strconv.Itoa(config.Http.Port)),

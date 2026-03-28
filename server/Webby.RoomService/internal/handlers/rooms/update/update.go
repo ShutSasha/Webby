@@ -156,8 +156,8 @@ func updateRoom(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 				Id:         id,
 				Name:       name,
 				CategoryId: categoryId,
-				IsPrivate:  isPrivate,
-				Thumbnail:  room.Thumbnail	,
+				IsPrivate:  isPrivate, 	
+				Thumbnail:  room.Thumbnail,
 			},
 		})
 		return nil

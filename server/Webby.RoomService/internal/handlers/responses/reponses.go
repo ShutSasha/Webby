@@ -6,17 +6,17 @@ import (
 )
 
 type ApiResponse[T any] struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Data    *T     `json:"data"`
+	Success bool              `json:"success"`
+	Message string            `json:"message"`
+	Data    *T                `json:"data"`
 	Errors  map[string]string `json:"errors"`
 }
 
 type PaginatedResponse[T any] struct {
 	Items []T `json:"items"`
 	Page  int `json:"page"`
-	Limit int `json:"limit"`
-	Total int `json:"total"`
+	Limit int `json:"pageSize"`
+	Total int `json:"totalCount"`
 }
 
 // type ErrorResponse struct {

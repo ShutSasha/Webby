@@ -16,6 +16,7 @@ func NewServer(
 	logger *slog.Logger,
 	roomRepo RoomService,
 	categoryRepo CategoryService,
+	queueItemService QueueItemService,
 ) http.Handler {
 	mux := http.NewServeMux()
 	addRoutes(
@@ -24,6 +25,7 @@ func NewServer(
 		logger,
 		roomRepo,
 		categoryRepo,
+		queueItemService,
 	)
 
 	var handler http.Handler = mux

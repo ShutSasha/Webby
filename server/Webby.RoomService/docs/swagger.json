@@ -749,14 +749,375 @@
                     }
                 }
             }
+        },
+        "/rooms/{id}/members": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a paginated list of members for a specific room.\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be \u003e= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n* `search`: **optional**, filters members by username (case-insensitive partial match)\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n**Security Note:**\n* This action **requires authentication**",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "List room members",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Room ID (UUID v4 format)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Items per page (default: 10, max: 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search members by username (optional, case-insensitive)",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Room members successfully retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ApiResponse-PaginatedResponse[RoomMemberItem]"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format or query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error400Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid authentication token",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error401Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error500Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{id}/queue": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the playback queue for a room with enriched media data.\nVideos include title and thumbnail. Playlists include title, thumbnail, and child videos.\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n**Access Rules:**\n* Only **room members** can view the queue\n**Security Note:**\n* This action **requires authentication**",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Room Queue"
+                ],
+                "summary": "Get room queue",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Room ID (UUID v4 format)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Queue successfully retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ApiResponse-array_docs_QueueItemDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format in path",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error400Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid authentication token",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error401Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - only room members can view the queue",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error403Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error500Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add a video or playlist to the room's playback queue.\n**Request Body Validation:**\n* `entityId`: **required**, must be a valid UUID v4 format\n* `entityType`: **required**, must be either \"video\" or \"playlist\"\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n**Access Rules:**\n* Only **room members** can add items to the queue\n**Security Note:**\n* This action **requires authentication**",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Room Queue"
+                ],
+                "summary": "Add item to room queue",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Room ID (UUID v4 format)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Queue item to add",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/docs.AddQueueItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Item successfully added to queue",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ApiResponse-docs_QueueItemResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input (bad UUID, invalid entityType)",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error400Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid authentication token",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error401Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - only room members can add to queue",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error403Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Room or entity not found",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error404Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error500Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{id}/queue/{itemId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a video or playlist from the room's playback queue.\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n* `itemId`: must be a valid UUID v4 format (queue item ID)\n**Access Rules:**\n* Only **room members** can remove items from the queue\n**Security Note:**\n* This action **requires authentication**",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Room Queue"
+                ],
+                "summary": "Remove item from room queue",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Room ID (UUID v4 format)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Queue Item ID (UUID v4 format)",
+                        "name": "itemId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Item successfully removed from queue",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ApiResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format in path",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error400Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid authentication token",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error401Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - only room members can remove from queue",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error403Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Queue item not found",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error404Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.Error500Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "docs.AddQueueItemRequest": {
+            "type": "object",
+            "required": [
+                "entityId",
+                "entityType"
+            ],
+            "properties": {
+                "entityId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "entityType": {
+                    "type": "string",
+                    "enum": [
+                        "video",
+                        "playlist"
+                    ],
+                    "example": "video"
+                }
+            }
+        },
         "docs.ApiResponse-PaginatedResponse[RoomListItem]": {
             "type": "object",
             "properties": {
                 "data": {
                     "$ref": "#/definitions/docs.PaginatedResponse-docs_RoomListItem"
+                },
+                "errors": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation completed successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "docs.ApiResponse-PaginatedResponse[RoomMemberItem]": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/docs.PaginatedResponse-docs_RoomMemberItem"
+                },
+                "errors": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation completed successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "docs.ApiResponse-any": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "errors": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation completed successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "docs.ApiResponse-array_docs_QueueItemDetailResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/docs.QueueItemDetailResponse"
+                    }
                 },
                 "errors": {
                     "type": "string",
@@ -799,6 +1160,27 @@
             "properties": {
                 "data": {
                     "$ref": "#/definitions/docs.PaginatedResponse-docs_CategoryResponse"
+                },
+                "errors": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation completed successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "docs.ApiResponse-docs_QueueItemResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/docs.QueueItemResponse"
                 },
                 "errors": {
                     "type": "string",
@@ -1071,6 +1453,122 @@
                 }
             }
         },
+        "docs.PaginatedResponse-docs_RoomMemberItem": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/docs.RoomMemberItem"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "docs.QueueItemDetailResponse": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/docs.QueueVideoChild"
+                    }
+                },
+                "entityId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "entityType": {
+                    "type": "string",
+                    "example": "video"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "isActive": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "isFolder": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "previewUrl": {
+                    "type": "string",
+                    "example": "https://example.com/preview.mp4"
+                },
+                "thumbnail": {
+                    "type": "string",
+                    "example": "https://example.com/thumb.jpg"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Fears to Fathom: Ironbark Lookout"
+                },
+                "videoUrl": {
+                    "type": "string",
+                    "example": "https://example.com/video.mp4"
+                }
+            }
+        },
+        "docs.QueueItemResponse": {
+            "type": "object",
+            "properties": {
+                "entityId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "entityType": {
+                    "type": "string",
+                    "example": "video"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "isActive": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "docs.QueueVideoChild": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "previewUrl": {
+                    "type": "string",
+                    "example": "https://example.com/preview.mp4"
+                },
+                "thumbnail": {
+                    "type": "string",
+                    "example": "https://example.com/thumb.jpg"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Episode 1: Home Alone"
+                },
+                "videoUrl": {
+                    "type": "string",
+                    "example": "https://example.com/video.mp4"
+                }
+            }
+        },
         "docs.RoomListItem": {
             "type": "object",
             "properties": {
@@ -1101,6 +1599,27 @@
                 "token": {
                     "type": "string",
                     "example": "abc123def456ghij"
+                }
+            }
+        },
+        "docs.RoomMemberItem": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "roomPoints": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "userId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "JohnDoe"
                 }
             }
         },

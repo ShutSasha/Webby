@@ -10,11 +10,13 @@ import (
 	catDelete "webby/internal/handlers/categories/delete"
 	catList "webby/internal/handlers/categories/list"
 	catUpdate "webby/internal/handlers/categories/update"
+	"webby/internal/handlers/roomqueues"
 	"webby/internal/handlers/rooms"
 	"webby/internal/handlers/rooms/create"
 	"webby/internal/handlers/rooms/delete"
 	"webby/internal/handlers/rooms/get"
 	getByToken "webby/internal/handlers/rooms/get_by_token"
+	listMembers "webby/internal/handlers/rooms/list_members"
 	listMy "webby/internal/handlers/rooms/list_my"
 	listPublic "webby/internal/handlers/rooms/list_public"
 	"webby/internal/handlers/rooms/update"
@@ -30,6 +32,7 @@ type RoomService interface {
 	getByToken.TokenGetter
 	update.Updater
 	delete.Deleter
+	listMembers.MemberLister
 }
 
 type CategoryService interface {
@@ -39,17 +42,23 @@ type CategoryService interface {
 	catDelete.Deleter
 }
 
+type QueueItemService interface {
+	roomqueues.QueueItemService
+}
+
 func addRoutes(
 	mux *http.ServeMux,
 	cfg *config.Config,
 	logger *slog.Logger,
 	roomService RoomService,
 	categoryService CategoryService,
+	queueItemService QueueItemService,
 ) {
 	mux.Handle("/api/", http.NotFoundHandler())
 
 	rooms.RegisterRooms(mux, []byte(cfg.JwtSecret), logger, roomService)
 	categories.RegisterCategories(mux, []byte(cfg.JwtSecret), logger, categoryService)
+	roomqueues.RegisterRoomQueue(mux, []byte(cfg.JwtSecret), logger, queueItemService)
 
 	mux.Handle("GET /swagger/", httpSwagger.Handler(
 		httpSwagger.URL(fmt.Sprintf("http://%s:%d/swagger/doc.json", cfg.Http.Host, cfg.Http.Port)),

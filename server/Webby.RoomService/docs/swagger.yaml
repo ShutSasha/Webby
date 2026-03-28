@@ -1,9 +1,70 @@
 basePath: /api/
 definitions:
+  docs.AddQueueItemRequest:
+    properties:
+      entityId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      entityType:
+        enum:
+        - video
+        - playlist
+        example: video
+        type: string
+    required:
+    - entityId
+    - entityType
+    type: object
   docs.ApiResponse-PaginatedResponse[RoomListItem]:
     properties:
       data:
         $ref: '#/definitions/docs.PaginatedResponse-docs_RoomListItem'
+      errors:
+        example: "null"
+        type: string
+        x-nullable: true
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  docs.ApiResponse-PaginatedResponse[RoomMemberItem]:
+    properties:
+      data:
+        $ref: '#/definitions/docs.PaginatedResponse-docs_RoomMemberItem'
+      errors:
+        example: "null"
+        type: string
+        x-nullable: true
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  docs.ApiResponse-any:
+    properties:
+      data: {}
+      errors:
+        example: "null"
+        type: string
+        x-nullable: true
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  docs.ApiResponse-array_docs_QueueItemDetailResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/docs.QueueItemDetailResponse'
+        type: array
       errors:
         example: "null"
         type: string
@@ -34,6 +95,21 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/docs.PaginatedResponse-docs_CategoryResponse'
+      errors:
+        example: "null"
+        type: string
+        x-nullable: true
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  docs.ApiResponse-docs_QueueItemResponse:
+    properties:
+      data:
+        $ref: '#/definitions/docs.QueueItemResponse'
       errors:
         example: "null"
         type: string
@@ -225,6 +301,89 @@ definitions:
         example: 100
         type: integer
     type: object
+  docs.PaginatedResponse-docs_RoomMemberItem:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/docs.RoomMemberItem'
+        type: array
+      limit:
+        example: 10
+        type: integer
+      page:
+        example: 1
+        type: integer
+      total:
+        example: 100
+        type: integer
+    type: object
+  docs.QueueItemDetailResponse:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/docs.QueueVideoChild'
+        type: array
+      entityId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      entityType:
+        example: video
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      isActive:
+        example: true
+        type: boolean
+      isFolder:
+        example: false
+        type: boolean
+      previewUrl:
+        example: https://example.com/preview.mp4
+        type: string
+      thumbnail:
+        example: https://example.com/thumb.jpg
+        type: string
+      title:
+        example: 'Fears to Fathom: Ironbark Lookout'
+        type: string
+      videoUrl:
+        example: https://example.com/video.mp4
+        type: string
+    type: object
+  docs.QueueItemResponse:
+    properties:
+      entityId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      entityType:
+        example: video
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      isActive:
+        example: false
+        type: boolean
+    type: object
+  docs.QueueVideoChild:
+    properties:
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      previewUrl:
+        example: https://example.com/preview.mp4
+        type: string
+      thumbnail:
+        example: https://example.com/thumb.jpg
+        type: string
+      title:
+        example: 'Episode 1: Home Alone'
+        type: string
+      videoUrl:
+        example: https://example.com/video.mp4
+        type: string
+    type: object
   docs.RoomListItem:
     properties:
       categoryId:
@@ -247,6 +406,21 @@ definitions:
         type: string
       token:
         example: abc123def456ghij
+        type: string
+    type: object
+  docs.RoomMemberItem:
+    properties:
+      avatarUrl:
+        example: https://example.com/avatar.jpg
+        type: string
+      roomPoints:
+        example: 100
+        type: integer
+      userId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      username:
+        example: JohnDoe
         type: string
     type: object
   docs.RoomResponse:
@@ -708,6 +882,220 @@ paths:
       summary: Update a room
       tags:
       - Rooms
+  /rooms/{id}/members:
+    get:
+      description: |-
+        Retrieve a paginated list of members for a specific room.
+        **Query Parameter Validation:**
+        * `page`: **optional** (default: 1), must be >= 1, must be numeric
+        * `limit`: **optional** (default: 10), must be 1-100, must be numeric
+        * `search`: **optional**, filters members by username (case-insensitive partial match)
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+        **Security Note:**
+        * This action **requires authentication**
+      parameters:
+      - description: Room ID (UUID v4 format)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10, max: 100)'
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Search members by username (optional, case-insensitive)
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Room members successfully retrieved
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-PaginatedResponse[RoomMemberItem]'
+        "400":
+          description: Invalid UUID format or query parameters
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: List room members
+      tags:
+      - Rooms
+  /rooms/{id}/queue:
+    get:
+      description: |-
+        Retrieve the playback queue for a room with enriched media data.
+        Videos include title and thumbnail. Playlists include title, thumbnail, and child videos.
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+        **Access Rules:**
+        * Only **room members** can view the queue
+        **Security Note:**
+        * This action **requires authentication**
+      parameters:
+      - description: Room ID (UUID v4 format)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Queue successfully retrieved
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-array_docs_QueueItemDetailResponse'
+        "400":
+          description: Invalid UUID format in path
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "403":
+          description: Access denied - only room members can view the queue
+          schema:
+            $ref: '#/definitions/docs.Error403Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: Get room queue
+      tags:
+      - Room Queue
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Add a video or playlist to the room's playback queue.
+        **Request Body Validation:**
+        * `entityId`: **required**, must be a valid UUID v4 format
+        * `entityType`: **required**, must be either "video" or "playlist"
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+        **Access Rules:**
+        * Only **room members** can add items to the queue
+        **Security Note:**
+        * This action **requires authentication**
+      parameters:
+      - description: Room ID (UUID v4 format)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Queue item to add
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/docs.AddQueueItemRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Item successfully added to queue
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-docs_QueueItemResponse'
+        "400":
+          description: Invalid input (bad UUID, invalid entityType)
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "403":
+          description: Access denied - only room members can add to queue
+          schema:
+            $ref: '#/definitions/docs.Error403Response'
+        "404":
+          description: Room or entity not found
+          schema:
+            $ref: '#/definitions/docs.Error404Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: Add item to room queue
+      tags:
+      - Room Queue
+  /rooms/{id}/queue/{itemId}:
+    delete:
+      description: |-
+        Remove a video or playlist from the room's playback queue.
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+        * `itemId`: must be a valid UUID v4 format (queue item ID)
+        **Access Rules:**
+        * Only **room members** can remove items from the queue
+        **Security Note:**
+        * This action **requires authentication**
+      parameters:
+      - description: Room ID (UUID v4 format)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Queue Item ID (UUID v4 format)
+        in: path
+        name: itemId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item successfully removed from queue
+          schema:
+            $ref: '#/definitions/docs.ApiResponse-any'
+        "400":
+          description: Invalid UUID format in path
+          schema:
+            $ref: '#/definitions/docs.Error400Response'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/docs.Error401Response'
+        "403":
+          description: Access denied - only room members can remove from queue
+          schema:
+            $ref: '#/definitions/docs.Error403Response'
+        "404":
+          description: Queue item not found
+          schema:
+            $ref: '#/definitions/docs.Error404Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/docs.Error500Response'
+      security:
+      - BearerAuth: []
+      summary: Remove item from room queue
+      tags:
+      - Room Queue
   /rooms/my:
     get:
       description: |-

@@ -14,6 +14,7 @@ type Config struct {
 	JwtSecret        string     `yaml:"jwtSecret"`
 	Http             HttpConfig `yaml:"http"`
 	Aws              AwsConfig  `yaml:"aws"`
+	Grpc             GrpcConfig `yaml:"grpc"`
 }
 
 type HttpConfig struct {
@@ -27,6 +28,10 @@ type AwsConfig struct {
 	SecretKey string `yaml:"secretKey"`
 	Region    string `yaml:"region"`
 	Bucket    string `yaml:"bucket"`
+}
+
+type GrpcConfig struct {
+	MediaServiceAddress string `yaml:"mediaServiceAddress"`
 }
 
 func MustLoad() *Config {

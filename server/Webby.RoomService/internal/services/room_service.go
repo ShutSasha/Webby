@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"log/slog"
 	"path/filepath"
 	"webby/internal/apperrors"
 	"webby/internal/models"
@@ -24,20 +25,29 @@ type RoomRepository interface {
 	Update(room *models.Room) (uuid.UUID, error)
 }
 
+type RoomMemberRepository interface {
+	Create(member *models.RoomMember) error
+	Exists(roomId, userId uuid.UUID) (bool, error)
+	EnsureMember(roomId, userId uuid.UUID) error
+	ListByRoom(roomId uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error)
+}
+
 type FileRepository interface {
 	Save(ctx context.Context, key string, data []byte) (string, error)
 	Remove(ctx context.Context, key string) error
 }
 
 type RoomService struct {
-	roomRepo RoomRepository
-	fileRepo FileRepository
+	roomRepo       RoomRepository
+	roomMemberRepo RoomMemberRepository
+	fileRepo       FileRepository
 }
 
-func NewRoomService(repo RoomRepository, fileRepo FileRepository) *RoomService {
+func NewRoomService(repo RoomRepository, roomMemberRepo RoomMemberRepository, fileRepo FileRepository) *RoomService {
 	return &RoomService{
-		roomRepo: repo,
-		fileRepo: fileRepo,
+		roomRepo:       repo,
+		roomMemberRepo: roomMemberRepo,
+		fileRepo:       fileRepo,
 	}
 }
 
@@ -83,6 +93,14 @@ func (r *RoomService) Create(ctx context.Context, room *models.Room, thumbnailDa
 		return nil, fmt.Errorf("failed to update room thumbnail: %w", err)
 	}
 
+	if err := r.roomMemberRepo.EnsureMember(room.Id, room.HostId); err != nil {
+		slog.Warn("failed to create room member for host",
+			slog.String("roomId", room.Id.String()),
+			slog.String("hostId", room.HostId.String()),
+			slog.String("error", err.Error()),
+		)
+	}
+
 	return room, nil
 }
 
@@ -120,13 +138,29 @@ func (r *RoomService) GetById(ctx context.Context, roomId uuid.UUID, userId uuid
 		return nil, apperrors.ErrForbidden
 	}
 
+	if err := r.roomMemberRepo.EnsureMember(room.Id, userId); err != nil {
+		slog.Warn("failed to ensure room member on GetById",
+			slog.String("roomId", room.Id.String()),
+			slog.String("userId", userId.String()),
+			slog.String("error", err.Error()),
+		)
+	}
+
 	return room, nil
 }
 
-func (r *RoomService) GetByToken(token string) (*models.Room, error) {
+func (r *RoomService) GetByToken(ctx context.Context, token string, userId uuid.UUID) (*models.Room, error) {
 	room, err := r.roomRepo.GetByToken(token)
 	if err != nil {
 		return nil, err
+	}
+
+	if err := r.roomMemberRepo.EnsureMember(room.Id, userId); err != nil {
+		slog.Warn("failed to ensure room member on GetByToken",
+			slog.String("roomId", room.Id.String()),
+			slog.String("userId", userId.String()),
+			slog.String("error", err.Error()),
+		)
 	}
 
 	return room, nil
@@ -148,6 +182,15 @@ func (r *RoomService) ListPublic(page int, limit int, search string, categoryId 
 	}
 
 	return rooms, total, nil
+}
+
+func (r *RoomService) ListMembers(roomId uuid.UUID, page int, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
+	members, total, err := r.roomMemberRepo.ListByRoom(roomId, page, limit, search)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return members, total, nil
 }
 
 func (r *RoomService) Update(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (uuid.UUID, error) {

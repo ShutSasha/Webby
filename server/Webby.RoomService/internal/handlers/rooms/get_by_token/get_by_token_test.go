@@ -2,6 +2,7 @@ package getByToken_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -17,6 +18,7 @@ import (
 	"webby/internal/models"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,7 +74,7 @@ func TestGetByToken_Success(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGetter := mocks.NewMockTokenGetter(t)
-			mockGetter.EXPECT().GetByToken(tt.token).Return(tt.room, nil).Once()
+			mockGetter.EXPECT().GetByToken(mock.Anything, tt.token, mock.AnythingOfType("uuid.UUID")).Return(tt.room, nil).Once()
 
 			handler := getByToken.New(logger, mockGetter)
 			req := buildRequest(t, map[string]string{"token": tt.token})
@@ -157,6 +159,8 @@ func TestGetByToken_MalformedBody(t *testing.T) {
 			handler := getByToken.New(logger, mockGetter)
 			req := httptest.NewRequest(http.MethodPost, "/api/rooms/token", bytes.NewBufferString(tt.body))
 			req.Header.Set("Content-Type", "application/json")
+			ctx := context.WithValue(req.Context(), "userID", uuid.New().String())
+			req = req.WithContext(ctx)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, req)
@@ -171,7 +175,7 @@ func TestGetByToken_NotFound(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	mockGetter := mocks.NewMockTokenGetter(t)
-	mockGetter.EXPECT().GetByToken("nonexistent-token").Return((*models.Room)(nil), apperrors.ErrNotFound).Once()
+	mockGetter.EXPECT().GetByToken(mock.Anything, "nonexistent-token", mock.AnythingOfType("uuid.UUID")).Return((*models.Room)(nil), apperrors.ErrNotFound).Once()
 
 	handler := getByToken.New(logger, mockGetter)
 	req := buildRequest(t, map[string]string{"token": "nonexistent-token"})
@@ -214,7 +218,7 @@ func TestGetByToken_InternalErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGetter := mocks.NewMockTokenGetter(t)
-			mockGetter.EXPECT().GetByToken(tt.token).Return((*models.Room)(nil), tt.mockError).Once()
+			mockGetter.EXPECT().GetByToken(mock.Anything, tt.token, mock.AnythingOfType("uuid.UUID")).Return((*models.Room)(nil), tt.mockError).Once()
 
 			handler := getByToken.New(logger, mockGetter)
 			req := buildRequest(t, map[string]string{"token": tt.token})
@@ -240,6 +244,8 @@ func buildRequest(t *testing.T, body map[string]string) *http.Request {
 	require.NoError(t, err)
 	req := httptest.NewRequest(http.MethodPost, "/api/rooms/token", bytes.NewBuffer(data))
 	req.Header.Set("Content-Type", "application/json")
+	ctx := context.WithValue(req.Context(), "userID", uuid.New().String())
+	req = req.WithContext(ctx)
 	return req
 }
 
@@ -249,6 +255,8 @@ func buildRequestRaw(t *testing.T, body any) *http.Request {
 	require.NoError(t, err)
 	req := httptest.NewRequest(http.MethodPost, "/api/rooms/token", bytes.NewBuffer(data))
 	req.Header.Set("Content-Type", "application/json")
+	ctx := context.WithValue(req.Context(), "userID", uuid.New().String())
+	req = req.WithContext(ctx)
 	return req
 }
 
