@@ -18,16 +18,18 @@ message VideoResponse {
   string title = 2;
   string thumbnail = 3;
   string videoUrl = 4;
-  string previewUrl = 5;
 }
 
 message GetPlaylistRequest {
   string id = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
 }
 
 message PlaylistResponse {
   string id = 1;
   string title = 2;
   string thumbnail = 3;
-  repeated VideoResponse videos = 4;
+  int32 totalCount = 4;
+  repeated VideoResponse videos = 5;
 }

@@ -20,7 +20,7 @@ type QueueItemRepository interface {
 
 type MediaClient interface {
 	GetVideo(ctx context.Context, id uuid.UUID) (*grpcClient.VideoInfo, error)
-	GetPlaylist(ctx context.Context, id uuid.UUID) (*grpcClient.PlaylistInfo, error)
+	GetPlaylist(ctx context.Context, id uuid.UUID, page, pageSize int32) (*grpcClient.PlaylistInfo, error)
 }
 
 type MemberChecker interface {
@@ -42,24 +42,23 @@ func NewQueueItemService(repo QueueItemRepository, mediaClient MediaClient, memb
 }
 
 type QueueVideoChild struct {
-	Id         uuid.UUID `json:"id"`
-	Title      string    `json:"title"`
-	Thumbnail  string    `json:"thumbnail"`
-	VideoUrl   string    `json:"videoUrl"`
-	PreviewUrl string    `json:"previewUrl"`
+	Id        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	Thumbnail string    `json:"thumbnail"`
+	VideoUrl  string    `json:"videoUrl"`
 }
 
 type QueueItemEnriched struct {
-	Id         uuid.UUID         `json:"id"`
-	EntityId   uuid.UUID         `json:"entityId"`
-	EntityType string            `json:"entityType"`
-	Title      string            `json:"title"`
-	Thumbnail  string            `json:"thumbnail"`
-	VideoUrl   string            `json:"videoUrl"`
-	PreviewUrl string            `json:"previewUrl"`
-	IsActive   bool              `json:"isActive"`
-	IsFolder   bool              `json:"isFolder"`
-	Children   []QueueVideoChild `json:"children,omitempty"`
+	Id            uuid.UUID         `json:"id"`
+	EntityId      uuid.UUID         `json:"entityId"`
+	EntityType    string            `json:"entityType"`
+	Title         string            `json:"title"`
+	Thumbnail     string            `json:"thumbnail"`
+	VideoUrl      string            `json:"videoUrl"`
+	IsActive      bool              `json:"isActive"`
+	IsFolder      bool              `json:"isFolder"`
+	TotalChildren int               `json:"totalChildren"`
+	Children      []QueueVideoChild `json:"children,omitempty"`
 }
 
 func (s *QueueItemService) ensureMember(roomId, userId uuid.UUID) error {
@@ -88,7 +87,7 @@ func (s *QueueItemService) AddToQueue(ctx context.Context, roomId, userId, entit
 			return nil, fmt.Errorf("%w: video not found", apperrors.ErrNotFound)
 		}
 	case "playlist":
-		if _, err := s.mediaClient.GetPlaylist(ctx, entityId); err != nil {
+		if _, err := s.mediaClient.GetPlaylist(ctx, entityId, 1, 1); err != nil {
 			return nil, fmt.Errorf("%w: playlist not found", apperrors.ErrNotFound)
 		}
 	}
@@ -110,18 +109,58 @@ func (s *QueueItemService) AddToQueue(ctx context.Context, roomId, userId, entit
 	return item, nil
 }
 
-func (s *QueueItemService) GetQueue(ctx context.Context, roomId, userId uuid.UUID) ([]QueueItemEnriched, error) {
+func (s *QueueItemService) GetQueue(ctx context.Context, roomId, userId uuid.UUID, page, limit int) ([]QueueItemEnriched, int, error) {
 	if err := s.ensureMember(roomId, userId); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	items, err := s.repo.ListByRoom(roomId)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	enriched := make([]QueueItemEnriched, 0, len(items))
-	for _, item := range items {
+	type itemMeta struct {
+		videoCount int
+	}
+	metas := make([]itemMeta, len(items))
+	totalVideos := 0
+
+	for i, item := range items {
+		switch item.EntityType {
+		case "video":
+			metas[i] = itemMeta{videoCount: 1}
+		case "playlist":
+			pl, err := s.mediaClient.GetPlaylist(ctx, item.EntityId, 1, 1)
+			if err != nil {
+				metas[i] = itemMeta{videoCount: 0}
+			} else {
+				metas[i] = itemMeta{videoCount: pl.TotalCount}
+			}
+		}
+		totalVideos += metas[i].videoCount
+	}
+
+	offset := (page - 1) * limit
+	running := 0
+	enriched := make([]QueueItemEnriched, 0)
+	remaining := limit
+
+	for i, item := range items {
+		vc := metas[i].videoCount
+		if vc == 0 {
+			running += vc
+			continue
+		}
+
+		itemEnd := running + vc
+		if itemEnd <= offset {
+			running = itemEnd
+			continue
+		}
+		if remaining <= 0 {
+			break
+		}
+
 		entry := QueueItemEnriched{
 			Id:         item.Id,
 			EntityId:   item.EntityId,
@@ -139,37 +178,54 @@ func (s *QueueItemService) GetQueue(ctx context.Context, roomId, userId uuid.UUI
 				entry.Title = video.Title
 				entry.Thumbnail = video.Thumbnail
 				entry.VideoUrl = video.VideoUrl
-				entry.PreviewUrl = video.PreviewUrl
 			}
 			entry.IsFolder = false
+			remaining--
+
 		case "playlist":
-			playlist, err := s.mediaClient.GetPlaylist(ctx, item.EntityId)
+			subStart := 0
+			if offset > running {
+				subStart = offset - running
+			}
+			subCount := vc - subStart
+			if subCount > remaining {
+				subCount = remaining
+			}
+
+			playlist, err := s.mediaClient.GetPlaylist(ctx, item.EntityId, 1, int32(subStart+subCount))
 			if err != nil {
 				entry.Title = "Unknown playlist"
 				entry.Thumbnail = ""
 				entry.IsFolder = true
+				entry.TotalChildren = vc
 			} else {
 				entry.Title = playlist.Title
 				entry.Thumbnail = playlist.Thumbnail
 				entry.IsFolder = true
-				children := make([]QueueVideoChild, 0, len(playlist.Videos))
-				for _, v := range playlist.Videos {
+				entry.TotalChildren = playlist.TotalCount
+				vids := playlist.Videos
+				if subStart < len(vids) {
+					vids = vids[subStart:]
+				}
+				children := make([]QueueVideoChild, 0, len(vids))
+				for _, v := range vids {
 					children = append(children, QueueVideoChild{
-						Id:         v.Id,
-						Title:      v.Title,
-						Thumbnail:  v.Thumbnail,
-						VideoUrl:   v.VideoUrl,
-						PreviewUrl: v.PreviewUrl,
+						Id:        v.Id,
+						Title:     v.Title,
+						Thumbnail: v.Thumbnail,
+						VideoUrl:  v.VideoUrl,
 					})
 				}
 				entry.Children = children
 			}
+			remaining -= subCount
 		}
 
 		enriched = append(enriched, entry)
+		running = itemEnd
 	}
 
-	return enriched, nil
+	return enriched, totalVideos, nil
 }
 
 func (s *QueueItemService) DeleteFromQueue(ctx context.Context, itemId, userId uuid.UUID) error {

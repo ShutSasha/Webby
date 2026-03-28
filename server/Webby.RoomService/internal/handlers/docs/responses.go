@@ -121,18 +121,17 @@ type QueueVideoChild struct {
 	Title      string    `json:"title" example:"Episode 1: Home Alone"`
 	Thumbnail  string    `json:"thumbnail" example:"https://example.com/thumb.jpg"`
 	VideoUrl   string    `json:"videoUrl" example:"https://example.com/video.mp4"`
-	PreviewUrl string    `json:"previewUrl" example:"https://example.com/preview.mp4"`
 }
 
 type QueueItemDetailResponse struct {
-	Id         uuid.UUID         `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	EntityId   uuid.UUID         `json:"entityId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	EntityType string            `json:"entityType" example:"video"`
-	Title      string            `json:"title" example:"Fears to Fathom: Ironbark Lookout"`
-	Thumbnail  string            `json:"thumbnail" example:"https://example.com/thumb.jpg"`
-	VideoUrl   string            `json:"videoUrl" example:"https://example.com/video.mp4"`
-	PreviewUrl string            `json:"previewUrl" example:"https://example.com/preview.mp4"`
-	IsActive   bool              `json:"isActive" example:"true"`
-	IsFolder   bool              `json:"isFolder" example:"false"`
-	Children   []QueueVideoChild `json:"children,omitempty"`
+	Id            uuid.UUID         `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	EntityId      uuid.UUID         `json:"entityId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	EntityType    string            `json:"entityType" example:"video"`
+	Title         string            `json:"title" example:"Fears to Fathom: Ironbark Lookout"`
+	Thumbnail     string            `json:"thumbnail" example:"https://example.com/thumb.jpg"`
+	VideoUrl      string            `json:"videoUrl" example:"https://example.com/video.mp4"`
+	IsActive      bool              `json:"isActive" example:"true"`
+	IsFolder      bool              `json:"isFolder" example:"false"`
+	TotalChildren int               `json:"totalChildren" example:"5"`
+	Children      []QueueVideoChild `json:"children,omitempty"`
 }

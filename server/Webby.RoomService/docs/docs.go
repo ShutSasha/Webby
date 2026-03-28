@@ -836,7 +836,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve the playback queue for a room with enriched media data.\nVideos include title and thumbnail. Playlists include title, thumbnail, and child videos.\n**Path Parameter Validation:**\n* ` + "`" + `id` + "`" + `: must be a valid UUID v4 format (room ID)\n**Access Rules:**\n* Only **room members** can view the queue\n**Security Note:**\n* This action **requires authentication**",
+                "description": "Retrieve the playback queue for a room with enriched media data.\nPagination is based on individual videos: standalone videos count as 1, each video inside a playlist counts as 1.\nPlaylists are returned with their ` + "`" + `children` + "`" + ` truncated to the videos that fall within the current page.\n**Query Parameter Validation:**\n* ` + "`" + `page` + "`" + `: **optional** (default: 1), must be \u003e= 1, must be numeric\n* ` + "`" + `limit` + "`" + `: **optional** (default: 10), must be 1-100, must be numeric\n**Path Parameter Validation:**\n* ` + "`" + `id` + "`" + `: must be a valid UUID v4 format (room ID)\n**Access Rules:**\n* Only **room members** can view the queue\n**Security Note:**\n* This action **requires authentication**",
                 "produces": [
                     "application/json"
                 ],
@@ -851,17 +851,32 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Items per page (default: 10, max: 100)",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Queue successfully retrieved",
                         "schema": {
-                            "$ref": "#/definitions/docs.ApiResponse-array_docs_QueueItemDetailResponse"
+                            "$ref": "#/definitions/docs.ApiResponse-docs_PaginatedResponse-docs_QueueItemDetailResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid UUID format in path",
+                        "description": "Invalid UUID format or invalid query parameters",
                         "schema": {
                             "$ref": "#/definitions/docs.Error400Response"
                         }
@@ -1116,30 +1131,6 @@ const docTemplate = `{
                 }
             }
         },
-        "docs.ApiResponse-array_docs_QueueItemDetailResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/docs.QueueItemDetailResponse"
-                    }
-                },
-                "errors": {
-                    "type": "string",
-                    "x-nullable": true,
-                    "example": "null"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Operation completed successfully"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
         "docs.ApiResponse-docs_CategoryResponse": {
             "type": "object",
             "properties": {
@@ -1166,6 +1157,27 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/docs.PaginatedResponse-docs_CategoryResponse"
+                },
+                "errors": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "null"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation completed successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "docs.ApiResponse-docs_PaginatedResponse-docs_QueueItemDetailResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/docs.PaginatedResponse-docs_QueueItemDetailResponse"
                 },
                 "errors": {
                     "type": "string",
@@ -1436,6 +1448,29 @@ const docTemplate = `{
                 }
             }
         },
+        "docs.PaginatedResponse-docs_QueueItemDetailResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/docs.QueueItemDetailResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
         "docs.PaginatedResponse-docs_RoomListItem": {
             "type": "object",
             "properties": {
@@ -1511,10 +1546,6 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": false
                 },
-                "previewUrl": {
-                    "type": "string",
-                    "example": "https://example.com/preview.mp4"
-                },
                 "thumbnail": {
                     "type": "string",
                     "example": "https://example.com/thumb.jpg"
@@ -1522,6 +1553,10 @@ const docTemplate = `{
                 "title": {
                     "type": "string",
                     "example": "Fears to Fathom: Ironbark Lookout"
+                },
+                "totalChildren": {
+                    "type": "integer",
+                    "example": 5
                 },
                 "videoUrl": {
                     "type": "string",
@@ -1556,10 +1591,6 @@ const docTemplate = `{
                 "id": {
                     "type": "string",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "previewUrl": {
-                    "type": "string",
-                    "example": "https://example.com/preview.mp4"
                 },
                 "thumbnail": {
                     "type": "string",

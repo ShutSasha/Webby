@@ -59,23 +59,6 @@ definitions:
         example: true
         type: boolean
     type: object
-  docs.ApiResponse-array_docs_QueueItemDetailResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/docs.QueueItemDetailResponse'
-        type: array
-      errors:
-        example: "null"
-        type: string
-        x-nullable: true
-      message:
-        example: Operation completed successfully
-        type: string
-      success:
-        example: true
-        type: boolean
-    type: object
   docs.ApiResponse-docs_CategoryResponse:
     properties:
       data:
@@ -95,6 +78,21 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/docs.PaginatedResponse-docs_CategoryResponse'
+      errors:
+        example: "null"
+        type: string
+        x-nullable: true
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  docs.ApiResponse-docs_PaginatedResponse-docs_QueueItemDetailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/docs.PaginatedResponse-docs_QueueItemDetailResponse'
       errors:
         example: "null"
         type: string
@@ -285,6 +283,22 @@ definitions:
         example: 100
         type: integer
     type: object
+  docs.PaginatedResponse-docs_QueueItemDetailResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/docs.QueueItemDetailResponse'
+        type: array
+      limit:
+        example: 10
+        type: integer
+      page:
+        example: 1
+        type: integer
+      total:
+        example: 100
+        type: integer
+    type: object
   docs.PaginatedResponse-docs_RoomListItem:
     properties:
       items:
@@ -338,15 +352,15 @@ definitions:
       isFolder:
         example: false
         type: boolean
-      previewUrl:
-        example: https://example.com/preview.mp4
-        type: string
       thumbnail:
         example: https://example.com/thumb.jpg
         type: string
       title:
         example: 'Fears to Fathom: Ironbark Lookout'
         type: string
+      totalChildren:
+        example: 5
+        type: integer
       videoUrl:
         example: https://example.com/video.mp4
         type: string
@@ -370,9 +384,6 @@ definitions:
     properties:
       id:
         example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      previewUrl:
-        example: https://example.com/preview.mp4
         type: string
       thumbnail:
         example: https://example.com/thumb.jpg
@@ -943,7 +954,11 @@ paths:
     get:
       description: |-
         Retrieve the playback queue for a room with enriched media data.
-        Videos include title and thumbnail. Playlists include title, thumbnail, and child videos.
+        Pagination is based on individual videos: standalone videos count as 1, each video inside a playlist counts as 1.
+        Playlists are returned with their `children` truncated to the videos that fall within the current page.
+        **Query Parameter Validation:**
+        * `page`: **optional** (default: 1), must be >= 1, must be numeric
+        * `limit`: **optional** (default: 10), must be 1-100, must be numeric
         **Path Parameter Validation:**
         * `id`: must be a valid UUID v4 format (room ID)
         **Access Rules:**
@@ -956,15 +971,26 @@ paths:
         name: id
         required: true
         type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10, max: 100)'
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: Queue successfully retrieved
           schema:
-            $ref: '#/definitions/docs.ApiResponse-array_docs_QueueItemDetailResponse'
+            $ref: '#/definitions/docs.ApiResponse-docs_PaginatedResponse-docs_QueueItemDetailResponse'
         "400":
-          description: Invalid UUID format in path
+          description: Invalid UUID format or invalid query parameters
           schema:
             $ref: '#/definitions/docs.Error400Response'
         "401":
