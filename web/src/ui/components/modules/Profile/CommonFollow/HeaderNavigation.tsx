@@ -14,7 +14,7 @@ export default function HeaderNavigation({ id, image, username, children }: Prop
   return (
     <div className="relative flex items-center">
       <Link href={`/profile/${id}`} className="flex items-center gap-2">
-        <Image src={image} alt="" width={400} height={400} className="w-8 h-8 rounded-full" />
+        <Image src={image} alt="" width={400} height={400} className="w-8 h-8 rounded-full" loading="lazy" />
         <p className="text-[16px] font-semibold underline">{username}</p>
       </Link>
 

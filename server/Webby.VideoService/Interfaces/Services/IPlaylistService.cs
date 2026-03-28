@@ -1,4 +1,5 @@
 ﻿using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Response;
 
 namespace Webby.VideoService.Interfaces.Services;
@@ -6,9 +7,12 @@ namespace Webby.VideoService.Interfaces.Services;
 public interface IPlaylistService
 {
    Task<PlaylistDto> CreatePlaylist(Guid userId, CreatePlaylistRequest request);
-   Task<PagedResponse<PlaylistDto>> GetUserPlaylists(Guid userId, int page, int pageSize);
-   Task<PlaylistDto> UpdatePlaylist(UpdatePlaylistRequest request);
+   Task<PagedResponse<PlaylistPreviewDto>> GetUserPlaylists(Guid? requestUserId, Guid? videoId, Guid userId, SearchOptions searchOptions);
+   Task<PlaylistDto> UpdatePlaylist(Guid requestUserId, UpdatePlaylistRequest request);
    Task DeletePlaylist(Guid userId, Guid playlistId);
-   Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId);
-   Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds);
+   Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId, Guid? requestedUserId);
+   Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds, Guid requestUserId);
+   Task<PagedResponse<SearchPlaylistDto>> SearchPlaylists(Guid? requestUserId, SearchOptions searchOptions);
+   Task<bool> CheckIfVideoExistInPlaylist(Guid playlistId, Guid videoId);
+   
 }

@@ -4,7 +4,7 @@ import ImageBackground from './ImageBackground'
 
 export default async function UserVideos() {
   // await, sync videos - Lates/Popular
-  await new Promise(r => setTimeout(r, 2000))
+  await new Promise(r => setTimeout(r, 300))
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">

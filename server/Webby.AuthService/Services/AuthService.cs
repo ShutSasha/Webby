@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using MimeKit.Encodings;
+using Webby.AuthService.Consts;
 using Webby.AuthService.Dtos;
 using Webby.AuthService.Helpers.Exception;
 using Webby.AuthService.Interfaces.Helpers;
@@ -68,8 +69,7 @@ public class AuthService : IAuthService
          Email = request.Email,
          Password = _passwordHasher.Generate(request.Password),
          About = string.Empty,
-         //TODO: change to default user image from aws bucket
-         AvatarUrl = "https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg",
+         AvatarUrl = DefaultLinks.DefaultUserIcon,
          VerificationCode = GenerateActivationCode(),
          isVerified = false,
          Role = Role.User

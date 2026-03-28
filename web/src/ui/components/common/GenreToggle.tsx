@@ -4,17 +4,19 @@ import { motion } from 'framer-motion'
 import { Route } from 'next'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
+import { cn } from '@/lib/utils/utils'
+
 type Genre = {
   label: string
   param: string
 }
 
 const GENRES: Genre[] = [
+  { label: 'all', param: 'all' },
   { label: 'cinema', param: 'cinema' },
   { label: 'music', param: 'music' },
   { label: 'games', param: 'games' },
   { label: 'education', param: 'education' },
-  { label: 'all', param: 'all' },
 ]
 
 export default function GenreToggle() {
@@ -34,25 +36,26 @@ export default function GenreToggle() {
   }
 
   return (
-    <div
-      className="flex gap-2 py-1.5 px-2 self-end rounded-2xl overflow-hidden bg-neutral-800 order-2 lg:order-1 relative"
-    >
+    <div className="flex rounded-xl bg-neutral-900/60 p-1 border border-neutral-800 w-fit relative">
       {GENRES.map(genre => {
         const isActive = currentGenre === genre.param
 
         return (
           <div
             key={genre.param}
-            className={`relative cursor-pointer px-3 py-2 rounded-xl font-semibold md:px-5 md:py-2 z-10 block
-            md:font-bold uppercase text-[14px] leading-4.5 transition-colors duration-300
-            ${isActive ? 'text-neutral-900' : 'text-neutral-600 hover:hover:bg-[#F5F5F5]/5'}`}
             onClick={() => handleGenre(genre.param)}
+            className={cn(
+              `relative px-4 py-1.5 md:px-5 md:py-2 z-10 block font-semibold md:font-bold uppercase text-[13px]
+              tracking-wide cursor-pointer text-nowrap`,
+              'transition-colors duration-300 rounded-lg',
+              isActive ? 'text-neutral-100' : 'text-neutral-500 hover:text-neutral-300',
+            )}
           >
             {isActive && (
               <motion.div
-                layoutId="active-category-pill"
-                className="absolute inset-0 bg-emerald-500 rounded-xl -z-10"
-                transition={{ type: 'spring', bounce: 0.2, duration: 0.45 }}
+                layoutId="active-genre-pill"
+                className="absolute inset-0 bg-neutral-800 rounded-lg -z-10 shadow-sm border border-neutral-700/50"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
             )}
             {genre.label}

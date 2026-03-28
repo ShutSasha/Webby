@@ -50,6 +50,11 @@ input::-ms-reveal {
   }
 }
 
+html {
+  scrollbar-gutter: stable;
+  background-color: #171717;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -68,5 +73,26 @@ body {
   }
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-neutral-600/80;
+  }
+}
+
+@layer components {
+  .custom-scrollbar {
+    &::-webkit-scrollbar {
+      @apply w-1.5;
+    }
+
+    &::-webkit-scrollbar-track {
+      @apply bg-transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      @apply rounded-full border-0 bg-neutral-900;
+    }
+
+
+    &:hover::-webkit-scrollbar-thumb {
+      @apply bg-neutral-800;
+    }
   }
 }

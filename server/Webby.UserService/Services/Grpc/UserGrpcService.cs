@@ -2,7 +2,7 @@
 using UserService;
 using Webby.UserService.Interfaces.Repository;
 
-namespace Webby.UserService.Services;
+namespace Webby.UserService.Services.Grpc;
 
 public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServiceBase
 {

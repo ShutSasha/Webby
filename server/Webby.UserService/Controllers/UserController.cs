@@ -41,8 +41,8 @@ public class UserController : ControllerBase
    [SwaggerOperation("Checks if user followed to target user","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse<UserFollowingResponse>>> GetUserFollowing([FromRoute] Guid targetId)
    {
-      var userId = JwtHelper.ExtractUserId(HttpContext);
-      var userFollowingResponse = await _userService.IsUserFollowing(userId, targetId);
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      var userFollowingResponse = await _userService.IsUserFollowing(userId.Value, targetId);
       
       return Ok(ApiResponse<UserFollowingResponse>.Ok("Successfully retrieved information", userFollowingResponse));
    }
@@ -59,12 +59,12 @@ public class UserController : ControllerBase
    [SwaggerOperation("Follow or unfollow user","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> Follow(Guid followId)
    {
-      var followerId = JwtHelper.ExtractUserId(HttpContext);
+      var followerId = JwtHelper.ExtractUserId(HttpContext)!;
 
       var resultMessage = await _userService.ProcessFollow(new UserFollowRequest
       {
          UserId = followId,
-         FollowerId = followerId
+         FollowerId = followerId.Value
       });
 
       return Ok(ApiResponse.Ok(resultMessage));
@@ -78,22 +78,23 @@ public class UserController : ControllerBase
       return Ok(ApiResponse.Ok("Successfully unlock user achievement"));
    }
 
+   //TODO: Add check of pinned achievements
    [HttpPost("achievements/{achievementId:guid}")]
    [SwaggerOperation("Pin user achievement","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> PinUserAchievement([FromRoute] Guid achievementId)
    {
-      var userId = JwtHelper.ExtractUserId(HttpContext);
-      await _userService.PinUserAchievement(userId, achievementId);
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _userService.PinUserAchievement(userId.Value, achievementId);
       return Ok(ApiResponse.Ok("Successfully pinned user achievement"));
 
    }
    
    [HttpPatch]
    [SwaggerOperation("Update user text information","AUTH REQUIRED")]
-   public async Task<ActionResult<ApiResponse<UserProfileResponse>>> UpdateUserInformation([FromBody] UpdateUserRequest request)
+   public async Task<ActionResult<ApiResponse<UserDto>>> UpdateUserInformation([FromBody] UpdateUserRequest request)
    {
       var userUpdateResult = await _userService.UpdateUserInformation(request);
-      return Ok(ApiResponse<UserProfileResponse>.Ok("Successfully update user", userUpdateResult));
+      return Ok(ApiResponse<UserDto>.Ok("Successfully update user", userUpdateResult));
    }
 
    [HttpPatch("update-user-avatar/{userId:guid}")]
@@ -118,8 +119,8 @@ public class UserController : ControllerBase
    [SwaggerOperation("Unpin user achievement","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> UnpinUserAchievement([FromRoute] Guid achievementId)
    {
-      var userId = JwtHelper.ExtractUserId(HttpContext);
-      await _userService.UnpinUserAchievement(userId, achievementId);
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _userService.UnpinUserAchievement(userId.Value, achievementId);
       return Ok(ApiResponse.Ok("Successfully unpinned user achievement"));
    }
    

@@ -1,0 +1,35 @@
+type PlaylistQueueFooterProps = {
+  fetchingMore: boolean
+  hasMore: boolean
+  videosLength: number
+  loading: boolean
+  appliedQuery: string
+}
+
+export default function PlaylistQueueFooter({
+  fetchingMore,
+  hasMore,
+  videosLength,
+  loading,
+  appliedQuery,
+}: PlaylistQueueFooterProps) {
+  return (
+    <>
+      {fetchingMore && (
+        <div className="flex justify-center py-4">
+          <div className="size-5 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+        </div>
+      )}
+
+      {!hasMore && videosLength > 0 && (
+        <p className="text-center text-xs text-neutral-600 py-4 italic">End of playlist</p>
+      )}
+
+      {!loading && videosLength === 0 && (
+        <p className="text-center text-neutral-500 py-10">
+          {appliedQuery.trim() !== '' ? 'No videos found' : 'Playlist is empty'}
+        </p>
+      )}
+    </>
+  )
+}

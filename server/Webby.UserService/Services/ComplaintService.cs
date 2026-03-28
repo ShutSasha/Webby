@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Grpc.Core;
+using Webby.UserService.Clients;
 using Webby.UserService.Dtos.Complaint;
 using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Interfaces.Repository;
@@ -13,45 +15,68 @@ public class ComplaintService : IComplaintService
    private readonly IComplaintRepository _complaintRepository;
    private readonly IUserService _userService;
    private readonly IMapper _mapper;
+   private readonly VideoGrpcService.VideoGrpcServiceClient _videoGrpcServiceClient;
    
-   public ComplaintService(IComplaintRepository complaintRepository, IUserService userService, IMapper mapper)
+   public ComplaintService(IComplaintRepository complaintRepository, IUserService userService, IMapper mapper, VideoGrpcService.VideoGrpcServiceClient videoGrpcServiceClient)
    {
       _complaintRepository = complaintRepository;
       _userService = userService;
       _mapper = mapper;
+      _videoGrpcServiceClient = videoGrpcServiceClient;
    }
    
-   public async Task CreateUserComplaint(CreateUserComplaintRequest request)
+   public async Task CreateComplaint(Guid authorId, CreateComplaintRequest request)
    {
-      if (request.AuthorId == request.TargetUserId)
+      if (request.TargetType == ComplaintTargetType.User && authorId == request.TargetId)
+      {
          throw new ApiException("Create complaint error", 400, "The user cannot leave a complaint to himself");
-      
-      var user = await _userService.GetById(request.AuthorId);
-
-      if (user == null)
-      {
-         throw new ApiException("Create complaint error", 404, "User wasn't found");
       }
 
-      var targetUser = await _userService.GetById(request.TargetUserId);
+      _ = await _userService.GetById(authorId) 
+          ?? throw new ApiException("Create complaint error", 404, "Author user wasn't found");
 
-      if (targetUser == null)
+      if (request.TargetType == ComplaintTargetType.User)
       {
-         throw new ApiException("Create complaint error", 404, "Target user wasn't found");
+         _ = await _userService.GetById(request.TargetId) 
+             ?? throw new ApiException("Create complaint error", 404, "Target user wasn't found");
+      }
+      else if (request.TargetType == ComplaintTargetType.Video)
+      {
+         try
+         {
+            var checkVideoExistResult = await _videoGrpcServiceClient.CheckVideoExistsAsync(
+               new CheckVideoExistRequest
+               {
+                  VideoId = request.TargetId.ToString()
+               });
+
+            if (!checkVideoExistResult.Value)
+            {
+               throw new ApiException("Create complaint error", 404, "Video wasn't found");
+            }
+         }
+         catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
+         {
+            throw new ApiException("Create complaint error", 404, "Target video wasn't found");
+         }
+         catch (RpcException)
+         {
+            throw new ApiException("Create complaint error", 503, "Video service is unavailable");
+         }
       }
 
-      var userComplaint = new Complaint()
+      var complaint = new Complaint()
       {
          ComplaintId = Guid.NewGuid(),
          AdditionalInfo = request.AdditionalInfo,
-         AuthorId = request.AuthorId,
+         AuthorId = authorId,
          CreatedAt = DateTime.UtcNow,
          ReasonType = request.ReasonType,
-         TargetId = request.TargetUserId,
-         TargetType = ComplaintTargetType.User
+         TargetId = request.TargetId,
+         TargetType = request.TargetType!.Value
       };
 
-      await _complaintRepository.Add(userComplaint);
+      await _complaintRepository.Add(complaint);
    }
 
    public async Task<List<ComplaintDto>> GetUserComplaints(Guid userId)

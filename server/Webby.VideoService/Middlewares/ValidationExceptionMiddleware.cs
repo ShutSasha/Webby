@@ -15,6 +15,12 @@ public class ValidationExceptionMiddleware
 
    public async Task Invoke(HttpContext context)
    {
+      if (context.Request.ContentType?.StartsWith("application/grpc") == true)
+      {
+         await _next(context);
+         return;
+      }
+
       var originalBody = context.Response.Body;
 
       await using var memStream = new MemoryStream();
@@ -38,7 +44,7 @@ public class ValidationExceptionMiddleware
                e => e.Value.First()
             );
 
-            var formatted = ApiResponse.Fail(message: "Validation error", errors);
+            var formatted = ApiResponse.Fail("Validation error", errors);
             var output = JsonSerializer.Serialize(formatted, new JsonSerializerOptions
             {
                PropertyNamingPolicy = JsonNamingPolicy.CamelCase

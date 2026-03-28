@@ -1,10 +1,10 @@
 import { playlists } from '@/lib/placeholder-data/profile'
 
-import PlaylistItem from '../Playlist/PlaylistItem'
+import PlaylistItem from '../Playlists/PlaylistItem'
 
 export default async function UserPlaylists() {
   // await, sync Public playlists
-  await new Promise(r => setTimeout(r, 1500))
+  await new Promise(r => setTimeout(r, 300))
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">

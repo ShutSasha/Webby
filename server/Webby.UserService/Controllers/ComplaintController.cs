@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.UserService.Dtos.Complaint;
+using Webby.UserService.Helpers.Jwt;
 using Webby.UserService.Helpers.Response;
 using Webby.UserService.Interfaces.Service;
 
@@ -26,11 +28,12 @@ public class ComplaintController : ControllerBase
    }
    
    [HttpPost]
-   [SwaggerOperation("Leave a complaint to user","AUTH REQUIRED")]
-   public async Task<ActionResult<ApiResponse>> CreateUserComplaints([FromBody] CreateUserComplaintRequest request)
+   [SwaggerOperation("Leave a complaint to user or video","AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> CreateUserComplaints([FromBody] CreateComplaintRequest request)
    {
-      await _complaintService.CreateUserComplaint(request);
-      return Ok(ApiResponse.Ok("Successfully create user complaints"));
+      var authorId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _complaintService.CreateComplaint(authorId.Value,request);
+      return Ok(ApiResponse.Ok("Successfully create complaint"));
    }
    
 }

@@ -1,6 +1,9 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using Webby.UserService.Clients;
 using Webby.UserService.Data;
 using Webby.UserService.Dtos.Storage;
 using Webby.UserService.Interfaces.Repository;
@@ -89,5 +92,13 @@ public static class ApiExtension
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)
    {
       serviceCollection.Configure<AwsOptions>(config.GetSection(nameof(AwsOptions)));
+   }
+   
+   public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddGrpcClient<VideoGrpcService.VideoGrpcServiceClient>(o =>
+      {
+         o.Address = new Uri("http://localhost:5005");
+      });
    }
 }

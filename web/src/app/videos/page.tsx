@@ -1,11 +1,20 @@
-import MediaHeader from '@/ui/components/common/MediaHeader'
 import MainLayout from '@/ui/components/MainLayout'
+import VideoCard from '@/ui/components/modules/Videos/VideoCard'
+import VideoPageHeader from '@/ui/components/modules/Videos/VideoPageHeader'
+import GridCardsContainer from '@/ui/components/shared/GridCardsContainer'
 
 export default function VideosPage() {
   return (
     <MainLayout>
-      <div className="w-full bg-neutral-900 rounded-[20px] p-5 gap-4 box-border">
-        <MediaHeader searchPlaceholder="Search videos..." />
+      <div className="flex flex-col w-full bg-neutral-900 rounded-[20px] p-5 gap-4 box-border">
+        <VideoPageHeader />
+
+        {/* Room list goes here */}
+        <GridCardsContainer>
+          {Array.from({ length: 10 }).map((_, index) => (
+            <VideoCard key={index} />
+          ))}
+        </GridCardsContainer>
       </div>
     </MainLayout>
   )

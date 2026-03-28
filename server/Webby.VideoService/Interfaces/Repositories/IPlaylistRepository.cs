@@ -8,6 +8,11 @@ public interface IPlaylistRepository : IRepository<Playlist>
    Task AddPlaylistVideos(List<PlaylistVideo> playlistVideos);
    Task<Playlist?> FindByIdWithVideos(Guid playlistId);
    Task<Playlist?> GetPlaylistDetails(Guid playlistId);
+   Task<List<Playlist>> GetPlaylistsDetails(List<Guid> playlistIds);
    Task DeletePlaylistVideos(List<PlaylistVideo> videosToDelete);
-   Task<(List<Playlist>, int)> GetPaginatedUserPlaylists(Guid userId, int page, int pageSize);
+   Task<(List<Playlist>, int)> GetPaginatedUserPlaylists(bool shouldShowPrivate, Guid userId, int page, int pageSize);
+   Task<(List<Playlist> Items, int Total)> SearchPlaylistsAsync(string? searchText, int skip, int take);
+   Task<bool> CheckIsVideoAdded(Guid videoId, Guid playlistId);
+
+   Task<HashSet<Guid>> GetPlaylistIdsContainingVideo(Guid videoId, List<Guid> playlistIds);
 }

@@ -1,13 +1,18 @@
 ﻿using AutoMapper;
 using UserService;
 using Webby.VideoService.Constants;
+using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.Response;
+using Webby.VideoService.Helpers.Video;
+using Webby.VideoService.Interfaces.Helpers;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
+using Webby.VideoService.Models.Enums;
+using Webby.VideoService.Services.Background;
 
 namespace Webby.VideoService.Services;
 
@@ -19,7 +24,9 @@ public class VideoService : IVideoService
    private readonly IPlaylistService _playlistService;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
    private readonly IMapper _mapper;
-   public VideoService(IVideoRepository videoRepository, IStorageService storageService, ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, IMapper mapper)
+   private readonly IBackgroundTaskQueue _queue;
+   private readonly IServiceScopeFactory _scopeFactory;
+   public VideoService(IVideoRepository videoRepository, IStorageService storageService, ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, IMapper mapper, IBackgroundTaskQueue queue, IServiceScopeFactory scopeFactory)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
@@ -27,61 +34,95 @@ public class VideoService : IVideoService
       _playlistService = playlistService;
       _userClient = userClient;
       _mapper = mapper;
+      _queue = queue;
+      _scopeFactory = scopeFactory;
    }
-   
+
+   public async Task<UploadVideoResponse> UploadVideoFile(Guid userId, UploadVideoRequest request)
+   {
+      if (request.VideoFile == null || request.VideoFile.Length == 0)
+         throw new ArgumentException("File is empty");
+
+      var videoId = Guid.NewGuid();
+
+      var video = new Video
+      {
+         VideoId = videoId,
+         Name = Path.GetFileNameWithoutExtension(request.VideoFile.FileName),
+         UserId = userId,
+         VideoUploadStatus =VideoStatus.Uploading,
+         CreatedAt = DateTime.UtcNow,
+         IsPrivate = false,
+         IsPublished = false
+      };
+
+      await _videoRepository.Add(video);
+      
+      var tempPath = Path.Combine(Path.GetTempPath(), $"{videoId}_{request.VideoFile.FileName}");
+
+      await using (var stream = File.Create(tempPath))
+      {
+         await request.VideoFile.CopyToAsync(stream);
+      }
+      
+      _queue.Enqueue(async token =>
+      {
+         using var scope = _scopeFactory.CreateScope();
+
+         var processor = scope.ServiceProvider
+            .GetRequiredService<VideoUploadProcessor>();
+
+         await processor.ProcessUpload(
+            videoId,
+            tempPath,
+            request.VideoFile.ContentType,
+            token);
+      });
+
+      return _mapper.Map<UploadVideoResponse>(video);
+   }
+
    public async Task CreateVideo(Guid userId, CreateVideoRequest request)
    {
-      var videoId = Guid.NewGuid();
-      
-      string videoUrl;
-      await using (var videoStream = request.VideoFile.OpenReadStream())
-      {
-         videoUrl = await _storageService.UploadFileAsync(
-            videoId,
-            "videos",
-            request.VideoFile.FileName,
-            videoStream,
-            request.VideoFile.ContentType
-         );
-      }
+      var video = await _videoRepository.FindById(request.VideoId)
+                  ?? throw new ApiException("Create video error", 404, "Video wasn't found");
 
+      if (userId != video.UserId)
+      {
+         throw new ApiException("Publish video error", 403, "You can't publish this video");
+      }
+      
       await using var previewStream = request.PreviewFile.OpenReadStream();
+      
       var previewUrl = await _storageService.UploadFileAsync(
-         videoId,
+         video.VideoId,
          "previews",
          request.PreviewFile.FileName,
          previewStream,
          request.PreviewFile.ContentType
       );
-      
-      var video = new Video
-      {
-         VideoId = videoId,
-         UserId = userId,
-         Name = request.Name,
-         Description = request.Description,
-         Views = 0,
-         CreatedAt = DateTime.UtcNow,
-         VideoUrl = videoUrl,
-         PreviewUrl = previewUrl,
-         IsPrivate = request.IsPrivate
-      };
 
-      await _videoRepository.Add(video);
+      video.Name = request.Name;
+      video.Description = request.Description;
+      video.PreviewUrl = previewUrl;
+      video.IsPrivate = request.IsPrivate;
+      video.IsPublished = true;
+      
+      await _videoRepository.Update(video);
       
       if (request.VideoTags != null && request.VideoTags.Any())
       {
-         await _tagService.EnsureCreateTags(request.VideoTags, videoId);
+         await _tagService.EnsureCreateTags(request.VideoTags, video.VideoId);
       }
       
       if (request.PlaylistId.HasValue)
       {
          await _playlistService.AttachVideoToPlaylist(
             request.PlaylistId.Value,
-            [videoId]
+            [video.VideoId],
+            userId
          );
       }
-      
    }
 
    public async Task DeleteVideo(Guid userId, Guid videoId)
@@ -98,11 +139,16 @@ public class VideoService : IVideoService
       await _storageService.DeleteFileAsync(video.PreviewUrl);
       await _videoRepository.DeleteAsync(videoId);
    }
-   
+
    public async Task<GetVideoInformationResponse> GetVideoInformation(Guid videoId, Guid? userId)
    {
       var video = await _videoRepository.GetVideoInformationById(videoId)
                   ?? throw new ApiException("Get video information error", 404, "Video wasn't found");
+
+      if (video.VideoUploadStatus is not VideoStatus.Ready)
+      {
+         throw new ApiException("Get video information error", 400, "Video is not uploaded yet");
+      }
 
       var userResponse = await _userClient.GetUserByIdAsync(new GetUserRequest
       {
@@ -117,6 +163,7 @@ public class VideoService : IVideoService
          VideoId = videoId,
          Name = video.Name,
          Views = video.Views,
+         Description = video.Description,
          CreatedAt = video.CreatedAt,
          VideoUrl = video.VideoUrl,
          PreviewUrl = video.PreviewUrl,
@@ -159,7 +206,6 @@ public class VideoService : IVideoService
       if (video.UserId != userId)
          throw new ApiException("Update information error", 403, "You don't have permission for updating this video");
       
-      
       video.Name = request.Name;
       video.Description = request.Description;
       video.IsPrivate = request.IsPrivate;
@@ -168,26 +214,8 @@ public class VideoService : IVideoService
       {
          await _playlistService.AttachVideoToPlaylist(
             request.PlaylistId.Value,
-            new List<Guid> { request.VideoId });
-      }
-      
-      if (request.VideoFile != null)
-      {
-         if (!string.IsNullOrEmpty(video.VideoUrl))
-         {
-            await _storageService.DeleteFileAsync(video.VideoUrl);
-         }
-
-         await using var stream = request.VideoFile.OpenReadStream();
-
-         var videoUrl = await _storageService.UploadFileAsync(
-            video.VideoId,
-            "videos",
-            request.VideoFile.FileName,
-            stream,
-            request.VideoFile.ContentType);
-
-         video.VideoUrl = videoUrl;
+            [request.VideoId],
+            userId);
       }
       
       if (request.PreviewFile != null)
@@ -217,7 +245,113 @@ public class VideoService : IVideoService
       await _videoRepository.Update(video);
    }
 
+   public async Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchOptions options)
+   {
+      var skip = (options.Page - 1) * options.PageSize;
+      var (additionalConditional, parameters, predicate) = VideoQueryFilters.SearchVideoFilter(requestUserId);
+      
+      var (videos, total) = await _videoRepository.SearchAsync(
+         "Videos",
+         "Name",
+         options.SearchText,
+         skip,
+         options.PageSize,
+         additionalConditional,
+         parameters,
+         predicateFactory: predicate
+         );
+
+      var items = videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();
+      
+      return new PagedResponse<VideoDto>
+      {
+         Items = items,
+         TotalCount = total,
+         Page = options.Page,
+         PageSize = options.PageSize
+      };
+   }
+
+   public async Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId,Guid playlistId, SearchOptions searchOptions)
+   {
+      var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
+      
+      var (items, total) = await _videoRepository.SearchVideosInPlaylistAsync(
+         playlistId,
+         requestUserId,
+         searchOptions.SearchText,
+         skip,
+         searchOptions.PageSize
+         );
+
+      return new PagedResponse<VideoDto>()
+      {
+         Items = items.Select(v => _mapper.Map<VideoDto>(v)).ToList(),
+         Page = searchOptions.Page,
+         PageSize = searchOptions.PageSize,
+         TotalCount = total
+      };
+   }
+
+   public async Task<bool> CheckUploadStatus(Guid videoId)
+   {
+      var video = await _videoRepository.FindById(videoId);
+      
+      if (video == null) 
+      {
+         return false; 
+      }
+   
+      return video.VideoUploadStatus switch
+      {
+         VideoStatus.Ready => true,
+         VideoStatus.Canceled or VideoStatus.Failed or VideoStatus.Uploading => false,
+         _ => false 
+      };
+   }
+
+   public async Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId)
+   {
+      var privateVideos = await _videoRepository
+         .GetByPredicate(v => v.IsPrivate 
+                              && videoIds.Contains(v.VideoId) 
+                              && v.UserId != requestUserId);
+
+      return privateVideos?.Any() ?? false;
+   }
+
+   public async Task CancelVideoUploading(Guid requestUserId, Guid videoId)
+   {
+      var video = await _videoRepository.FindById(videoId)
+                  ?? throw new ApiException("Cancel video uploading", 404, "Video wasn't found");
+
+      if (requestUserId != video.UserId)
+      {
+         throw new ApiException("Publish video error", 403, "You can't publish this video");
+      }
+      
+      switch (video.VideoUploadStatus)
+      {
+         case VideoStatus.Uploading:
+            video.VideoUploadStatus = VideoStatus.Canceled;
+            await _videoRepository.Update(video);
+            break;
+
+         case VideoStatus.Ready:
+            if (!string.IsNullOrEmpty(video.VideoUrl))
+               await _storageService.DeleteFileAsync(video.VideoUrl);
+
+            await _videoRepository.DeleteAsync(videoId);
+            break;
+
+         case VideoStatus.Failed:
+         case VideoStatus.Canceled:
+            await _videoRepository.DeleteAsync(videoId);
+            break;
+      }
+   }
 
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>
       videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();
+   
 }
