@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using UserService;
 using Webby.VideoService.Constants;
+using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
@@ -144,7 +145,7 @@ public class VideoService : IVideoService
       var video = await _videoRepository.GetVideoInformationById(videoId)
                   ?? throw new ApiException("Get video information error", 404, "Video wasn't found");
 
-      if (video.VideoUploadStatus is VideoStatus.Ready)
+      if (video.VideoUploadStatus is not VideoStatus.Ready)
       {
          throw new ApiException("Get video information error", 400, "Video is not uploaded yet");
       }
