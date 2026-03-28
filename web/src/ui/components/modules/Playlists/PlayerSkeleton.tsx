@@ -8,8 +8,8 @@ export default function PlayerSkeleton() {
       <div className="flex items-center justify-between mt-3 mb-2 gap-5">
         <div className="h-[30px] bg-neutral-800 rounded-lg w-1/3" />
         <div className="flex gap-3">
-          <div className="w-[140px] h-[34px] bg-neutral-800 rounded-full" />
-          <div className="w-[140px] h-[34px] bg-neutral-800 rounded-full" />
+          <div className="w-[152px] h-[34px] bg-neutral-800 rounded-full" />
+          <div className="w-[166px] h-[34px] bg-neutral-800 rounded-full" />
         </div>
       </div>
 

@@ -27,7 +27,7 @@ export type PlaylistDetails = BasePlaylist & {
   userId: string
 }
 
-export type SearchPlaylsit = PlaylistDetails & {
+export type SearchPlaylist = PlaylistDetails & {
   username: string
 }
 
@@ -70,7 +70,7 @@ export async function getPlaylistVideos(
 ): Promise<BaseServerResponse<PlaylistVideosResponse>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<PlaylistVideosResponse>>(
-      `/videos/${playlistId}/search?SearchText=${encodeURIComponent(query)}&Page=${page}&PageSize=${pageSize}`,
+      `/videos/${playlistId}/search?searchText=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`,
     )
 
     return response
@@ -109,7 +109,7 @@ export async function createUserPlaylist(
   }
 }
 
-type PlaylistsSearchData = PaginatedData<SearchPlaylsit>
+type PlaylistsSearchData = PaginatedData<SearchPlaylist>
 
 export async function searchPlaylists(
   query: string,
@@ -118,7 +118,7 @@ export async function searchPlaylists(
 ): Promise<BaseServerResponse<PlaylistsSearchData>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<PlaylistsSearchData>>(
-      `${endpoint}/search?SearchText=${encodeURIComponent(query)}&Page=${page}&PageSize=${pageSize}`,
+      `${endpoint}/search?searchText=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`,
     )
 
     return response
@@ -134,7 +134,7 @@ export async function searchPlaylists(
   }
 }
 
-export type UserPlaylistsSearchData = PaginatedData<UserPlaylistDetails>
+export type UserPlaylistsSearchData = PaginatedData<BasePlaylist>
 
 export async function searchUserPlaylists(
   userId: string,
@@ -145,7 +145,7 @@ export async function searchUserPlaylists(
 ): Promise<BaseServerResponse<UserPlaylistsSearchData>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<UserPlaylistsSearchData>>(
-      `${endpoint}/${userId}?SearchText=${encodeURIComponent(query)}&Page=${page}&PageSize=${pageSize}&videoId=${targetVideoId ?? ''}`,
+      `${endpoint}/${userId}?searchText=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}&videoId=${targetVideoId ?? ''}`,
     )
 
     return response
@@ -176,6 +176,37 @@ export async function togglePlaylistVideo(playlistId: string, videoId: string): 
       data: null,
       success: false,
       message: `Failed to toggle video in playlist`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function checkVideoInPlaylist(
+  playlistId: string,
+  videoId: string | undefined,
+): Promise<BaseServerResponse<boolean>> {
+  try {
+    if (!videoId) {
+      return {
+        data: null,
+        success: false,
+        message: 'Video ID is required',
+        errors: null,
+      }
+    }
+
+    const { data: response } = await $api.get<BaseServerResponse<boolean>>(
+      `${endpoint}/${playlistId}/videos/${videoId}/exists`,
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('CHECK_VIDEO_IN_PLAYLIST_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to check video in playlist`,
       errors: parseAxiosError(error),
     }
   }

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 
 import { togglePlaylistVideo } from '@/app/api/playlists'
-import { serverLog } from '@/lib/utils/utils'
+import { extractServerMessage, serverLog } from '@/lib/utils/utils'
 import { useToastStore } from '@/stores/toast-store'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
@@ -36,7 +36,8 @@ export default function PlaylistItem({ videoId, playlistId, image, name, count, 
 
         setLocalCount(prev => (newIsAdded ? prev + 1 : prev - 1))
       } else {
-        addToast(`Failed to update "${name}"`, 'error')
+        const msg = extractServerMessage(response.errors)
+        addToast(msg ? msg : `Failed to update "${name}"`, 'error')
       }
     } catch (error) {
       serverLog('toggle video in playlist error', error, true)

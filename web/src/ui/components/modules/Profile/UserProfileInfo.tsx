@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import { notFound } from 'next/navigation'
 
 import { checkFollowing, getUser } from '@/app/api/user'
 import MailIcon from '@/assets/icons/ic_mail.svg'
@@ -13,6 +12,7 @@ import { auth } from '@/workspace/auth'
 import ComplaintButton from './ComplaintButton'
 import FollowButton from './FollowButton'
 import ActionButton from '../../shared/ActionButton'
+import EmptyState from '../../shared/EmptyState'
 
 export default async function UserProfileInfo({ id }: { id: string }) {
   const userData = await getUser(id)
@@ -22,7 +22,14 @@ export default async function UserProfileInfo({ id }: { id: string }) {
   const isOwner = session?.user.id === id
 
   if (!userData) {
-    notFound()
+    return (
+      <div className="bg-neutral-900 rounded-[20px] p-5 flex items-center justify-center min-h-[250px]">
+        <EmptyState
+          title="User not found"
+          description="This profile doesn't exist, has been deleted, or is temporarily unavailable."
+        />
+      </div>
+    )
   }
 
   return (

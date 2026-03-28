@@ -1,9 +1,10 @@
-import { notFound, redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 
 import { getUser } from '@/app/api/user'
 import AboutContainer from '@/ui/components/modules/Profile/Settings/ProfileSettings/AboutContainer'
 import UploadAvatarContainer from '@/ui/components/modules/Profile/Settings/ProfileSettings/UploadAvatarContainer'
 import UserHeader from '@/ui/components/modules/Profile/Settings/UserHeader'
+import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
 type Props = {
@@ -20,7 +21,14 @@ export default async function ProfileSettings({ params }: Props) {
   }
 
   if (!userData) {
-    notFound()
+    return (
+      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px] min-h-[50vh]">
+        <EmptyState
+          title="Couldn't load profile data"
+          description="We ran into an issue while fetching your settings. Please try refreshing the page."
+        />
+      </div>
+    )
   }
 
   return (

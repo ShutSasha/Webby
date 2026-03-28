@@ -46,27 +46,37 @@ export async function uploadNewUserPhoto(id: string, formData: FormData): Promis
   }
 }
 
-export async function getUserFollows(id: string): Promise<GetUserFollowsResponse[] | null> {
+export async function getUserFollows(id: string): Promise<BaseServerResponse<GetUserFollowsResponse[]>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<GetUserFollowsResponse[]>>(`${endpoint}/${id}/follows`)
 
-    return response.data
+    return response
   } catch (error: unknown) {
     serverLog('FETCH_USER_FOLLOWS_ERROR', error, true)
-    return null
+    return {
+      data: null,
+      success: false,
+      message: `Failed to get user follows`,
+      errors: parseAxiosError(error),
+    }
   }
 }
 
-export async function getUserFollowers(id: string): Promise<GetUserFollowersResponse[] | null> {
+export async function getUserFollowers(id: string): Promise<BaseServerResponse<GetUserFollowersResponse[]>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<GetUserFollowersResponse[]>>(
       `${endpoint}/${id}/followers`,
     )
 
-    return response.data
+    return response
   } catch (error: unknown) {
     serverLog('FETCH_USER_FOLLOWERS_ERROR', error, true)
-    return null
+    return {
+      data: null,
+      success: false,
+      message: `Failed to get user followers`,
+      errors: parseAxiosError(error),
+    }
   }
 }
 

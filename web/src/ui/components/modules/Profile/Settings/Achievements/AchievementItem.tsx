@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -36,6 +36,11 @@ export default function AchievementItem({
   const addToast = useToastStore(state => state.addToast)
   const router = useRouter()
 
+  const [isFetching, setIsFetching] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  const isLoading = isFetching || isPending
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (!menuRef?.current?.contains(event.target as Node) && !optionsRef?.current?.contains(event.target as Node)) {
@@ -54,35 +59,62 @@ export default function AchievementItem({
 
   const handlePin = async () => {
     setOpen(false)
+    setIsFetching(true)
+
     const response = await pinAchievement(achievementId)
 
     if (!response.success) {
       const msg = response.errors?.message
       addToast(msg ? msg : 'Unexpected error has occurred.', 'error')
+      setIsFetching(false)
       return
     }
 
-    router.refresh()
+    setIsFetching(false)
+
+    startTransition(() => {
+      router.refresh()
+    })
   }
 
   const handleUnpin = async () => {
     setOpen(false)
+    setIsFetching(true)
+
     const response = await unpinAchievement(achievementId)
 
     if (!response.success) {
       const msg = response.errors?.message
       addToast(msg ? msg : 'Unexpected error has occurred.', 'error')
+      setIsFetching(false)
       return
     }
 
-    router.refresh()
+    setIsFetching(false)
+
+    startTransition(() => {
+      router.refresh()
+    })
   }
 
   return (
     <div
-      className={`relative rounded-[20px] border border-border px-5 py-3 w-fit flex flex-col gap-1 items-center
-        max-w-[200px] max-h-[200px] ${className} select-none`}
+      className={cn(
+        `relative rounded-[20px] border border-border px-5 py-3 flex flex-col gap-1 items-center w-[200px] size-[200px]
+        select-none transition-all shrink-0`,
+        className,
+        isLoading && 'pointer-events-none',
+      )}
     >
+      {isLoading && (
+        <div
+          className="absolute inset-0 bg-black/20 z-20 flex items-center justify-center backdrop-blur-[1px]
+            transition-all rounded-[20px]"
+        >
+          <div className="size-8 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+        </div>
+      )}
+
       <SafeImage
         src={image}
         alt=""
@@ -98,14 +130,17 @@ export default function AchievementItem({
         {description}
       </p>
 
-      <MoreOptions
-        ref={optionsRef}
-        className="absolute size-5 right-2 top-2.5 text-neutral-300 cursor-pointer"
-        onClick={(e: React.MouseEvent) => {
-          e.stopPropagation()
-          setOpen(prev => !prev)
-        }}
-      />
+      {isUnlocked && (
+        <MoreOptions
+          ref={optionsRef}
+          className="absolute size-5 right-2 top-2.5 text-neutral-300 cursor-pointer hover:text-neutral-100
+            transition-colors z-10"
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation()
+            setOpen(prev => !prev)
+          }}
+        />
+      )}
 
       {isOpen && (
         <div

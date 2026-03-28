@@ -1,11 +1,12 @@
 import { Suspense } from 'react'
 
-import { notFound, redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 
 import { getPlaylistInfo } from '@/app/api/playlists'
 import PlayerSkeleton from '@/ui/components/modules/Playlists/PlayerSkeleton'
 import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer/PlaylistQueueContainer'
 import VideoDetails from '@/ui/components/modules/Playlists/VideoDetails'
+import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
 type Props = {
@@ -14,13 +15,20 @@ type Props = {
 }
 
 export default async function PlaylistPage({ params, searchParams }: Props) {
-  const { id: playlistId } = await params
-  const session = await auth()
-  const playlistInfoResponse = await getPlaylistInfo(playlistId)
-  const { v } = await searchParams
+  const [{ id: playlistId }, { v }] = await Promise.all([params, searchParams])
+  const sessionPromise = auth()
+  const playlistInfoPromise = getPlaylistInfo(playlistId)
+  const [session, playlistInfoResponse] = await Promise.all([sessionPromise, playlistInfoPromise])
 
   if (!playlistInfoResponse.success || !playlistInfoResponse.data) {
-    notFound()
+    return (
+      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+        <EmptyState
+          title="Playlist not found"
+          description="This playlist doesn't exist, is private, or has been deleted."
+        />
+      </div>
+    )
   }
 
   const { firstVideo, hiddenVideosCount, playlist } = playlistInfoResponse.data
@@ -32,9 +40,13 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
   return (
     <div className="flex gap-5">
       <Suspense key={v} fallback={<PlayerSkeleton />}>
-        <VideoDetails userId={session?.user.id} v={v} />
+        <VideoDetails userId={session?.user.id} v={v} playlistId={playlistId} />
       </Suspense>
-      <PlaylistQueueContainer playlistId={playlistId} hiddenVideosCount={hiddenVideosCount} playlistName={playlist.name}/>
+      <PlaylistQueueContainer
+        playlistId={playlistId}
+        hiddenVideosCount={hiddenVideosCount}
+        playlistName={playlist.name}
+      />
     </div>
   )
 }

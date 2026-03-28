@@ -1,4 +1,4 @@
-import PlaylistSearchContainer from '@/ui/components/modules/Playlists/PlaylistSearchContainer'
+import PlaylistPublicSearchContainer from '@/ui/components/modules/Playlists/PlaylistPublicSearchContainer'
 
 type Props = {
   searchParams: Promise<{ query?: string }>
@@ -8,5 +8,5 @@ export default async function Page({ searchParams }: Props) {
   const { query } = await searchParams
   const safeQuery = query || ''
 
-  return <PlaylistSearchContainer query={safeQuery} />
+  return <PlaylistPublicSearchContainer query={safeQuery} />
 }

@@ -78,6 +78,17 @@ export function useInfiniteSearch<T>({
     loadData(value, 1, true)
   }, debounceMs)
 
+  const searchImmediate = useCallback(
+    (value: string) => {
+      setPage(1)
+      setItems([])
+      setHasMore(true)
+      setAppliedQuery(value)
+      loadData(value, 1, true)
+    },
+    [loadData],
+  )
+
   const handleSearchChange = (value: string) => {
     debouncedSearch(value)
   }
@@ -111,6 +122,7 @@ export function useInfiniteSearch<T>({
     appliedQuery,
     lastElementRef,
     handleSearchChange,
+    searchImmediate,
     reset,
   }
 }

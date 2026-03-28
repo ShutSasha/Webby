@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+import { checkVideoInPlaylist } from '@/app/api/playlists'
 import { getVideoInfo } from '@/app/api/videos'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
@@ -14,20 +15,29 @@ import VideoNotFound from '../Videos/VideoNotFound'
 type Props = {
   v: string | undefined
   userId: string | undefined
+  playlistId?: string
 }
 
-export default async function VideoDetails({ v, userId }: Props) {
+export default async function VideoDetails({ v, userId, playlistId }: Props) {
   if (!v) {
     return <VideoNotFound />
   }
 
-  const video = await getVideoInfo(v)
+  const [video, playlistCheck] = await Promise.all([
+    getVideoInfo(v),
+    playlistId ? checkVideoInPlaylist(playlistId, v) : Promise.resolve({ success: true, data: true }),
+  ])
 
   if (!video.success || !video.data) {
     return <VideoNotFound />
   }
 
+  if (playlistId && !playlistCheck.data) {
+    return <VideoNotFound />
+  }
+
   const { videoId, description, createdAt, views, name, user, videoUrl } = video.data
+  const isOwner = userId === user.userId
 
   return (
     <div className="h-fit min-w-0 w-full">
@@ -42,20 +52,22 @@ export default async function VideoDetails({ v, userId }: Props) {
         </div>
       </div>
 
-      <Link href={`/profile/${user.userId}`} className="flex items-center gap-3">
-        <Image
-          src={user.avatarUrl}
-          className="size-9 object-cover rounded-full"
-          alt=""
-          width={50}
-          height={50}
-          loading="lazy"
-          placeholder="blur"
-          blurDataURL={BLUR_DATA_URLS['neutral900']}
-        />
-        <p className="text-[16px] font-medium">{user.username}</p>
-        <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />
-      </Link>
+      <div className="flex items-center gap-3">
+        <Link href={`/profile/${user.userId}`} className="flex items-center gap-3">
+          <Image
+            src={user.avatarUrl}
+            className="size-9 object-cover rounded-full"
+            alt=""
+            width={50}
+            height={50}
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL={BLUR_DATA_URLS['neutral900']}
+          />
+          <p className="text-[16px] font-medium">{user.username}</p>
+        </Link>
+        {!isOwner && <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />}
+      </div>
 
       <VideoDescription text={description ?? ''} views={views} date={createdAt} />
     </div>

@@ -14,7 +14,8 @@ type Props = {
 }
 
 const DEFAULT_ICON_CLASSNAME = 'left-4 h-6 w-6 text-neutral-600'
-const DEFAULT_INPUT_CLASSNAME = 'pl-12 py-3 rounded-2xl font-medium text-[16px] leading-5 border border-border w-full '
+const DEFAULT_INPUT_CLASSNAME =
+  'pl-12 py-3 rounded-2xl font-medium text-[16px] leading-5 border border-neutral-800 w-full '
 
 export default function Search({
   placeholder,
@@ -41,7 +42,7 @@ export default function Search({
 
   return (
     <div className={`relative ${containerClassName}`}>
-      <SearchIcon className={`${iconClassName} absolute top-1/2 -translate-y-1/2`} aria-hidden="true" />
+      <SearchIcon className={`${iconClassName} absolute top-1/2 -translate-y-1/2 stroke-[1.5px]`} aria-hidden="true" />
       <label htmlFor="search" className="sr-only">
         Search
       </label>
@@ -49,7 +50,7 @@ export default function Search({
         id="search"
         name="search"
         autoComplete="off"
-        className={`${inputClassName} focus:border-emerald-500 focus:ring-emerald-500 ring-[0.3px] ring-transparent
+        className={`${inputClassName} focus:border-emerald-500 focus:ring-emerald-500 ring-[0.1px] ring-transparent
           block placeholder:text-neutral-600 focus:outline-none `}
         placeholder={placeholder}
         onChange={e => {
