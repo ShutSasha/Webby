@@ -31,6 +31,17 @@ public class PlaylistService : IPlaylistService
       _videoRepository = videoRepository;
    }
 
+   public async Task<Playlist> GetPlaylistById(Guid playlistId)
+   {
+      var playlist = await _playlistRepository.FindById(playlistId)
+                     ?? throw new ApiException("Get playlist error", 404, "Playlist wasn't found");
+      
+      if (playlist.IsPrivate)
+         throw new ApiException("Get playlist error",403,"Playlist is private");
+
+      return playlist;
+   }
+
    public async Task<PlaylistDto> CreatePlaylist(Guid userId, CreatePlaylistRequest request)
    {
       var playlist = new Playlist()

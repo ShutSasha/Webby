@@ -38,6 +38,32 @@ public class VideoService : IVideoService
       _scopeFactory = scopeFactory;
    }
 
+   public async Task<Video> GetVideoById(Guid videoId)
+   {
+      var video = await _videoRepository.FindById(videoId)
+                  ?? throw new ApiException("Get video error", 404, "Video wasn't found");
+
+      if (video.IsPrivate)
+      {
+         throw new ApiException("Get video error", 403, "Requested video is private");
+      }
+
+      if (video.VideoUploadStatus is 
+          VideoStatus.Uploading or 
+          VideoStatus.Canceled or 
+          VideoStatus.Failed)
+      {
+         throw new ApiException("Get video error", 400, "Video is not uploaded yet");
+      }
+
+      if (!video.IsPublished)
+      {
+         throw new ApiException("Get video error", 400, "Video is not published yet");
+      }
+
+      return video;
+   }
+
    public async Task<UploadVideoResponse> UploadVideoFile(Guid userId, UploadVideoRequest request)
    {
       if (request.VideoFile == null || request.VideoFile.Length == 0)
