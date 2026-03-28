@@ -1079,6 +1079,8 @@ paths:
         * Only **room members** can remove items from the queue
         **Security Note:**
         * This action **requires authentication**
+        **PAY ATTENTION:**
+        * ONLY A SEPARATE VIDEO OR THE PLAYLIST ITSELF CAN BE DELETED, THE VIDEO FROM THE PLAYLIST CAN NOT BE DELETED SEPARATELY**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path

@@ -977,7 +977,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Remove a video or playlist from the room's playback queue.\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n* `itemId`: must be a valid UUID v4 format (queue item ID)\n**Access Rules:**\n* Only **room members** can remove items from the queue\n**Security Note:**\n* This action **requires authentication**",
+                "description": "Remove a video or playlist from the room's playback queue.\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n* `itemId`: must be a valid UUID v4 format (queue item ID)\n**Access Rules:**\n* Only **room members** can remove items from the queue\n**Security Note:**\n* This action **requires authentication**\n**PAY ATTENTION:**\n* ONLY A SEPARATE VIDEO OR THE PLAYLIST ITSELF CAN BE DELETED, THE VIDEO FROM THE PLAYLIST CAN NOT BE DELETED SEPARATELY**",
                 "produces": [
                     "application/json"
                 ],
