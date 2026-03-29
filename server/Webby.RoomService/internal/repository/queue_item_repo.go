@@ -28,11 +28,12 @@ func (r *QueueItemRepository) Create(item *models.QueueItem) (uuid.UUID, error) 
 	item.Id = uuid.New()
 
 	query := `
-		INSERT INTO queue_items (id, room_id, entity_id, entity_type, is_active, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO queue_items (id, room_id, entity_id, entity_type, is_active, position)
+		VALUES ($1, $2, $3, $4, $5, (SELECT COALESCE(MAX(position), 0) + 1 FROM queue_items WHERE room_id = $2))
+		RETURNING created_at, position
 	`
 
-	_, err := r.db.Exec(query, item.Id, item.RoomId, item.EntityId, item.EntityType, item.IsActive, item.CreatedAt)
+	err := r.db.QueryRow(query, item.Id, item.RoomId, item.EntityId, item.EntityType, item.IsActive).Scan(&item.CreatedAt, &item.Position)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -74,7 +75,7 @@ func (r *QueueItemRepository) GetById(id uuid.UUID) (*models.QueueItem, error) {
 	}
 
 	query := `
-		SELECT id, room_id, entity_id, entity_type, is_active, created_at
+		SELECT id, room_id, entity_id, entity_type, is_active, position, created_at
 		FROM queue_items
 		WHERE id = $1
 	`
@@ -86,6 +87,7 @@ func (r *QueueItemRepository) GetById(id uuid.UUID) (*models.QueueItem, error) {
 		&item.EntityId,
 		&item.EntityType,
 		&item.IsActive,
+		&item.Position,
 		&item.CreatedAt,
 	)
 
@@ -107,10 +109,10 @@ func (r *QueueItemRepository) ListByRoom(roomId uuid.UUID) ([]models.QueueItem, 
 	}
 
 	query := `
-		SELECT id, room_id, entity_id, entity_type, is_active, created_at
+		SELECT id, room_id, entity_id, entity_type, is_active, position, created_at
 		FROM queue_items
 		WHERE room_id = $1
-		ORDER BY created_at ASC
+		ORDER BY position ASC
 	`
 
 	rows, err := r.db.Query(query, roomId)
@@ -128,6 +130,7 @@ func (r *QueueItemRepository) ListByRoom(roomId uuid.UUID) ([]models.QueueItem, 
 			&item.EntityId,
 			&item.EntityType,
 			&item.IsActive,
+			&item.Position,
 			&item.CreatedAt,
 		)
 		if err != nil {

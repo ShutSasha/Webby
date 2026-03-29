@@ -171,3 +171,58 @@ type QueueListPagData struct {
 	Limit int                       `json:"pageSize" example:"10"`
 	Total int                       `json:"totalCount" example:"100"`
 }
+
+// --- Votes ---
+
+type CreateVoteRequest struct {
+	Type            string              `json:"type" validate:"required,oneof=poll next_video" example:"poll"`
+	VoteText        string              `json:"voteText" validate:"required,min=1,max=500" example:"What should we watch next?"`
+	DurationSeconds int                 `json:"durationSeconds" validate:"required,min=60,max=604800" example:"3600"`
+	Choices         []CreateChoiceInput `json:"choices" validate:"required,min=2,max=20"`
+}
+
+type CreateChoiceInput struct {
+	Name        string  `json:"name" example:"Option A"`
+	IsCorrect   bool    `json:"isCorrect" example:"false"`
+	QueueItemId *string `json:"queueItemId" example:"550e8400-e29b-41d4-a716-446655440000"`
+}
+
+type CastVoteRequest struct {
+	ChoiceId string `json:"choiceId" validate:"required,uuid4" example:"550e8400-e29b-41d4-a716-446655440000"`
+}
+
+type VoteChoiceDetailResponse struct {
+	Id          string  `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name        string  `json:"name" example:"Option A"`
+	Votes       int     `json:"votes" example:"5"`
+	Percentage  float64 `json:"percentage" example:"62.5"`
+	IsCorrect   bool    `json:"isCorrect" example:"false"`
+	QueueItemId *string `json:"queueItemId" example:"550e8400-e29b-41d4-a716-446655440000"`
+}
+
+type VoteDetailResponse struct {
+	Id                string                     `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	RoomId            string                     `json:"roomId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Type              string                     `json:"type" example:"poll"`
+	VoteText          string                     `json:"voteText" example:"What should we watch next?"`
+	CreatedAt         string                     `json:"createdAt" example:"2026-03-30T12:00:00Z"`
+	DurationSeconds   int                        `json:"durationSeconds" example:"3600"`
+	ExpiresAt         string                     `json:"expiresAt" example:"2026-03-30T13:00:00Z"`
+	IsExpired         bool                       `json:"isExpired" example:"false"`
+	TotalVotes        int                        `json:"totalVotes" example:"8"`
+	UserVotedChoiceId *string                    `json:"userVotedChoiceId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	WinnerId          *string                    `json:"winnerId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Choices           []VoteChoiceDetailResponse  `json:"choices"`
+}
+
+type VoteApiResponse struct {
+	Success bool                `json:"success" example:"true"`
+	Message string              `json:"message" example:"Vote created"`
+	Data    *VoteDetailResponse `json:"data,omitempty"`
+}
+
+type VoteListApiResponse struct {
+	Success bool                  `json:"success" example:"true"`
+	Message string                `json:"message" example:"Votes retrieved"`
+	Data    *[]VoteDetailResponse `json:"data,omitempty"`
+}

@@ -73,6 +73,8 @@ func run(ctx context.Context, w io.Writer) error {
 	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage)
 	categoryService := services.NewCategoryService(categoryRepository)
 	queueItemService := services.NewQueueItemService(queueItemRepository, mediaClient, roomMemberRepository)
+	voteRepository := repository.NewVoteRepository(db)
+	voteService := services.NewVoteService(voteRepository, roomRepository, roomMemberRepository)
 
 	logger.Info("repositories initialized")
 
@@ -82,6 +84,7 @@ func run(ctx context.Context, w io.Writer) error {
 		roomService,
 		categoryService,
 		queueItemService,
+		voteService,
 	)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(config.Http.Host, strconv.Itoa(config.Http.Port)),

@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 	"webby/internal/apperrors"
 	grpcClient "webby/internal/grpc"
 	"webby/internal/models"
@@ -57,6 +56,7 @@ type QueueItemEnriched struct {
 	VideoUrl      string            `json:"videoUrl"`
 	IsActive      bool              `json:"isActive"`
 	IsFolder      bool              `json:"isFolder"`
+	Position      int               `json:"position"`
 	TotalChildren int               `json:"totalChildren"`
 	Children      []QueueVideoChild `json:"children,omitempty"`
 }
@@ -97,7 +97,6 @@ func (s *QueueItemService) AddToQueue(ctx context.Context, roomId, userId, entit
 		EntityId:   entityId,
 		EntityType: entityType,
 		IsActive:   false,
-		CreatedAt:  time.Now(),
 	}
 
 	id, err := s.repo.Create(item)
@@ -166,6 +165,7 @@ func (s *QueueItemService) GetQueue(ctx context.Context, roomId, userId uuid.UUI
 			EntityId:   item.EntityId,
 			EntityType: item.EntityType,
 			IsActive:   item.IsActive,
+			Position:   item.Position,
 		}
 
 		switch item.EntityType {

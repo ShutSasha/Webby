@@ -28,8 +28,9 @@ func (r *RoomRepository) Create(room *models.Room) (uuid.UUID, error) {
 	room.Id = uuid.New()
 
 	query := `
-		INSERT INTO rooms (id, host_id, category_id, name, thumbnail, token, is_private, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO rooms (id, host_id, category_id, name, thumbnail, token, is_private)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING created_at
 	`
 
 	err := r.db.QueryRow(
@@ -41,8 +42,7 @@ func (r *RoomRepository) Create(room *models.Room) (uuid.UUID, error) {
 		room.Thumbnail,
 		room.Token,
 		room.IsPrivate,
-		room.CreatedAt,
-	).Err()
+	).Scan(&room.CreatedAt)
 
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)

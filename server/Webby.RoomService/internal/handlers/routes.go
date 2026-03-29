@@ -21,6 +21,7 @@ import (
 	removeMember "webby/internal/handlers/rooms/remove_member"
 	"webby/internal/handlers/rooms/update"
 	updatePoints "webby/internal/handlers/rooms/update_points"
+	"webby/internal/handlers/votes"
 )
 
 type RoomService interface {
@@ -47,6 +48,10 @@ type QueueItemService interface {
 	roomqueues.QueueItemService
 }
 
+type VoteService interface {
+	votes.VoteService
+}
+
 func addRoutes(
 	mux *http.ServeMux,
 	cfg *config.Config,
@@ -54,12 +59,14 @@ func addRoutes(
 	roomService RoomService,
 	categoryService CategoryService,
 	queueItemService QueueItemService,
+	voteService VoteService,
 ) {
 	mux.Handle("/api/", http.NotFoundHandler())
 
 	rooms.RegisterRooms(mux, []byte(cfg.JwtSecret), logger, roomService)
 	categories.RegisterCategories(mux, []byte(cfg.JwtSecret), logger, categoryService)
 	roomqueues.RegisterRoomQueue(mux, []byte(cfg.JwtSecret), logger, queueItemService)
+	votes.RegisterVotes(mux, []byte(cfg.JwtSecret), logger, voteService)
 
 	mux.HandleFunc("GET /swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

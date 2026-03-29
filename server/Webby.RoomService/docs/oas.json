@@ -1,139 +1,1018 @@
 {
-  "openapi": "3.0.0",
+  "components": {
+    "schemas": {
+      "AddMemberRequest": {
+        "properties": {
+          "userId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AddQueueItemRequest": {
+        "properties": {
+          "entityId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "entityType": {
+            "example": "video",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CategoryApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CategoryResponse",
+            "type": "object"
+          },
+          "message": {
+            "example": "Category created",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "CategoryListApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CategoryListPagData",
+            "type": "object"
+          },
+          "message": {
+            "example": "Categories retrieved",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "CategoryListPagData": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryResponse"
+            },
+            "type": "array"
+          },
+          "page": {
+            "example": 1,
+            "type": "integer"
+          },
+          "pageSize": {
+            "example": 10,
+            "type": "integer"
+          },
+          "totalCount": {
+            "example": 100,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CategoryResponse": {
+        "properties": {
+          "id": {
+            "example": "123e4567-e89b-12d3-a456-426614174000",
+            "type": "string"
+          },
+          "name": {
+            "example": "Gaming",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CreateCategoryRequest": {
+        "properties": {
+          "name": {
+            "example": "Gaming",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "data": {
+            "example": "null",
+            "type": "string"
+          },
+          "errors": {
+            "properties": {
+              "key": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "example": "An error occurred",
+            "type": "string"
+          },
+          "success": {
+            "example": false,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "GetByTokenRequest": {
+        "properties": {
+          "token": {
+            "example": "abc123def456ghij",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MemberApiResponse": {
+        "properties": {
+          "data": {
+            "properties": {
+              "avatarUrl": {
+                "example": "https://example.com/avatar.jpg",
+                "type": "string"
+              },
+              "roomPoints": {
+                "example": 100,
+                "type": "integer"
+              },
+              "userId": {
+                "example": "550e8400-e29b-41d4-a716-446655440000",
+                "type": "string"
+              },
+              "username": {
+                "example": "JohnDoe",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "example": "Points updated successfully",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "MemberListApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MemberListPagData",
+            "type": "object"
+          },
+          "message": {
+            "example": "Members retrieved",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "MemberListPagData": {
+        "properties": {
+          "items": {
+            "items": {
+              "properties": {
+                "avatarUrl": {
+                  "example": "https://example.com/avatar.jpg",
+                  "type": "string"
+                },
+                "roomPoints": {
+                  "example": 100,
+                  "type": "integer"
+                },
+                "userId": {
+                  "example": "550e8400-e29b-41d4-a716-446655440000",
+                  "type": "string"
+                },
+                "username": {
+                  "example": "JohnDoe",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "page": {
+            "example": 1,
+            "type": "integer"
+          },
+          "pageSize": {
+            "example": 10,
+            "type": "integer"
+          },
+          "totalCount": {
+            "example": 100,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "QueueItemApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/QueueItemResponse",
+            "type": "object"
+          },
+          "message": {
+            "example": "Item added to queue",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "QueueItemDetailResponse": {
+        "properties": {
+          "children": {
+            "items": {
+              "properties": {
+                "id": {
+                  "example": "550e8400-e29b-41d4-a716-446655440000",
+                  "type": "string"
+                },
+                "thumbnail": {
+                  "example": "https://example.com/thumb.jpg",
+                  "type": "string"
+                },
+                "title": {
+                  "example": "Episode 1: Home Alone",
+                  "type": "string"
+                },
+                "videoUrl": {
+                  "example": "https://example.com/video.mp4",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "entityId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "entityType": {
+            "example": "video",
+            "type": "string"
+          },
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "isActive": {
+            "example": true,
+            "type": "boolean"
+          },
+          "isFolder": {
+            "example": false,
+            "type": "boolean"
+          },
+          "thumbnail": {
+            "example": "https://example.com/thumb.jpg",
+            "type": "string"
+          },
+          "title": {
+            "example": "Fears to Fathom: Ironbark Lookout",
+            "type": "string"
+          },
+          "totalChildren": {
+            "example": 5,
+            "type": "integer"
+          },
+          "videoUrl": {
+            "example": "https://example.com/video.mp4",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "QueueItemResponse": {
+        "properties": {
+          "entityId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "entityType": {
+            "example": "video",
+            "type": "string"
+          },
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "isActive": {
+            "example": false,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "QueueListApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/QueueListPagData",
+            "type": "object"
+          },
+          "message": {
+            "example": "Queue retrieved",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "QueueListPagData": {
+        "properties": {
+          "items": {
+            "items": {
+              "properties": {
+                "children": {
+                  "items": {
+                    "properties": {
+                      "id": {
+                        "example": "550e8400-e29b-41d4-a716-446655440000",
+                        "type": "string"
+                      },
+                      "thumbnail": {
+                        "example": "https://example.com/thumb.jpg",
+                        "type": "string"
+                      },
+                      "title": {
+                        "example": "Episode 1: Home Alone",
+                        "type": "string"
+                      },
+                      "videoUrl": {
+                        "example": "https://example.com/video.mp4",
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "entityId": {
+                  "example": "550e8400-e29b-41d4-a716-446655440000",
+                  "type": "string"
+                },
+                "entityType": {
+                  "example": "video",
+                  "type": "string"
+                },
+                "id": {
+                  "example": "550e8400-e29b-41d4-a716-446655440000",
+                  "type": "string"
+                },
+                "isActive": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "isFolder": {
+                  "example": false,
+                  "type": "boolean"
+                },
+                "thumbnail": {
+                  "example": "https://example.com/thumb.jpg",
+                  "type": "string"
+                },
+                "title": {
+                  "example": "Fears to Fathom: Ironbark Lookout",
+                  "type": "string"
+                },
+                "totalChildren": {
+                  "example": 5,
+                  "type": "integer"
+                },
+                "videoUrl": {
+                  "example": "https://example.com/video.mp4",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "page": {
+            "example": 1,
+            "type": "integer"
+          },
+          "pageSize": {
+            "example": 10,
+            "type": "integer"
+          },
+          "totalCount": {
+            "example": 100,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "QueueVideoChild": {
+        "properties": {
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "thumbnail": {
+            "example": "https://example.com/thumb.jpg",
+            "type": "string"
+          },
+          "title": {
+            "example": "Episode 1: Home Alone",
+            "type": "string"
+          },
+          "videoUrl": {
+            "example": "https://example.com/video.mp4",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "RoomApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RoomResponse",
+            "type": "object"
+          },
+          "message": {
+            "example": "Room created",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "RoomListApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RoomListPagData",
+            "type": "object"
+          },
+          "message": {
+            "example": "Rooms retrieved",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "RoomListItem": {
+        "properties": {
+          "categoryId": {
+            "example": "123e4567-e89b-12d3-a456-426614174000",
+            "type": "string"
+          },
+          "hostId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "isPrivate": {
+            "example": false,
+            "type": "boolean"
+          },
+          "name": {
+            "example": "Room Name",
+            "type": "string"
+          },
+          "thumbnail": {
+            "example": "https://example.com/thumbnail.jpg",
+            "type": "string"
+          },
+          "token": {
+            "example": "abc123def456ghij",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "RoomListPagData": {
+        "properties": {
+          "items": {
+            "items": {
+              "properties": {
+                "categoryId": {
+                  "example": "123e4567-e89b-12d3-a456-426614174000",
+                  "type": "string"
+                },
+                "hostId": {
+                  "example": "550e8400-e29b-41d4-a716-446655440000",
+                  "type": "string"
+                },
+                "id": {
+                  "example": "550e8400-e29b-41d4-a716-446655440000",
+                  "type": "string"
+                },
+                "isPrivate": {
+                  "example": false,
+                  "type": "boolean"
+                },
+                "name": {
+                  "example": "Room Name",
+                  "type": "string"
+                },
+                "thumbnail": {
+                  "example": "https://example.com/thumbnail.jpg",
+                  "type": "string"
+                },
+                "token": {
+                  "example": "abc123def456ghij",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "page": {
+            "example": 1,
+            "type": "integer"
+          },
+          "pageSize": {
+            "example": 10,
+            "type": "integer"
+          },
+          "totalCount": {
+            "example": 100,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "RoomMemberItem": {
+        "properties": {
+          "avatarUrl": {
+            "example": "https://example.com/avatar.jpg",
+            "type": "string"
+          },
+          "roomPoints": {
+            "example": 100,
+            "type": "integer"
+          },
+          "userId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "username": {
+            "example": "JohnDoe",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "RoomResponse": {
+        "properties": {
+          "categoryId": {
+            "example": "123e4567-e89b-12d3-a456-426614174000",
+            "type": "string"
+          },
+          "hostId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "isPrivate": {
+            "example": false,
+            "type": "boolean"
+          },
+          "name": {
+            "example": "Room Name",
+            "type": "string"
+          },
+          "thumbnail": {
+            "example": "https://example.com/thumbnail.jpg",
+            "type": "string"
+          },
+          "token": {
+            "example": "abc123def456ghij",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SuccessResponse": {
+        "properties": {
+          "message": {
+            "example": "Operation completed successfully",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "UpdateCategoryRequest": {
+        "properties": {
+          "name": {
+            "example": "Education",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "docs.CategoryApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CategoryResponse",
+            "type": "object"
+          },
+          "message": {
+            "example": "Category created",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "docs.ErrorResponse": {
+        "properties": {
+          "data": {
+            "example": "null",
+            "type": "string"
+          },
+          "errors": {
+            "properties": {
+              "key": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "message": {
+            "example": "An error occurred",
+            "type": "string"
+          },
+          "success": {
+            "example": false,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "docs.RoomApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RoomResponse",
+            "type": "object"
+          },
+          "message": {
+            "example": "Room created",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "docs.RoomListApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RoomListPagData",
+            "type": "object"
+          },
+          "message": {
+            "example": "Rooms retrieved",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "UpdatePointsRequest": {
+        "properties": {
+          "points": {
+            "description": "Points delta (positive to add, negative to subtract)",
+            "example": 10,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "points"
+        ],
+        "type": "object"
+      },
+      "CreateVoteRequest": {
+        "properties": {
+          "type": {
+            "example": "poll",
+            "enum": [
+              "poll",
+              "next_video"
+            ],
+            "type": "string"
+          },
+          "voteText": {
+            "example": "What should we watch next?",
+            "type": "string"
+          },
+          "durationSeconds": {
+            "example": 3600,
+            "type": "integer",
+            "minimum": 60,
+            "maximum": 604800
+          },
+          "choices": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/CreateChoiceInput"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "voteText",
+          "durationSeconds",
+          "choices"
+        ],
+        "type": "object"
+      },
+      "CreateChoiceInput": {
+        "properties": {
+          "name": {
+            "example": "Option A",
+            "type": "string"
+          },
+          "isCorrect": {
+            "example": false,
+            "type": "boolean"
+          },
+          "queueItemId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "CastVoteRequest": {
+        "properties": {
+          "choiceId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          }
+        },
+        "required": [
+          "choiceId"
+        ],
+        "type": "object"
+      },
+      "VoteChoiceDetail": {
+        "properties": {
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "name": {
+            "example": "Option A",
+            "type": "string"
+          },
+          "votes": {
+            "example": 5,
+            "type": "integer"
+          },
+          "percentage": {
+            "example": 62.5,
+            "type": "number"
+          },
+          "isCorrect": {
+            "example": false,
+            "type": "boolean"
+          },
+          "queueItemId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object"
+      },
+      "VoteDetailResponse": {
+        "properties": {
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "roomId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "type": {
+            "example": "poll",
+            "type": "string"
+          },
+          "voteText": {
+            "example": "What should we watch next?",
+            "type": "string"
+          },
+          "createdAt": {
+            "example": "2026-03-30T12:00:00Z",
+            "type": "string",
+            "format": "date-time"
+          },
+          "durationSeconds": {
+            "example": 3600,
+            "type": "integer"
+          },
+          "expiresAt": {
+            "example": "2026-03-30T13:00:00Z",
+            "type": "string",
+            "format": "date-time"
+          },
+          "isExpired": {
+            "example": false,
+            "type": "boolean"
+          },
+          "totalVotes": {
+            "example": 8,
+            "type": "integer"
+          },
+          "userVotedChoiceId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "nullable": true
+          },
+          "winnerId": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "nullable": true,
+            "description": "Only set for next_video votes when expired. The winning choice ID (host vote = 2 in ties)."
+          },
+          "choices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VoteChoiceDetail"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "VoteApiResponse": {
+        "properties": {
+          "success": {
+            "example": true,
+            "type": "boolean"
+          },
+          "message": {
+            "example": "Vote created",
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VoteDetailResponse",
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "VoteListApiResponse": {
+        "properties": {
+          "success": {
+            "example": true,
+            "type": "boolean"
+          },
+          "message": {
+            "example": "Votes retrieved",
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VoteDetailResponse"
+            }
+          }
+        },
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "description": "Enter your JWT token",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
   "info": {
-    "title": "Webby.RoomService",
     "description": "This API provides endpoints for managing rooms and categories.",
+    "title": "Webby.RoomService",
     "version": "1.0"
   },
+  "openapi": "3.0.0",
   "paths": {
     "/api/categories": {
       "get": {
+        "description": " Retrieve a paginated list of room categories. Supports optional search by name.",
+        "parameters": [
+          {
+            "description": "Search categories by name",
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "description": "Search categories by name",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page number (default: 1)",
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "description": "Page number (default: 1)",
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items per page (default: 10, max: 100)",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "description": "Items per page (default: 10, max: 100)",
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Categories successfully retrieved",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CategoryListApiResponse"
                 }
               }
-            }
+            },
+            "description": "Categories successfully retrieved"
           },
           "500": {
-            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Internal server error"
           }
         },
+        "summary": "List categories",
         "tags": [
           "RoomCategory"
-        ],
-        "summary": "List categories",
-        "description": " Retrieve a paginated list of room categories. Supports optional search by name.",
-        "parameters": [
-          {
-            "name": "search",
-            "in": "query",
-            "description": "Search categories by name",
-            "schema": {
-              "type": "string",
-              "description": "Search categories by name"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Page number (default: 1)",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "description": "Page number (default: 1)"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Items per page (default: 10, max: 100)",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "description": "Items per page (default: 10, max: 100)"
-            }
-          }
         ]
       },
       "post": {
-        "responses": {
-          "201": {
-            "description": "Category successfully created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CategoryApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input data",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid authentication token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Not authorized - Admin role required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict: Category name already exists",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "RoomCategory"
-        ],
-        "summary": "Create a new category",
         "description": " Create a new room category. Name is required (2-50 chars, unique). Only administrators can perform this action.",
         "requestBody": {
           "content": {
@@ -144,87 +1023,161 @@
             }
           },
           "required": true
-        }
-      }
-    },
-    "/api/categories/{id}": {
-      "put": {
+        },
         "responses": {
-          "200": {
-            "description": "Category successfully updated",
+          "201": {
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CategoryApiResponse"
                 }
               }
-            }
+            },
+            "description": "Category successfully created"
           },
           "400": {
-            "description": "Invalid input",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Invalid input data"
           },
           "401": {
-            "description": "Missing or invalid authentication token",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Missing or invalid authentication token"
           },
           "403": {
-            "description": "Not authorized - Admin role required",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Not authorized - Admin role required"
           },
-          "404": {
-            "description": "Category not found",
+          "409": {
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Conflict: Category name already exists"
           },
           "500": {
-            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Internal server error"
           }
         },
+        "summary": "Create a new category",
         "tags": [
           "RoomCategory"
+        ]
+      }
+    },
+    "/api/categories/{id}": {
+      "delete": {
+        "description": " Delete a room category by ID. Permanent action. Only administrators can perform this action.",
+        "parameters": [
+          {
+            "description": "Category ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Category ID (UUID v4 format)",
+              "type": "string"
+            }
+          }
         ],
-        "summary": "Update a category",
+        "responses": {
+          "204": {
+            "description": "Category successfully deleted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid UUID format in path"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authorized - Admin role required"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Category not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Delete a category",
+        "tags": [
+          "RoomCategory"
+        ]
+      },
+      "put": {
         "description": " Update an existing room category by ID. Only the name field is updateable. Only administrators can perform this action.",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
             "description": "Category ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "description": "Category ID (UUID v4 format)"
+              "description": "Category ID (UUID v4 format)",
+              "type": "string"
             }
           }
         ],
@@ -237,547 +1190,322 @@
             }
           },
           "required": true
-        }
-      },
-      "delete": {
+        },
         "responses": {
-          "204": {
-            "description": "Category successfully deleted"
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryApiResponse"
+                }
+              }
+            },
+            "description": "Category successfully updated"
           },
           "400": {
-            "description": "Invalid UUID format in path",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Invalid input"
           },
           "401": {
-            "description": "Missing or invalid authentication token",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Missing or invalid authentication token"
           },
           "403": {
-            "description": "Not authorized - Admin role required",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Not authorized - Admin role required"
           },
           "404": {
-            "description": "Category not found",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Category not found"
           },
           "500": {
-            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Internal server error"
           }
         },
+        "summary": "Update a category",
         "tags": [
           "RoomCategory"
-        ],
-        "summary": "Delete a category",
-        "description": " Delete a room category by ID. Permanent action. Only administrators can perform this action.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Category ID (UUID v4 format)",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Category ID (UUID v4 format)"
-            }
-          }
         ]
       }
     },
     "/api/rooms": {
       "post": {
-        "responses": {
-          "201": {
-            "description": "Room successfully created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RoomApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid authentication token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Rooms"
-        ],
-        "summary": "Create a new room",
         "description": " Create a new room with a name, category ID, privacy setting, and optional thumbnail.",
         "requestBody": {
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type": "object",
                 "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Room name (2-50 chars, required, non-whitespace)"
-                  },
                   "categoryId": {
-                    "type": "string",
-                    "description": "Category ID (UUID v4, required)"
+                    "description": "Category ID (UUID v4, required)",
+                    "type": "string"
                   },
                   "isPrivate": {
-                    "type": "string",
-                    "description": "Visibility flag: 'true' or 'false'"
+                    "description": "Visibility flag: 'true' or 'false'",
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Room name (2-50 chars, required, non-whitespace)",
+                    "type": "string"
                   },
                   "thumbnail": {
-                    "type": "string",
+                    "description": "Room thumbnail image (optional, max 2MB)",
                     "format": "binary",
-                    "description": "Room thumbnail image (optional, max 2MB)"
+                    "type": "string"
                   }
-                }
+                },
+                "type": "object"
               }
             }
           },
           "required": true
-        }
-      }
-    },
-    "/api/rooms/my": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "User's rooms successfully retrieved",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RoomListApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid query parameters",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid authentication token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
         },
-        "tags": [
-          "Rooms"
-        ],
-        "summary": "List authenticated user's rooms",
-        "description": " Retrieve a paginated list of all rooms created by the authenticated user. Returns both public and private rooms.",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Page number (default: 1)",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "description": "Page number (default: 1)"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Items per page (default: 10, max: 100)",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "description": "Items per page (default: 10, max: 100)"
-            }
-          }
-        ]
-      }
-    },
-    "/api/rooms/public": {
-      "get": {
         "responses": {
-          "200": {
-            "description": "Public rooms successfully retrieved",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RoomListApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid query parameters",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Rooms"
-        ],
-        "summary": "List all public rooms",
-        "description": " Retrieve a paginated list of all publicly visible rooms. Supports optional search and category filter.",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Page number (default: 1)",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "description": "Page number (default: 1)"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Items per page (default: 10, max: 100)",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "description": "Items per page (default: 10, max: 100)"
-            }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "description": "Search rooms by name (case-insensitive)",
-            "schema": {
-              "type": "string",
-              "description": "Search rooms by name (case-insensitive)"
-            }
-          },
-          {
-            "name": "category",
-            "in": "query",
-            "description": "Filter by category ID (UUID v4 format)",
-            "schema": {
-              "type": "string",
-              "description": "Filter by category ID (UUID v4 format)"
-            }
-          }
-        ]
-      }
-    },
-    "/api/rooms/token": {
-      "post": {
-        "responses": {
-          "200": {
-            "description": "Room successfully retrieved by token",
+          "201": {
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RoomApiResponse"
                 }
               }
-            }
+            },
+            "description": "Room successfully created"
           },
           "400": {
-            "description": "Invalid request body or missing token",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Invalid input"
           },
           "401": {
-            "description": "Missing or invalid authentication token",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
-          },
-          "404": {
-            "description": "Room with given token not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            },
+            "description": "Missing or invalid authentication token"
           },
           "500": {
-            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Internal server error"
           }
         },
+        "summary": "Create a new room",
         "tags": [
           "Rooms"
-        ],
-        "summary": "Get a room by invite token",
-        "description": " Retrieve room information using its unique invite token. Token is required and cannot be empty.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetByTokenRequest"
-              }
-            }
-          },
-          "required": true
-        }
+        ]
       }
     },
     "/api/rooms/{id}": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "Room successfully retrieved",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RoomApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid UUID format in path",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid authentication token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Access denied",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Room not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
+      "delete": {
+        "description": " Delete a room by ID. Permanent action - cannot be undone. Only the authorized room creator can delete.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Room ID (UUID v4 format)",
+              "type": "string"
             }
           }
+        ],
+        "responses": {
+          "204": {
+            "description": "Room successfully deleted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid UUID format in path"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Room not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
         },
+        "summary": "Delete a room",
         "tags": [
           "Rooms"
-        ],
-        "summary": "Get a room by ID",
+        ]
+      },
+      "get": {
         "description": " Retrieve a room by its ID. Only the room creator (host) can retrieve the room by ID.",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
             "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "description": "Room ID (UUID v4 format)"
+              "description": "Room ID (UUID v4 format)",
+              "type": "string"
             }
           }
-        ]
-      },
-      "put": {
+        ],
         "responses": {
           "200": {
-            "description": "Room successfully updated",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RoomApiResponse"
                 }
               }
-            }
+            },
+            "description": "Room successfully retrieved"
           },
           "400": {
-            "description": "Invalid input",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Invalid UUID format in path"
           },
           "401": {
-            "description": "Missing or invalid authentication token",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Missing or invalid authentication token"
           },
           "403": {
-            "description": "Not authorized",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Access denied"
           },
           "404": {
-            "description": "Room not found",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Room not found"
           },
           "500": {
-            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Internal server error"
           }
         },
+        "summary": "Get a room by ID",
         "tags": [
           "Rooms"
-        ],
-        "summary": "Update a room",
+        ]
+      },
+      "put": {
         "description": " Update a room's name, category ID, privacy setting, and thumbnail by ID. Only the authorized room creator can update.",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
             "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "description": "Room ID (UUID v4 format)"
+              "description": "Room ID (UUID v4 format)",
+              "type": "string"
             }
           }
         ],
@@ -785,373 +1513,299 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type": "object",
                 "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Room name (2-50 chars, required)"
-                  },
                   "categoryId": {
-                    "type": "string",
-                    "description": "Category ID (UUID v4, required)"
+                    "description": "Category ID (UUID v4, required)",
+                    "type": "string"
                   },
                   "isPrivate": {
-                    "type": "string",
-                    "description": "Visibility flag ('true' or 'false', required)"
+                    "description": "Visibility flag ('true' or 'false', required)",
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Room name (2-50 chars, required)",
+                    "type": "string"
                   },
                   "thumbnail": {
-                    "type": "string",
+                    "description": "New thumbnail image (optional, max 2MB)",
                     "format": "binary",
-                    "description": "New thumbnail image (optional, max 2MB)"
+                    "type": "string"
                   }
-                }
+                },
+                "type": "object"
               }
             }
           },
           "required": true
-        }
-      },
-      "delete": {
+        },
         "responses": {
-          "204": {
-            "description": "Room successfully deleted"
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomApiResponse"
+                }
+              }
+            },
+            "description": "Room successfully updated"
           },
           "400": {
-            "description": "Invalid UUID format in path",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Invalid input"
           },
           "401": {
-            "description": "Missing or invalid authentication token",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Missing or invalid authentication token"
           },
           "403": {
-            "description": "Not authorized",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Not authorized"
           },
           "404": {
-            "description": "Room not found",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Room not found"
           },
           "500": {
-            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Internal server error"
           }
         },
+        "summary": "Update a room",
         "tags": [
           "Rooms"
-        ],
-        "summary": "Delete a room",
-        "description": " Delete a room by ID. Permanent action - cannot be undone. Only the authorized room creator can delete.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Room ID (UUID v4 format)",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Room ID (UUID v4 format)"
-            }
-          }
         ]
       }
     },
     "/api/rooms/{id}/members": {
       "get": {
+        "description": " Retrieve a paginated list of members for a specific room. Supports optional search by username.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Room ID (UUID v4 format)",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page number (default: 1)",
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "description": "Page number (default: 1)",
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items per page (default: 10, max: 100)",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "description": "Items per page (default: 10, max: 100)",
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search members by username (case-insensitive)",
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "description": "Search members by username (case-insensitive)",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Room members successfully retrieved",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MemberListApiResponse"
                 }
               }
-            }
+            },
+            "description": "Room members successfully retrieved"
           },
           "400": {
-            "description": "Invalid UUID format or query parameters",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Invalid UUID format or query parameters"
           },
           "401": {
-            "description": "Missing or invalid authentication token",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Missing or invalid authentication token"
           },
           "500": {
-            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Internal server error"
           }
         },
+        "summary": "List room members",
         "tags": [
           "Rooms"
-        ],
-        "summary": "List room members",
-        "description": " Retrieve a paginated list of members for a specific room. Supports optional search by username.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Room ID (UUID v4 format)",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Room ID (UUID v4 format)"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Page number (default: 1)",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "description": "Page number (default: 1)"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Items per page (default: 10, max: 100)",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "description": "Items per page (default: 10, max: 100)"
-            }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "description": "Search members by username (case-insensitive)",
-            "schema": {
-              "type": "string",
-              "description": "Search members by username (case-insensitive)"
-            }
-          }
         ]
       }
     },
     "/api/rooms/{id}/members/{memberId}": {
       "delete": {
+        "description": " Remove a user from a room's member list. Only the room host can remove members. The host cannot remove themselves.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Room ID (UUID v4 format)",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Member User ID (UUID v4 format)",
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "description": "Member User ID (UUID v4 format)",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "204": {
             "description": "Member successfully removed"
           },
           "400": {
-            "description": "Invalid UUID format",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Invalid UUID format"
           },
           "401": {
-            "description": "Missing or invalid authentication token",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Missing or invalid authentication token"
           },
           "403": {
-            "description": "Not authorized - only host can remove members",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Not authorized - only host can remove members"
           },
           "404": {
-            "description": "Room or member not found",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Room or member not found"
           },
           "500": {
-            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Internal server error"
           }
         },
+        "summary": "Remove a member from a room",
         "tags": [
           "Rooms"
-        ],
-        "summary": "Remove a member from a room",
-        "description": " Remove a user from a room's member list. Only the room host can remove members. The host cannot remove themselves.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Room ID (UUID v4 format)",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Room ID (UUID v4 format)"
-            }
-          },
-          {
-            "name": "memberId",
-            "in": "path",
-            "description": "Member User ID (UUID v4 format)",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Member User ID (UUID v4 format)"
-            }
-          }
         ]
       }
     },
     "/api/rooms/{id}/members/{memberId}/points": {
       "patch": {
-        "responses": {
-          "200": {
-            "description": "Points successfully updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MemberApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid authentication token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Not authorized - only host can update points",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Room or member not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Rooms"
-        ],
-        "summary": "Update member points",
         "description": "Add or subtract points for a room member. Only the room host can update points.",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
             "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "description": "Room ID (UUID v4 format)"
+              "description": "Room ID (UUID v4 format)",
+              "type": "string"
             }
           },
           {
-            "name": "memberId",
-            "in": "path",
             "description": "Member User ID (UUID v4 format)",
+            "in": "path",
+            "name": "memberId",
             "required": true,
             "schema": {
-              "type": "string",
-              "description": "Member User ID (UUID v4 format)"
+              "description": "Member User ID (UUID v4 format)",
+              "type": "string"
             }
           }
         ],
@@ -1164,178 +1818,178 @@
             }
           },
           "required": true
-        }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberApiResponse"
+                }
+              }
+            },
+            "description": "Points successfully updated"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authorized - only host can update points"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Room or member not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Update member points",
+        "tags": [
+          "Rooms"
+        ]
       }
     },
     "/api/rooms/{id}/queue": {
       "get": {
+        "description": " Retrieve the playback queue for a room with enriched media data. Pagination is based on individual videos. Only room members can view the queue.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Room ID (UUID v4 format)",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page number (default: 1)",
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "description": "Page number (default: 1)",
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items per page (default: 10, max: 100)",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "description": "Items per page (default: 10, max: 100)",
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Queue successfully retrieved",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/QueueListApiResponse"
                 }
               }
-            }
+            },
+            "description": "Queue successfully retrieved"
           },
           "400": {
-            "description": "Invalid UUID or query parameters",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Invalid UUID or query parameters"
           },
           "401": {
-            "description": "Missing or invalid authentication token",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Missing or invalid authentication token"
           },
           "403": {
-            "description": "Access denied",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Access denied"
           },
           "500": {
-            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Internal server error"
           }
         },
+        "summary": "Get room queue",
         "tags": [
           "RoomQueue"
-        ],
-        "summary": "Get room queue",
-        "description": " Retrieve the playback queue for a room with enriched media data. Pagination is based on individual videos. Only room members can view the queue.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Room ID (UUID v4 format)",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Room ID (UUID v4 format)"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Page number (default: 1)",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "description": "Page number (default: 1)"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Items per page (default: 10, max: 100)",
-            "schema": {
-              "type": "integer",
-              "format": "int64",
-              "description": "Items per page (default: 10, max: 100)"
-            }
-          }
         ]
       },
       "post": {
-        "responses": {
-          "201": {
-            "description": "Item successfully added to queue",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QueueItemApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid authentication token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Access denied - only room members can add to queue",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Room or entity not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "RoomQueue"
-        ],
-        "summary": "Add item to room queue",
         "description": " Add a video or playlist to the room's playback queue. Only room members can add items.",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
             "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
-              "type": "string",
-              "description": "Room ID (UUID v4 format)"
+              "description": "Room ID (UUID v4 format)",
+              "type": "string"
             }
           }
         ],
@@ -1348,847 +2002,933 @@
             }
           },
           "required": true
-        }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueItemApiResponse"
+                }
+              }
+            },
+            "description": "Item successfully added to queue"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Access denied - only room members can add to queue"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Room or entity not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Add item to room queue",
+        "tags": [
+          "RoomQueue"
+        ]
       }
     },
     "/api/rooms/{id}/queue/{itemId}": {
       "delete": {
+        "description": " Remove a video or playlist from the room's playback queue. Only room members can remove. Only standalone videos or playlists can be deleted, not individual playlist children.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Room ID (UUID v4 format)",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Queue Item ID (UUID v4 format)",
+            "in": "path",
+            "name": "itemId",
+            "required": true,
+            "schema": {
+              "description": "Queue Item ID (UUID v4 format)",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Item successfully removed from queue",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SuccessResponse"
                 }
               }
-            }
+            },
+            "description": "Item successfully removed from queue"
           },
           "400": {
-            "description": "Invalid UUID format",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Invalid UUID format"
           },
           "401": {
-            "description": "Missing or invalid authentication token",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Missing or invalid authentication token"
           },
           "403": {
-            "description": "Access denied",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Access denied"
           },
           "404": {
-            "description": "Queue item not found",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Queue item not found"
           },
           "500": {
-            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Internal server error"
           }
         },
+        "summary": "Remove item from room queue",
         "tags": [
           "RoomQueue"
-        ],
-        "summary": "Remove item from room queue",
-        "description": " Remove a video or playlist from the room's playback queue. Only room members can remove. Only standalone videos or playlists can be deleted, not individual playlist children.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Room ID (UUID v4 format)",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Room ID (UUID v4 format)"
-            }
-          },
-          {
-            "name": "itemId",
-            "in": "path",
-            "description": "Queue Item ID (UUID v4 format)",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Queue Item ID (UUID v4 format)"
-            }
-          }
         ]
       }
-    }
-  },
-  "components": {
-    "schemas": {
-      "AddMemberRequest": {
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          }
-        }
-      },
-      "AddQueueItemRequest": {
-        "type": "object",
-        "properties": {
-          "entityId": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "entityType": {
-            "type": "string",
-            "example": "video"
-          }
-        }
-      },
-      "CategoryApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Category created"
-          },
-          "data": {
-            "type": "object",
-            "$ref": "#/components/schemas/CategoryResponse"
-          }
-        }
-      },
-      "CategoryListApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Categories retrieved"
-          },
-          "data": {
-            "type": "object",
-            "$ref": "#/components/schemas/CategoryListPagData"
-          }
-        }
-      },
-      "CategoryListPagData": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CategoryResponse"
+    },
+    "/api/rooms/my": {
+      "get": {
+        "description": " Retrieve a paginated list of all rooms created by the authenticated user. Returns both public and private rooms.",
+        "parameters": [
+          {
+            "description": "Page number (default: 1)",
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "description": "Page number (default: 1)",
+              "format": "int64",
+              "type": "integer"
             }
           },
-          "page": {
-            "type": "integer",
-            "example": 1
-          },
-          "pageSize": {
-            "type": "integer",
-            "example": 10
-          },
-          "totalCount": {
-            "type": "integer",
-            "example": 100
-          }
-        }
-      },
-      "CategoryResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "123e4567-e89b-12d3-a456-426614174000"
-          },
-          "name": {
-            "type": "string",
-            "example": "Gaming"
-          }
-        }
-      },
-      "CreateCategoryRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "Gaming"
-          }
-        }
-      },
-      "ErrorResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": false
-          },
-          "message": {
-            "type": "string",
-            "example": "An error occurred"
-          },
-          "errors": {
-            "type": "object",
-            "properties": {
-              "key": {
-                "type": "string"
-              }
-            }
-          },
-          "data": {
-            "type": "string",
-            "example": "null"
-          }
-        }
-      },
-      "GetByTokenRequest": {
-        "type": "object",
-        "properties": {
-          "token": {
-            "type": "string",
-            "example": "abc123def456ghij"
-          }
-        }
-      },
-      "MemberApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Points updated successfully"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "userId": {
-                "type": "string",
-                "example": "550e8400-e29b-41d4-a716-446655440000"
-              },
-              "username": {
-                "type": "string",
-                "example": "JohnDoe"
-              },
-              "avatarUrl": {
-                "type": "string",
-                "example": "https://example.com/avatar.jpg"
-              },
-              "roomPoints": {
-                "type": "integer",
-                "example": 100
-              }
+          {
+            "description": "Items per page (default: 10, max: 100)",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "description": "Items per page (default: 10, max: 100)",
+              "format": "int64",
+              "type": "integer"
             }
           }
-        }
-      },
-      "MemberListApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Members retrieved"
-          },
-          "data": {
-            "type": "object",
-            "$ref": "#/components/schemas/MemberListPagData"
-          }
-        }
-      },
-      "MemberListPagData": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "userId": {
-                  "type": "string",
-                  "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "username": {
-                  "type": "string",
-                  "example": "JohnDoe"
-                },
-                "avatarUrl": {
-                  "type": "string",
-                  "example": "https://example.com/avatar.jpg"
-                },
-                "roomPoints": {
-                  "type": "integer",
-                  "example": 100
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomListApiResponse"
                 }
               }
-            }
+            },
+            "description": "User's rooms successfully retrieved"
           },
-          "page": {
-            "type": "integer",
-            "example": 1
-          },
-          "pageSize": {
-            "type": "integer",
-            "example": 10
-          },
-          "totalCount": {
-            "type": "integer",
-            "example": 100
-          }
-        }
-      },
-      "QueueItemApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Item added to queue"
-          },
-          "data": {
-            "type": "object",
-            "$ref": "#/components/schemas/QueueItemResponse"
-          }
-        }
-      },
-      "QueueItemDetailResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "entityId": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "entityType": {
-            "type": "string",
-            "example": "video"
-          },
-          "title": {
-            "type": "string",
-            "example": "Fears to Fathom: Ironbark Lookout"
-          },
-          "thumbnail": {
-            "type": "string",
-            "example": "https://example.com/thumb.jpg"
-          },
-          "videoUrl": {
-            "type": "string",
-            "example": "https://example.com/video.mp4"
-          },
-          "isActive": {
-            "type": "boolean",
-            "example": true
-          },
-          "isFolder": {
-            "type": "boolean",
-            "example": false
-          },
-          "totalChildren": {
-            "type": "integer",
-            "example": 5
-          },
-          "children": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "title": {
-                  "type": "string",
-                  "example": "Episode 1: Home Alone"
-                },
-                "thumbnail": {
-                  "type": "string",
-                  "example": "https://example.com/thumb.jpg"
-                },
-                "videoUrl": {
-                  "type": "string",
-                  "example": "https://example.com/video.mp4"
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
-          }
-        }
-      },
-      "QueueItemResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
+            },
+            "description": "Invalid query parameters"
           },
-          "entityId": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "entityType": {
-            "type": "string",
-            "example": "video"
-          },
-          "isActive": {
-            "type": "boolean",
-            "example": false
-          }
-        }
-      },
-      "QueueListApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Queue retrieved"
-          },
-          "data": {
-            "type": "object",
-            "$ref": "#/components/schemas/QueueListPagData"
-          }
-        }
-      },
-      "QueueListPagData": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "entityId": {
-                  "type": "string",
-                  "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "entityType": {
-                  "type": "string",
-                  "example": "video"
-                },
-                "title": {
-                  "type": "string",
-                  "example": "Fears to Fathom: Ironbark Lookout"
-                },
-                "thumbnail": {
-                  "type": "string",
-                  "example": "https://example.com/thumb.jpg"
-                },
-                "videoUrl": {
-                  "type": "string",
-                  "example": "https://example.com/video.mp4"
-                },
-                "isActive": {
-                  "type": "boolean",
-                  "example": true
-                },
-                "isFolder": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "totalChildren": {
-                  "type": "integer",
-                  "example": 5
-                },
-                "children": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "example": "550e8400-e29b-41d4-a716-446655440000"
-                      },
-                      "title": {
-                        "type": "string",
-                        "example": "Episode 1: Home Alone"
-                      },
-                      "thumbnail": {
-                        "type": "string",
-                        "example": "https://example.com/thumb.jpg"
-                      },
-                      "videoUrl": {
-                        "type": "string",
-                        "example": "https://example.com/video.mp4"
-                      }
-                    }
-                  }
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Missing or invalid authentication token"
           },
-          "page": {
-            "type": "integer",
-            "example": 1
-          },
-          "pageSize": {
-            "type": "integer",
-            "example": 10
-          },
-          "totalCount": {
-            "type": "integer",
-            "example": 100
-          }
-        }
-      },
-      "QueueVideoChild": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "title": {
-            "type": "string",
-            "example": "Episode 1: Home Alone"
-          },
-          "thumbnail": {
-            "type": "string",
-            "example": "https://example.com/thumb.jpg"
-          },
-          "videoUrl": {
-            "type": "string",
-            "example": "https://example.com/video.mp4"
-          }
-        }
-      },
-      "RoomApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Room created"
-          },
-          "data": {
-            "type": "object",
-            "$ref": "#/components/schemas/RoomResponse"
-          }
-        }
-      },
-      "RoomListApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Rooms retrieved"
-          },
-          "data": {
-            "type": "object",
-            "$ref": "#/components/schemas/RoomListPagData"
-          }
-        }
-      },
-      "RoomListItem": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "name": {
-            "type": "string",
-            "example": "Room Name"
-          },
-          "categoryId": {
-            "type": "string",
-            "example": "123e4567-e89b-12d3-a456-426614174000"
-          },
-          "isPrivate": {
-            "type": "boolean",
-            "example": false
-          },
-          "hostId": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "thumbnail": {
-            "type": "string",
-            "example": "https://example.com/thumbnail.jpg"
-          },
-          "token": {
-            "type": "string",
-            "example": "abc123def456ghij"
-          }
-        }
-      },
-      "RoomListPagData": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "name": {
-                  "type": "string",
-                  "example": "Room Name"
-                },
-                "categoryId": {
-                  "type": "string",
-                  "example": "123e4567-e89b-12d3-a456-426614174000"
-                },
-                "isPrivate": {
-                  "type": "boolean",
-                  "example": false
-                },
-                "hostId": {
-                  "type": "string",
-                  "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "thumbnail": {
-                  "type": "string",
-                  "example": "https://example.com/thumbnail.jpg"
-                },
-                "token": {
-                  "type": "string",
-                  "example": "abc123def456ghij"
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
-          },
-          "page": {
-            "type": "integer",
-            "example": 1
-          },
-          "pageSize": {
-            "type": "integer",
-            "example": 10
-          },
-          "totalCount": {
-            "type": "integer",
-            "example": 100
+            },
+            "description": "Internal server error"
           }
-        }
-      },
-      "RoomMemberItem": {
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "username": {
-            "type": "string",
-            "example": "JohnDoe"
-          },
-          "avatarUrl": {
-            "type": "string",
-            "example": "https://example.com/avatar.jpg"
-          },
-          "roomPoints": {
-            "type": "integer",
-            "example": 100
-          }
-        }
-      },
-      "RoomResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "name": {
-            "type": "string",
-            "example": "Room Name"
-          },
-          "categoryId": {
-            "type": "string",
-            "example": "123e4567-e89b-12d3-a456-426614174000"
-          },
-          "isPrivate": {
-            "type": "boolean",
-            "example": false
-          },
-          "hostId": {
-            "type": "string",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "thumbnail": {
-            "type": "string",
-            "example": "https://example.com/thumbnail.jpg"
-          },
-          "token": {
-            "type": "string",
-            "example": "abc123def456ghij"
-          }
-        }
-      },
-      "SuccessResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Operation completed successfully"
-          }
-        }
-      },
-      "UpdateCategoryRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "Education"
-          }
-        }
-      },
-      "docs.CategoryApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Category created"
-          },
-          "data": {
-            "type": "object",
-            "$ref": "#/components/schemas/CategoryResponse"
-          }
-        }
-      },
-      "docs.ErrorResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": false
-          },
-          "message": {
-            "type": "string",
-            "example": "An error occurred"
-          },
-          "errors": {
-            "type": "object",
-            "properties": {
-              "key": {
-                "type": "string"
-              }
-            }
-          },
-          "data": {
-            "type": "string",
-            "example": "null"
-          }
-        }
-      },
-      "docs.RoomApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Room created"
-          },
-          "data": {
-            "type": "object",
-            "$ref": "#/components/schemas/RoomResponse"
-          }
-        }
-      },
-      "docs.RoomListApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": true
-          },
-          "message": {
-            "type": "string",
-            "example": "Rooms retrieved"
-          },
-          "data": {
-            "type": "object",
-            "$ref": "#/components/schemas/RoomListPagData"
-          }
-        }
-      },
-      "UpdatePointsRequest": {
-        "type": "object",
-        "required": ["points"],
-        "properties": {
-          "points": {
-            "type": "integer",
-            "description": "Points delta (positive to add, negative to subtract)",
-            "example": 10
-          }
-        }
+        },
+        "summary": "List authenticated user's rooms",
+        "tags": [
+          "Rooms"
+        ]
       }
     },
-    "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "description": "Enter your JWT token",
-        "scheme": "bearer"
+    "/api/rooms/public": {
+      "get": {
+        "description": " Retrieve a paginated list of all publicly visible rooms. Supports optional search and category filter.",
+        "parameters": [
+          {
+            "description": "Page number (default: 1)",
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "description": "Page number (default: 1)",
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items per page (default: 10, max: 100)",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "description": "Items per page (default: 10, max: 100)",
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search rooms by name (case-insensitive)",
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "description": "Search rooms by name (case-insensitive)",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by category ID (UUID v4 format)",
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "description": "Filter by category ID (UUID v4 format)",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomListApiResponse"
+                }
+              }
+            },
+            "description": "Public rooms successfully retrieved"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid query parameters"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "List all public rooms",
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/api/rooms/token": {
+      "post": {
+        "description": " Retrieve room information using its unique invite token. Token is required and cannot be empty.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetByTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomApiResponse"
+                }
+              }
+            },
+            "description": "Room successfully retrieved by token"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request body or missing token"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Room with given token not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Get a room by invite token",
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/api/rooms/{id}/votes": {
+      "post": {
+        "description": "Create a new vote (poll or next_video) in a room. Only the room host can create votes.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteApiResponse"
+                }
+              }
+            },
+            "description": "Vote successfully created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Access denied - only room host can create votes"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Room not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Create a vote",
+        "tags": [
+          "Votes"
+        ]
+      },
+      "get": {
+        "description": "List all votes (polls and next_video) for a room. Only room members can view.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteListApiResponse"
+                }
+              }
+            },
+            "description": "Votes retrieved"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid room ID"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Access denied - only room members"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "List votes for a room",
+        "tags": [
+          "Votes"
+        ]
+      }
+    },
+    "/api/rooms/{id}/votes/{voteId}": {
+      "get": {
+        "description": "Get detailed information about a specific vote including choices, percentages, and user's selection.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Vote ID (UUID v4 format)",
+            "in": "path",
+            "name": "voteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteApiResponse"
+                }
+              }
+            },
+            "description": "Vote details retrieved"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Access denied - only room members"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Vote not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Get vote details",
+        "tags": [
+          "Votes"
+        ]
+      },
+      "delete": {
+        "description": "Delete a vote. Only the room host can delete votes. All associated choices and user votes are also removed.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Vote ID (UUID v4 format)",
+            "in": "path",
+            "name": "voteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            },
+            "description": "Vote deleted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Access denied - only room host"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Vote not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Delete a vote",
+        "tags": [
+          "Votes"
+        ]
+      }
+    },
+    "/api/rooms/{id}/votes/{voteId}/cast": {
+      "post": {
+        "description": "Cast a vote for a specific choice. Only room members can vote. Each user can vote once per vote.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Vote ID (UUID v4 format)",
+            "in": "path",
+            "name": "voteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CastVoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteApiResponse"
+                }
+              }
+            },
+            "description": "Vote cast successfully"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input or vote expired"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Access denied - only room members"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Vote or choice not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "User has already voted"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Cast a vote",
+        "tags": [
+          "Votes"
+        ]
+      },
+      "delete": {
+        "description": "Remove the current user's vote from a vote. Only possible while the vote is still active.",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Vote ID (UUID v4 format)",
+            "in": "path",
+            "name": "voteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteApiResponse"
+                }
+              }
+            },
+            "description": "Vote removed successfully"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid ID or vote expired"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Access denied - only room members"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Vote not found or user hasn't voted"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Remove a user's vote",
+        "tags": [
+          "Votes"
+        ]
       }
     }
   },
