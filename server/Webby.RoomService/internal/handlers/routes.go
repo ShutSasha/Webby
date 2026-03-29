@@ -1,7 +1,6 @@
 package httpserver
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"webby/internal/config"
@@ -21,7 +20,7 @@ import (
 	listPublic "webby/internal/handlers/rooms/list_public"
 	"webby/internal/handlers/rooms/update"
 
-	httpSwagger "github.com/swaggo/http-swagger"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type RoomService interface {
@@ -60,9 +59,12 @@ func addRoutes(
 	categories.RegisterCategories(mux, []byte(cfg.JwtSecret), logger, categoryService)
 	roomqueues.RegisterRoomQueue(mux, []byte(cfg.JwtSecret), logger, queueItemService)
 
-	mux.Handle("GET /swagger/", httpSwagger.Handler(
-		httpSwagger.URL(fmt.Sprintf("http://%s:%d/swagger/doc.json", cfg.Http.Host, cfg.Http.Port)),
-		httpSwagger.DocExpansion("false"),
+	mux.HandleFunc("GET /swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		http.ServeFile(w, r, "./docs/swagger.json")
+	})
+
+	mux.Handle("/swagger/", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
 	))
-	mux.Handle("GET /api/docs", http.RedirectHandler("/swagger/", http.StatusMovedPermanently))
 }
