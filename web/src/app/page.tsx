@@ -6,6 +6,7 @@ import Link from 'next/link'
 import ImageBackgroundGroup from '@/assets/auth/bg-login.png'
 import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
 import { benefitsList } from '@/lib/placeholder-data/home-page'
+import { getGlobalToken } from '@/lib/utils/auth-token'
 import { clog, serverLog } from '@/lib/utils/utils'
 import { useToastStore } from '@/stores/toast-store'
 import MainLayout from '@/ui/components/layouts/MainLayout'
@@ -22,6 +23,7 @@ export default function Home() {
       const { data } = await $api.get('/auth/check')
 
       clog('test data response', data)
+      clog('token', getGlobalToken())
       addToast('Successss', 'success')
     } catch (error) {
       serverLog('TEST ERROR', error, true)
