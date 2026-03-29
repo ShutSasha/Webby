@@ -1355,6 +1355,3 @@ paths:
       - Rooms
 security:
 - BearerAuth: []
-servers:
-- description: ' Local'
-  url: http://localhost:8080

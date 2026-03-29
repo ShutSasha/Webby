@@ -202,3 +202,37 @@ func (r *RoomMemberRepository) Delete(roomId, userId uuid.UUID) error {
 
 	return nil
 }
+
+func (r *RoomMemberRepository) UpdatePoints(roomId, userId uuid.UUID, delta int) error {
+	const op = "repository.RoomMemberRepository.UpdatePoints"
+
+	if roomId == uuid.Nil {
+		return fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
+	}
+
+	if userId == uuid.Nil {
+		return fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
+	}
+
+	query := `
+		UPDATE room_members
+		SET room_points = room_points + $3
+		WHERE room_id = $1 AND user_id = $2
+	`
+
+	result, err := r.db.Exec(query, roomId, userId, delta)
+	if err != nil {
+		return fmt.Errorf("%s: execution failed: %w", op, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: getting rows affected failed: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s: member not found in room: %w", op, apperrors.ErrNotFound)
+	}
+
+	return nil
+}

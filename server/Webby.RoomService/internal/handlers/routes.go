@@ -20,6 +20,7 @@ import (
 	listPublic "webby/internal/handlers/rooms/list_public"
 	removeMember "webby/internal/handlers/rooms/remove_member"
 	"webby/internal/handlers/rooms/update"
+	updatePoints "webby/internal/handlers/rooms/update_points"
 )
 
 type RoomService interface {
@@ -32,6 +33,7 @@ type RoomService interface {
 	delete.Deleter
 	listMembers.MemberLister
 	removeMember.MemberRemover
+	updatePoints.PointsUpdater
 }
 
 type CategoryService interface {
