@@ -27,11 +27,24 @@ export default function UploadAvatarContainer() {
   const imgRef = useRef<HTMLImageElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024
+
   const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0]
+
+      if (file.size > MAX_FILE_SIZE) {
+        addToast('File is too large. Maximum size is 5MB', 'error')
+
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+        return
+      }
+
       const reader = new FileReader()
       reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''))
-      reader.readAsDataURL(e.target.files[0])
+      reader.readAsDataURL(file)
     }
   }
 
