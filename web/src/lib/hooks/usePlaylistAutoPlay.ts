@@ -2,8 +2,9 @@ import { useEffect, useRef } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { PlaylistVideo } from '@/app/api/playlists'
 import { usePlayerPlayStore } from '@/stores/player.store'
+
+import { PlaylistVideo } from '../actions/playlist.actions'
 
 type UsePlaylistAutoPlayProps = {
   videos: PlaylistVideo[]

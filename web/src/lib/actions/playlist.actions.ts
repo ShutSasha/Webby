@@ -1,10 +1,10 @@
 'use server'
 
-import $api from '@/app/api'
-import { parseAxiosError, serverLog } from '@/lib/utils/utils'
-import { BaseServerResponse, Optional } from '@/types/general'
+import $api from '@/lib/api/api.config'
+import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
+import { BaseServerResponse, Optional } from '@/types/general.types'
 
-import { Video } from './videos'
+import { Video } from './video.actions'
 
 const endpoint = '/playlists'
 

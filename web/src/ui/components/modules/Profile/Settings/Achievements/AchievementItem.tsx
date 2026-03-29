@@ -4,9 +4,9 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { pinAchievement, unpinAchievement } from '@/app/api/achievements'
 import MoreOptions from '@/assets/icons/shared/more-vertical.svg'
-import { cn } from '@/lib/utils/utils'
+import { pinAchievement, unpinAchievement } from '@/lib/actions/achievement.actions'
+import { cn } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
 import SafeImage from '@/ui/components/shared/SafeImage'
 import { BLUR_DATA_URLS } from '@/ui/images'

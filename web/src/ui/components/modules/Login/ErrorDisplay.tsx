@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 
-import { resendVerifyCode, ReturnAuthError } from '@/app/api/auth'
+import { resendVerifyCode, ReturnAuthError } from '@/lib/actions/auth.actions'
 
 type Props = {
   state: ReturnAuthError

@@ -1,8 +1,8 @@
 import { JWT } from 'next-auth/jwt'
 
-import { AuthRes } from '@/types/auth'
+import { AuthRes } from '@/types/auth.types'
 
-import { clog, serverLog } from './utils'
+import { serverLog } from './general.utils'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api'
 
@@ -17,8 +17,6 @@ export const mapUserData = (target: any, source: any) => {
 
 export async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
-    clog('Refreshing access token...')
-
     const response = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
       headers: {

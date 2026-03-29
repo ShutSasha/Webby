@@ -4,7 +4,7 @@ import { ComponentPropsWithoutRef, FC, forwardRef, SVGProps } from 'react'
 import EyeIcon from '@/assets/auth/ic_eye.svg'
 import EyeOffIcon from '@/assets/auth/ic_eye_off.svg'
 
-import Input from './Input'
+import Input from '../../shared/Input'
 
 interface AuthInputProps extends ComponentPropsWithoutRef<'input'> {
   Icon: FC<SVGProps<SVGSVGElement>>

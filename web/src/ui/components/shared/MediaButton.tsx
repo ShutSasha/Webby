@@ -3,9 +3,9 @@
 import { useState } from 'react'
 
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 
-import Modal from '../shared/Modal'
+import Modal from './Modal'
 
 type MediaButtonProps = {
   actionLabel: string

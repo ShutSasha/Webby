@@ -1,6 +1,6 @@
 import Image from 'next/image'
 
-import { Achievement } from '@/types/achivement'
+import { Achievement } from '@/types/achivement.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {

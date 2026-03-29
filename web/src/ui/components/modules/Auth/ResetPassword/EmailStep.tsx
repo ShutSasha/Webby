@@ -4,11 +4,11 @@ import { useState } from 'react'
 
 import { useForm } from 'react-hook-form'
 
-import { resendVerifyCode } from '@/app/api/auth'
 import MailIcon from '@/assets/auth/ic_mail.svg'
-import { parseAxiosError } from '@/lib/utils/utils'
+import { resendVerifyCode } from '@/lib/actions/auth.actions'
+import { parseAxiosError } from '@/lib/utils/general.utils'
 import { useCommonStore } from '@/stores/common.store'
-import AuthInput from '@/ui/components/AuthInput'
+import AuthInput from '@/ui/components/modules/Auth/AuthInput'
 import Button from '@/ui/components/shared/Button'
 
 export default function EmailStep() {

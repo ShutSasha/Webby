@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 
-import { leaveComplaint } from '@/app/api/user'
 import ComplaintIcon from '@/assets/icons/Profile/ic_complaint.svg'
-import { cn, extractServerMessage } from '@/lib/utils/utils'
+import { leaveComplaint } from '@/lib/actions/user.actions'
+import { cn, extractServerMessage } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
 
 import ActionButton from '../../shared/ActionButton'

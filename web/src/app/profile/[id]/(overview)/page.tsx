@@ -8,11 +8,12 @@ type ProfileProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
+type Tab = 'Video' | 'Playlist'
 const allowedTabs = ['Video', 'Playlist'] as const
 
 export default async function Profile({ searchParams }: ProfileProps) {
   const { tab } = await searchParams
-  const currentTab = allowedTabs.includes(tab as any) ? tab : 'Video'
+  const currentTab = allowedTabs.includes(tab as Tab) ? tab : 'Video'
 
   return (
     <div className="bg-neutral-900 rounded-[20px] p-5 flex flex-col gap-5">

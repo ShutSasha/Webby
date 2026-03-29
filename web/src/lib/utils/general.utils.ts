@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { BaseServerResponse } from '@/types/general'
+import { BaseServerResponse } from '@/types/general.types'
 import axios, { AxiosError } from 'axios'
 import clsx from 'clsx'
 import { ClassValue } from 'clsx'

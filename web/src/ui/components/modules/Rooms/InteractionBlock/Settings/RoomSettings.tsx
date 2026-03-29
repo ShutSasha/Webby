@@ -4,7 +4,7 @@ import { useState, useTransition, useRef, useEffect } from 'react'
 
 import { useForm } from 'react-hook-form'
 
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
 import Button from '@/ui/components/shared/Button'
 

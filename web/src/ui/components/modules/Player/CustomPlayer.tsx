@@ -47,6 +47,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   const triggerEnded = usePlayerPlayStore(state => state.triggerEnded)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
+  const setPlaying = usePlayerPlayStore(state => state.setPlaying)
   const playing = usePlayerPlayStore(state => state.playing)
 
   const initialState = {
@@ -79,7 +80,15 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       loadedSeconds: 0,
       playedSeconds: 0,
     }))
-  }, [videoUrl])
+
+    const hasInteracted = typeof navigator !== 'undefined' && (navigator as any).userActivation?.hasBeenActive
+
+    if (hasInteracted === false) {
+      setPlaying(false)
+    } else {
+      setPlaying(true)
+    }
+  }, [videoUrl, setPlaying])
 
   usePlayerHotkeys({
     playerRef,
@@ -304,11 +313,12 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
             setBaseUserVolume(volume)
           }
         }}
-        onPlay={() => setState(prev => ({ ...prev, playing: true }))}
-        onPause={() => setState(prev => ({ ...prev, playing: false }))}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
         onEnded={() => {
           triggerEnded()
         }}
+        onError={() => setPlaying(false)}
       />
 
       {/* Overlay */}
