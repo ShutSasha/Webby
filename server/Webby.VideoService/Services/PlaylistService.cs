@@ -170,7 +170,7 @@ public class PlaylistService : IPlaylistService
       {
          videoDto = new VideoDto
          {
-            VideoId = video.VideoId,
+            VideoId = video.VideoId.ToString(),
             Name = video.Name,
             Views = video.Views,
             CreatedAt = video.CreatedAt,
@@ -194,7 +194,7 @@ public class PlaylistService : IPlaylistService
                {
                   videoDto.User = new UserVideoDto
                   {
-                     UserId = Guid.Parse(userResponse.UserId),
+                     UserId = userResponse.UserId,
                      Username = userResponse.Username,
                      AvatarUrl = userResponse.AvatarUrl,
                      IsFollowed = userResponse.IsFollowed

@@ -35,6 +35,7 @@ services.AddGrpc(options =>
 });
 services.AddRepositories();
 services.AddServices();
+services.AddExternalServices();
 
 services.ConfigureGrpcConnections();
 

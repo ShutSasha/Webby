@@ -9,10 +9,21 @@
     "AppDbContext": "{{DatabaseConnectionString}}"
   },
   
-  "AwsOptions": {
+    "AwsOptions": {
     "AccessKey": "{{AwsAccessKey}}",
     "SecretKey": "{{AwsSecretKey}}",
     "BucketName": "{{AwsBucketName}}",
     "Region": "{{AwsRegion}}"
-  }
+    },
+  
+    "ExternalServices": {
+      "YouTubeOptions": {
+        "ApiKey": "{{YouTubeApiKey}}"
+      },
+      "TwitchOptions": {
+        "ClientId": "{{TwitchIdClient}}",
+        "ClientSecret": "{{TwitchSecretKey}}"
+      }
+    }
+  
 }

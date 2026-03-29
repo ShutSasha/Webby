@@ -33,7 +33,7 @@ public class VideoController: ControllerBase
 
    [HttpGet("search")]
    [SwaggerOperation("Search video route")]
-   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> SearchVideo([FromQuery] SearchOptions searchOptions)
+   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> SearchVideo([FromQuery] SearchVideoOptions searchOptions)
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
       var videos = await _videoService.SearchVideo(requestUserId,searchOptions);

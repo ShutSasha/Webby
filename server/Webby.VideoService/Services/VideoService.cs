@@ -26,7 +26,9 @@ public class VideoService : IVideoService
    private readonly IMapper _mapper;
    private readonly IBackgroundTaskQueue _queue;
    private readonly IServiceScopeFactory _scopeFactory;
-   public VideoService(IVideoRepository videoRepository, IStorageService storageService, ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, IMapper mapper, IBackgroundTaskQueue queue, IServiceScopeFactory scopeFactory)
+   private readonly YoutubeSearchService _youtubeSearchService;
+   private readonly TwitchSearchService _twitchSearchService;
+   public VideoService(IVideoRepository videoRepository, IStorageService storageService, ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, IMapper mapper, IBackgroundTaskQueue queue, IServiceScopeFactory scopeFactory, YoutubeSearchService youtubeSearchService, TwitchSearchService twitchSearchService)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
@@ -36,6 +38,8 @@ public class VideoService : IVideoService
       _mapper = mapper;
       _queue = queue;
       _scopeFactory = scopeFactory;
+      _youtubeSearchService = youtubeSearchService;
+      _twitchSearchService = twitchSearchService;
    }
 
    public async Task<Video> GetVideoById(Guid videoId)
@@ -186,7 +190,7 @@ public class VideoService : IVideoService
 
       return new GetVideoInformationResponse
       {
-         VideoId = videoId,
+         VideoId = videoId.ToString(),
          Name = video.Name,
          Views = video.Views,
          Description = video.Description,
@@ -197,7 +201,7 @@ public class VideoService : IVideoService
          VideoTags = videoTagsNames,
          User = new UserVideoDto
          {
-            UserId = Guid.Parse(userResponse.UserId),
+            UserId = userResponse.UserId,
             Username = userResponse.Username,
             AvatarUrl = userResponse.AvatarUrl,
             IsFollowed = userResponse.IsFollowed
@@ -271,8 +275,21 @@ public class VideoService : IVideoService
       await _videoRepository.Update(video);
    }
 
-   public async Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchOptions options)
+   public async Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchVideoOptions options)
    {
+
+      if (options.SearchPlatform == SearchPlatforms.YouTube)
+      {
+         var youtubeResponse = await _youtubeSearchService.SearchAsync(options);
+         return youtubeResponse;
+      }
+
+      if (options.SearchPlatform == SearchPlatforms.Twitch)
+      {
+         var twitchResponse = await _twitchSearchService.SearchAsync(options);
+         return twitchResponse;
+      }
+      
       var skip = (options.Page - 1) * options.PageSize;
       var (additionalConditional, parameters, predicate) = VideoQueryFilters.SearchVideoFilter(requestUserId);
       
