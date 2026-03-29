@@ -1,8 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { checkVideoInPlaylist } from '@/app/api/playlists'
-import { getVideoInfo } from '@/app/api/videos'
+import { checkVideoInPlaylist } from '@/lib/actions/playlist.actions'
+import { getVideoInfo } from '@/lib/actions/video.actions'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import SaveToPlaylistButton from './SaveToPlaylistBtn/SaveToPlaylistButton'

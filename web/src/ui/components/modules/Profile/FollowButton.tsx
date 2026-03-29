@@ -4,9 +4,9 @@ import { useState, useTransition } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { toggleFollow } from '@/app/api/user'
 import UserPlusIcon from '@/assets/icons/Profile/ic_user_plus.svg'
 import UserMinusIcon from '@/assets/icons/shared/minus.svg'
+import { toggleFollow } from '@/lib/actions/user.actions'
 import { cn, extractServerMessage } from '@/lib/utils/utils'
 import { useToastStore } from '@/stores/toast-store'
 

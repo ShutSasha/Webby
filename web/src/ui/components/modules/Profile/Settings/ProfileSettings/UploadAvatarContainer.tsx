@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop'
 
-import { uploadNewUserPhoto } from '@/app/api/user'
+import { uploadNewUserPhoto } from '@/lib/actions/user.actions'
 import { serverLog } from '@/lib/utils/utils'
 import { useProfileStore } from '@/stores/profile.store'
 import { useToastStore } from '@/stores/toast-store'

@@ -1,7 +1,7 @@
 import Image from 'next/image'
 
-import { checkFollowing, getUser } from '@/app/api/user'
 import MailIcon from '@/assets/icons/ic_mail.svg'
+import { checkFollowing, getUser } from '@/lib/actions/user.actions'
 import { cn } from '@/lib/utils/utils'
 import EditProfileBtn from '@/ui/components/modules/Profile/EditProfileBtn'
 import { UserAchievements } from '@/ui/components/modules/Profile/UserAchivments'

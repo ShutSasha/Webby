@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 
-import { updateAboutField } from '@/app/api/user'
+import { updateAboutField } from '@/lib/actions/user.actions'
 import { useToastStore } from '@/stores/toast-store'
 import Button from '@/ui/components/shared/Button'
 

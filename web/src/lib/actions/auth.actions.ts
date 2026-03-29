@@ -4,7 +4,7 @@ import { Route } from 'next'
 import { redirect } from 'next/dist/client/components/navigation'
 import { AuthError } from 'next-auth'
 
-import $api from '@/app/api'
+import $api from '@/lib/api/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/utils'
 import { LoginRes } from '@/types/auth'
 import { FormActionState } from '@/types/general'

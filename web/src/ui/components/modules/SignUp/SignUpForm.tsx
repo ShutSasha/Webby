@@ -4,11 +4,11 @@ import { startTransition, useActionState, useState } from 'react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 
-import { registerUser } from '@/app/api/auth'
 import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import RepeatPasswordIcon from '@/assets/auth/ic_repeat_password.svg'
 import UsernameIcon from '@/assets/auth/ic_username.svg'
+import { registerUser } from '@/lib/actions/auth.actions'
 import AuthInput from '@/ui/components/modules/Auth/AuthInput'
 import Button from '@/ui/components/shared/Button'
 

@@ -47,6 +47,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   const triggerEnded = usePlayerPlayStore(state => state.triggerEnded)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
+  const setPlaying = usePlayerPlayStore(state => state.setPlaying)
   const playing = usePlayerPlayStore(state => state.playing)
 
   const initialState = {
@@ -304,8 +305,8 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
             setBaseUserVolume(volume)
           }
         }}
-        onPlay={() => setState(prev => ({ ...prev, playing: true }))}
-        onPause={() => setState(prev => ({ ...prev, playing: false }))}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
         onEnded={() => {
           triggerEnded()
         }}

@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { OTPInput } from 'input-otp'
 
-import { verifyUser, resendVerifyCode } from '@/app/api/auth'
+import { resendVerifyCode, verifyUser } from '@/lib/actions/auth.actions'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { useResendTimer } from '@/lib/hooks/useResendTimer'
 import { parseAxiosError } from '@/lib/utils/utils'

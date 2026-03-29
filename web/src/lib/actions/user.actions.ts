@@ -1,6 +1,6 @@
 'use server'
 
-import $api from '@/app/api'
+import $api from '@/lib/api/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/utils'
 import { Achievement } from '@/types/achivement'
 import { BaseServerResponse } from '@/types/general'

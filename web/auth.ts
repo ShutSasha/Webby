@@ -2,7 +2,7 @@ import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
 
-import { login } from '@/app/api/auth'
+import { login } from '@/lib/actions/auth.actions'
 import { isLoginRes } from '@/types/auth'
 
 import { authConfig } from './auth.config'
