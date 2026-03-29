@@ -21,28 +21,17 @@ func New(logger *slog.Logger, publicLister PublicLister) http.Handler {
 	return errorWrapper.MakeHandler(logger, listPublicRooms(logger, publicLister))
 }
 
-// listPublicRooms godoc
-// @Summary      List all public rooms
-// @Description  Retrieve a paginated list of all publicly visible rooms in the system.
-// @Description  **Query Parameter Validation:**
-// @Description  * `page`: **optional** (default: 1), must be >= 1, must be numeric
-// @Description  * `limit`: **optional** (default: 10), must be 1-100, must be numeric
-// @Description  * `search`: **optional**, filters rooms by name (case-insensitive partial match)
-// @Description  * `category`: **optional**, filters rooms by category ID (UUID v4 format)
-// @Description  **Security Note:**
-// @Description  * Returns **only** public rooms (private rooms are excluded)
-// @Description  * Pagination prevents excessive data retrieval
-// @Tags         Rooms
-// @Produce      json
-// @Param        page query int false "Page number (default: 1)" minimum(1)
-// @Param        limit query int false "Items per page (default: 10, max: 100)" minimum(1) maximum(100)
-// @Param        search query string false "Search rooms by name (optional, case-insensitive)"
-// @Param        category query string false "Filter by category ID (optional, UUID v4 format)"
-// @Success      200 {object} docs.ApiResponse[PaginatedResponse[RoomListItem]] "Public rooms successfully retrieved"
-// @Failure      400 {object} docs.Error400Response "Invalid query parameters: page or limit not numeric, or outside valid range"
-// @Failure      401 {object} docs.Error401Response "Missing or invalid authentication token"
-// @Failure      500 {object} docs.Error500Response "Internal server error"
-// @Router       /rooms/public [get]
+// @Title List all public rooms
+// @Description Retrieve a paginated list of all publicly visible rooms. Supports optional search and category filter.
+// @Param  page      query  int     false  "Page number (default: 1)"
+// @Param  limit     query  int     false  "Items per page (default: 10, max: 100)"
+// @Param  search    query  string  false  "Search rooms by name (case-insensitive)"
+// @Param  category  query  string  false  "Filter by category ID (UUID v4 format)"
+// @Success  200  object docs.RoomListApiResponse  "Public rooms successfully retrieved"
+// @Failure  400  object docs.ErrorResponse  "Invalid query parameters"
+// @Failure  500  object docs.ErrorResponse  "Internal server error"
+// @Resource Rooms
+// @Route /api/rooms/public [get]
 func listPublicRooms(logger *slog.Logger, publicLister PublicLister) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.rooms.listPublicRooms"))
 

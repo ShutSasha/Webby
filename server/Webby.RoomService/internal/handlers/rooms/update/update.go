@@ -24,35 +24,21 @@ func New(logger *slog.Logger, updater Updater) http.Handler {
 	return errorWrapper.MakeHandler(logger, updateRoom(logger, updater))
 }
 
-// updateRoom godoc
-// @Summary      Update a room
-// @Description  Update a room's name, **category ID**, privacy setting, and **thumbnail** by ID.
-// @Description  **Validation Rules:**
-// @Description  * `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only
-// @Description  * `categoryId`: **required**, must be a valid UUID v4 format
-// @Description  * `isPrivate`: **required**, must be valid boolean ("true" or "false")
-// @Description  * `thumbnail`: optional file upload, max 2MB
-// @Description  **Path Parameter Validation:**
-// @Description  * `id`: must be a valid UUID v4 format
-// @Description  **Security Note:**
-// @Description  * This action **requires authentication**
-// @Description  * **Only the authorized room creator** can update this room
-// @Tags         Rooms
-// @Accept       multipart/form-data
-// @Produce      json
-// @Param        id path string true "Room ID (UUID v4 format)"
-// @Param        name formData string true "Room name (2-50 chars, required)" minlength(2) maxlength(50)
-// @Param        categoryId formData string true "Category ID (UUID v4, required)" format(uuid)
-// @Param        isPrivate formData string true "Visibility flag ('true' or 'false', required)"
-// @Param        thumbnail formData file false "New thumbnail image (optional, max 2MB)"
-// @Success      200 {object} docs.ApiResponse[docs.RoomResponse] "Room successfully updated"
-// @Failure      400 {object} docs.Error400Response "Invalid input: name validation failed, invalid UUID, invalid boolean, file too large, or missing required fields"
-// @Failure      401 {object} docs.Error401Response "Missing or invalid authentication token"
-// @Failure      403 {object} docs.Error403Response "Not authorized - only creator or admin can update"
-// @Failure      404 {object} docs.Error404Response "Room not found"
-// @Failure      500 {object} docs.Error500Response "Internal server error"
-// @Security     BearerAuth
-// @Router       /rooms/{id} [put]
+// @Title Update a room
+// @Description Update a room's name, category ID, privacy setting, and thumbnail by ID. Only the authorized room creator can update.
+// @Param  id          path  string  true   "Room ID (UUID v4 format)"
+// @Param  name        form  string  true   "Room name (2-50 chars, required)"
+// @Param  categoryId  form  string  true   "Category ID (UUID v4, required)"
+// @Param  isPrivate   form  string  true   "Visibility flag ('true' or 'false', required)"
+// @Param  thumbnail   file  file    false  "New thumbnail image (optional, max 2MB)"
+// @Success  200  object docs.RoomApiResponse  "Room successfully updated"
+// @Failure  400  object docs.ErrorResponse  "Invalid input"
+// @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
+// @Failure  403  object docs.ErrorResponse  "Not authorized"
+// @Failure  404  object docs.ErrorResponse  "Room not found"
+// @Failure  500  object docs.ErrorResponse  "Internal server error"
+// @Resource Rooms
+// @Route /api/rooms/{id} [put]
 func updateRoom(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.rooms.update"))
 
@@ -156,7 +142,7 @@ func updateRoom(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 				Id:         id,
 				Name:       name,
 				CategoryId: categoryId,
-				IsPrivate:  isPrivate, 	
+				IsPrivate:  isPrivate,
 				Thumbnail:  room.Thumbnail,
 			},
 		})

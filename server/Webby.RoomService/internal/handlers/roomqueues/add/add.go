@@ -21,31 +21,18 @@ func New(logger *slog.Logger, adder Adder) http.Handler {
 	return errorWrapper.MakeHandler(logger, addToQueue(logger, adder))
 }
 
-// addToQueue godoc
-// @Summary      Add item to room queue
-// @Description  Add a video or playlist to the room's playback queue.
-// @Description  **Request Body Validation:**
-// @Description  * `entityId`: **required**, must be a valid UUID v4 format
-// @Description  * `entityType`: **required**, must be either "video" or "playlist"
-// @Description  **Path Parameter Validation:**
-// @Description  * `id`: must be a valid UUID v4 format (room ID)
-// @Description  **Access Rules:**
-// @Description  * Only **room members** can add items to the queue
-// @Description  **Security Note:**
-// @Description  * This action **requires authentication**
-// @Tags         Room Queue
-// @Accept       json
-// @Produce      json
-// @Param        id path string true "Room ID (UUID v4 format)"
-// @Param        body body docs.AddQueueItemRequest true "Queue item to add"
-// @Success      201 {object} docs.ApiResponse[docs.QueueItemResponse] "Item successfully added to queue"
-// @Failure      400 {object} docs.Error400Response "Invalid input (bad UUID, invalid entityType)"
-// @Failure      401 {object} docs.Error401Response "Missing or invalid authentication token"
-// @Failure      403 {object} docs.Error403Response "Access denied - only room members can add to queue"
-// @Failure      404 {object} docs.Error404Response "Room or entity not found"
-// @Failure      500 {object} docs.Error500Response "Internal server error"
-// @Security     BearerAuth
-// @Router       /rooms/{id}/queue [post]
+// @Title Add item to room queue
+// @Description Add a video or playlist to the room's playback queue. Only room members can add items.
+// @Param  id    path  string          true  "Room ID (UUID v4 format)"
+// @Param  body  body  docs.AddQueueItemRequest     true  "Queue item to add"
+// @Success  201  object docs.QueueItemApiResponse  "Item successfully added to queue"
+// @Failure  400  object docs.ErrorResponse  "Invalid input"
+// @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
+// @Failure  403  object docs.ErrorResponse  "Access denied - only room members can add to queue"
+// @Failure  404  object docs.ErrorResponse  "Room or entity not found"
+// @Failure  500  object docs.ErrorResponse  "Internal server error"
+// @Resource RoomQueue
+// @Route /api/rooms/{id}/queue [post]
 func addToQueue(logger *slog.Logger, adder Adder) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.roomqueues.add"))
 

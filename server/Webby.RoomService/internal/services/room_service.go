@@ -29,7 +29,9 @@ type RoomMemberRepository interface {
 	Create(member *models.RoomMember) error
 	Exists(roomId, userId uuid.UUID) (bool, error)
 	EnsureMember(roomId, userId uuid.UUID) error
+	Delete(roomId, userId uuid.UUID) error
 	ListByRoom(roomId uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error)
+	UpdatePoints(roomId, userId uuid.UUID, delta int) error
 }
 
 type FileRepository interface {
@@ -191,6 +193,49 @@ func (r *RoomService) ListMembers(roomId uuid.UUID, page int, limit int, search 
 	}
 
 	return members, total, nil
+}
+
+func (r *RoomService) AddMember(ctx context.Context, roomId uuid.UUID, memberId uuid.UUID, userId uuid.UUID) error {
+	room, err := r.roomRepo.GetById(roomId)
+	if err != nil {
+		return err
+	}
+
+	if room.HostId != userId {
+		return apperrors.ErrForbidden
+	}
+
+	return r.roomMemberRepo.EnsureMember(roomId, memberId)
+}
+
+func (r *RoomService) RemoveMember(ctx context.Context, roomId uuid.UUID, memberId uuid.UUID, userId uuid.UUID) error {
+	room, err := r.roomRepo.GetById(roomId)
+	if err != nil {
+		return err
+	}
+
+	if room.HostId != userId {
+		return apperrors.ErrForbidden
+	}
+
+	if memberId == room.HostId {
+		return fmt.Errorf("%w: cannot remove the host from the room", apperrors.ErrInvalidInput)
+	}
+
+	return r.roomMemberRepo.Delete(roomId, memberId)
+}
+
+func (r *RoomService) UpdateMemberPoints(ctx context.Context, roomId uuid.UUID, memberId uuid.UUID, delta int, userId uuid.UUID) error {
+	room, err := r.roomRepo.GetById(roomId)
+	if err != nil {
+		return err
+	}
+
+	if room.HostId != userId {
+		return apperrors.ErrForbidden
+	}
+
+	return r.roomMemberRepo.UpdatePoints(roomId, memberId, delta)
 }
 
 func (r *RoomService) Update(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (uuid.UUID, error) {

@@ -21,21 +21,15 @@ func New(logger *slog.Logger, lister Lister) http.Handler {
 	return errorWrapper.MakeHandler(logger, listCategories(logger, lister))
 }
 
-// listCategories godoc
-// @Summary      List categories
-// @Description  Retrieve a **paginated** list of room categories. Supports optional **search** by name.
-// @Description  **Query Parameters Fallback:**
-// @Description  * Invalid, missing, or non-numeric `page` values will default to **1**.
-// @Description  * Invalid, missing, or non-numeric `limit` values (<1) will default to **10**. Limits >100 are capped at **100**.
-// @Description  * `search`: optional string to filter categories by name (case-insensitive)
-// @Tags         RoomCategory
-// @Produce      json
-// @Param        search query string false "Search categories by name (optional)"
-// @Param        page query int false "Page number (defaults to 1 if invalid)" default(1)
-// @Param        limit query int false "Items per page (defaults to 10 if invalid, max 100)" default(10)
-// @Success      200 {object} docs.ApiResponse[docs.PaginatedResponse[docs.CategoryResponse]] "Successful retrieval with pagination metadata"
-// @Failure      500 {object} docs.Error500Response "Internal server error"
-// @Router       /categories [get]
+// @Title List categories
+// @Description Retrieve a paginated list of room categories. Supports optional search by name.
+// @Param  search  query  string  false  "Search categories by name"
+// @Param  page    query  int     false  "Page number (default: 1)"
+// @Param  limit   query  int     false  "Items per page (default: 10, max: 100)"
+// @Success  200  object docs.CategoryListApiResponse  "Categories successfully retrieved"
+// @Failure  500  object docs.ErrorResponse  "Internal server error"
+// @Resource RoomCategory
+// @Route /api/categories [get]
 func listCategories(logger *slog.Logger, lister Lister) errorWrapper.APIFunc {
 	_ = logger.With(slog.String("operation", "httpserver.categories.list"))
 

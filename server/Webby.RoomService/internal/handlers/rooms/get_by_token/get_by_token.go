@@ -21,24 +21,16 @@ func New(logger *slog.Logger, tokenGetter TokenGetter) http.Handler {
 	return errorWrapper.MakeHandler(logger, getByToken(logger, tokenGetter))
 }
 
-// getByToken godoc
-// @Summary      Get a room by invite token
-// @Description  Retrieve room information using its unique invite token.
-// @Description  **Request Body Validation:**
-// @Description  * `token`: **required**, cannot be empty or whitespace-only
-// @Description  **Security Note:**
-// @Description  * This action **requires authentication**
-// @Tags         Rooms
-// @Accept       json
-// @Produce      json
-// @Param        request body object{token=string} true "Room invite token"
-// @Success      200 {object} docs.ApiResponse[docs.RoomResponse] "Room successfully retrieved by token"
-// @Failure      400 {object} docs.Error400Response "Invalid request body or missing token"
-// @Failure      404 {object} docs.Error404Response "Room with given token not found"
-// @Failure      401 {object} docs.Error401Response "Missing or invalid authentication token"
-// @Failure      500 {object} docs.Error500Response "Internal server error"
-// @Security     BearerAuth
-// @Router       /rooms/token [post]
+// @Title Get a room by invite token
+// @Description Retrieve room information using its unique invite token. Token is required and cannot be empty.
+// @Param  request  body  docs.GetByTokenRequest  true  "Room invite token"
+// @Success  200  object docs.RoomApiResponse  "Room successfully retrieved by token"
+// @Failure  400  object docs.ErrorResponse  "Invalid request body or missing token"
+// @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
+// @Failure  404  object docs.ErrorResponse  "Room with given token not found"
+// @Failure  500  object docs.ErrorResponse  "Internal server error"
+// @Resource Rooms
+// @Route /api/rooms/token [post]
 func getByToken(logger *slog.Logger, tokenGetter TokenGetter) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.rooms.getByToken"))
 
