@@ -8,13 +8,14 @@ import (
 	_ "webby/internal/handlers/docs"
 	errorWrapper "webby/internal/handlers/errors"
 	"webby/internal/handlers/responses"
+	"webby/internal/models"
 	"webby/pkg/http/render"
 
 	"github.com/google/uuid"
 )
 
 type PointsUpdater interface {
-	UpdateMemberPoints(ctx context.Context, roomId uuid.UUID, memberId uuid.UUID, delta int, userId uuid.UUID) error
+	UpdateMemberPoints(ctx context.Context, roomId uuid.UUID, memberId uuid.UUID, delta int, userId uuid.UUID) (*models.RoomMemberInfo, error)
 }
 
 type Request struct {
@@ -30,7 +31,7 @@ func New(logger *slog.Logger, pointsUpdater PointsUpdater) http.Handler {
 // @Param  id        path  string   true  "Room ID (UUID v4 format)"
 // @Param  memberId  path  string   true  "Member User ID (UUID v4 format)"
 // @Param  body      body  Request  true  "Points delta (positive to add, negative to subtract)"
-// @Success  204  "Points successfully updated"
+// @Success  200  object docs.MemberApiResponse  "Points successfully updated"
 // @Failure  400  object docs.ErrorResponse  "Invalid input"
 // @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
 // @Failure  403  object docs.ErrorResponse  "Not authorized - only host can update points"
@@ -40,6 +41,13 @@ func New(logger *slog.Logger, pointsUpdater PointsUpdater) http.Handler {
 // @Route /api/rooms/{id}/members/{memberId}/points [patch]
 func updatePoints(logger *slog.Logger, pointsUpdater PointsUpdater) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.rooms.updatePoints"))
+
+	type memberResponse struct {
+		UserId     uuid.UUID `json:"userId"`
+		Username   string    `json:"username"`
+		AvatarUrl  string    `json:"avatarUrl"`
+		RoomPoints int       `json:"roomPoints"`
+	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
 		roomIdStr := r.PathValue("id")
@@ -68,11 +76,21 @@ func updatePoints(logger *slog.Logger, pointsUpdater PointsUpdater) errorWrapper
 		userIdStr := r.Context().Value("userID").(string)
 		userId, _ := uuid.Parse(userIdStr)
 
-		if err := pointsUpdater.UpdateMemberPoints(r.Context(), roomId, memberId, body.Points, userId); err != nil {
+		member, err := pointsUpdater.UpdateMemberPoints(r.Context(), roomId, memberId, body.Points, userId)
+		if err != nil {
 			return responses.NewApiError("Update points error", err)
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		render.Encode(w, r, http.StatusOK, responses.ApiResponse[memberResponse]{
+			Success: true,
+			Message: "Points updated successfully",
+			Data: &memberResponse{
+				UserId:     member.UserId,
+				Username:   member.Username,
+				AvatarUrl:  member.AvatarUrl,
+				RoomPoints: member.RoomPoints,
+			},
+		})
 		return nil
 	}
 }

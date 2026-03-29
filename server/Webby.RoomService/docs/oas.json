@@ -1064,6 +1064,109 @@
         ]
       }
     },
+    "/api/rooms/{id}/members/{memberId}/points": {
+      "patch": {
+        "responses": {
+          "200": {
+            "description": "Points successfully updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not authorized - only host can update points",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Room or member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Rooms"
+        ],
+        "summary": "Update member points",
+        "description": "Add or subtract points for a room member. Only the room host can update points.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Room ID (UUID v4 format)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Room ID (UUID v4 format)"
+            }
+          },
+          {
+            "name": "memberId",
+            "in": "path",
+            "description": "Member User ID (UUID v4 format)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Member User ID (UUID v4 format)"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePointsRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/api/rooms/{id}/queue": {
       "get": {
         "responses": {
@@ -1476,6 +1579,40 @@
           "token": {
             "type": "string",
             "example": "abc123def456ghij"
+          }
+        }
+      },
+      "MemberApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Points updated successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "example": "550e8400-e29b-41d4-a716-446655440000"
+              },
+              "username": {
+                "type": "string",
+                "example": "JohnDoe"
+              },
+              "avatarUrl": {
+                "type": "string",
+                "example": "https://example.com/avatar.jpg"
+              },
+              "roomPoints": {
+                "type": "integer",
+                "example": 100
+              }
+            }
           }
         }
       },
@@ -2032,6 +2169,17 @@
           "data": {
             "type": "object",
             "$ref": "#/components/schemas/RoomListPagData"
+          }
+        }
+      },
+      "UpdatePointsRequest": {
+        "type": "object",
+        "required": ["points"],
+        "properties": {
+          "points": {
+            "type": "integer",
+            "description": "Points delta (positive to add, negative to subtract)",
+            "example": 10
           }
         }
       }

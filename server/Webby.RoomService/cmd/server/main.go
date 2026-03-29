@@ -30,7 +30,6 @@ const (
 // @Version 1.0
 // @Title Webby.RoomService
 // @Description This API provides endpoints for managing rooms and categories.
-// @Server http://localhost:8080 Local
 // @Security BearerAuth
 // @SecurityScheme BearerAuth http bearer Enter your JWT token
 func main() {

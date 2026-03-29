@@ -31,7 +31,7 @@ type RoomMemberRepository interface {
 	EnsureMember(roomId, userId uuid.UUID) error
 	Delete(roomId, userId uuid.UUID) error
 	ListByRoom(roomId uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error)
-	UpdatePoints(roomId, userId uuid.UUID, delta int) error
+	UpdatePoints(roomId, userId uuid.UUID, delta int) (*models.RoomMemberInfo, error)
 }
 
 type FileRepository interface {
@@ -225,14 +225,14 @@ func (r *RoomService) RemoveMember(ctx context.Context, roomId uuid.UUID, member
 	return r.roomMemberRepo.Delete(roomId, memberId)
 }
 
-func (r *RoomService) UpdateMemberPoints(ctx context.Context, roomId uuid.UUID, memberId uuid.UUID, delta int, userId uuid.UUID) error {
+func (r *RoomService) UpdateMemberPoints(ctx context.Context, roomId uuid.UUID, memberId uuid.UUID, delta int, userId uuid.UUID) (*models.RoomMemberInfo, error) {
 	room, err := r.roomRepo.GetById(roomId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if room.HostId != userId {
-		return apperrors.ErrForbidden
+		return nil, apperrors.ErrForbidden
 	}
 
 	return r.roomMemberRepo.UpdatePoints(roomId, memberId, delta)
