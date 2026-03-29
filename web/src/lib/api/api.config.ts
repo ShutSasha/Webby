@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { getGlobalToken, setGlobalToken, triggerSessionUpdate } from '@/lib/utils/auth-token'
+import { getGlobalToken, setGlobalToken, triggerSessionUpdate } from '@/lib/utils/auth-token.utils'
 import { auth } from '@/workspace/auth'
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api'

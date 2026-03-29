@@ -5,9 +5,9 @@ import { redirect } from 'next/dist/client/components/navigation'
 import { AuthError } from 'next-auth'
 
 import $api from '@/lib/api/api.config'
-import { parseAxiosError, serverLog } from '@/lib/utils/utils'
-import { LoginRes } from '@/types/auth'
-import { FormActionState } from '@/types/general'
+import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
+import { LoginRes } from '@/types/auth.types'
+import { FormActionState } from '@/types/general.types'
 import { signIn } from '@/workspace/auth'
 
 export type ReturnAuthError = {

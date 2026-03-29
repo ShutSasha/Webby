@@ -7,7 +7,7 @@ import { OTPInput } from 'input-otp'
 import { resendVerifyCode, verifyUser } from '@/lib/actions/auth.actions'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { useResendTimer } from '@/lib/hooks/useResendTimer'
-import { parseAxiosError } from '@/lib/utils/utils'
+import { parseAxiosError } from '@/lib/utils/general.utils'
 import { useCommonStore } from '@/stores/common.store'
 
 import { Slot } from '../../SignUp/EmailVerifyPage'

@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 
 type ViewType = 'confirm' | 'cancel' | 'loading'
 

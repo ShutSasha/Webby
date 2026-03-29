@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 import { signOut, useSession } from 'next-auth/react'
 
-import { setGlobalToken, setUpdateSession } from '@/lib/utils/auth-token'
+import { setGlobalToken, setUpdateSession } from '@/lib/utils/auth-token.utils'
 
 type Props = {
   children: React.ReactNode

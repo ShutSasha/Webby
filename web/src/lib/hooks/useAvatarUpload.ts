@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop'
 
 import { uploadNewUserPhoto } from '@/lib/actions/user.actions'
-import { serverLog } from '@/lib/utils/utils'
+import { serverLog } from '@/lib/utils/general.utils'
 import { useProfileStore } from '@/stores/profile.store'
 import { useToastStore } from '@/stores/toast-store'
 

@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 
 import MailIcon from '@/assets/auth/ic_mail.svg'
 import { resendVerifyCode } from '@/lib/actions/auth.actions'
-import { parseAxiosError } from '@/lib/utils/utils'
+import { parseAxiosError } from '@/lib/utils/general.utils'
 import { useCommonStore } from '@/stores/common.store'
 import AuthInput from '@/ui/components/modules/Auth/AuthInput'
 import Button from '@/ui/components/shared/Button'

@@ -1,7 +1,7 @@
 import React from 'react'
 
 import SadSmileIcon from '@/assets/icons/Errors/sad-smile.svg'
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 
 type EmptyStateProps = {
   title: string

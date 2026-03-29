@@ -80,7 +80,15 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       loadedSeconds: 0,
       playedSeconds: 0,
     }))
-  }, [videoUrl])
+
+    const hasInteracted = typeof navigator !== 'undefined' && (navigator as any).userActivation?.hasBeenActive
+
+    if (hasInteracted === false) {
+      setPlaying(false)
+    } else {
+      setPlaying(true)
+    }
+  }, [videoUrl, setPlaying])
 
   usePlayerHotkeys({
     playerRef,
@@ -310,6 +318,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         onEnded={() => {
           triggerEnded()
         }}
+        onError={() => setPlaying(false)}
       />
 
       {/* Overlay */}

@@ -8,8 +8,8 @@ import Link from 'next/link'
 import $api from '@/lib/api/api.config'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { useResendTimer } from '@/lib/hooks/useResendTimer'
-import { parseAxiosError, serverLog } from '@/lib/utils/utils'
-import { BaseServerResponse } from '@/types/general'
+import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
+import { BaseServerResponse } from '@/types/general.types'
 
 export type ApiValidationErrors = Record<string, string[]>
 

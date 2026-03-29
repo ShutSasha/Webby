@@ -2,7 +2,7 @@
 
 import NextAuth, { DefaultSession } from 'next-auth'
 import { JWT } from 'next-auth/jwt'
-import { Role } from './auth'
+import { Role } from './auth.types'
 
 declare module 'next-auth' {
   interface User {

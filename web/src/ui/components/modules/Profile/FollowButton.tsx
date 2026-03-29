@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import UserPlusIcon from '@/assets/icons/Profile/ic_user_plus.svg'
 import UserMinusIcon from '@/assets/icons/shared/minus.svg'
 import { toggleFollow } from '@/lib/actions/user.actions'
-import { cn, extractServerMessage } from '@/lib/utils/utils'
+import { cn, extractServerMessage } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
 
 interface Props {

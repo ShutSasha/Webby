@@ -1,8 +1,8 @@
 import { JWT } from 'next-auth/jwt'
 
-import { AuthRes } from '@/types/auth'
+import { AuthRes } from '@/types/auth.types'
 
-import { serverLog } from './utils'
+import { serverLog } from './general.utils'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api'
 
