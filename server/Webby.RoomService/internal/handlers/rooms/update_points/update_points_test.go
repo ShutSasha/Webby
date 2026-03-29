@@ -16,6 +16,7 @@ import (
 	"webby/internal/handlers/responses"
 	updatePoints "webby/internal/handlers/rooms/update_points"
 	"webby/internal/handlers/rooms/update_points/mocks"
+	"webby/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -42,8 +43,15 @@ func TestUpdatePoints_Success(t *testing.T) {
 	userID := uuid.New()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
+	expectedMember := &models.RoomMemberInfo{
+		UserId:     memberID,
+		Username:   "testuser",
+		AvatarUrl:  "https://example.com/avatar.png",
+		RoomPoints: 10,
+	}
+
 	mockUpdater := mocks.NewMockPointsUpdater(t)
-	mockUpdater.EXPECT().UpdateMemberPoints(mock.Anything, roomID, memberID, 10, userID).Return(nil).Once()
+	mockUpdater.EXPECT().UpdateMemberPoints(mock.Anything, roomID, memberID, 10, userID).Return(expectedMember, nil).Once()
 
 	handler := updatePoints.New(logger, mockUpdater)
 	req := buildRequest(roomID.String(), memberID.String(), userID, map[string]int{"points": 10})
@@ -51,7 +59,13 @@ func TestUpdatePoints_Success(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 
-	require.Equal(t, http.StatusNoContent, w.Code)
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var resp responses.ApiResponse[json.RawMessage]
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+	require.True(t, resp.Success)
+	require.Equal(t, "Points updated successfully", resp.Message)
 }
 
 func TestUpdatePoints_NegativePoints(t *testing.T) {
@@ -60,8 +74,15 @@ func TestUpdatePoints_NegativePoints(t *testing.T) {
 	userID := uuid.New()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
+	expectedMember := &models.RoomMemberInfo{
+		UserId:     memberID,
+		Username:   "testuser",
+		AvatarUrl:  "https://example.com/avatar.png",
+		RoomPoints: 0,
+	}
+
 	mockUpdater := mocks.NewMockPointsUpdater(t)
-	mockUpdater.EXPECT().UpdateMemberPoints(mock.Anything, roomID, memberID, -5, userID).Return(nil).Once()
+	mockUpdater.EXPECT().UpdateMemberPoints(mock.Anything, roomID, memberID, -5, userID).Return(expectedMember, nil).Once()
 
 	handler := updatePoints.New(logger, mockUpdater)
 	req := buildRequest(roomID.String(), memberID.String(), userID, map[string]int{"points": -5})
@@ -69,7 +90,7 @@ func TestUpdatePoints_NegativePoints(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 
-	require.Equal(t, http.StatusNoContent, w.Code)
+	require.Equal(t, http.StatusOK, w.Code)
 }
 
 func TestUpdatePoints_ValidationErrors(t *testing.T) {
@@ -150,7 +171,7 @@ func TestUpdatePoints_ServiceErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUpdater := mocks.NewMockPointsUpdater(t)
-			mockUpdater.EXPECT().UpdateMemberPoints(mock.Anything, roomID, memberID, 10, userID).Return(tt.mockError).Once()
+			mockUpdater.EXPECT().UpdateMemberPoints(mock.Anything, roomID, memberID, 10, userID).Return(nil, tt.mockError).Once()
 
 			handler := updatePoints.New(logger, mockUpdater)
 			req := buildRequest(roomID.String(), memberID.String(), userID, map[string]int{"points": 10})

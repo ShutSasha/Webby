@@ -93,6 +93,30 @@ components:
           example: abc123def456ghij
           type: string
       type: object
+    MemberApiResponse:
+      properties:
+        data:
+          properties:
+            avatarUrl:
+              example: https://example.com/avatar.jpg
+              type: string
+            roomPoints:
+              example: 100
+              type: integer
+            userId:
+              example: 550e8400-e29b-41d4-a716-446655440000
+              type: string
+            username:
+              example: JohnDoe
+              type: string
+          type: object
+        message:
+          example: Points updated successfully
+          type: string
+        success:
+          example: true
+          type: boolean
+      type: object
     MemberListApiResponse:
       properties:
         data:
@@ -488,6 +512,15 @@ components:
         success:
           example: true
           type: boolean
+      type: object
+    UpdatePointsRequest:
+      properties:
+        points:
+          description: Points delta (positive to add, negative to subtract)
+          example: 10
+          type: integer
+      required:
+      - points
       type: object
   securitySchemes:
     BearerAuth:
@@ -1030,6 +1063,71 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Internal server error
       summary: Remove a member from a room
+      tags:
+      - Rooms
+  /api/rooms/{id}/members/{memberId}/points:
+    patch:
+      description: Add or subtract points for a room member. Only the room host can
+        update points.
+      parameters:
+      - description: Room ID (UUID v4 format)
+        in: path
+        name: id
+        required: true
+        schema:
+          description: Room ID (UUID v4 format)
+          type: string
+      - description: Member User ID (UUID v4 format)
+        in: path
+        name: memberId
+        required: true
+        schema:
+          description: Member User ID (UUID v4 format)
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePointsRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberApiResponse'
+          description: Points successfully updated
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Invalid input
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Missing or invalid authentication token
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not authorized - only host can update points
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Room or member not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+      summary: Update member points
       tags:
       - Rooms
   /api/rooms/{id}/queue:

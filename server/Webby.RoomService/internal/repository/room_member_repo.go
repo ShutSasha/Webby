@@ -203,36 +203,47 @@ func (r *RoomMemberRepository) Delete(roomId, userId uuid.UUID) error {
 	return nil
 }
 
-func (r *RoomMemberRepository) UpdatePoints(roomId, userId uuid.UUID, delta int) error {
+func (r *RoomMemberRepository) UpdatePoints(roomId, userId uuid.UUID, delta int) (*models.RoomMemberInfo, error) {
 	const op = "repository.RoomMemberRepository.UpdatePoints"
 
 	if roomId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
+		return nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
 	if userId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
+		return nil, fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
 	}
 
 	query := `
 		UPDATE room_members
 		SET room_points = room_points + $3
-		WHERE room_id = $1 AND user_id = $2
+		WHERE room_id = $1 AND user_id = $2 AND room_points + $3 >= 0
+		RETURNING (SELECT u."UserId" FROM "Users" u WHERE u."UserId" = room_members.user_id),
+			(SELECT u."Username" FROM "Users" u WHERE u."UserId" = room_members.user_id),
+			(SELECT u."AvatarUrl" FROM "Users" u WHERE u."UserId" = room_members.user_id),
+			room_points
 	`
 
-	result, err := r.db.Exec(query, roomId, userId, delta)
+	var member models.RoomMemberInfo
+	err := r.db.QueryRow(query, roomId, userId, delta).Scan(
+		&member.UserId,
+		&member.Username,
+		&member.AvatarUrl,
+		&member.RoomPoints,
+	)
 	if err != nil {
-		return fmt.Errorf("%s: execution failed: %w", op, err)
+		if err.Error() == "sql: no rows in result set" {
+			exists, exErr := r.Exists(roomId, userId)
+			if exErr != nil {
+				return nil, fmt.Errorf("%s: %w", op, exErr)
+			}
+			if exists {
+				return nil, fmt.Errorf("%s: %w: insufficient points", op, apperrors.ErrInvalidInput)
+			}
+			return nil, fmt.Errorf("%s: member not found in room: %w", op, apperrors.ErrNotFound)
+		}
+		return nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("%s: getting rows affected failed: %w", op, err)
-	}
-
-	if rowsAffected == 0 {
-		return fmt.Errorf("%s: member not found in room: %w", op, apperrors.ErrNotFound)
-	}
-
-	return nil
+	return &member, nil
 }

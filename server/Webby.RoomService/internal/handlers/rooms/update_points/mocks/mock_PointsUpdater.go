@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	"webby/internal/models"
+
 	mock "github.com/stretchr/testify/mock"
 
 	uuid "github.com/google/uuid"
@@ -24,21 +26,25 @@ func (_m *MockPointsUpdater) EXPECT() *MockPointsUpdater_Expecter {
 }
 
 // UpdateMemberPoints provides a mock function with given fields: ctx, roomId, memberId, delta, userId
-func (_m *MockPointsUpdater) UpdateMemberPoints(ctx context.Context, roomId uuid.UUID, memberId uuid.UUID, delta int, userId uuid.UUID) error {
+func (_m *MockPointsUpdater) UpdateMemberPoints(ctx context.Context, roomId uuid.UUID, memberId uuid.UUID, delta int, userId uuid.UUID) (*models.RoomMemberInfo, error) {
 	ret := _m.Called(ctx, roomId, memberId, delta, userId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateMemberPoints")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, uuid.UUID) error); ok {
-		r0 = rf(ctx, roomId, memberId, delta, userId)
+	var r0 *models.RoomMemberInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, uuid.UUID) (*models.RoomMemberInfo, error)); ok {
+		r0, r1 = rf(ctx, roomId, memberId, delta, userId)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.RoomMemberInfo)
+		}
+		r1 = ret.Error(1)
 	}
 
-	return r0
+	return r0, r1
 }
 
 // MockPointsUpdater_UpdateMemberPoints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateMemberPoints'
@@ -63,12 +69,12 @@ func (_c *MockPointsUpdater_UpdateMemberPoints_Call) Run(run func(ctx context.Co
 	return _c
 }
 
-func (_c *MockPointsUpdater_UpdateMemberPoints_Call) Return(_a0 error) *MockPointsUpdater_UpdateMemberPoints_Call {
-	_c.Call.Return(_a0)
+func (_c *MockPointsUpdater_UpdateMemberPoints_Call) Return(_a0 *models.RoomMemberInfo, _a1 error) *MockPointsUpdater_UpdateMemberPoints_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockPointsUpdater_UpdateMemberPoints_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, int, uuid.UUID) error) *MockPointsUpdater_UpdateMemberPoints_Call {
+func (_c *MockPointsUpdater_UpdateMemberPoints_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, int, uuid.UUID) (*models.RoomMemberInfo, error)) *MockPointsUpdater_UpdateMemberPoints_Call {
 	_c.Call.Return(run)
 	return _c
 }
