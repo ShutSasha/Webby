@@ -10,3 +10,5 @@ aws:
   secretKey: "{{AwsSecretKey}}"
   region: "{{AwsRegion}}"
   bucket: "{{AwsBucketName}}"
+grpc:
+  mediaServiceAddress: "localhost:5005"

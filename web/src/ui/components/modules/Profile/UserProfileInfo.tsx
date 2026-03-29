@@ -1,11 +1,9 @@
 import Image from 'next/image'
-import { notFound } from 'next/navigation'
 
 import { checkFollowing, getUser } from '@/app/api/user'
 import MailIcon from '@/assets/icons/ic_mail.svg'
 import { cn } from '@/lib/utils/utils'
 import EditProfileBtn from '@/ui/components/modules/Profile/EditProfileBtn'
-import ProfileActionButton from '@/ui/components/modules/Profile/ProfileActionButton'
 import { UserAchievements } from '@/ui/components/modules/Profile/UserAchivments'
 import UserBioSection from '@/ui/components/modules/Profile/UserBioSection'
 import { BLUR_DATA_URLS } from '@/ui/images'
@@ -13,15 +11,25 @@ import { auth } from '@/workspace/auth'
 
 import ComplaintButton from './ComplaintButton'
 import FollowButton from './FollowButton'
+import ActionButton from '../../shared/ActionButton'
+import EmptyState from '../../shared/EmptyState'
 
 export default async function UserProfileInfo({ id }: { id: string }) {
   const userData = await getUser(id)
   const session = await auth()
-  const isFollowing = await checkFollowing(id)
+  const isFollowingResponse = await checkFollowing(id)
+  const isFollowing = isFollowingResponse.data?.isFollowing ?? false
   const isOwner = session?.user.id === id
 
   if (!userData) {
-    notFound()
+    return (
+      <div className="bg-neutral-900 rounded-[20px] p-5 flex items-center justify-center min-h-[250px]">
+        <EmptyState
+          title="User not found"
+          description="This profile doesn't exist, has been deleted, or is temporarily unavailable."
+        />
+      </div>
+    )
   }
 
   return (
@@ -56,11 +64,11 @@ export default async function UserProfileInfo({ id }: { id: string }) {
 
         {!isOwner && (
           <div className="flex items-center gap-2">
-            <ProfileActionButton label="Chat">
+            <ActionButton label="Chat">
               <MailIcon className="w-4 h-4" />
-            </ProfileActionButton>
+            </ActionButton>
 
-            <FollowButton targetUserId={id} initialIsFollowing={isFollowing?.data?.isFollowing ?? false} />
+            <FollowButton targetUserId={id} initialIsFollowing={isFollowing} />
           </div>
         )}
       </div>
@@ -68,7 +76,9 @@ export default async function UserProfileInfo({ id }: { id: string }) {
       {/* Right Part of user profile*/}
       <div className="flex flex-col gap-2">
         {session?.user.id === id && <EditProfileBtn userId={id} />}
-        {session && session?.user.id !== id && <ComplaintButton authorId={session.user.id} targetId={id} />}
+        {session && session?.user.id !== id && (
+          <ComplaintButton authorId={session.user.id} targetId={id} targetType="User" />
+        )}
 
         {userData.pinnedUserAchievements.length > 0 && (
           <UserAchievements achivements={userData.pinnedUserAchievements} />

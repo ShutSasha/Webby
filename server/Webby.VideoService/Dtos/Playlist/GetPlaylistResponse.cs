@@ -6,5 +6,6 @@ namespace Webby.VideoService.Dtos.Playlist;
 public class GetPlaylistResponse
 {
    public PlaylistDto Playlist { get; set; }
-   public List<VideoDto> Videos { get; set; }
+   public VideoDto? FirstVideo { get; set; }
+   public int HiddenVideosCount { get; set; }
 }

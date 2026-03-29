@@ -9,8 +9,6 @@ import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
 import { cn } from '@/lib/utils/utils'
 
-// TODO: add Video type to types folder
-
 interface Video {
   id: string
   title: string

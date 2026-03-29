@@ -11,18 +11,18 @@ import (
 )
 
 type VideoInfo struct {
-	Id         uuid.UUID
-	Title      string
-	Thumbnail  string
-	VideoUrl   string
-	PreviewUrl string
-}
-
-type PlaylistInfo struct {
 	Id        uuid.UUID
 	Title     string
 	Thumbnail string
-	Videos    []VideoInfo
+	VideoUrl  string
+}
+
+type PlaylistInfo struct {
+	Id         uuid.UUID
+	Title      string
+	Thumbnail  string
+	TotalCount int
+	Videos     []VideoInfo
 }
 
 type MediaClient struct {
@@ -60,16 +60,19 @@ func (m *MediaClient) GetVideo(ctx context.Context, id uuid.UUID) (*VideoInfo, e
 	}
 
 	return &VideoInfo{
-		Id:         videoId,
-		Title:      resp.Title,
-		Thumbnail:  resp.Thumbnail,
-		VideoUrl:   resp.VideoUrl,
-		PreviewUrl: resp.PreviewUrl,
+		Id:        videoId,
+		Title:     resp.Title,
+		Thumbnail: resp.Thumbnail,
+		VideoUrl:  resp.VideoUrl,
 	}, nil
 }
 
-func (m *MediaClient) GetPlaylist(ctx context.Context, id uuid.UUID) (*PlaylistInfo, error) {
-	resp, err := m.client.GetPlaylist(ctx, &mediapb.GetPlaylistRequest{Id: id.String()})
+func (m *MediaClient) GetPlaylist(ctx context.Context, id uuid.UUID, page, pageSize int32) (*PlaylistInfo, error) {
+	resp, err := m.client.GetPlaylist(ctx, &mediapb.GetPlaylistRequest{
+		Id:       id.String(),
+		Page:     page,
+		PageSize: pageSize,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("get playlist %s: %w", id.String(), err)
 	}
@@ -86,18 +89,18 @@ func (m *MediaClient) GetPlaylist(ctx context.Context, id uuid.UUID) (*PlaylistI
 			return nil, fmt.Errorf("parse video id in playlist: %w", err)
 		}
 		videos = append(videos, VideoInfo{
-			Id:         vid,
-			Title:      v.Title,
-			Thumbnail:  v.Thumbnail,
-			VideoUrl:   v.VideoUrl,
-			PreviewUrl: v.PreviewUrl,
+			Id:        vid,
+			Title:     v.Title,
+			Thumbnail: v.Thumbnail,
+			VideoUrl:  v.VideoUrl,
 		})
 	}
 
 	return &PlaylistInfo{
-		Id:        playlistId,
-		Title:     resp.Title,
-		Thumbnail: resp.Thumbnail,
-		Videos:    videos,
+		Id:         playlistId,
+		Title:      resp.Title,
+		Thumbnail:  resp.Thumbnail,
+		TotalCount: int(resp.TotalCount),
+		Videos:     videos,
 	}, nil
 }

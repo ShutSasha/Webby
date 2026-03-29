@@ -1,0 +1,35 @@
+﻿syntax = "proto3";
+
+package media;
+
+option csharp_namespace = "Webby.MediaService.GrpcServer";
+
+service MediaService {
+  rpc GetVideo(GetVideoRequest) returns (VideoResponse);
+  rpc GetPlaylist(GetPlaylistRequest) returns (PlaylistResponse);
+}
+
+message GetVideoRequest {
+  string id = 1;
+}
+
+message VideoResponse {
+  string id = 1;
+  string title = 2;
+  string thumbnail = 3;
+  string videoUrl = 4;
+}
+
+message GetPlaylistRequest {
+  string id = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
+}
+
+message PlaylistResponse {
+  string id = 1;
+  string title = 2;
+  string thumbnail = 3;
+  int32 totalCount = 4;
+  repeated VideoResponse videos = 5;
+}

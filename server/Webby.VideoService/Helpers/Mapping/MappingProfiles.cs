@@ -9,7 +9,8 @@ public class MappingProfiles : Profile
 {
    public MappingProfiles()
    {
-      CreateMap<Playlist, PlaylistDto>();
-      CreateMap<Video, VideoDto>();
+      CreateMap<Models.Playlist, PlaylistDto>();
+      CreateMap<Models.Video, VideoDto>();
+      CreateMap<Models.Video, UploadVideoResponse>();
    }
 }

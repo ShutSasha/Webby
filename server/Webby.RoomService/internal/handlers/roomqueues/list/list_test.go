@@ -20,7 +20,7 @@ import (
 )
 
 func setupRequest(roomID string, userID uuid.UUID) *http.Request {
-	req := httptest.NewRequest(http.MethodGet, "/rooms/"+roomID+"/queue", nil)
+	req := httptest.NewRequest(http.MethodGet, "/rooms/"+roomID+"/queue?page=1&limit=10", nil)
 	req.SetPathValue("id", roomID)
 	ctx := context.WithValue(req.Context(), "userID", userID.String())
 	return req.WithContext(ctx)
@@ -62,7 +62,6 @@ func TestListQueue_Success(t *testing.T) {
 				Title:      "Test Video",
 				Thumbnail:  "https://example.com/thumb.jpg",
 				VideoUrl:   "https://example.com/video.mp4",
-				PreviewUrl: "https://example.com/preview.mp4",
 				IsActive:   true,
 				IsFolder:   false,
 			},
@@ -72,14 +71,15 @@ func TestListQueue_Success(t *testing.T) {
 				EntityType: "playlist",
 				Title:      "Test Playlist",
 				Thumbnail:  "https://example.com/playlist.jpg",
-				IsActive:   false,
-				IsFolder:   true,
+				IsActive:      false,
+				IsFolder:      true,
+				TotalChildren: 2,
 				Children: []services.QueueVideoChild{
-					{Id: childId, Title: "Child Video", Thumbnail: "https://example.com/child.jpg", VideoUrl: "https://example.com/child.mp4", PreviewUrl: "https://example.com/child-preview.mp4"},
+					{Id: childId, Title: "Child Video", Thumbnail: "https://example.com/child.jpg", VideoUrl: "https://example.com/child.mp4"},
 				},
 			},
 		}
-		mockLister.EXPECT().GetQueue(mock.Anything, roomID, userID).Return(items, nil).Once()
+		mockLister.EXPECT().GetQueue(mock.Anything, roomID, userID, 1, 10).Return(items, 3, nil).Once()
 
 		handler := list.New(logger, mockLister)
 		req := setupRequest(roomID.String(), userID)
@@ -92,20 +92,25 @@ func TestListQueue_Success(t *testing.T) {
 
 		var resp map[string]any
 		json.Unmarshal(w.Body.Bytes(), &resp)
-		data := resp["data"].([]any)
+		paged := resp["data"].(map[string]any)
+		data := paged["items"].([]any)
 		require.Len(t, data, 2)
+		require.Equal(t, float64(3), paged["totalCount"])
+		require.Equal(t, float64(1), paged["page"])
+		require.Equal(t, float64(10), paged["pageSize"])
 
 		video := data[0].(map[string]any)
 		require.Equal(t, "video", video["entityType"])
 		require.Equal(t, "Test Video", video["title"])
 		require.Equal(t, "https://example.com/video.mp4", video["videoUrl"])
-		require.Equal(t, "https://example.com/preview.mp4", video["previewUrl"])
 		require.Equal(t, true, video["isActive"])
 		require.Equal(t, false, video["isFolder"])
+		require.Equal(t, float64(0), video["totalChildren"])
 
 		playlist := data[1].(map[string]any)
 		require.Equal(t, "playlist", playlist["entityType"])
 		require.Equal(t, true, playlist["isFolder"])
+		require.Equal(t, float64(2), playlist["totalChildren"])
 		children := playlist["children"].([]any)
 		require.Len(t, children, 1)
 		require.Equal(t, "Child Video", children[0].(map[string]any)["title"])
@@ -113,7 +118,7 @@ func TestListQueue_Success(t *testing.T) {
 
 	t.Run("Empty queue", func(t *testing.T) {
 		mockLister := mocks.NewMockQueueLister(t)
-		mockLister.EXPECT().GetQueue(mock.Anything, roomID, userID).Return([]services.QueueItemEnriched{}, nil).Once()
+		mockLister.EXPECT().GetQueue(mock.Anything, roomID, userID, 1, 10).Return([]services.QueueItemEnriched{}, 0, nil).Once()
 
 		handler := list.New(logger, mockLister)
 		req := setupRequest(roomID.String(), userID)
@@ -126,8 +131,10 @@ func TestListQueue_Success(t *testing.T) {
 
 		var resp map[string]any
 		json.Unmarshal(w.Body.Bytes(), &resp)
-		data := resp["data"].([]any)
+		paged := resp["data"].(map[string]any)
+		data := paged["items"].([]any)
 		require.Len(t, data, 0)
+		require.Equal(t, float64(0), paged["totalCount"])
 	})
 }
 
@@ -154,7 +161,7 @@ func TestListQueue_ServiceErrors(t *testing.T) {
 
 	t.Run("Forbidden - not a member", func(t *testing.T) {
 		mockLister := mocks.NewMockQueueLister(t)
-		mockLister.EXPECT().GetQueue(mock.Anything, roomID, userID).Return(nil, apperrors.ErrForbidden).Once()
+		mockLister.EXPECT().GetQueue(mock.Anything, roomID, userID, 1, 10).Return(nil, 0, apperrors.ErrForbidden).Once()
 
 		handler := list.New(logger, mockLister)
 		req := setupRequest(roomID.String(), userID)
@@ -167,7 +174,7 @@ func TestListQueue_ServiceErrors(t *testing.T) {
 
 	t.Run("Internal server error", func(t *testing.T) {
 		mockLister := mocks.NewMockQueueLister(t)
-		mockLister.EXPECT().GetQueue(mock.Anything, roomID, userID).Return(nil, apperrors.ErrInternal).Once()
+		mockLister.EXPECT().GetQueue(mock.Anything, roomID, userID, 1, 10).Return(nil, 0, apperrors.ErrInternal).Once()
 
 		handler := list.New(logger, mockLister)
 		req := setupRequest(roomID.String(), userID)
@@ -176,5 +183,75 @@ func TestListQueue_ServiceErrors(t *testing.T) {
 		handler.ServeHTTP(w, req)
 
 		requireErrorResponse(t, w.Body.String(), http.StatusInternalServerError, w)
+	})
+}
+
+func TestListQueue_PaginationParams(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	roomID := uuid.New()
+	userID := uuid.New()
+
+	t.Run("Custom page and limit", func(t *testing.T) {
+		mockLister := mocks.NewMockQueueLister(t)
+		mockLister.EXPECT().GetQueue(mock.Anything, roomID, userID, 2, 5).Return([]services.QueueItemEnriched{}, 12, nil).Once()
+
+		handler := list.New(logger, mockLister)
+		req := httptest.NewRequest(http.MethodGet, "/rooms/"+roomID.String()+"/queue?page=2&limit=5", nil)
+		req.SetPathValue("id", roomID.String())
+		ctx := context.WithValue(req.Context(), "userID", userID.String())
+		req = req.WithContext(ctx)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Code)
+		var resp map[string]any
+		json.Unmarshal(w.Body.Bytes(), &resp)
+		paged := resp["data"].(map[string]any)
+		require.Equal(t, float64(2), paged["page"])
+		require.Equal(t, float64(5), paged["pageSize"])
+		require.Equal(t, float64(12), paged["totalCount"])
+	})
+
+	t.Run("Invalid page", func(t *testing.T) {
+		mockLister := mocks.NewMockQueueLister(t)
+		handler := list.New(logger, mockLister)
+		req := httptest.NewRequest(http.MethodGet, "/rooms/"+roomID.String()+"/queue?page=0", nil)
+		req.SetPathValue("id", roomID.String())
+		ctx := context.WithValue(req.Context(), "userID", userID.String())
+		req = req.WithContext(ctx)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		requireErrorResponse(t, w.Body.String(), http.StatusBadRequest, w)
+	})
+
+	t.Run("Invalid limit", func(t *testing.T) {
+		mockLister := mocks.NewMockQueueLister(t)
+		handler := list.New(logger, mockLister)
+		req := httptest.NewRequest(http.MethodGet, "/rooms/"+roomID.String()+"/queue?limit=101", nil)
+		req.SetPathValue("id", roomID.String())
+		ctx := context.WithValue(req.Context(), "userID", userID.String())
+		req = req.WithContext(ctx)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		requireErrorResponse(t, w.Body.String(), http.StatusBadRequest, w)
+	})
+
+	t.Run("Non-numeric page", func(t *testing.T) {
+		mockLister := mocks.NewMockQueueLister(t)
+		handler := list.New(logger, mockLister)
+		req := httptest.NewRequest(http.MethodGet, "/rooms/"+roomID.String()+"/queue?page=abc", nil)
+		req.SetPathValue("id", roomID.String())
+		ctx := context.WithValue(req.Context(), "userID", userID.String())
+		req = req.WithContext(ctx)
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		requireErrorResponse(t, w.Body.String(), http.StatusBadRequest, w)
 	})
 }

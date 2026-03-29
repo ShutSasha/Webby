@@ -25,34 +25,41 @@ func (_m *MockQueueLister) EXPECT() *MockQueueLister_Expecter {
 	return &MockQueueLister_Expecter{mock: &_m.Mock}
 }
 
-// GetQueue provides a mock function with given fields: ctx, roomId, userId
-func (_m *MockQueueLister) GetQueue(ctx context.Context, roomId uuid.UUID, userId uuid.UUID) ([]services.QueueItemEnriched, error) {
-	ret := _m.Called(ctx, roomId, userId)
+// GetQueue provides a mock function with given fields: ctx, roomId, userId, page, limit
+func (_m *MockQueueLister) GetQueue(ctx context.Context, roomId uuid.UUID, userId uuid.UUID, page int, limit int) ([]services.QueueItemEnriched, int, error) {
+	ret := _m.Called(ctx, roomId, userId, page, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetQueue")
 	}
 
 	var r0 []services.QueueItemEnriched
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) ([]services.QueueItemEnriched, error)); ok {
-		return rf(ctx, roomId, userId)
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, int) ([]services.QueueItemEnriched, int, error)); ok {
+		return rf(ctx, roomId, userId, page, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) []services.QueueItemEnriched); ok {
-		r0 = rf(ctx, roomId, userId)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, int) []services.QueueItemEnriched); ok {
+		r0 = rf(ctx, roomId, userId, page, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]services.QueueItemEnriched)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
-		r1 = rf(ctx, roomId, userId)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, int, int) int); ok {
+		r1 = rf(ctx, roomId, userId, page, limit)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, uuid.UUID, uuid.UUID, int, int) error); ok {
+		r2 = rf(ctx, roomId, userId, page, limit)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // MockQueueLister_GetQueue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetQueue'
@@ -64,23 +71,25 @@ type MockQueueLister_GetQueue_Call struct {
 //   - ctx context.Context
 //   - roomId uuid.UUID
 //   - userId uuid.UUID
-func (_e *MockQueueLister_Expecter) GetQueue(ctx interface{}, roomId interface{}, userId interface{}) *MockQueueLister_GetQueue_Call {
-	return &MockQueueLister_GetQueue_Call{Call: _e.mock.On("GetQueue", ctx, roomId, userId)}
+//   - page int
+//   - limit int
+func (_e *MockQueueLister_Expecter) GetQueue(ctx interface{}, roomId interface{}, userId interface{}, page interface{}, limit interface{}) *MockQueueLister_GetQueue_Call {
+	return &MockQueueLister_GetQueue_Call{Call: _e.mock.On("GetQueue", ctx, roomId, userId, page, limit)}
 }
 
-func (_c *MockQueueLister_GetQueue_Call) Run(run func(ctx context.Context, roomId uuid.UUID, userId uuid.UUID)) *MockQueueLister_GetQueue_Call {
+func (_c *MockQueueLister_GetQueue_Call) Run(run func(ctx context.Context, roomId uuid.UUID, userId uuid.UUID, page int, limit int)) *MockQueueLister_GetQueue_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID), args[3].(int), args[4].(int))
 	})
 	return _c
 }
 
-func (_c *MockQueueLister_GetQueue_Call) Return(_a0 []services.QueueItemEnriched, _a1 error) *MockQueueLister_GetQueue_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *MockQueueLister_GetQueue_Call) Return(_a0 []services.QueueItemEnriched, _a1 int, _a2 error) *MockQueueLister_GetQueue_Call {
+	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *MockQueueLister_GetQueue_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) ([]services.QueueItemEnriched, error)) *MockQueueLister_GetQueue_Call {
+func (_c *MockQueueLister_GetQueue_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, int, int) ([]services.QueueItemEnriched, int, error)) *MockQueueLister_GetQueue_Call {
 	_c.Call.Return(run)
 	return _c
 }

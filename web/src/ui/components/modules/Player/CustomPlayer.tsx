@@ -13,7 +13,8 @@ import MinVolume from '@/assets/icons/Player/volume-min.svg'
 import MutedVolume from '@/assets/icons/Player/volume-muted.svg'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { usePlayerControls } from '@/lib/hooks/usePlayerControls'
-import { usePlayerStore } from '@/stores/player.store'
+import { usePlayerHotkeys } from '@/lib/hooks/usePlayerHotkeys'
+import { usePlayerPlayStore, usePlayerStore } from '@/stores/player.store'
 
 import Duration from './Duration'
 
@@ -44,9 +45,12 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     playerRef.current = player
   }, [])
 
+  const triggerEnded = usePlayerPlayStore(state => state.triggerEnded)
+  const togglePlay = usePlayerPlayStore(state => state.togglePlay)
+  const playing = usePlayerPlayStore(state => state.playing)
+
   const initialState = {
     pip: false,
-    playing: false,
     light: false,
     muted: false,
     played: 0,
@@ -64,7 +68,27 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   const [state, setState] = useState<PlayerState>(initialState)
 
-  const { playing, light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings } = state
+  const { light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings } = state
+
+  useEffect(() => {
+    setState(prev => ({
+      ...prev,
+      played: 0,
+      loaded: 0,
+      duration: 0,
+      loadedSeconds: 0,
+      playedSeconds: 0,
+    }))
+  }, [videoUrl])
+
+  usePlayerHotkeys({
+    playerRef,
+    hideTimeoutRef,
+    duration,
+    togglePlay,
+    setShowCustomControls,
+    setState,
+  })
 
   const handlePlayPause = (e: React.MouseEvent) => {
     if (showSettings) {
@@ -75,7 +99,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       }
     }
 
-    setState(prevState => ({ ...prevState, playing: !prevState.playing }))
+    togglePlay()
   }
 
   const handleSetPlaybackRate = (event: React.SyntheticEvent<HTMLButtonElement>) => {
@@ -237,7 +261,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   if (!isMounted)
     return (
-      <div className="aspect-video bg-black w-full h-full rounded-2xl flex items-center justify-center">
+      <div className="aspect-video bg-black w-full rounded-2xl flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
       </div>
     )
@@ -282,6 +306,9 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         }}
         onPlay={() => setState(prev => ({ ...prev, playing: true }))}
         onPause={() => setState(prev => ({ ...prev, playing: false }))}
+        onEnded={() => {
+          triggerEnded()
+        }}
       />
 
       {/* Overlay */}

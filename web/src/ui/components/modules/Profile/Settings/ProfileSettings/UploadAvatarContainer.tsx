@@ -10,10 +10,12 @@ import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from
 
 import { uploadNewUserPhoto } from '@/app/api/user'
 import { serverLog } from '@/lib/utils/utils'
+import { useProfileStore } from '@/stores/profile.store'
 import { useToastStore } from '@/stores/toast-store'
 import Button from '@/ui/components/shared/Button'
 
 export default function UploadAvatarContainer() {
+  const setLoading = useProfileStore(state => state.setLoading)
   const { data: session, update } = useSession()
   const router = useRouter()
   const addToast = useToastStore(state => state.addToast)
@@ -35,8 +37,25 @@ export default function UploadAvatarContainer() {
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const { width, height } = e.currentTarget
-    const initialCrop = centerCrop(makeAspectCrop({ unit: '%', width: 90 }, 1, width, height), width, height)
+
+    const cropSizeInPixels = Math.min(width, height) * 0.9
+
+    const initialCrop = centerCrop(
+      makeAspectCrop(
+        {
+          unit: 'px',
+          width: cropSizeInPixels,
+        },
+        1,
+        width,
+        height,
+      ),
+      width,
+      height,
+    )
+
     setCrop(initialCrop)
+    setCompletedCrop(initialCrop)
   }
 
   const handleUpload = async () => {
@@ -45,8 +64,8 @@ export default function UploadAvatarContainer() {
     const canvas = document.createElement('canvas')
     const scaleX = imgRef.current.naturalWidth / imgRef.current.width
     const scaleY = imgRef.current.naturalHeight / imgRef.current.height
-    canvas.width = completedCrop.width
-    canvas.height = completedCrop.height
+    canvas.width = Math.floor(completedCrop.width * scaleX)
+    canvas.height = Math.floor(completedCrop.height * scaleY)
     const ctx = canvas.getContext('2d')
 
     if (ctx) {
@@ -58,8 +77,8 @@ export default function UploadAvatarContainer() {
         completedCrop.height * scaleY,
         0,
         0,
-        completedCrop.width,
-        completedCrop.height,
+        canvas.width,
+        canvas.height,
       )
 
       canvas.toBlob(async blob => {
@@ -67,6 +86,7 @@ export default function UploadAvatarContainer() {
 
         startTransition(async () => {
           try {
+            setLoading(true)
             const file = new File([blob], 'avatar.png', { type: 'image/png' })
             const formData = new FormData()
             formData.append('file', file)
@@ -81,6 +101,8 @@ export default function UploadAvatarContainer() {
           } catch (error) {
             serverLog('upload error', error)
             addToast('Upload failed', 'error')
+          } finally {
+            setLoading(false)
           }
         })
       }, 'image/png')
@@ -92,7 +114,16 @@ export default function UploadAvatarContainer() {
       <input type="file" ref={fileInputRef} onChange={onSelectFile} accept="image/*" className="hidden" />
 
       {!imgSrc ? (
-        <Button viewType="confirm" className="rounded-xl font-medium" onClick={() => fileInputRef.current?.click()}>
+        <Button
+          viewType="confirm"
+          className="rounded-xl font-medium"
+          onClick={() => {
+            if (fileInputRef.current) {
+              fileInputRef.current.value = ''
+              fileInputRef.current.click()
+            }
+          }}
+        >
           Upload new avatar
         </Button>
       ) : (

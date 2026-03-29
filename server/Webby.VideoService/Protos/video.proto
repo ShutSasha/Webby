@@ -1,0 +1,13 @@
+﻿syntax = "proto3";
+
+option csharp_namespace="Webby.VideoService.VideoGrpcServer";
+
+import "google/protobuf/wrappers.proto";
+
+service VideoGrpcService {
+  rpc CheckVideoExists (CheckVideoExistRequest) returns (google.protobuf.BoolValue);
+}
+
+message CheckVideoExistRequest{
+  string videoId = 1;
+}

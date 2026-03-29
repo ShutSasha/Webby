@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Jwt;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Services;
@@ -16,27 +17,60 @@ public class PlaylistController : ControllerBase
    {
       _playlistService = playlistService;
    }
-
+   
    [HttpGet("{userId:guid}")]
    [SwaggerOperation("Get user playlists")]
-   public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistDto>>>> GetUserPlaylists(
+   public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistPreviewDto>>>> GetUserPlaylists(
       [FromRoute] Guid userId,
-      [FromQuery] int page = 1,
-      [FromQuery] int pageSize = 10)
+      [FromQuery] SearchOptions searchOptions,
+      [FromQuery] string? videoId)
    {
-      var result = await _playlistService.GetUserPlaylists(userId, page, pageSize);
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
 
-      return Ok(ApiResponse<PagedResponse<PlaylistDto>>.Ok(
+      Guid? videoIdGuid = null;
+
+      if (!string.IsNullOrWhiteSpace(videoId) && Guid.TryParse(videoId, out var parsedVideoId))
+      {
+         videoIdGuid = parsedVideoId;
+      }
+
+      var result = await _playlistService
+         .GetUserPlaylists(
+            requestUserId,
+            videoIdGuid,
+            userId,
+            searchOptions);
+
+      return Ok(ApiResponse<PagedResponse<PlaylistPreviewDto>>.Ok(
          "Successfully retrieved user playlists",
          result));
+   }
+   
+   [HttpGet("{playlistId:guid}/videos/{videoId:guid}/exists")]
+   public async Task<ActionResult<ApiResponse<bool>>> CheckIfVideoExists([FromRoute] Guid playlistId, Guid videoId)
+   {
+      var checkVideoExistResult = await _playlistService.CheckIfVideoExistInPlaylist(playlistId, videoId);
+      return Ok(ApiResponse<bool>.Ok("Successfully retrieve information",checkVideoExistResult));
    }
 
    [HttpGet("{playlistId:guid}/details")]
    [SwaggerOperation("Get playlist information")]
    public async Task<ActionResult<ApiResponse<GetPlaylistResponse>>> GetPlaylistInformation([FromRoute] Guid playlistId)
    {
-      var playlistInformation = await _playlistService.GetPlaylistInformation(playlistId);
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var playlistInformation = await _playlistService.GetPlaylistInformation(playlistId, requestUserId);
       return Ok(ApiResponse<GetPlaylistResponse>.Ok("Successfully retrieved playlist information", playlistInformation));
+   }
+   
+   
+   [HttpGet("search")]
+   [SwaggerOperation("Search playlists route")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<SearchPlaylistDto>>>> SearchPlaylists(
+      [FromQuery] SearchOptions searchOptions)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var searchPlaylistsResponse = await _playlistService.SearchPlaylists(requestUserId,searchOptions);
+      return Ok(ApiResponse<PagedResponse<SearchPlaylistDto>>.Ok("Successfully retrieved public playlists",searchPlaylistsResponse));
    }
    
    [HttpPost]
@@ -53,17 +87,19 @@ public class PlaylistController : ControllerBase
    [SwaggerOperation("Add or delete videos in playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> AddVideoToPlaylist([FromBody] AddVideoToPlaylistRequest request)
    {
-      await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds);
-      return Ok(ApiResponse.Ok("Successfully added videos to playlist"));
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      
+      await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds, requestUserId.Value);
+      return Ok(ApiResponse.Ok("Successfully update playlist"));
    }
 
    [HttpPatch]
    [SwaggerOperation("Update playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse<PlaylistDto>>> UpdatePlaylist([FromBody] UpdatePlaylistRequest request)
    {
-      var updatePlaylistResult = await _playlistService.UpdatePlaylist(request);
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      var updatePlaylistResult = await _playlistService.UpdatePlaylist(userId.Value,request);
       return Ok(ApiResponse<PlaylistDto>.Ok("Successfully updated playlist", updatePlaylistResult));
-      
    }
    
    [HttpDelete("{playlistId:guid}")]
@@ -74,5 +110,6 @@ public class PlaylistController : ControllerBase
       await _playlistService.DeletePlaylist(userId.Value, playlistId);
       return Ok(ApiResponse.Ok("Successfully delete playlist"));
    }
+   
    
 }

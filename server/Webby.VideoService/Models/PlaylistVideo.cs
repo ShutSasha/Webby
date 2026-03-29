@@ -6,4 +6,5 @@ public class PlaylistVideo
    public Playlist Playlist { get; set; }
    public Guid VideoId { get; set; }
    public Video Video{ get; set; }
+   public DateTime CreatedAt { get; set; }
 }

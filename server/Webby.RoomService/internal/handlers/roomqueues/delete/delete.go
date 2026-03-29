@@ -30,6 +30,8 @@ func New(logger *slog.Logger, deleter Deleter) http.Handler {
 // @Description  * Only **room members** can remove items from the queue
 // @Description  **Security Note:**
 // @Description  * This action **requires authentication**
+// @Description  **PAY ATTENTION:**
+// @Description  * ONLY A SEPARATE VIDEO OR THE PLAYLIST ITSELF CAN BE DELETED, THE VIDEO FROM THE PLAYLIST CAN NOT BE DELETED SEPARATELY**
 // @Tags         Room Queue
 // @Produce      json
 // @Param        id path string true "Room ID (UUID v4 format)"

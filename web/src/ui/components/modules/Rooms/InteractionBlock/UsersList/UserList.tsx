@@ -25,7 +25,7 @@ export default function UserList({ initialUsers }: { initialUsers: User[] }) {
       <div className="relative group mb-2">
         <SearchIcon
           className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500
-            group-focus-within:text-emerald-500 transition-colors"
+            group-focus-within:text-emerald-500 transition-colors stroke-[1.5px]"
         />
         <input
           type="text"

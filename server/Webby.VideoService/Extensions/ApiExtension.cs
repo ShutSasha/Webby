@@ -3,11 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using UserService;
 using Webby.VideoService.Data;
+using Webby.VideoService.Helpers.Queue;
 using Webby.VideoService.Helpers.Storage;
+using Webby.VideoService.Interfaces.Helpers;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Repositories;
 using Webby.VideoService.Services;
+using Webby.VideoService.Services.Background;
 
 namespace Webby.VideoService.Extensions;
 
@@ -86,6 +89,9 @@ public static class ApiExtension
 
    public static void AddServices(this IServiceCollection serviceCollection)
    {
+      serviceCollection.AddScoped<VideoUploadProcessor>();
+      serviceCollection.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+      serviceCollection.AddHostedService<QueuedHostedService>();
       serviceCollection.AddScoped<IPlaylistService, PlaylistService>();
       serviceCollection.AddScoped<ITagService, TagService>();
       serviceCollection.AddScoped<IVideoService,Services.VideoService>();
@@ -102,7 +108,7 @@ public static class ApiExtension
    {
       serviceCollection.AddGrpcClient<UserGrpcService.UserGrpcServiceClient>(o =>
       {
-         o.Address = new Uri("http://localhost:5002");
+         o.Address = new Uri("http://localhost:5004");
       });
    }
 }

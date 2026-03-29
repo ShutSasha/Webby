@@ -27,6 +27,12 @@ export function parseAxiosError(error: unknown): Record<string, string> {
   return { global: 'Unknown server error' }
 }
 
+export function extractServerMessage(errors: Record<string, string> | null | undefined): string | undefined {
+  if (!errors) return undefined
+
+  return errors.global || errors.message || Object.values(errors)[0]
+}
+
 export const serverLog = (label: string, error: any, detailed?: boolean) => {
   if (!(error instanceof AxiosError)) {
     console.log(`\n=== [${label}] Non-Axios Error ===`)

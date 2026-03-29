@@ -1,17 +1,19 @@
 import { Suspense } from 'react'
 
-import PageToggle from '../PageToggle'
 import Search from '../Search'
 
 type Props = {
   searchPlaceholder: string
+  pageToggle: React.ReactNode
   actionSlot?: React.ReactNode
 }
 
-export default function MediaHeader({ searchPlaceholder, actionSlot }: Props) {
+export default function MediaHeader({ searchPlaceholder, pageToggle, actionSlot }: Props) {
   return (
-    <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-4">
-      <PageToggle />
+    <div
+      className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 pb-4 border-b border-neutral-800/60"
+    >
+      {pageToggle}
       <Suspense>
         <Search
           placeholder={searchPlaceholder}
