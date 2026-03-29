@@ -10,7 +10,7 @@ import { useResendTimer } from '@/lib/hooks/useResendTimer'
 import { parseAxiosError } from '@/lib/utils/utils'
 import { useCommonStore } from '@/stores/common.store'
 
-import { Slot } from '../../modules/SignUp/EmailVerifyPage'
+import { Slot } from '../../SignUp/EmailVerifyPage'
 
 export default function CodeStep() {
   const forgotPasswordEmail = useCommonStore(state => state.forgotPasswordEmail)

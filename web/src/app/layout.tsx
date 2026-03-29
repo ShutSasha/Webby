@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
-import ToastContainer from '@/ui/components/common/Toast/ToastContainer'
-import Providers from '@/ui/components/Providers/Providers'
+import ToastContainer from '@/ui/components/modules/Toast/ToastContainer'
+import Providers from '@/ui/components/providers/Providers'
 import { inter } from '@/ui/fonts'
 import './globals.css'
 

@@ -8,7 +8,7 @@ import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
 import { benefitsList } from '@/lib/placeholder-data/home-page'
 import { clog, serverLog } from '@/lib/utils/utils'
 import { useToastStore } from '@/stores/toast-store'
-import MainLayout from '@/ui/components/MainLayout'
+import MainLayout from '@/ui/components/layouts/MainLayout'
 import Button from '@/ui/components/shared/Button'
 
 import $api from './api'
@@ -75,6 +75,7 @@ export default function Home() {
         >
           TEST BUTTON
         </button>
+
         <div className="bg-neutral-900 rounded-[20px] p-5">
           <ul className="flex flex-wrap justify-center sm:flex-row sm:flex-nowrap sm:justify-between mb-5 gap-2">
             {benefitsList.map((benefit, index) => (

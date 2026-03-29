@@ -1,5 +1,5 @@
 import { testVideoUrls } from '@/lib/placeholder-data/player'
-import MainLayout from '@/ui/components/MainLayout'
+import MainLayout from '@/ui/components/layouts/MainLayout'
 import CustomPlayer from '@/ui/components/modules/Player/CustomPlayer'
 import RoomInteractionContainer from '@/ui/components/modules/Rooms/InteractionBlock/RoomInteractionContainer'
 

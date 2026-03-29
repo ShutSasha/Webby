@@ -9,7 +9,7 @@ import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import RepeatPasswordIcon from '@/assets/auth/ic_repeat_password.svg'
 import UsernameIcon from '@/assets/auth/ic_username.svg'
-import AuthInput from '@/components/AuthInput'
+import AuthInput from '@/ui/components/modules/Auth/AuthInput'
 import Button from '@/ui/components/shared/Button'
 
 import AuthSocialButtons from '../Login/OAuthButtons'

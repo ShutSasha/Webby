@@ -10,8 +10,8 @@ import { cn } from '@/lib/utils/utils'
 
 import { DesktopNavElement } from './NavElements'
 import { UserProfile } from './UserProfile'
-import Search from '../../Search'
 import Modal from '../../shared/Modal'
+import Search from '../../shared/Search'
 
 export default function DesktopNav() {
   const [isExpanded, setIsExpanded] = useState<boolean>(false)

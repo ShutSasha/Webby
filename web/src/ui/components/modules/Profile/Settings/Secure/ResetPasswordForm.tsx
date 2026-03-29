@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { changePassworddAction } from '@/app/api/auth'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import { useToastStore } from '@/stores/toast-store'
-import AuthInput from '@/ui/components/AuthInput'
+import AuthInput from '@/ui/components/modules/Auth/AuthInput'
 import Button from '@/ui/components/shared/Button'
 
 const initialState = {

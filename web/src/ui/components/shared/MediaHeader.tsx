@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import Search from '../Search'
+import Search from './Search'
 
 type Props = {
   searchPlaceholder: string

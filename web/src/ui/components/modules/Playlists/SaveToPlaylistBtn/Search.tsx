@@ -2,7 +2,7 @@
 import { ChangeEvent, useState } from 'react'
 
 import SearchIcon from '@/assets/icons/ic_search.svg'
-import Input from '@/ui/components/Input'
+import Input from '@/ui/components/shared/Input'
 
 type Props = {
   handleSearchChange: (value: string) => void
