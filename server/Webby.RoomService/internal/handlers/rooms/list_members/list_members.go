@@ -21,29 +21,18 @@ func New(logger *slog.Logger, memberLister MemberLister) http.Handler {
 	return errorWrapper.MakeHandler(logger, listMembers(logger, memberLister))
 }
 
-// listMembers godoc
-// @Summary      List room members
-// @Description  Retrieve a paginated list of members for a specific room.
-// @Description  **Query Parameter Validation:**
-// @Description  * `page`: **optional** (default: 1), must be >= 1, must be numeric
-// @Description  * `limit`: **optional** (default: 10), must be 1-100, must be numeric
-// @Description  * `search`: **optional**, filters members by username (case-insensitive partial match)
-// @Description  **Path Parameter Validation:**
-// @Description  * `id`: must be a valid UUID v4 format
-// @Description  **Security Note:**
-// @Description  * This action **requires authentication**
-// @Tags         Rooms
-// @Produce      json
-// @Param        id path string true "Room ID (UUID v4 format)"
-// @Param        page query int false "Page number (default: 1)" minimum(1)
-// @Param        limit query int false "Items per page (default: 10, max: 100)" minimum(1) maximum(100)
-// @Param        search query string false "Search members by username (optional, case-insensitive)"
-// @Success      200 {object} docs.ApiResponse[PaginatedResponse[RoomMemberItem]] "Room members successfully retrieved"
-// @Failure      400 {object} docs.Error400Response "Invalid UUID format or query parameters"
-// @Failure      401 {object} docs.Error401Response "Missing or invalid authentication token"
-// @Failure      500 {object} docs.Error500Response "Internal server error"
-// @Security     BearerAuth
-// @Router       /rooms/{id}/members [get]
+// @Title List room members
+// @Description Retrieve a paginated list of members for a specific room. Supports optional search by username.
+// @Param  id      path   string  true   "Room ID (UUID v4 format)"
+// @Param  page    query  int     false  "Page number (default: 1)"
+// @Param  limit   query  int     false  "Items per page (default: 10, max: 100)"
+// @Param  search  query  string  false  "Search members by username (case-insensitive)"
+// @Success  200  object docs.MemberListApiResponse  "Room members successfully retrieved"
+// @Failure  400  object docs.ErrorResponse  "Invalid UUID format or query parameters"
+// @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
+// @Failure  500  object docs.ErrorResponse  "Internal server error"
+// @Resource Rooms
+// @Route /api/rooms/{id}/members [get]
 func listMembers(logger *slog.Logger, memberLister MemberLister) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.rooms.listMembers"))
 

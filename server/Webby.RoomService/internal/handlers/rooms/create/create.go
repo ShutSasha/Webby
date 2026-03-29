@@ -24,29 +24,18 @@ func New(logger *slog.Logger, creator Creator) http.Handler {
 	return errorWrapper.MakeHandler(logger, createRoom(logger, creator))
 }
 
-// createRoom godoc
-// @Summary      Create a new room
-// @Description  Create a new room with a name, **category ID**, privacy setting, and optional **thumbnail**.
-// @Description  **Validation Rules:**
-// @Description  * `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only
-// @Description  * `categoryId`: **required**, must be a valid UUID v4 format
-// @Description  * `isPrivate`: **required**, must be valid boolean ("true" or "false")
-// @Description  * `thumbnail`: optional file upload, max 2MB
-// @Description  **Security Note:**
-// @Description  * This action **requires authentication**
-// @Tags         Rooms
-// @Accept       multipart/form-data
-// @Produce      json
-// @Param        name formData string true "Room name (2-50 chars, required, non-whitespace)" minlength(2) maxlength(50)
-// @Param        categoryId formData string true "Category ID (required)" format(uuid)
-// @Param        isPrivate formData string true "Visibility flag (required): 'true' or 'false'"
-// @Param        thumbnail formData file false "Room thumbnail image (optional, max 2MB)"
-// @Success      201 {object} docs.ApiResponse[docs.RoomResponse] "Room successfully created"
-// @Failure      400 {object} docs.Error400Response "Invalid input: name empty/too short/too long, invalid categoryId UUID, invalid isPrivate boolean, file too large or missing required fields"
-// @Failure      401 {object} docs.Error401Response "Missing or invalid authentication token"
-// @Failure      500 {object} docs.Error500Response "Internal server error"
-// @Security     BearerAuth
-// @Router       /rooms [post]
+// @Title Create a new room
+// @Description Create a new room with a name, category ID, privacy setting, and optional thumbnail.
+// @Param  name       form  string  true   "Room name (2-50 chars, required, non-whitespace)"
+// @Param  categoryId form  string  true   "Category ID (UUID v4, required)"
+// @Param  isPrivate  form  string  true   "Visibility flag: 'true' or 'false'"
+// @Param  thumbnail  file  file    false  "Room thumbnail image (optional, max 2MB)"
+// @Success  201  object docs.RoomApiResponse  "Room successfully created"
+// @Failure  400  object docs.ErrorResponse  "Invalid input"
+// @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
+// @Failure  500  object docs.ErrorResponse  "Internal server error"
+// @Resource Rooms
+// @Route /api/rooms [post]
 func createRoom(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.rooms.create"))
 

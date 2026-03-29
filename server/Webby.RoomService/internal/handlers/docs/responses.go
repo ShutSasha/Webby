@@ -1,66 +1,84 @@
 package docs
 
-import "github.com/google/uuid"
+// ErrorResponse is the standard error response shape.
+type ErrorResponse struct {
+	Success bool              `json:"success" example:"false"`
+	Message string            `json:"message" example:"An error occurred"`
+	Errors  map[string]string `json:"errors,omitempty"`
+	Data    *string           `json:"data" example:"null"`
+}
 
-type ApiResponse[T any] struct {
+// SuccessResponse is a generic success wrapper (no typed data).
+type SuccessResponse struct {
 	Success bool   `json:"success" example:"true"`
 	Message string `json:"message" example:"Operation completed successfully"`
-	Data    *T     `json:"data,omitempty"`
-	Errors  string `json:"errors" example:"null" extensions:"x-nullable"`
 }
 
-type PaginatedResponse[T any] struct {
-	Items []T `json:"items"`
-	Page  int `json:"page" example:"1"`
-	Limit int `json:"limit" example:"10"`
-	Total int `json:"total" example:"100"`
+// --- Room ---
+
+type RoomResponse struct {
+	Id         string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name       string `json:"name" example:"Room Name"`
+	CategoryId string `json:"categoryId" example:"123e4567-e89b-12d3-a456-426614174000"`
+	IsPrivate  bool   `json:"isPrivate" example:"false"`
+	HostId     string `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Thumbnail  string `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
+	Token      string `json:"token" example:"abc123def456ghij"`
 }
 
-type Error400Response struct {
-	Success bool              `json:"success" example:"false"`
-	Message string            `json:"message" example:"Validation failed"`
-	Errors  map[string]string `json:"errors" example:"name:Name must be at least 2 characters"`
-	Data    string            `json:"data" example:"null" extensions:"x-nullable"`
+type RoomApiResponse struct {
+	Success bool          `json:"success" example:"true"`
+	Message string        `json:"message" example:"Room created"`
+	Data    *RoomResponse `json:"data,omitempty"`
 }
 
-type Error401Response struct {
-	Success bool              `json:"success" example:"false"`
-	Message string            `json:"message" example:"Unauthorized"`
-	Errors  map[string]string `json:"errors" example:"message:Missing or invalid token"`
-	Data    string            `json:"data" example:"null" extensions:"x-nullable"`
+type RoomListItem struct {
+	Id         string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name       string `json:"name" example:"Room Name"`
+	CategoryId string `json:"categoryId" example:"123e4567-e89b-12d3-a456-426614174000"`
+	IsPrivate  bool   `json:"isPrivate" example:"false"`
+	HostId     string `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Thumbnail  string `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
+	Token      string `json:"token" example:"abc123def456ghij"`
 }
 
-type Error403Response struct {
-	Success bool              `json:"success" example:"false"`
-	Message string            `json:"message" example:"Forbidden"`
-	Errors  map[string]string `json:"errors" example:"message:Admin only"`
-	Data    string            `json:"data" example:"null" extensions:"x-nullable"`
+type RoomListApiResponse struct {
+	Success bool             `json:"success" example:"true"`
+	Message string           `json:"message" example:"Rooms retrieved"`
+	Data    *RoomListPagData `json:"data,omitempty"`
 }
 
-type Error404Response struct {
-	Success bool              `json:"success" example:"false"`
-	Message string            `json:"message" example:"Not found"`
-	Errors  map[string]string `json:"errors" example:"message:Object not found"`
-	Data    string            `json:"data" example:"null" extensions:"x-nullable"`
+type RoomListPagData struct {
+	Items []RoomListItem `json:"items"`
+	Page  int            `json:"page" example:"1"`
+	Limit int            `json:"pageSize" example:"10"`
+	Total int            `json:"totalCount" example:"100"`
 }
 
-type Error409Response struct {
-	Success bool              `json:"success" example:"false"`
-	Message string            `json:"message" example:"Conflict"`
-	Errors  map[string]string `json:"errors" example:"message:Object already exists"`
-	Data    string            `json:"data" example:"null" extensions:"x-nullable"`
-}
-
-type Error500Response struct {
-	Success bool              `json:"success" example:"false"`
-	Message string            `json:"message" example:"Internal server error"`
-	Errors  map[string]string `json:"errors" example:"message:Database connection lost"`
-	Data    string            `json:"data" example:"null" extensions:"x-nullable"`
-}
+// --- Category ---
 
 type CategoryResponse struct {
-	Id   uuid.UUID `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
-	Name string    `json:"name" example:"Gaming"`
+	Id   string `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Name string `json:"name" example:"Gaming"`
+}
+
+type CategoryApiResponse struct {
+	Success bool              `json:"success" example:"true"`
+	Message string            `json:"message" example:"Category created"`
+	Data    *CategoryResponse `json:"data,omitempty"`
+}
+
+type CategoryListApiResponse struct {
+	Success bool                 `json:"success" example:"true"`
+	Message string               `json:"message" example:"Categories retrieved"`
+	Data    *CategoryListPagData `json:"data,omitempty"`
+}
+
+type CategoryListPagData struct {
+	Items []CategoryResponse `json:"items"`
+	Page  int                `json:"page" example:"1"`
+	Limit int                `json:"pageSize" example:"10"`
+	Total int                `json:"totalCount" example:"100"`
 }
 
 type CreateCategoryRequest struct {
@@ -71,38 +89,37 @@ type UpdateCategoryRequest struct {
 	Name string `json:"name" validate:"required,min=2,max=50" example:"Education"`
 }
 
-type RoomResponse struct {
-	Id         uuid.UUID `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Name       string    `json:"name" example:"Room Name"`
-	CategoryId uuid.UUID `json:"categoryId" example:"123e4567-e89b-12d3-a456-426614174000"`
-	IsPrivate  bool      `json:"isPrivate" example:"false"`
-	HostId     uuid.UUID `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Thumbnail  string    `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
-	Token      string    `json:"token" example:"abc123def456ghij"`
-}
-
-type RoomListItem struct {
-	Id         uuid.UUID `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Name       string    `json:"name" example:"Room Name"`
-	CategoryId uuid.UUID `json:"categoryId" example:"123e4567-e89b-12d3-a456-426614174000"`
-	IsPrivate  bool      `json:"isPrivate" example:"false"`
-	HostId     uuid.UUID `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Thumbnail  string    `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
-	Token      string    `json:"token" example:"abc123def456ghij"`
-}
-
-type CreateRoomRequest struct {
-	Name       string    `json:"name" validate:"required,min=2,max=100" example:"My Room"`
-	CategoryId uuid.UUID `json:"categoryId" validate:"required" example:"123e4567-e89b-12d3-a456-426614174000"`
-	IsPrivate  bool      `json:"isPrivate" example:"false"`
-}
+// --- Room Members ---
 
 type RoomMemberItem struct {
-	UserId     uuid.UUID `json:"userId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Username   string    `json:"username" example:"JohnDoe"`
-	AvatarUrl  string    `json:"avatarUrl" example:"https://example.com/avatar.jpg"`
-	RoomPoints int       `json:"roomPoints" example:"100"`
+	UserId     string `json:"userId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Username   string `json:"username" example:"JohnDoe"`
+	AvatarUrl  string `json:"avatarUrl" example:"https://example.com/avatar.jpg"`
+	RoomPoints int    `json:"roomPoints" example:"100"`
 }
+
+type MemberListApiResponse struct {
+	Success bool               `json:"success" example:"true"`
+	Message string             `json:"message" example:"Members retrieved"`
+	Data    *MemberListPagData `json:"data,omitempty"`
+}
+
+type MemberListPagData struct {
+	Items []RoomMemberItem `json:"items"`
+	Page  int              `json:"page" example:"1"`
+	Limit int              `json:"pageSize" example:"10"`
+	Total int              `json:"totalCount" example:"100"`
+}
+
+type AddMemberRequest struct {
+	UserId string `json:"userId" validate:"required,uuid4" example:"550e8400-e29b-41d4-a716-446655440000"`
+}
+
+type GetByTokenRequest struct {
+	Token string `json:"token" validate:"required,notblank" example:"abc123def456ghij"`
+}
+
+// --- Queue ---
 
 type AddQueueItemRequest struct {
 	EntityId   string `json:"entityId" validate:"required,uuid4" example:"550e8400-e29b-41d4-a716-446655440000"`
@@ -110,22 +127,28 @@ type AddQueueItemRequest struct {
 }
 
 type QueueItemResponse struct {
-	Id         uuid.UUID `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	EntityId   uuid.UUID `json:"entityId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	EntityType string    `json:"entityType" example:"video"`
-	IsActive   bool      `json:"isActive" example:"false"`
+	Id         string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	EntityId   string `json:"entityId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	EntityType string `json:"entityType" example:"video"`
+	IsActive   bool   `json:"isActive" example:"false"`
+}
+
+type QueueItemApiResponse struct {
+	Success bool               `json:"success" example:"true"`
+	Message string             `json:"message" example:"Item added to queue"`
+	Data    *QueueItemResponse `json:"data,omitempty"`
 }
 
 type QueueVideoChild struct {
-	Id         uuid.UUID `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Title      string    `json:"title" example:"Episode 1: Home Alone"`
-	Thumbnail  string    `json:"thumbnail" example:"https://example.com/thumb.jpg"`
-	VideoUrl   string    `json:"videoUrl" example:"https://example.com/video.mp4"`
+	Id        string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Title     string `json:"title" example:"Episode 1: Home Alone"`
+	Thumbnail string `json:"thumbnail" example:"https://example.com/thumb.jpg"`
+	VideoUrl  string `json:"videoUrl" example:"https://example.com/video.mp4"`
 }
 
 type QueueItemDetailResponse struct {
-	Id            uuid.UUID         `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	EntityId      uuid.UUID         `json:"entityId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Id            string            `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	EntityId      string            `json:"entityId" example:"550e8400-e29b-41d4-a716-446655440000"`
 	EntityType    string            `json:"entityType" example:"video"`
 	Title         string            `json:"title" example:"Fears to Fathom: Ironbark Lookout"`
 	Thumbnail     string            `json:"thumbnail" example:"https://example.com/thumb.jpg"`
@@ -134,4 +157,17 @@ type QueueItemDetailResponse struct {
 	IsFolder      bool              `json:"isFolder" example:"false"`
 	TotalChildren int               `json:"totalChildren" example:"5"`
 	Children      []QueueVideoChild `json:"children,omitempty"`
+}
+
+type QueueListApiResponse struct {
+	Success bool              `json:"success" example:"true"`
+	Message string            `json:"message" example:"Queue retrieved"`
+	Data    *QueueListPagData `json:"data,omitempty"`
+}
+
+type QueueListPagData struct {
+	Items []QueueItemDetailResponse `json:"items"`
+	Page  int                       `json:"page" example:"1"`
+	Limit int                       `json:"pageSize" example:"10"`
+	Total int                       `json:"totalCount" example:"100"`
 }

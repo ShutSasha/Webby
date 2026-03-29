@@ -18,9 +18,8 @@ import (
 	listMembers "webby/internal/handlers/rooms/list_members"
 	listMy "webby/internal/handlers/rooms/list_my"
 	listPublic "webby/internal/handlers/rooms/list_public"
+	removeMember "webby/internal/handlers/rooms/remove_member"
 	"webby/internal/handlers/rooms/update"
-
-	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type RoomService interface {
@@ -32,6 +31,7 @@ type RoomService interface {
 	update.Updater
 	delete.Deleter
 	listMembers.MemberLister
+	removeMember.MemberRemover
 }
 
 type CategoryService interface {
@@ -61,10 +61,11 @@ func addRoutes(
 
 	mux.HandleFunc("GET /swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		http.ServeFile(w, r, "./docs/swagger.json")
+		http.ServeFile(w, r, "./docs/oas.json")
 	})
 
-	mux.Handle("/swagger/", httpSwagger.Handler(
-		httpSwagger.URL("/swagger/doc.json"),
-	))
+	mux.HandleFunc("GET /swagger/doc.yaml", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/x-yaml")
+		http.ServeFile(w, r, "./docs/oas.yml")
+	})
 }

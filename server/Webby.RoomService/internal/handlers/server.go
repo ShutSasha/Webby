@@ -7,8 +7,6 @@ import (
 	"webby/pkg/http/middleware"
 	"webby/pkg/http/middleware/cors"
 	loggerMw "webby/pkg/http/middleware/logger"
-
-	_ "webby/docs"
 )
 
 func NewServer(

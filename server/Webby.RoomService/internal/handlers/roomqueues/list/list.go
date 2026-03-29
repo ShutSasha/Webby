@@ -22,40 +22,26 @@ func New(logger *slog.Logger, lister QueueLister) http.Handler {
 	return errorWrapper.MakeHandler(logger, listQueue(logger, lister))
 }
 
-// listQueue godoc
-// @Summary      Get room queue
-// @Description  Retrieve the playback queue for a room with enriched media data.
-// @Description  Pagination is based on individual videos: standalone videos count as 1, each video inside a playlist counts as 1.
-// @Description  Playlists are returned with their `children` truncated to the videos that fall within the current page.
-// @Description  **Query Parameter Validation:**
-// @Description  * `page`: **optional** (default: 1), must be >= 1, must be numeric
-// @Description  * `limit`: **optional** (default: 10), must be 1-100, must be numeric
-// @Description  **Path Parameter Validation:**
-// @Description  * `id`: must be a valid UUID v4 format (room ID)
-// @Description  **Access Rules:**
-// @Description  * Only **room members** can view the queue
-// @Description  **Security Note:**
-// @Description  * This action **requires authentication**
-// @Tags         Room Queue
-// @Produce      json
-// @Param        id path string true "Room ID (UUID v4 format)"
-// @Param        page query int false "Page number (default: 1)" minimum(1)
-// @Param        limit query int false "Items per page (default: 10, max: 100)" minimum(1) maximum(100)
-// @Success      200 {object} docs.ApiResponse[docs.PaginatedResponse[docs.QueueItemDetailResponse]] "Queue successfully retrieved"
-// @Failure      400 {object} docs.Error400Response "Invalid UUID format or invalid query parameters"
-// @Failure      401 {object} docs.Error401Response "Missing or invalid authentication token"
-// @Failure      403 {object} docs.Error403Response "Access denied - only room members can view the queue"
-// @Failure      500 {object} docs.Error500Response "Internal server error"
-// @Security     BearerAuth
-// @Router       /rooms/{id}/queue [get]
+// @Title Get room queue
+// @Description Retrieve the playback queue for a room with enriched media data. Pagination is based on individual videos. Only room members can view the queue.
+// @Param  id     path   string  true   "Room ID (UUID v4 format)"
+// @Param  page   query  int     false  "Page number (default: 1)"
+// @Param  limit  query  int     false  "Items per page (default: 10, max: 100)"
+// @Success  200  object docs.QueueListApiResponse  "Queue successfully retrieved"
+// @Failure  400  object docs.ErrorResponse  "Invalid UUID or query parameters"
+// @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
+// @Failure  403  object docs.ErrorResponse  "Access denied"
+// @Failure  500  object docs.ErrorResponse  "Internal server error"
+// @Resource RoomQueue
+// @Route /api/rooms/{id}/queue [get]
 func listQueue(logger *slog.Logger, lister QueueLister) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.roomqueues.list"))
 
 	type videoChild struct {
-		Id         uuid.UUID `json:"id"`
-		Title      string    `json:"title"`
-		Thumbnail  string    `json:"thumbnail"`
-		VideoUrl   string    `json:"videoUrl"`
+		Id        uuid.UUID `json:"id"`
+		Title     string    `json:"title"`
+		Thumbnail string    `json:"thumbnail"`
+		VideoUrl  string    `json:"videoUrl"`
 	}
 
 	type queueItemResponse struct {
@@ -131,10 +117,10 @@ func listQueue(logger *slog.Logger, lister QueueLister) errorWrapper.APIFunc {
 				children := make([]videoChild, 0, len(item.Children))
 				for _, c := range item.Children {
 					children = append(children, videoChild{
-						Id:         c.Id,
-						Title:      c.Title,
-						Thumbnail:  c.Thumbnail,
-						VideoUrl:   c.VideoUrl,
+						Id:        c.Id,
+						Title:     c.Title,
+						Thumbnail: c.Thumbnail,
+						VideoUrl:  c.VideoUrl,
 					})
 				}
 				entry.Children = children

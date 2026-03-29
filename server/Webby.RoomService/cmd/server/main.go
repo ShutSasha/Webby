@@ -27,12 +27,12 @@ const (
 	envProd  = "prod"
 )
 
-// @title           Webby.RoomService
-// @version         1.0
-// @description     This API provides endpoints for managing rooms and categories.
-// @BasePath        /api/
-// @securityDefinitions.bearerAuth BearerAuth
-// @description Enter your JWT token (Bearer prefix is added automatically).
+// @Version 1.0
+// @Title Webby.RoomService
+// @Description This API provides endpoints for managing rooms and categories.
+// @Server http://localhost:8080 Local
+// @Security BearerAuth
+// @SecurityScheme BearerAuth http bearer Enter your JWT token
 func main() {
 	ctx := context.Background()
 
