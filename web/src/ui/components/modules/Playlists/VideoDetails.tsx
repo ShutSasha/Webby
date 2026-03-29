@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+import LockIcon from '@/assets/icons/shared/lock.svg'
 import { checkVideoInPlaylist } from '@/lib/actions/playlist.actions'
 import { getVideoInfo } from '@/lib/actions/video.actions'
 import { BLUR_DATA_URLS } from '@/ui/images'
@@ -36,15 +37,27 @@ export default async function VideoDetails({ v, userId, playlistId }: Props) {
     return <VideoNotFound />
   }
 
-  const { videoId, description, createdAt, views, name, user, videoUrl } = video.data
+  const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate } = video.data
   const isOwner = userId === user.userId
+
+  if (isPrivate) {
+    return <VideoNotFound />
+  }
 
   return (
     <div className="h-fit min-w-0 w-full">
       <CustomPlayer videoUrl={videoUrl} />
 
-      <div className="flex items-center justify-between mt-3 mb-2">
-        <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
+      <div className="flex items-start justify-between mt-3 mb-2">
+        <div className="flex flex-col gap-0.5">
+          <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
+          {isPrivate && (
+            <div className="bg-black/40 py-0.5 px-2 rounded-sm flex items-center gap-1 w-fit">
+              <LockIcon className="size-3 text-neutral-500" />
+              <p className="text-neutral-500 text-[12px]">Private</p>
+            </div>
+          )}
+        </div>
         <div className="flex gap-3 items-center">
           {userId && <SaveToPlaylistButton userId={userId} videoId={videoId} />}
 
