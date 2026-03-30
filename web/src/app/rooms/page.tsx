@@ -1,4 +1,4 @@
-import { ALLOWED_ROOM_TABS, ROOM_TABS_CONFIG, RoomTabValue } from '@/lib/constants/rooms.constants'
+import { ALLOWED_ROOM_TABS, ROOM_TABS_CONFIG, RoomTabValue } from '@/lib/constants/room.constants'
 import MainLayout from '@/ui/components/layouts/MainLayout'
 import RoomCard from '@/ui/components/modules/Rooms/RoomCard'
 import RoomPageHeader from '@/ui/components/modules/Rooms/RoomPageHeader'
