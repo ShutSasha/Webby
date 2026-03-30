@@ -1,9 +1,7 @@
 'use client'
 
-import { useCallback, useEffect } from 'react'
-
-import { SearchPlaylist, searchPlaylists } from '@/lib/actions/playlist.actions'
-import { useInfiniteSearch } from '@/lib/hooks/useInfiniteSearch'
+import { useSearchPlaylistsQuery } from '@/lib/hooks/api/playlist/useSearchPlaylists'
+import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 
 import PlaylistItem, { PlaylistItemSkeleton } from './PlaylistItem'
 import GridCardsContainer from '../../shared/GridCardsContainer'
@@ -12,29 +10,19 @@ type Props = {
   query: string
 }
 
-const PAGE_SIZE = 20
-
 export default function PlaylistPublicSearchContainer({ query }: Props) {
-  const fetchPlaylistsFn = useCallback((searchQuery: string, page: number, pageSize: number) => {
-    return searchPlaylists(searchQuery, page, pageSize)
-  }, [])
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchPlaylistsQuery(query)
 
-  const {
-    items: playlists,
-    loading,
-    fetchingMore,
-    lastElementRef,
-    searchImmediate,
-  } = useInfiniteSearch<SearchPlaylist>({
-    fetchFn: fetchPlaylistsFn,
-    pageSize: PAGE_SIZE,
+  const playlists = data?.pages.flatMap(page => page?.data?.items || []) || []
+
+  const lastElementRef = useInfiniteScroll({
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
   })
 
-  useEffect(() => {
-    searchImmediate(query)
-  }, [query, searchImmediate])
-
-  if (loading && playlists.length === 0) {
+  if (isLoading && playlists.length === 0) {
     return (
       <GridCardsContainer>
         {[...new Array(20)].map((_, idx) => (
@@ -44,7 +32,7 @@ export default function PlaylistPublicSearchContainer({ query }: Props) {
     )
   }
 
-  if (!loading && playlists.length === 0) {
+  if (!isLoading && playlists.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
         <p className="text-neutral-500 text-center">
@@ -83,7 +71,7 @@ export default function PlaylistPublicSearchContainer({ query }: Props) {
         })}
       </GridCardsContainer>
 
-      {fetchingMore && (
+      {isFetchingNextPage && (
         <div className="w-full flex justify-center py-8">
           <div className="size-6 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
         </div>
