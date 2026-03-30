@@ -571,6 +571,21 @@
       },
 
       {
+         "DownstreamPathTemplate": "/api/playlists/global-search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/global-search",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
          "DownstreamPathTemplate": "/api/videos/{videoId}",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
@@ -681,7 +696,21 @@
                "Port": 5003
             }
          ],
-         "UpstreamPathTemplate": "/api/videos",
+         "UpstreamPathTemplate": "/api/videos/search",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+      {
+         "DownstreamPathTemplate": "/api/videos/global-search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/global-search",
          "UpstreamHttpMethod": [
             "GET"
          ]
