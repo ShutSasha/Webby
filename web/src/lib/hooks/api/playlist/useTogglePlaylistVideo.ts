@@ -22,6 +22,10 @@ export const useTogglePlaylistVideoMutation = (userId: string) => {
       })
 
       queryClient.invalidateQueries({
+        queryKey: ['search-playlists'],
+      })
+
+      queryClient.invalidateQueries({
         queryKey: ['search-playlist-videos', variables.playlistId],
       })
     },

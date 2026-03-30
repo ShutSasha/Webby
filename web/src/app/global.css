@@ -90,7 +90,6 @@ body {
       @apply rounded-full border-0 bg-neutral-900;
     }
 
-
     &:hover::-webkit-scrollbar-thumb {
       @apply bg-neutral-800;
     }

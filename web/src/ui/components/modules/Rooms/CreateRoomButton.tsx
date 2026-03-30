@@ -8,7 +8,7 @@ export default function CreateRoomButton() {
   }
 
   return (
-    <MediaButton actionLabel="Create a room">
+    <MediaButton>
       <h3 className="text-neutral-300 text-center mb-2">Create a room</h3>
       <button className="bg-emerald-500 text-neutral-900" onClick={handleClick}>
         click me

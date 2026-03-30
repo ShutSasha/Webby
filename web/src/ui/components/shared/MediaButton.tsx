@@ -8,14 +8,14 @@ import { cn } from '@/lib/utils/general.utils'
 import Modal from './Modal'
 
 type MediaButtonProps = {
-  actionLabel: string
+  actionLabel?: string
   children?: React.ReactNode
   isOpen?: boolean
   setIsOpen?: (isOpen: boolean) => void
 }
 
 export default function MediaButton({
-  actionLabel,
+  actionLabel = 'Create',
   children,
   isOpen: externalIsOpen,
   setIsOpen: externalSetIsOpen,
@@ -30,15 +30,17 @@ export default function MediaButton({
     <>
       <button
         className={cn(
-          'flex items-center gap-2 shrink-0 cursor-pointer uppercase bg-emerald-500',
-          'transition-all duration-300 ease-out hover:bg-emerald-400 text-neutral-900',
-          'text-[13px] tracking-wide font-bold px-4 py-2 md:px-5 rounded-xl order-3',
-          'shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]',
+          'flex items-center gap-2 shrink-0 cursor-pointer order-3',
+          'bg-neutral-800 text-neutral-200',
+          'text-sm font-semibold px-5 py-2.5 rounded-full',
+          'transition-all duration-300 ease-out',
+          'hover:bg-neutral-700/40',
+          'shadow-none',
         )}
         onClick={() => setIsOpen(true)}
       >
-        <PlusIcon className="h-4 w-4 text-neutral-900" aria-hidden="true" />
-        {actionLabel}
+        <PlusIcon className="h-4 w-4 text-neutral-200" aria-hidden="true" />
+        <p>{actionLabel}</p>
       </button>
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         {children}

@@ -48,7 +48,7 @@ export default function SaveToPlaylistButton({ videoId, userId }: Props) {
   return (
     <>
       <ActionButton onClick={() => setIsOpen(true)} label="Add to playlist" btnClassName="self-end">
-        <PlusIcon className="size-4 text-emerald-500" />
+        <PlusIcon className="size-4" />
       </ActionButton>
       <Modal isOpen={isOpen} onClose={handleClose}>
         <div className="flex flex-col w-full gap-4">

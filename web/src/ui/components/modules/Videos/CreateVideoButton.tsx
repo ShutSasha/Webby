@@ -8,7 +8,7 @@ export default function CreateVideoButton() {
   }
 
   return (
-    <MediaButton actionLabel="Create a video">
+    <MediaButton>
       <h3 className="text-neutral-300 text-center mb-2">Create a video</h3>
       <button className="bg-emerald-500 text-neutral-900" onClick={handleClick}>
         click me

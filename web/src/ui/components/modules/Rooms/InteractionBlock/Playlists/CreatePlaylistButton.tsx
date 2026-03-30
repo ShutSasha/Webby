@@ -30,7 +30,7 @@ export default function CreatePlaylistButton() {
   }
 
   return (
-    <MediaButton actionLabel="Create a playlist" isOpen={isModalOpen} setIsOpen={setIsModalOpen}>
+    <MediaButton isOpen={isModalOpen} setIsOpen={setIsModalOpen}>
       <form className="flex flex-col" onSubmit={handleSubmit}>
         <h3 className="text-neutral-300 text-center mb-4 font-semibold text-xl">Create a new playlist</h3>
 

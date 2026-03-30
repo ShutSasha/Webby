@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import ToastContainer from '@/ui/components/modules/Toast/ToastContainer'
 import Providers from '@/ui/components/providers/Providers'
 import { inter } from '@/ui/fonts'
-import './globals.css'
+
+import './global.css'
 
 export const metadata: Metadata = {
   title: 'Webby',

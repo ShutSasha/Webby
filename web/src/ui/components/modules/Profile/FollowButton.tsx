@@ -39,7 +39,7 @@ export default function FollowButton({ targetUserId, initialIsFollowing, current
       onClick={handleFollow}
       disabled={isPending}
       className={cn(
-        'flex items-center gap-2 px-4 py-[9px] rounded-full font-medium transition-all duration-300 cursor-pointer',
+        'flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-300 cursor-pointer',
         {
           'bg-neutral-800 text-neutral-400 hover:bg-red-500/10 hover:text-red-500': isFollowing && !isPending,
           'bg-emerald-500 text-neutral-900 hover:bg-emerald-400': !isFollowing && !isPending,

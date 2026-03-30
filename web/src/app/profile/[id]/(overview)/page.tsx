@@ -1,8 +1,8 @@
 import { Suspense } from 'react'
 
-import ProfileTab from '@/ui/components/modules/Profile/ProfileTab'
 import UserPlaylists, { UserPlaylistsSkeleton } from '@/ui/components/modules/Profile/UserPlaylists'
 import UserVideos, { UserVideosSkeleton } from '@/ui/components/modules/Profile/UserVideos'
+import AnimatedTabs from '@/ui/components/shared/AnimatedTabs'
 
 type ProfileProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -15,12 +15,22 @@ export default async function Profile({ searchParams }: ProfileProps) {
   const { tab } = await searchParams
   const currentTab = allowedTabs.includes(tab as Tab) ? tab : 'Video'
 
+  const profileTabs = [
+    {
+      label: 'Video',
+      href: '?tab=Video',
+      isActive: currentTab === 'Video',
+    },
+    {
+      label: 'Playlist',
+      href: '?tab=Playlist',
+      isActive: currentTab === 'Playlist',
+    },
+  ]
+
   return (
     <div className="bg-neutral-900 rounded-[20px] p-5 flex flex-col gap-5">
-      <div className="flex gap-2 items-center">
-        <ProfileTab label="Video" />
-        <ProfileTab label="Playlist" />
-      </div>
+      <AnimatedTabs tabs={profileTabs} layoutId="profile-tabs" linkClassName="py-1" />
 
       {currentTab === 'Video' && (
         <Suspense fallback={<UserVideosSkeleton />}>
