@@ -12,7 +12,7 @@ import { useToastStore } from '@/stores/toast-store'
 import MainLayout from '@/ui/components/layouts/MainLayout'
 import Button from '@/ui/components/shared/Button'
 
-import $api from '../lib/api/api.config'
+import $api from '../lib/config/api.config'
 
 // TODO: return server component
 export default function Home() {
