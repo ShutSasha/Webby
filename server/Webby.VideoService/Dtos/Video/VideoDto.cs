@@ -1,4 +1,6 @@
-﻿using Webby.VideoService.Dtos.User;
+﻿using System.Text.Json.Serialization;
+using Webby.VideoService.Dtos.User;
+using Webby.VideoService.Helpers.Converters;
 using Webby.VideoService.Models.Enums;
 using Webby.VideoService.Services.Background;
 
@@ -16,6 +18,8 @@ public class VideoDto
    public required bool IsPrivate { get; set; }
    public DateTime CreatedAt { get; set; }
    public VideoStatus VideoUploadStatus { get; set; }
+   
+   [JsonConverter(typeof(TimeSpanToStringConverter))]
    public TimeSpan Duration { get; set; }
    public string? VideoUrl { get; set; }
    public List<string>? VideoTags { get; set; }

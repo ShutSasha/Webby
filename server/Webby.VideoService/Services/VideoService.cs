@@ -277,44 +277,82 @@ public class VideoService : IVideoService
    }
 
    public async Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchVideoOptions options)
+{
+   if (options.SearchPlatform == SearchPlatforms.YouTube)
    {
-
-      if (options.SearchPlatform == SearchPlatforms.YouTube)
-      {
-         var youtubeResponse = await _youtubeSearchService.SearchAsync(options);
-         return youtubeResponse;
-      }
-
-      if (options.SearchPlatform == SearchPlatforms.Twitch)
-      {
-         var twitchResponse = await _twitchSearchService.SearchAsync(options);
-         return twitchResponse;
-      }
-      
-      var skip = (options.Page - 1) * options.PageSize;
-      var (additionalConditional, parameters, predicate) = VideoQueryFilters.SearchVideoFilter(requestUserId);
-      
-      var (videos, total) = await _videoRepository.SearchAsync(
-         "Videos",
-         "Name",
-         options.SearchText,
-         skip,
-         options.PageSize,
-         additionalConditional,
-         parameters,
-         predicateFactory: predicate
-         );
-
-      var items = videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();
-      
-      return new PagedResponse<VideoDto>
-      {
-         Items = items,
-         TotalCount = total,
-         Page = options.Page,
-         PageSize = options.PageSize
-      };
+      var youtubeResponse = await _youtubeSearchService.SearchAsync(options);
+      return youtubeResponse;
    }
+
+   if (options.SearchPlatform == SearchPlatforms.Twitch)
+   {
+      var twitchResponse = await _twitchSearchService.SearchAsync(options);
+      return twitchResponse;
+   }
+   
+   var skip = (options.Page - 1) * options.PageSize;
+   var (additionalConditional, parameters, predicate) = VideoQueryFilters.SearchVideoFilter(requestUserId);
+   
+   var (videos, total) = await _videoRepository.SearchAsync(
+      "Videos",
+      "Name",
+      options.SearchText,
+      skip,
+      options.PageSize,
+      additionalConditional,
+      parameters,
+      predicateFactory: predicate
+   );
+   
+   if (!videos.Any())
+   {
+       return new PagedResponse<VideoDto>
+       {
+           Items = new List<VideoDto>(),
+           TotalCount = total,
+           Page = options.Page,
+           PageSize = options.PageSize
+       };
+   }
+   
+   var userIds = videos
+      .Select(v => v.UserId.ToString())
+      .Distinct()
+      .ToList();
+   
+   var users = await _userClient.GetUsersByIdsAsync(new GetUsersRequest
+   { 
+       UserIds = { userIds } 
+   });
+
+   var usersDict = users.Users.ToDictionary(u => u.UserId, u => u);
+   
+   var items = videos.Select(v => 
+   {
+       var dto = _mapper.Map<VideoDto>(v);
+       
+       var currentUserIdStr = v.UserId.ToString();
+       if (usersDict.TryGetValue(currentUserIdStr, out var userInfo))
+       {
+           dto.User = new UserVideoDto
+           {
+               UserId = userInfo.UserId,
+               Username = userInfo.Username,
+               AvatarUrl = userInfo.AvatarUrl,
+           };
+       }
+
+       return dto;
+   }).ToList();
+   
+   return new PagedResponse<VideoDto>
+   {
+      Items = items,
+      TotalCount = total,
+      Page = options.Page,
+      PageSize = options.PageSize
+   };
+}
 
    public async Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId,Guid playlistId, SearchOptions searchOptions)
    {
