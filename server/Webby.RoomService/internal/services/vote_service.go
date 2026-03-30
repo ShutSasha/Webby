@@ -164,7 +164,6 @@ func (s *VoteService) computeWinner(vote *models.Vote, choices []models.VoteChoi
 		return &tied[0].Id
 	}
 
-	// Tiebreaker: host's vote counts as 2
 	hostChoiceId, _ := s.voteRepo.GetUserVoteForVote(vote.Id, room.HostId)
 	if hostChoiceId != nil {
 		for _, c := range tied {

@@ -172,8 +172,6 @@ type QueueListPagData struct {
 	Total int                       `json:"totalCount" example:"100"`
 }
 
-// --- Votes ---
-
 type CreateVoteRequest struct {
 	Type            string              `json:"type" validate:"required,oneof=poll next_video" example:"poll"`
 	VoteText        string              `json:"voteText" validate:"required,min=1,max=500" example:"What should we watch next?"`
