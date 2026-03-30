@@ -714,6 +714,19 @@
          "UpstreamHttpMethod": [
             "GET"
          ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/docs/notification-service/v1/swagger.json",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5006
+            }
+         ],
+         "UpstreamPathTemplate": "/notification/swagger/v1/swagger.json",
+         "UpstreamHttpMethod": [ "GET" ]
       }
    ],
    "GlobalConfiguration": {

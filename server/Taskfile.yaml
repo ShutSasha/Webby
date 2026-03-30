@@ -28,6 +28,13 @@ tasks:
       - |
         cd ./Webby.ApiGetaway
         dotnet run
+
+  run_notification_service:
+    desc: "Run the C# NotificationService"
+    cmds:
+      - |
+        cd ./Webby.NotificationService
+        dotnet run
   
   run_all:
     desc: "Run all services"
@@ -36,3 +43,4 @@ tasks:
       - run_api_getaway
       - run_user_service
       - run_video_service
+      - run_notification_service
