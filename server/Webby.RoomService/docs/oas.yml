@@ -171,8 +171,10 @@ components:
           type: boolean
       type: object
     QueueItemDetailResponse:
+      description: Enriched queue item with media metadata, playlist children, and position
       properties:
         children:
+          description: Child videos (only for playlist items)
           items:
             properties:
               id:
@@ -187,23 +189,35 @@ components:
               videoUrl:
                 example: https://example.com/video.mp4
                 type: string
+              queuePosition:
+                description: Ordinal number of this video within its parent playlist in the queue
+                example: 2
+                type: integer
             type: object
           type: array
         entityId:
           example: 550e8400-e29b-41d4-a716-446655440000
           type: string
         entityType:
+          description: "Type of media entity: 'video' or 'playlist'"
           example: video
           type: string
+          enum: [video, playlist]
         id:
           example: 550e8400-e29b-41d4-a716-446655440000
           type: string
         isActive:
+          description: Whether this item is currently playing
           example: true
           type: boolean
         isFolder:
+          description: True if item is a playlist containing child videos
           example: false
           type: boolean
+        position:
+          description: Ordinal position in the room queue (ascending)
+          example: 1
+          type: integer
         thumbnail:
           example: https://example.com/thumb.jpg
           type: string
@@ -211,26 +225,36 @@ components:
           example: 'Fears to Fathom: Ironbark Lookout'
           type: string
         totalChildren:
+          description: Total number of child videos (0 for single videos)
           example: 5
           type: integer
         videoUrl:
+          description: Direct video URL (empty for playlists)
           example: https://example.com/video.mp4
           type: string
       type: object
     QueueItemResponse:
+      description: Compact queue item returned when adding to queue
       properties:
         entityId:
           example: 550e8400-e29b-41d4-a716-446655440000
           type: string
         entityType:
+          description: "Type of media entity: 'video' or 'playlist'"
           example: video
           type: string
+          enum: [video, playlist]
         id:
           example: 550e8400-e29b-41d4-a716-446655440000
           type: string
         isActive:
+          description: Whether this item is currently playing
           example: false
           type: boolean
+        position:
+          description: Ordinal position in the room queue (ascending)
+          example: 3
+          type: integer
       type: object
     QueueListApiResponse:
       properties:
@@ -264,23 +288,34 @@ components:
                     videoUrl:
                       example: https://example.com/video.mp4
                       type: string
+                    queuePosition:
+                      description: Ordinal number of this video within its parent playlist in the queue
+                      example: 2
+                      type: integer
                   type: object
                 type: array
               entityId:
                 example: 550e8400-e29b-41d4-a716-446655440000
                 type: string
               entityType:
+                description: "Type of media entity: 'video' or 'playlist'"
                 example: video
                 type: string
               id:
                 example: 550e8400-e29b-41d4-a716-446655440000
                 type: string
               isActive:
+                description: Whether this item is currently playing
                 example: true
                 type: boolean
               isFolder:
+                description: True if item is a playlist containing child videos
                 example: false
                 type: boolean
+              position:
+                description: Ordinal position in the room queue (ascending)
+                example: 1
+                type: integer
               thumbnail:
                 example: https://example.com/thumb.jpg
                 type: string
@@ -288,9 +323,11 @@ components:
                 example: 'Fears to Fathom: Ironbark Lookout'
                 type: string
               totalChildren:
+                description: Total number of child videos (0 for single videos)
                 example: 5
                 type: integer
               videoUrl:
+                description: Direct video URL (empty for playlists)
                 example: https://example.com/video.mp4
                 type: string
             type: object
@@ -306,6 +343,7 @@ components:
           type: integer
       type: object
     QueueVideoChild:
+      description: A single video within a playlist queue item
       properties:
         id:
           example: 550e8400-e29b-41d4-a716-446655440000
@@ -319,6 +357,10 @@ components:
         videoUrl:
           example: https://example.com/video.mp4
           type: string
+        queuePosition:
+          description: Ordinal number of this video within its parent playlist in the queue
+          example: 2
+          type: integer
       type: object
     RoomApiResponse:
       properties:
@@ -523,20 +565,25 @@ components:
       - points
       type: object
     CreateVoteRequest:
+      description: Request body for creating a new vote in a room
       properties:
         type:
+          description: "Vote type: 'poll' — text poll created by host; 'next_video' — vote for the next queue item to play. For 'next_video' the winning choice's queue item is moved to the top of the queue"
           example: poll
           enum: [poll, next_video]
           type: string
         voteText:
+          description: Question or description shown to voters
           example: "What should we watch next?"
           type: string
         durationSeconds:
+          description: "Vote duration in seconds (60 = 1 min, 604800 = 7 days). After expiry the vote is closed and winner is computed"
           example: 3600
           type: integer
           minimum: 60
           maximum: 604800
         choices:
+          description: "List of choices (2–20). For 'next_video' type each choice should reference a queueItemId"
           type: array
           minItems: 2
           maxItems: 20
@@ -545,49 +592,62 @@ components:
       required: [type, voteText, durationSeconds, choices]
       type: object
     CreateChoiceInput:
+      description: A single choice option for a vote
       properties:
         name:
+          description: Display label for the choice
           example: "Option A"
           type: string
         isCorrect:
+          description: "Mark as the correct answer (only meaningful for 'poll' type)"
           example: false
           type: boolean
         queueItemId:
+          description: "Queue item UUID this choice refers to (required for 'next_video' type, null for 'poll')"
           example: "550e8400-e29b-41d4-a716-446655440000"
           type: string
           nullable: true
       required: [name]
       type: object
     CastVoteRequest:
+      description: Request body for casting a vote
       properties:
         choiceId:
+          description: UUID of the choice to vote for
           example: "550e8400-e29b-41d4-a716-446655440000"
           type: string
       required: [choiceId]
       type: object
     VoteChoiceDetail:
+      description: Detailed vote choice with vote count and percentage
       properties:
         id:
           example: "550e8400-e29b-41d4-a716-446655440000"
           type: string
         name:
+          description: Display label of this choice
           example: "Option A"
           type: string
         votes:
+          description: Number of users who selected this choice
           example: 5
           type: integer
         percentage:
+          description: Rounded percentage of total votes (0–100)
           example: 62.5
           type: number
         isCorrect:
+          description: Whether this choice is marked as the correct answer (poll type only)
           example: false
           type: boolean
         queueItemId:
+          description: "Associated queue item UUID (next_video type only, null for poll)"
           example: "550e8400-e29b-41d4-a716-446655440000"
           type: string
           nullable: true
       type: object
     VoteDetailResponse:
+      description: Full vote details including choices, percentages, expiry, and winner
       properties:
         id:
           example: "550e8400-e29b-41d4-a716-446655440000"
@@ -596,9 +656,12 @@ components:
           example: "550e8400-e29b-41d4-a716-446655440000"
           type: string
         type:
+          description: "Vote type: 'poll' (text poll) or 'next_video' (queue item selection). For 'next_video', the winner is moved to the top of the queue"
           example: poll
           type: string
+          enum: [poll, next_video]
         voteText:
+          description: Question displayed to room members
           example: "What should we watch next?"
           type: string
         createdAt:
@@ -606,27 +669,32 @@ components:
           type: string
           format: date-time
         durationSeconds:
+          description: Duration of the vote in seconds
           example: 3600
           type: integer
         expiresAt:
+          description: Computed expiry time (createdAt + durationSeconds)
           example: "2026-03-30T13:00:00Z"
           type: string
           format: date-time
         isExpired:
+          description: Whether the vote has passed its expiry time
           example: false
           type: boolean
         totalVotes:
+          description: Sum of all votes across all choices
           example: 8
           type: integer
         userVotedChoiceId:
+          description: Choice UUID the current user voted for (null if not voted)
           example: "550e8400-e29b-41d4-a716-446655440000"
           type: string
           nullable: true
         winnerId:
+          description: "Choice UUID of the winner (only set for expired 'next_video' votes). In a tie the host's vote counts double; if still tied the first candidate wins. The winning choice's queue item is moved to the top of the queue."
           example: "550e8400-e29b-41d4-a716-446655440000"
           type: string
           nullable: true
-          description: "Only set for next_video votes when expired. The winning choice ID (host vote = 2 in ties)."
         choices:
           type: array
           items:

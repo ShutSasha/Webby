@@ -129,8 +129,9 @@ type AddQueueItemRequest struct {
 type QueueItemResponse struct {
 	Id         string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
 	EntityId   string `json:"entityId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	EntityType string `json:"entityType" example:"video"`
-	IsActive   bool   `json:"isActive" example:"false"`
+	EntityType string `json:"entityType" example:"video" description:"Type of media entity: 'video' or 'playlist'"`
+	IsActive   bool   `json:"isActive" example:"false" description:"Whether this item is currently playing"`
+	Position   int    `json:"position" example:"3" description:"Ordinal position in the room queue (ascending)"`
 }
 
 type QueueItemApiResponse struct {
@@ -140,22 +141,24 @@ type QueueItemApiResponse struct {
 }
 
 type QueueVideoChild struct {
-	Id        string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Title     string `json:"title" example:"Episode 1: Home Alone"`
-	Thumbnail string `json:"thumbnail" example:"https://example.com/thumb.jpg"`
-	VideoUrl  string `json:"videoUrl" example:"https://example.com/video.mp4"`
+	Id            string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Title         string `json:"title" example:"Episode 1: Home Alone"`
+	Thumbnail     string `json:"thumbnail" example:"https://example.com/thumb.jpg"`
+	VideoUrl      string `json:"videoUrl" example:"https://example.com/video.mp4"`
+	QueuePosition int    `json:"queuePosition" example:"2" description:"Ordinal number of this video within its parent playlist in the queue"`
 }
 
 type QueueItemDetailResponse struct {
 	Id            string            `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
 	EntityId      string            `json:"entityId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	EntityType    string            `json:"entityType" example:"video"`
+	EntityType    string            `json:"entityType" example:"video" description:"Type of media entity: 'video' or 'playlist'"`
 	Title         string            `json:"title" example:"Fears to Fathom: Ironbark Lookout"`
 	Thumbnail     string            `json:"thumbnail" example:"https://example.com/thumb.jpg"`
-	VideoUrl      string            `json:"videoUrl" example:"https://example.com/video.mp4"`
-	IsActive      bool              `json:"isActive" example:"true"`
-	IsFolder      bool              `json:"isFolder" example:"false"`
-	TotalChildren int               `json:"totalChildren" example:"5"`
+	VideoUrl      string            `json:"videoUrl" example:"https://example.com/video.mp4" description:"Direct video URL (empty for playlists)"`
+	IsActive      bool              `json:"isActive" example:"true" description:"Whether this item is currently playing"`
+	IsFolder      bool              `json:"isFolder" example:"false" description:"True if item is a playlist containing child videos"`
+	Position      int               `json:"position" example:"1" description:"Ordinal position in the room queue (ascending)"`
+	TotalChildren int               `json:"totalChildren" example:"5" description:"Total number of child videos (0 for single videos)"`
 	Children      []QueueVideoChild `json:"children,omitempty"`
 }
 
@@ -173,43 +176,43 @@ type QueueListPagData struct {
 }
 
 type CreateVoteRequest struct {
-	Type            string              `json:"type" validate:"required,oneof=poll next_video" example:"poll"`
-	VoteText        string              `json:"voteText" validate:"required,min=1,max=500" example:"What should we watch next?"`
-	DurationSeconds int                 `json:"durationSeconds" validate:"required,min=60,max=604800" example:"3600"`
-	Choices         []CreateChoiceInput `json:"choices" validate:"required,min=2,max=20"`
+	Type            string              `json:"type" validate:"required,oneof=poll next_video" example:"poll" description:"Vote type: 'poll' — text poll created by host; 'next_video' — vote for the next queue item to play"`
+	VoteText        string              `json:"voteText" validate:"required,min=1,max=500" example:"What should we watch next?" description:"Question or description shown to voters"`
+	DurationSeconds int                 `json:"durationSeconds" validate:"required,min=60,max=604800" example:"3600" description:"Vote duration in seconds (60 = 1 min, 604800 = 7 days). After expiry the vote is closed and winner is computed"`
+	Choices         []CreateChoiceInput `json:"choices" validate:"required,min=2,max=20" description:"List of choices (2–20). For 'next_video' type each choice should reference a queueItemId"`
 }
 
 type CreateChoiceInput struct {
-	Name        string  `json:"name" example:"Option A"`
-	IsCorrect   bool    `json:"isCorrect" example:"false"`
-	QueueItemId *string `json:"queueItemId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name        string  `json:"name" example:"Option A" description:"Display label for the choice"`
+	IsCorrect   bool    `json:"isCorrect" example:"false" description:"Mark as the correct answer (only meaningful for 'poll' type)"`
+	QueueItemId *string `json:"queueItemId" example:"550e8400-e29b-41d4-a716-446655440000" description:"Queue item UUID this choice refers to (required for 'next_video' type, null for 'poll')"`
 }
 
 type CastVoteRequest struct {
-	ChoiceId string `json:"choiceId" validate:"required,uuid4" example:"550e8400-e29b-41d4-a716-446655440000"`
+	ChoiceId string `json:"choiceId" validate:"required,uuid4" example:"550e8400-e29b-41d4-a716-446655440000" description:"UUID of the choice to vote for"`
 }
 
 type VoteChoiceDetailResponse struct {
 	Id          string  `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Name        string  `json:"name" example:"Option A"`
-	Votes       int     `json:"votes" example:"5"`
-	Percentage  float64 `json:"percentage" example:"62.5"`
-	IsCorrect   bool    `json:"isCorrect" example:"false"`
-	QueueItemId *string `json:"queueItemId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name        string  `json:"name" example:"Option A" description:"Display label of this choice"`
+	Votes       int     `json:"votes" example:"5" description:"Number of users who selected this choice"`
+	Percentage  float64 `json:"percentage" example:"62.5" description:"Rounded percentage of total votes (0–100)"`
+	IsCorrect   bool    `json:"isCorrect" example:"false" description:"Whether this choice is marked as the correct answer (poll type only)"`
+	QueueItemId *string `json:"queueItemId" example:"550e8400-e29b-41d4-a716-446655440000" description:"Associated queue item UUID (next_video type only, null for poll)"`
 }
 
 type VoteDetailResponse struct {
 	Id                string                     `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
 	RoomId            string                     `json:"roomId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Type              string                     `json:"type" example:"poll"`
-	VoteText          string                     `json:"voteText" example:"What should we watch next?"`
+	Type              string                     `json:"type" example:"poll" description:"Vote type: 'poll' (text poll) or 'next_video' (queue item selection). For 'next_video', the winner is moved to the top of the queue"`
+	VoteText          string                     `json:"voteText" example:"What should we watch next?" description:"Question displayed to room members"`
 	CreatedAt         string                     `json:"createdAt" example:"2026-03-30T12:00:00Z"`
-	DurationSeconds   int                        `json:"durationSeconds" example:"3600"`
-	ExpiresAt         string                     `json:"expiresAt" example:"2026-03-30T13:00:00Z"`
-	IsExpired         bool                       `json:"isExpired" example:"false"`
-	TotalVotes        int                        `json:"totalVotes" example:"8"`
-	UserVotedChoiceId *string                    `json:"userVotedChoiceId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	WinnerId          *string                    `json:"winnerId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	DurationSeconds   int                        `json:"durationSeconds" example:"3600" description:"Duration of the vote in seconds"`
+	ExpiresAt         string                     `json:"expiresAt" example:"2026-03-30T13:00:00Z" description:"Computed expiry time (createdAt + durationSeconds)"`
+	IsExpired         bool                       `json:"isExpired" example:"false" description:"Whether the vote has passed its expiry time"`
+	TotalVotes        int                        `json:"totalVotes" example:"8" description:"Sum of all votes across all choices"`
+	UserVotedChoiceId *string                    `json:"userVotedChoiceId" example:"550e8400-e29b-41d4-a716-446655440000" description:"Choice UUID the current user voted for (null if not voted)"`
+	WinnerId          *string                    `json:"winnerId" example:"550e8400-e29b-41d4-a716-446655440000" description:"Choice UUID of the winner (only set for expired 'next_video' votes). In a tie the host's vote counts double; if still tied the first candidate wins"`
 	Choices           []VoteChoiceDetailResponse  `json:"choices"`
 }
 

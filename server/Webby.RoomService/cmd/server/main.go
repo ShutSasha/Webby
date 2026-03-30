@@ -74,7 +74,7 @@ func run(ctx context.Context, w io.Writer) error {
 	categoryService := services.NewCategoryService(categoryRepository)
 	queueItemService := services.NewQueueItemService(queueItemRepository, mediaClient, roomMemberRepository)
 	voteRepository := repository.NewVoteRepository(db)
-	voteService := services.NewVoteService(voteRepository, roomRepository, roomMemberRepository)
+	voteService := services.NewVoteService(voteRepository, roomRepository, roomMemberRepository, queueItemRepository)
 
 	logger.Info("repositories initialized")
 

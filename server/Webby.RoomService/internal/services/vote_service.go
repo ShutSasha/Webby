@@ -28,17 +28,23 @@ type RoomGetter interface {
 	GetById(id uuid.UUID) (*models.Room, error)
 }
 
-type VoteService struct {
-	voteRepo      VoteRepo
-	roomGetter    RoomGetter
-	memberChecker MemberChecker
+type QueueItemMover interface {
+	MoveToTop(id uuid.UUID) error
 }
 
-func NewVoteService(voteRepo VoteRepo, roomGetter RoomGetter, memberChecker MemberChecker) *VoteService {
+type VoteService struct {
+	voteRepo       VoteRepo
+	roomGetter     RoomGetter
+	memberChecker  MemberChecker
+	queueItemMover QueueItemMover
+}
+
+func NewVoteService(voteRepo VoteRepo, roomGetter RoomGetter, memberChecker MemberChecker, queueItemMover QueueItemMover) *VoteService {
 	return &VoteService{
-		voteRepo:      voteRepo,
-		roomGetter:    roomGetter,
-		memberChecker: memberChecker,
+		voteRepo:       voteRepo,
+		roomGetter:     roomGetter,
+		memberChecker:  memberChecker,
+		queueItemMover: queueItemMover,
 	}
 }
 
@@ -110,6 +116,14 @@ func (s *VoteService) enrichVote(vote *models.Vote, userId uuid.UUID) (*VoteDeta
 	var winnerId *uuid.UUID
 	if isExpired && vote.Type == "next_video" {
 		winnerId = s.computeWinner(vote, choices)
+		if winnerId != nil {
+			for _, c := range choices {
+				if c.Id == *winnerId && c.QueueItemId != nil {
+					_ = s.queueItemMover.MoveToTop(*c.QueueItemId)
+					break
+				}
+			}
+		}
 	}
 
 	return &VoteDetail{

@@ -38,10 +38,11 @@ func listQueue(logger *slog.Logger, lister QueueLister) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.roomqueues.list"))
 
 	type videoChild struct {
-		Id        uuid.UUID `json:"id"`
-		Title     string    `json:"title"`
-		Thumbnail string    `json:"thumbnail"`
-		VideoUrl  string    `json:"videoUrl"`
+		Id            uuid.UUID `json:"id"`
+		Title         string    `json:"title"`
+		Thumbnail     string    `json:"thumbnail"`
+		VideoUrl      string    `json:"videoUrl"`
+		QueuePosition int       `json:"queuePosition"`
 	}
 
 	type queueItemResponse struct {
@@ -53,6 +54,7 @@ func listQueue(logger *slog.Logger, lister QueueLister) errorWrapper.APIFunc {
 		VideoUrl      string       `json:"videoUrl"`
 		IsActive      bool         `json:"isActive"`
 		IsFolder      bool         `json:"isFolder"`
+		Position      int          `json:"position"`
 		TotalChildren int          `json:"totalChildren"`
 		Children      []videoChild `json:"children,omitempty"`
 	}
@@ -111,16 +113,18 @@ func listQueue(logger *slog.Logger, lister QueueLister) errorWrapper.APIFunc {
 				VideoUrl:      item.VideoUrl,
 				IsActive:      item.IsActive,
 				IsFolder:      item.IsFolder,
+				Position:      item.Position,
 				TotalChildren: item.TotalChildren,
 			}
 			if len(item.Children) > 0 {
 				children := make([]videoChild, 0, len(item.Children))
 				for _, c := range item.Children {
 					children = append(children, videoChild{
-						Id:        c.Id,
-						Title:     c.Title,
-						Thumbnail: c.Thumbnail,
-						VideoUrl:  c.VideoUrl,
+						Id:            c.Id,
+						Title:         c.Title,
+						Thumbnail:     c.Thumbnail,
+						VideoUrl:      c.VideoUrl,
+						QueuePosition: c.QueuePosition,
 					})
 				}
 				entry.Children = children

@@ -145,3 +145,44 @@ func (r *QueueItemRepository) ListByRoom(roomId uuid.UUID) ([]models.QueueItem, 
 
 	return items, nil
 }
+
+func (r *QueueItemRepository) MoveToTop(id uuid.UUID) error {
+	const op = "repository.QueueItemRepository.MoveToTop"
+
+	if id == uuid.Nil {
+		return fmt.Errorf("%s: %w: invalid queue item id", op, apperrors.ErrInvalidInput)
+	}
+
+	tx, err := r.db.Begin()
+	if err != nil {
+		return fmt.Errorf("%s: begin transaction: %w", op, err)
+	}
+	defer tx.Rollback()
+
+	var roomId uuid.UUID
+	err = tx.QueryRow(`SELECT room_id FROM queue_items WHERE id = $1`, id).Scan(&roomId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%s: queue item %s: %w", op, id.String(), apperrors.ErrNotFound)
+		}
+		return fmt.Errorf("%s: get room_id: %w", op, err)
+	}
+
+	var minPos int
+	err = tx.QueryRow(`SELECT COALESCE(MIN(position), 1) FROM queue_items WHERE room_id = $1`, roomId).Scan(&minPos)
+	if err != nil {
+		return fmt.Errorf("%s: get min position: %w", op, err)
+	}
+
+	newPos := minPos - 1
+	_, err = tx.Exec(`UPDATE queue_items SET position = $1 WHERE id = $2`, newPos, id)
+	if err != nil {
+		return fmt.Errorf("%s: update position: %w", op, err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("%s: commit: %w", op, err)
+	}
+
+	return nil
+}
