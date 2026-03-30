@@ -318,7 +318,6 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         onEnded={() => {
           triggerEnded()
         }}
-        onError={() => setPlaying(false)}
       />
 
       {/* Overlay */}

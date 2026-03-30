@@ -6,10 +6,22 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import MoreVertical from '@/assets/icons/shared/more-vertical.svg'
+import { formatTimeAgo } from '@/lib/utils/date.utils'
 import { cn } from '@/lib/utils/general.utils'
+import { formatViews } from '@/lib/utils/video.utils'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
-export default function VideoCard() {
+type Props = {
+  videoId: string
+  previewUrl: string
+  duration: string
+  title: string
+  creator: string
+  views: number
+  createAt: string
+}
+
+export default function VideoCard({ videoId, previewUrl, duration, title, creator, views, createAt }: Props) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -30,10 +42,10 @@ export default function VideoCard() {
   }
 
   return (
-    <Link href={`/videos/22f510be-a044-47b2-9710-7660caba5192`} className="group flex flex-col gap-3 cursor-pointer">
+    <Link href={`/videos/${videoId}`} className="group flex flex-col gap-3 cursor-pointer">
       <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-800">
         <Image
-          src="https://i.ibb.co/d4fJc7FX/anime-moon-landscape.jpg"
+          src={previewUrl}
           alt="Video thumbnail"
           fill
           loading="lazy"
@@ -47,13 +59,13 @@ export default function VideoCard() {
           className="absolute bottom-2 right-2 z-10 bg-black/80 px-1.5 py-0.5 rounded text-[11px] font-medium text-white
             tracking-wide"
         >
-          14:20
+          {duration}
         </div>
       </div>
 
       <div className="flex gap-3 items-start px-1">
         <Image
-          src="https://i.ibb.co/PsPPVfDL/thumb-1920-1311951.jpg"
+          src="https://i.ibb.co/PsPPVfDL/thumb-1920-1311951.jpg" // TODO: change to real user avatar Image
           alt="Creator avatar"
           width={36}
           height={36}
@@ -68,12 +80,14 @@ export default function VideoCard() {
               className="text-neutral-100 text-sm font-semibold leading-snug line-clamp-2 transition-colors duration-200
                 group-hover:text-emerald-400"
             >
-              Amazing Anime Moon Landscape Speedart - Full Process
+              {title}
             </h3>
 
             <div className="flex flex-col mt-1">
-              <p className="text-neutral-400 text-xs truncate hover:text-neutral-300 transition-colors">Creator Name</p>
-              <p className="text-neutral-500 text-[11px] truncate mt-0.5">12K views • 2 days ago</p>
+              <p className="text-neutral-400 text-xs truncate hover:text-neutral-300 transition-colors">{creator}</p>
+              <p className="text-neutral-500 text-[11px] truncate mt-0.5">
+                {formatViews(views)} • {formatTimeAgo(createAt)}
+              </p>
             </div>
           </div>
 
@@ -125,5 +139,38 @@ export default function VideoCard() {
         </div>
       </div>
     </Link>
+  )
+}
+
+export function VideoCardSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 w-full">
+      {/* Thumbnail Skeleton */}
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-800/80 animate-pulse" />
+
+      {/* Info Section Skeleton */}
+      <div className="flex gap-3 items-start px-1">
+        {/* Avatar Skeleton */}
+        <div className="size-9 rounded-full bg-neutral-800/80 shrink-0 mt-0.5 animate-pulse" />
+
+        {/* Text Content Skeleton */}
+        <div className="flex flex-1 flex-col justify-start gap-3 mt-0.5">
+          {/* Title Skeleton (2 lines to match line-clamp-2) */}
+          <div className="flex flex-col gap-1.5">
+            <div className="h-3.5 bg-neutral-800/80 rounded w-[90%] animate-pulse" />
+            <div className="h-3.5 bg-neutral-800/80 rounded w-[70%] animate-pulse" />
+          </div>
+
+          {/* Metadata Skeleton (Creator & Views/Time) */}
+          <div className="flex flex-col gap-1.5 mt-1">
+            <div className="h-2.5 bg-neutral-800/60 rounded w-[40%] animate-pulse" />
+            <div className="h-2.5 bg-neutral-800/60 rounded w-[50%] animate-pulse" />
+          </div>
+        </div>
+
+        {/* Placeholder for the MoreVertical button so the width stays exact */}
+        <div className="size-5 shrink-0" />
+      </div>
+    </div>
   )
 }

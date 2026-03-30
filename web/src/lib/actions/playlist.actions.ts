@@ -3,8 +3,7 @@
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse, Optional } from '@/types/general.types'
-
-import { Video } from './video.actions'
+import { Video } from '@/types/video.types'
 
 const endpoint = '/playlists'
 

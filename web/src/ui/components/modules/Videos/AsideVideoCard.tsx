@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { Video } from '@/lib/actions/video.actions'
+import { Video } from '@/types/video.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {
