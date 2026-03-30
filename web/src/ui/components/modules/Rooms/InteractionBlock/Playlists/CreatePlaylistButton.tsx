@@ -2,7 +2,7 @@
 import { ChangeEvent, FormEvent, useState } from 'react'
 
 import EditPenIcon from '@/assets/icons/shared/edit-pen.svg'
-import { useCreatePlaylist } from '@/lib/hooks/useCreatePlaylist'
+import { useCreatePlaylist } from '@/lib/hooks/api/playlist/useCreatePlaylist'
 import Button from '@/ui/components/shared/Button'
 import Input from '@/ui/components/shared/Input'
 import MediaButton from '@/ui/components/shared/MediaButton'

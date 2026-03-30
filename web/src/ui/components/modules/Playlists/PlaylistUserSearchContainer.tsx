@@ -1,9 +1,7 @@
 'use client'
 
-import { useCallback, useEffect } from 'react'
-
-import { BasePlaylist, searchUserPlaylists } from '@/lib/actions/playlist.actions'
-import { useInfiniteSearch } from '@/lib/hooks/useInfiniteSearch'
+import { useSearchUserPlaylistsQuery } from '@/lib/hooks/api/playlist/useSearchUserPlaylists'
+import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 
 import { PlaylistItemSkeleton } from './PlaylistItem'
 import UserPlaylistItem from './UserPlaylistItem'
@@ -14,32 +12,19 @@ type Props = {
   query: string
 }
 
-const PAGE_SIZE = 30
-
 export default function PlaylistUserSearchContainer({ userId, query }: Props) {
-  const fetchPlaylistsFn = useCallback(
-    (searchQuery: string, page: number, pageSize: number) => {
-      return searchUserPlaylists(userId, searchQuery, page, pageSize)
-    },
-    [userId],
-  )
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchUserPlaylistsQuery(userId, query)
 
-  const {
-    items: playlists,
-    loading,
-    fetchingMore,
-    lastElementRef,
-    searchImmediate,
-  } = useInfiniteSearch<BasePlaylist>({
-    fetchFn: fetchPlaylistsFn,
-    pageSize: PAGE_SIZE,
+  const playlists = data?.pages.flatMap(page => page?.data?.items || []) || []
+
+  const lastElementRef = useInfiniteScroll({
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
   })
 
-  useEffect(() => {
-    searchImmediate(query)
-  }, [query, searchImmediate])
-
-  if (loading && playlists.length === 0) {
+  if (isLoading && playlists.length === 0) {
     return (
       <GridCardsContainer>
         {[...new Array(20)].map((_, idx) => (
@@ -49,7 +34,7 @@ export default function PlaylistUserSearchContainer({ userId, query }: Props) {
     )
   }
 
-  if (!loading && playlists.length === 0) {
+  if (!isLoading && playlists.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
         <p className="text-neutral-500 text-center">
@@ -88,7 +73,7 @@ export default function PlaylistUserSearchContainer({ userId, query }: Props) {
         })}
       </GridCardsContainer>
 
-      {fetchingMore && (
+      {isFetchingNextPage && (
         <div className="w-full flex justify-center py-8">
           <div className="size-6 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
         </div>

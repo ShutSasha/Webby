@@ -134,7 +134,7 @@ export async function searchPlaylists(
   }
 }
 
-export type UserPlaylistsSearchData = PaginatedData<BasePlaylist>
+export type UserPlaylistsSearchData = PaginatedData<UserPlaylistDetails>
 
 export async function searchUserPlaylists(
   userId: string,

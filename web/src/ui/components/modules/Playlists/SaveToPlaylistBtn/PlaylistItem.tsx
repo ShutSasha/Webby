@@ -1,9 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import Image from 'next/image'
 
-import { togglePlaylistVideo } from '@/lib/actions/playlist.actions'
-import { extractServerMessage, serverLog } from '@/lib/utils/general.utils'
+import { useTogglePlaylistVideoMutation } from '@/lib/hooks/api/playlist/useTogglePlaylistVideo'
 import { useToastStore } from '@/stores/toast-store'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
@@ -14,44 +13,46 @@ type Props = {
   name: string
   count: number
   isVideoAdded: boolean
+  userId: string
 }
 
-export default function PlaylistItem({ videoId, playlistId, image, name, count, isVideoAdded }: Props) {
+export default function PlaylistItem({ videoId, playlistId, image, name, count, isVideoAdded, userId }: Props) {
   const addToast = useToastStore(state => state.addToast)
-  const [loading, setLoading] = useState(false)
-  const [isAdded, setIsAdded] = useState(isVideoAdded)
 
+  const [isAdded, setIsAdded] = useState(isVideoAdded)
   const [localCount, setLocalCount] = useState(count)
 
-  const toggleVideoInPlaylsit = async () => {
-    if (loading) return
+  useEffect(() => {
+    setIsAdded(isVideoAdded)
+    setLocalCount(count)
+  }, [isVideoAdded, count])
 
-    try {
-      setLoading(true)
-      const response = await togglePlaylistVideo(playlistId, videoId)
+  const { mutate: toggleVideo, isPending } = useTogglePlaylistVideoMutation(userId)
 
-      if (response.success) {
-        const newIsAdded = !isAdded
-        setIsAdded(newIsAdded)
+  const handleToggle = () => {
+    if (isPending) return
 
-        setLocalCount(prev => (newIsAdded ? prev + 1 : prev - 1))
-      } else {
-        const msg = extractServerMessage(response.errors)
-        addToast(msg ? msg : `Failed to update "${name}"`, 'error')
-      }
-    } catch (error) {
-      serverLog('toggle video in playlist error', error, true)
-      addToast('Something went wrong while toggle video in playlist', 'error')
-    } finally {
-      setLoading(false)
-    }
+    const newIsAdded = !isAdded
+    setIsAdded(newIsAdded)
+    setLocalCount(prev => (newIsAdded ? prev + 1 : prev - 1))
+
+    toggleVideo(
+      { playlistId, videoId },
+      {
+        onError: () => {
+          setIsAdded(!newIsAdded)
+          setLocalCount(prev => (!newIsAdded ? prev + 1 : prev - 1))
+          addToast(`Failed to update "${name}"`, 'error')
+        },
+      },
+    )
   }
 
   return (
     <div
       className={`flex items-center justify-between py-2 px-2.5 mr-1 transition-all duration-300 ease-in-out rounded-xl
-        group ${loading ? 'cursor-default opacity-60' : 'cursor-pointer hover:bg-neutral-800/50'}`}
-      onClick={toggleVideoInPlaylsit}
+        group ${isPending ? 'cursor-default opacity-60' : 'cursor-pointer hover:bg-neutral-800/50'}`}
+      onClick={handleToggle}
     >
       <div className="flex gap-4">
         <Image
@@ -72,7 +73,7 @@ export default function PlaylistItem({ videoId, playlistId, image, name, count, 
         </div>
       </div>
       <div className="flex items-center justify-center size-6 shrink-0 ml-3">
-        {loading ? (
+        {isPending ? (
           <div className="size-4 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
         ) : isAdded ? (
           <div
