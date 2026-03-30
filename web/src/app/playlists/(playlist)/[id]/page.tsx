@@ -46,6 +46,8 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
         playlistId={playlistId}
         hiddenVideosCount={hiddenVideosCount}
         playlistName={playlist.name}
+        authorId={playlist.userId}
+        guestUserId={session?.user.id}
       />
     </div>
   )

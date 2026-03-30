@@ -20,9 +20,17 @@ type Props = {
   playlistId: string
   hiddenVideosCount: number
   playlistName: string
+  authorId: string
+  guestUserId: string | undefined
 }
 
-export default function PlaylistQueueContainer({ playlistId, hiddenVideosCount, playlistName }: Props) {
+export default function PlaylistQueueContainer({
+  playlistId,
+  hiddenVideosCount,
+  playlistName,
+  authorId,
+  guestUserId,
+}: Props) {
   const searchParams = useSearchParams()
   const currentV = searchParams.get('v')
   const [optimisticId, setOptimisticId] = useState<string | null>(null)
@@ -94,6 +102,8 @@ export default function PlaylistQueueContainer({ playlistId, hiddenVideosCount, 
                     playlistId={playlistId}
                     optimisticId={optimisticId}
                     onOptimisticClick={() => setOptimisticId(video.videoId)}
+                    isOwner={guestUserId === authorId}
+                    userId={guestUserId || ''}
                   />
                 )
 
