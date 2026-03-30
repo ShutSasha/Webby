@@ -1,16 +1,26 @@
-import { getUserFollows } from '@/lib/actions/user.actions'
+'use client'
+
+import { useSession } from 'next-auth/react'
+
+import { useUserFollowsQuery } from '@/lib/hooks/api/user/useUserFollows'
 import EmptyState from '@/ui/components/shared/EmptyState'
 
 import FollowItem from './FollowItem'
+import { FollowsContainerSkeleton } from './FollowsContainerSkeleton'
 
 type Props = {
   id: string
 }
 
-export default async function FollowsContainer({ id }: Props) {
-  const follows = await getUserFollows(id)
+export default function FollowsContainer({ id }: Props) {
+  const { data: session } = useSession()
+  const { data: follows, isError, isLoading } = useUserFollowsQuery(id)
 
-  if (!follows.data || !follows.success) {
+  if (isLoading) {
+    return <FollowsContainerSkeleton />
+  }
+
+  if (isError) {
     return (
       <div className="flex flex-col h-full w-full">
         <EmptyState
@@ -21,9 +31,26 @@ export default async function FollowsContainer({ id }: Props) {
     )
   }
 
+  if (!follows || follows.length === 0) {
+    return (
+      <div className="flex flex-col h-full w-full">
+        <EmptyState title="No follows yet" description="This user doesn’t have any follows yet." />
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
-      {follows.data.length > 0 && follows.data.map(follow => <FollowItem key={follow.userId} {...follow} />)}
+      {follows.length > 0 &&
+        follows.map(follow => (
+          <FollowItem
+            key={follow.userId}
+            {...follow}
+            isFollow={true}
+            currentUserId={session?.user.id}
+            userProfileId={id}
+          />
+        ))}
     </div>
   )
 }

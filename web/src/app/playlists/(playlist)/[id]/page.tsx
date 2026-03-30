@@ -40,7 +40,7 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
   return (
     <div className="flex gap-5">
       <Suspense key={v} fallback={<PlayerSkeleton />}>
-        <VideoDetails userId={session?.user.id} v={v} playlistId={playlistId} />
+        <VideoDetails currentUserId={session?.user.id} v={v} playlistId={playlistId} />
       </Suspense>
       <PlaylistQueueContainer
         playlistId={playlistId}

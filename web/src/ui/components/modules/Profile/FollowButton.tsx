@@ -1,47 +1,36 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 import UserPlusIcon from '@/assets/icons/Profile/ic_user_plus.svg'
 import UserMinusIcon from '@/assets/icons/shared/minus.svg'
-import { toggleFollow } from '@/lib/actions/user.actions'
-import { cn, extractServerMessage } from '@/lib/utils/general.utils'
+import { useToggleFollowMutation } from '@/lib/hooks/api/user/useToggleFollow'
+import { cn } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
 
 interface Props {
   targetUserId: string
   initialIsFollowing: boolean
+  currentUserId?: string
 }
 
-export default function FollowButton({ targetUserId, initialIsFollowing }: Props) {
+export default function FollowButton({ targetUserId, initialIsFollowing, currentUserId }: Props) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing)
-  const [isPending, startTransition] = useTransition()
-  const router = useRouter()
   const addToast = useToastStore(state => state.addToast)
 
-  const handleFollow = async () => {
+  const { mutate: toggleFollow, isPending } = useToggleFollowMutation(currentUserId)
+
+  const handleFollow = () => {
+    if (isPending) return
+
     const prevStatus = isFollowing
     setIsFollowing(!prevStatus)
 
-    startTransition(async () => {
-      try {
-        const response = await toggleFollow(targetUserId)
-
-        if (response.success) {
-          router.refresh()
-          addToast(prevStatus ? 'Unfollowed user' : 'Following user', 'success')
-        } else {
-          setIsFollowing(prevStatus)
-          const msg = extractServerMessage(response.errors)
-
-          addToast(msg ?? 'Unexpected error while following', 'error')
-        }
-      } catch {
+    toggleFollow(targetUserId, {
+      onError: error => {
         setIsFollowing(prevStatus)
-        addToast('Something went wrong while following', 'error')
-      }
+        addToast(error.message || 'Something went wrong while following', 'error')
+      },
     })
   }
 

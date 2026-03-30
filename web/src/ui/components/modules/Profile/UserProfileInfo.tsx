@@ -53,13 +53,7 @@ export default async function UserProfileInfo({ id }: { id: string }) {
             loading="eager"
           />
 
-          <UserBioSection
-            userId={id}
-            username={userData.user.username}
-            bio={userData.user.about}
-            followersCount={userData.userFollowStats.followers}
-            followsCount={userData.userFollowStats.following}
-          />
+          <UserBioSection userId={id} initialUserData={userData} />
         </div>
 
         {!isOwner && (
@@ -68,7 +62,7 @@ export default async function UserProfileInfo({ id }: { id: string }) {
               <MailIcon className="w-4 h-4" />
             </ActionButton>
 
-            <FollowButton targetUserId={id} initialIsFollowing={isFollowing} />
+            <FollowButton targetUserId={id} initialIsFollowing={isFollowing} currentUserId={session?.user.id} />
           </div>
         )}
       </div>

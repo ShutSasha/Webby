@@ -8,7 +8,7 @@ import { User, UserFolowStats } from '@/types/user.types'
 
 const endpoint = '/users'
 
-type GetUserResponse = {
+export type GetUserResponse = {
   user: User
   userFollowStats: UserFolowStats
   pinnedUserAchievements: Achievement[]

@@ -19,7 +19,7 @@ export default async function VideoPage({ params }: Props) {
       <div className="flex flex-col w-full bg-neutral-900 rounded-[20px] p-5 gap-4 box-border">
         <div className="flex gap-5">
           <Suspense key={id} fallback={<PlayerSkeleton />}>
-            <VideoDetails v={id} userId={session?.user.id} />
+            <VideoDetails v={id} currentUserId={session?.user.id} />
           </Suspense>
 
           <div className="w-[418px] flex flex-col gap-3">

@@ -15,11 +15,11 @@ import VideoNotFound from '../Videos/VideoNotFound'
 
 type Props = {
   v: string | undefined
-  userId: string | undefined
+  currentUserId: string | undefined
   playlistId?: string
 }
 
-export default async function VideoDetails({ v, userId, playlistId }: Props) {
+export default async function VideoDetails({ v, currentUserId, playlistId }: Props) {
   if (!v) {
     return <VideoNotFound />
   }
@@ -38,7 +38,7 @@ export default async function VideoDetails({ v, userId, playlistId }: Props) {
   }
 
   const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate } = video.data
-  const isOwner = userId === user.userId
+  const isOwner = currentUserId === user.userId
 
   if (isPrivate && !isOwner) {
     return <VideoNotFound />
@@ -59,9 +59,9 @@ export default async function VideoDetails({ v, userId, playlistId }: Props) {
           )}
         </div>
         <div className="flex gap-3 items-center">
-          {userId && <SaveToPlaylistButton userId={userId} videoId={videoId} />}
+          {currentUserId && <SaveToPlaylistButton userId={currentUserId} videoId={videoId} />}
 
-          <ComplaintButton authorId={userId} targetId={videoId} targetType="Video" />
+          <ComplaintButton authorId={currentUserId} targetId={videoId} targetType="Video" />
         </div>
       </div>
 
@@ -79,7 +79,9 @@ export default async function VideoDetails({ v, userId, playlistId }: Props) {
           />
           <p className="text-[16px] font-medium">{user.username}</p>
         </Link>
-        {!isOwner && <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />}
+        {!isOwner && (
+          <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} currentUserId={currentUserId} />
+        )}
       </div>
 
       <VideoDescription text={description ?? ''} views={views} date={createdAt} />

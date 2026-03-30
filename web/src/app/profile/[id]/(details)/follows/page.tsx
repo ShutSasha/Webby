@@ -1,8 +1,5 @@
-import { Suspense } from 'react'
-
 import { getUser } from '@/lib/actions/user.actions'
 import FollowsContainer from '@/ui/components/modules/Profile/CommonFollow/FollowsContainer'
-import { FollowsContainerSkeleton } from '@/ui/components/modules/Profile/CommonFollow/FollowsContainerSkeleton'
 import { FollowsToggle } from '@/ui/components/modules/Profile/CommonFollow/FollowToggle'
 import HeaderNavigation from '@/ui/components/modules/Profile/CommonFollow/HeaderNavigation'
 import EmptyState from '@/ui/components/shared/EmptyState'
@@ -34,9 +31,7 @@ export default async function Follows({ params }: Props) {
 
       <hr className="border-emerald-400/50 mb-1" />
 
-      <Suspense fallback={<FollowsContainerSkeleton />}>
-        <FollowsContainer id={id} />
-      </Suspense>
+      <FollowsContainer id={id} />
     </div>
   )
 }
