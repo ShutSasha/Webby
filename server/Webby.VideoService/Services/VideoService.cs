@@ -354,11 +354,34 @@ public class VideoService : IVideoService
       };
    }
 
+   
+   //TODO: refactor global search method
    public async Task<GlobalSearchVideoResponse> GlobalSearchVideos(Guid? requestUserId, GlobalSearchOptions searchOptions)
    {
       if (searchOptions.SectionType is not (SearchSections.Playlists or SearchSections.Videos))
       {
          throw new ApiException("Global video search error",400,"Incorrect search section type");
+      }
+
+      if (searchOptions.SectionType == SearchSections.Streams)
+      {
+         var twitchStreams = await _twitchSearchService.SearchAsync(new SearchVideoOptions
+         {
+            Page = searchOptions.Page,
+            SearchPlatform = SearchPlatforms.Twitch,
+            SearchText = searchOptions.SearchText,
+            PageSize = 5
+         });
+
+         return new GlobalSearchVideoResponse()
+         {
+            TwitchStreams = new SearchSection<VideoDto>()
+            {
+               Items = twitchStreams.Items,
+               NextPageToken = twitchStreams.NextPageToken,
+               Page = searchOptions.Page
+            }
+         };
       }
       
       var skip = (searchOptions.Page - 1) * 5;
