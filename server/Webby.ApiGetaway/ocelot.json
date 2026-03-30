@@ -727,6 +727,105 @@
          ],
          "UpstreamPathTemplate": "/notification/swagger/v1/swagger.json",
          "UpstreamHttpMethod": [ "GET" ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/notifications/unread",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5006
+            }
+         ],
+         "UpstreamPathTemplate": "/api/notifications/unread",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/notifications/read",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5006
+            }
+         ],
+         "UpstreamPathTemplate": "/api/notifications/read",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/notifications/count",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5006
+            }
+         ],
+         "UpstreamPathTemplate": "/api/notifications/count",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/notifications/set-read-status",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5006
+            }
+         ],
+         "UpstreamPathTemplate": "/api/notifications/set-read-status",
+         "UpstreamHttpMethod": [
+            "POST"
+         ]
+      },
+      
+      {
+         "DownstreamPathTemplate": "/api/notifications",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5006
+            }
+         ],
+         "UpstreamPathTemplate": "/api/notifications",
+         "UpstreamHttpMethod": [
+            "POST","PATCH"
+         ],
+         "RouteClaimsRequirement": {
+            "Role": "Admin"
+         },
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/notifications/{notificationId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5006
+            }
+         ],
+         "UpstreamPathTemplate": "/api/notifications/{notificationId}",
+         "UpstreamHttpMethod": [
+            "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
       }
    ],
    "GlobalConfiguration": {
