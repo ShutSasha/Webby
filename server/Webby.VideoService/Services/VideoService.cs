@@ -2,6 +2,7 @@
 using UserService;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
@@ -352,6 +353,58 @@ public class VideoService : IVideoService
          _ => false 
       };
    }
+
+   public async Task<GlobalSearchVideoResponse> GlobalSearchVideos(Guid? requestUserId, GlobalSearchOptions searchOptions)
+   {
+      if (searchOptions.SectionType is not (SearchSections.Playlists or SearchSections.Videos))
+      {
+         throw new ApiException("Global video search error",400,"Incorrect search section type");
+      }
+      
+      var skip = (searchOptions.Page - 1) * 5;
+      var (additionalConditional, parameters, predicate) = VideoQueryFilters.SearchVideoFilter(requestUserId);
+
+      var webbySearchTask = _videoRepository.SearchAsync(
+         "Videos",
+         "Name",
+         searchOptions.SearchText,
+         skip,
+         searchOptions.PageSize,
+         additionalConditional,
+         parameters,
+         predicateFactory: predicate
+      );
+
+      var youtubeSearchTask = _youtubeSearchService.SearchAsync(new SearchVideoOptions
+      {
+         Page = searchOptions.Page,
+         PageSize = 5,
+         SearchPlatform = SearchPlatforms.YouTube,
+         SearchText = searchOptions.SearchText
+      });
+
+      await Task.WhenAll(webbySearchTask, youtubeSearchTask);
+
+      var (webbyVideos, total) = await webbySearchTask;
+      var youtubeVideos = await youtubeSearchTask;
+
+      return new GlobalSearchVideoResponse
+      {
+         WebbyVideos = new SearchSection<VideoDto>
+         {
+            Items = MapToDto(webbyVideos),
+            Page = searchOptions.Page,
+            TotalCount = total,
+         },
+         YouTubeVideos = new SearchSection<VideoDto>
+         {
+            Items = youtubeVideos.Items,
+            NextPageToken = youtubeVideos.NextPageToken,
+            Page = searchOptions.Page,
+            TotalCount = youtubeVideos.TotalCount
+         }
+      };
+   } 
 
    public async Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId)
    {

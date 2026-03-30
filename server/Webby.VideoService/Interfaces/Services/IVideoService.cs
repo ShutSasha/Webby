@@ -1,4 +1,5 @@
 ﻿using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Models;
@@ -19,4 +20,5 @@ public interface IVideoService
    Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId);
    Task CancelVideoUploading(Guid requestUserId, Guid videoId);
    Task<bool> CheckUploadStatus(Guid videoId);
+   Task<GlobalSearchVideoResponse> GlobalSearchVideos(Guid? requestUserId, GlobalSearchOptions searchOptions);
 }

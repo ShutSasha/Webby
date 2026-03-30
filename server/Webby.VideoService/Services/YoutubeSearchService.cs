@@ -52,8 +52,6 @@ public class YoutubeSearchService : IExternalVideoSearchService
     var detailsResponse = await _httpClient.GetAsync(detailsUrl);
     detailsResponse.EnsureSuccessStatusCode();
 
-    var jsonDetailsResponse = await detailsResponse.Content.ReadAsStringAsync();
-
     var fullData = await detailsResponse.Content.ReadFromJsonAsync<YouTubeVideoResponse>(
         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     
