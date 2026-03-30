@@ -34,7 +34,6 @@ export default async function UserProfileInfo({ id }: { id: string }) {
 
   return (
     <div className="bg-neutral-900 rounded-[20px] p-5 flex flex-col md:flex-row justify-between gap-4">
-      {/* Left Part of user profle*/}
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between">
           <div className="flex gap-4">
@@ -65,24 +64,23 @@ export default async function UserProfileInfo({ id }: { id: string }) {
 
         {!isOwner && (
           <div className="flex items-center gap-2">
+            <FollowButton targetUserId={id} initialIsFollowing={isFollowing} currentUserId={session?.user.id} />
+
             <ActionButton label="Chat">
               <MailIcon className="w-4 h-4" />
             </ActionButton>
-
-            <FollowButton targetUserId={id} initialIsFollowing={isFollowing} currentUserId={session?.user.id} />
           </div>
         )}
       </div>
 
       <div className="flex flex-col gap-2">
-        {session?.user.id === id && (
+        {isOwner && (
           <div className="hidden md:flex self-end">
             <EditProfileBtn userId={id} />
           </div>
         )}
-        {session && session?.user.id !== id && (
-          <ComplaintButton authorId={session.user.id} targetId={id} targetType="User" />
-        )}
+
+        {session && !isOwner && <ComplaintButton authorId={session.user.id} targetId={id} targetType="User" />}
 
         {userData.pinnedUserAchievements.length > 0 && (
           <UserAchievements achivements={userData.pinnedUserAchievements} />

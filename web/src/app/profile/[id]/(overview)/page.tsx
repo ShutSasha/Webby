@@ -15,6 +15,7 @@ export default async function Profile({ searchParams }: ProfileProps) {
   const { tab } = await searchParams
   const currentTab = allowedTabs.includes(tab as Tab) ? tab : 'Video'
 
+  // TODO: extract logic to constants
   const profileTabs = [
     {
       label: 'Video',
