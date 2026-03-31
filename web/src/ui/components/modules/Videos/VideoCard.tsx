@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import MoreVertical from '@/assets/icons/shared/more-vertical.svg'
-import { formatTimeAgo } from '@/lib/utils/date.utils'
+import { formatTimeAgo, formatVideoTime } from '@/lib/utils/date.utils'
 import { cn } from '@/lib/utils/general.utils'
 import { formatViews } from '@/lib/utils/video.utils'
 import { BLUR_DATA_URLS } from '@/ui/images'
@@ -14,14 +14,24 @@ import { BLUR_DATA_URLS } from '@/ui/images'
 type Props = {
   videoId: string
   previewUrl: string
-  duration: string
+  duration: number
   title: string
   creator: string
   views: number
   createAt: string
+  userAvatar: string
 }
 
-export default function VideoCard({ videoId, previewUrl, duration, title, creator, views, createAt }: Props) {
+export default function VideoCard({
+  videoId,
+  previewUrl,
+  duration,
+  title,
+  creator,
+  views,
+  createAt,
+  userAvatar,
+}: Props) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -54,18 +64,18 @@ export default function VideoCard({ videoId, previewUrl, duration, title, creato
           blurDataURL={BLUR_DATA_URLS['neutral900']}
         />
 
-        {/* duration */}
         <div
-          className="absolute bottom-2 right-2 z-10 bg-black/80 px-1.5 py-0.5 rounded text-[11px] font-medium text-white
-            tracking-wide"
+          className="absolute bottom-2 right-2 z-10 bg-black/80 px-1.5 py-0.5 rounded text-[11px] font-medium
+            text-neutral-100 tracking-wide"
         >
-          {duration}
+          {/* TODO: remove hardcodeed value and put a real number of duration */}
+          {formatVideoTime(500)}
         </div>
       </div>
 
       <div className="flex gap-3 items-start px-1">
         <Image
-          src="https://i.ibb.co/PsPPVfDL/thumb-1920-1311951.jpg" // TODO: change to real user avatar Image
+          src={userAvatar}
           alt="Creator avatar"
           width={36}
           height={36}

@@ -57,10 +57,11 @@ export default function VideosPublicSearchContainer({ query }: Props) {
               videoId={video.videoId}
               title={video.name}
               previewUrl={video.previewUrl}
-              duration={video.duration} // TODO: make a format seconds method
-              creator={'TEMPORATY NAME'} // TODO: change to username when it will be exist
+              duration={video.duration}
+              creator={video.user.username}
               views={video.views}
               createAt={video.createdAt}
+              userAvatar={video.user.avatarUrl}
             />
           )
 

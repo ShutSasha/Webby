@@ -19,7 +19,7 @@ export type Video = {
   createdAt: string
   videoTags: string[] | null
   description: string | null
-  duration: string
+  duration: number
   videotags: string[]
   videoUploadStatus: UploadStatus
   user: VideoUser

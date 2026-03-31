@@ -54,3 +54,22 @@ export function formatTimeAgo(dateInput: string | Date | number): string {
 
   return 'just now'
 }
+
+export function formatVideoTime(seconds: number) {
+  const date = new Date(seconds * 1000)
+  const dd = date.getUTCDate() - 1
+  const hh = date.getUTCHours()
+  const mm = date.getUTCMinutes()
+  const ss = pad(date.getUTCSeconds())
+  if (dd) {
+    return `${dd}:${pad(hh)}:${pad(mm)}:${ss}`
+  }
+  if (hh) {
+    return `${hh}:${pad(mm)}:${ss}`
+  }
+  return `${mm}:${ss}`
+}
+
+function pad(string: string | number) {
+  return `0${string}`.slice(-2)
+}
