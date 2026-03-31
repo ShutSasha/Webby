@@ -5,7 +5,14 @@
       "Microsoft.AspNetCore": "Warning"
     }
   },
-    "ConnectionStrings": {
-      "AppDbContext": "{{DatabaseConnectionString}}"
-    }
+  
+  "ConnectionStrings": {
+    "AppDbContext": "{{DatabaseConnectionString}}"
+  },
+  
+ "JwtOptions": {
+    "AccessSecretKey": "{{JwtAccessSecretKey}}",
+    "AccessExpiresDuration": "{{JwtAccessExpiresDuration}}"
+ }
+ 
 }

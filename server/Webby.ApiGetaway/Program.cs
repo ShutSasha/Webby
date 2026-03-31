@@ -43,5 +43,6 @@ if (app.Environment.IsDevelopment())
 }
 app.UseApiExceptionHandling();
 
+app.UseWebSockets();
 await app.UseOcelot();
 app.Run();

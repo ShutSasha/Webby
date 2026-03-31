@@ -12,10 +12,10 @@ public class NotificationRepository : GenericRepository<Notification>, INotifica
    {
    }
 
-   public async Task<int> CountUnreadMessages(Guid userId)
+   public async Task<int> CountNotifications(Guid userId,NotificationStatus status)
    {
       return await _context.Notifications
-         .Where(n => n.UserId == userId && n.NotificationStatus == NotificationStatus.Unread)
+         .Where(n => n.UserId == userId && n.NotificationStatus == status)
          .CountAsync();
    }
 

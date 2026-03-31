@@ -74,6 +74,7 @@ public static class ApiExtension
 
       services.AddAuthorization();
    }
+   
    public static void RegisterApiConfig(this ConfigurationManager configuration, IWebHostEnvironment env)
    {
        configuration.SetBasePath(env.ContentRootPath)

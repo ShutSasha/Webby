@@ -760,7 +760,7 @@
       },
 
       {
-         "DownstreamPathTemplate": "/api/notifications/count",
+         "DownstreamPathTemplate": "/api/notifications/count-unread-messages",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
             {
@@ -768,7 +768,7 @@
                "Port": 5006
             }
          ],
-         "UpstreamPathTemplate": "/api/notifications/count",
+         "UpstreamPathTemplate": "/api/notifications/count-unread-messages",
          "UpstreamHttpMethod": [
             "GET"
          ]
@@ -823,6 +823,22 @@
          "UpstreamHttpMethod": [
             "DELETE"
          ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/hubs/notifications",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5006
+            }
+         ],
+         "UpstreamPathTemplate": "/hubs/notifications",
+         "UpstreamHttpMethod": [ "GET", "POST", "OPTIONS" ],
          "AuthenticationOptions": {
             "AuthenticationProviderKey": "Bearer"
          }

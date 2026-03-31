@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Webby.NotificationService.Extensions;
+using Webby.NotificationService.Hubs;
 using Webby.NotificationService.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,12 +9,21 @@ var configuration = builder.Configuration;
 
 services.AddEndpointsApiExplorer();
 
+services.AddAuthorization();
+
 services.AddCorsPolicy("AllowApiGateway");
 services.AddSwaggerConfig();
 services.AddDbConnection(configuration);
 
+builder.Services.AddSignalR(options =>
+{
+    options.KeepAliveInterval = TimeSpan.FromSeconds(10);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+});
+
 services.AddRepositories();
 services.AddServices();
+services.AddProviders();
 
 services.AddControllers().AddJsonOptions(options =>
 {
@@ -22,10 +32,15 @@ services.AddControllers().AddJsonOptions(options =>
 
 var app = builder.Build();
 
-app.UseCors("AllowApiGetaway");
-
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<ValidationExceptionMiddleware>();
+
+app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors("AllowApiGateway");
+app.UseAuthentication();
+app.UseAuthorization();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -40,8 +55,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseRouting();
-app.UseHttpsRedirection();
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();

@@ -1,8 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Webby.NotificationService.Data;
+using Webby.NotificationService.Helpers.Jwt;
 using Webby.NotificationService.Interfaces.Repositories;
 using Webby.NotificationService.Interfaces.Services;
+using Webby.NotificationService.Providers;
 using Webby.NotificationService.Repositories;
 
 namespace Webby.NotificationService.Extensions;
@@ -64,7 +70,7 @@ public static class ApiExtension
  
       return services;
    }
-
+   
    public static void AddDbConnection(this IServiceCollection serviceCollection, IConfiguration configuration)
    {
       serviceCollection.AddDbContext<AppDbContext>(options =>
@@ -81,6 +87,11 @@ public static class ApiExtension
    public static void AddServices(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<INotificationService, Services.NotificationService>();
+   }
+
+   public static void AddProviders(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddSingleton<IUserIdProvider, UserProvider>();
    }
    
 }

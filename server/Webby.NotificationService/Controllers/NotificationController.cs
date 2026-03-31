@@ -38,13 +38,23 @@ public class NotificationController : ControllerBase
       return Ok(ApiResponse<List<Notification>>.Ok("Successfully retrieved user notifications", notifications));
    }
 
-   [HttpGet("count")]
+   [HttpGet("count-unread-messages")]
    [SwaggerOperation("Get user unread messages count","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse<int>>> GetUnreadMessagesCount()
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
       var countOfUnreadMessages = await _notificationService.GetNotificationsCount(requestUserId.Value);
       return Ok(ApiResponse<int>.Ok("Successfully retrieved count of unread messages", countOfUnreadMessages));
+   }
+
+   [HttpGet("count-notifications")]
+   [SwaggerOperation("Count user unread and read messages", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<GetNotificationsCountResponse>>> GetNotificationsCount()
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      var getNotificationsCountResponse = await _notificationService.GetUsersNotificationsCount(requestUserId.Value);
+      return Ok(ApiResponse<GetNotificationsCountResponse>.Ok("Successfully retrieved user notifications",
+         getNotificationsCountResponse));
    }
    
    [HttpPost]

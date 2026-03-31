@@ -1,5 +1,7 @@
-﻿using Webby.NotificationService.Dtos.Notification;
+﻿using Microsoft.AspNetCore.SignalR;
+using Webby.NotificationService.Dtos.Notification;
 using Webby.NotificationService.Helpers.Exception;
+using Webby.NotificationService.Hubs;
 using Webby.NotificationService.Interfaces.Repositories;
 using Webby.NotificationService.Interfaces.Services;
 using Webby.NotificationService.Models;
@@ -10,10 +12,11 @@ namespace Webby.NotificationService.Services;
 public class NotificationService : INotificationService
 {
    private readonly INotificationRepository _notificationRepository;
-
-   public NotificationService(INotificationRepository notificationRepository)
+   private readonly IHubContext<NotificationHub> _hubContext;
+   public NotificationService(INotificationRepository notificationRepository, IHubContext<NotificationHub> hubContext)
    {
       _notificationRepository = notificationRepository;
+      _hubContext = hubContext;
    }
    
    public async Task<Notification> CreateNotification(CreateNotificationRequest request)
@@ -25,9 +28,14 @@ public class NotificationService : INotificationService
          Title = request.Title,
          Message = request.Message,
          CreatedAt = DateTime.UtcNow,
+         TargetIdentifier = request.TargetIdentifier,
+         TargetType = request.TargetType,
          NotificationStatus = NotificationStatus.Unread,
       };
       await _notificationRepository.Add(notification);
+      
+      await _hubContext.Clients.User(request.UserId.ToString())
+         .SendAsync("ReceiveNotification", notification);
       return notification;
    }
 
@@ -38,6 +46,8 @@ public class NotificationService : INotificationService
 
       notification.Message = request.Message;
       notification.Title = request.Title;
+      notification.TargetType = request.TargetType;
+      notification.TargetIdentifier = request.TargetIdentifier;
 
       await _notificationRepository.Update(notification);
 
@@ -57,7 +67,7 @@ public class NotificationService : INotificationService
    }
 
    public async Task<int> GetNotificationsCount(Guid userId)
-      => await _notificationRepository.CountUnreadMessages(userId);
+      => await _notificationRepository.CountNotifications(userId,NotificationStatus.Unread);
 
    public async Task DeleteNotification(Guid requestUserId, Guid notificationId)
    {
@@ -72,5 +82,14 @@ public class NotificationService : INotificationService
 
    public async Task ChangeReadStatus(List<Guid> notificationIds)
       => await _notificationRepository.ChangeReadStatus(notificationIds);
+
+   public async Task<GetNotificationsCountResponse> GetUsersNotificationsCount(Guid userId)
+   {
+      return new GetNotificationsCountResponse
+      {
+         CountOfUnreadMessages = await _notificationRepository.CountNotifications(userId, NotificationStatus.Unread),
+         CountOfReadMessages = await _notificationRepository.CountNotifications(userId, NotificationStatus.Read),
+      };
+   }
 }
    
