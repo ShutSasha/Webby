@@ -24,7 +24,7 @@ export default function AnimatedTabs({ tabs, layoutId = 'active-pill', className
     <div className={cn('flex items-center gap-2', className)}>
       {tabs.map(tab => (
         <Link
-          key={tab.href}
+          key={tab.label}
           href={tab.href as Route}
           scroll={false}
           className={cn(
