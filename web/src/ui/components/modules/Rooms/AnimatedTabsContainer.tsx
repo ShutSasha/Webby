@@ -1,7 +1,7 @@
 'use client'
 
 import { ROOM_TABS_CONFIG, RoomTabValue } from '@/lib/constants/room.constants'
-import { useCategoriesQuery } from '@/lib/hooks/api/categories/useCategoriesQuery'
+import { useCategoriesQuery } from '@/lib/hooks/api/category/useCategoriesQuery'
 import AnimatedTabs, { AnimatedTabsSkeleton } from '@/ui/components/shared/AnimatedTabs'
 
 type Props = {
