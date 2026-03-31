@@ -141,11 +141,10 @@ type QueueItemApiResponse struct {
 }
 
 type QueueVideoChild struct {
-	Id            string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Title         string `json:"title" example:"Episode 1: Home Alone"`
-	Thumbnail     string `json:"thumbnail" example:"https://example.com/thumb.jpg"`
-	VideoUrl      string `json:"videoUrl" example:"https://example.com/video.mp4"`
-	QueuePosition int    `json:"queuePosition" example:"2" description:"Ordinal number of this video within its parent playlist in the queue"`
+	Id        string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Title     string `json:"title" example:"Episode 1: Home Alone"`
+	Thumbnail string `json:"thumbnail" example:"https://example.com/thumb.jpg"`
+	VideoUrl  string `json:"videoUrl" example:"https://example.com/video.mp4"`
 }
 
 type QueueItemDetailResponse struct {

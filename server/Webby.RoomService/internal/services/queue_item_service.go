@@ -41,11 +41,10 @@ func NewQueueItemService(repo QueueItemRepository, mediaClient MediaClient, memb
 }
 
 type QueueVideoChild struct {
-	Id            uuid.UUID `json:"id"`
-	Title         string    `json:"title"`
-	Thumbnail     string    `json:"thumbnail"`
-	VideoUrl      string    `json:"videoUrl"`
-	QueuePosition int       `json:"queuePosition"`
+	Id        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	Thumbnail string    `json:"thumbnail"`
+	VideoUrl  string    `json:"videoUrl"`
 }
 
 type QueueItemEnriched struct {
@@ -211,11 +210,10 @@ func (s *QueueItemService) GetQueue(ctx context.Context, roomId, userId uuid.UUI
 				children := make([]QueueVideoChild, 0, len(vids))
 				for j, v := range vids {
 					children = append(children, QueueVideoChild{
-						Id:            v.Id,
-						Title:         v.Title,
-						Thumbnail:     v.Thumbnail,
-						VideoUrl:      v.VideoUrl,
-						QueuePosition: subStart + j + 1,
+						Id:        v.Id,
+						Title:     v.Title,
+						Thumbnail: v.Thumbnail,
+						VideoUrl:  v.VideoUrl,
 					})
 				}
 				entry.Children = children

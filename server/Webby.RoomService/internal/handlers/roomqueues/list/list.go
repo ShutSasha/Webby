@@ -38,11 +38,10 @@ func listQueue(logger *slog.Logger, lister QueueLister) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.roomqueues.list"))
 
 	type videoChild struct {
-		Id            uuid.UUID `json:"id"`
-		Title         string    `json:"title"`
-		Thumbnail     string    `json:"thumbnail"`
-		VideoUrl      string    `json:"videoUrl"`
-		QueuePosition int       `json:"queuePosition"`
+		Id        uuid.UUID `json:"id"`
+		Title     string    `json:"title"`
+		Thumbnail string    `json:"thumbnail"`
+		VideoUrl  string    `json:"videoUrl"`
 	}
 
 	type queueItemResponse struct {
@@ -120,11 +119,10 @@ func listQueue(logger *slog.Logger, lister QueueLister) errorWrapper.APIFunc {
 				children := make([]videoChild, 0, len(item.Children))
 				for _, c := range item.Children {
 					children = append(children, videoChild{
-						Id:            c.Id,
-						Title:         c.Title,
-						Thumbnail:     c.Thumbnail,
-						VideoUrl:      c.VideoUrl,
-						QueuePosition: c.QueuePosition,
+						Id:        c.Id,
+						Title:     c.Title,
+						Thumbnail: c.Thumbnail,
+						VideoUrl:  c.VideoUrl,
 					})
 				}
 				entry.Children = children

@@ -267,11 +267,6 @@
                 "videoUrl": {
                   "example": "https://example.com/video.mp4",
                   "type": "string"
-                },
-                "queuePosition": {
-                  "description": "Ordinal number of this video within its parent playlist in the queue",
-                  "example": 2,
-                  "type": "integer"
                 }
               },
               "type": "object"
@@ -404,11 +399,6 @@
                       "videoUrl": {
                         "example": "https://example.com/video.mp4",
                         "type": "string"
-                      },
-                      "queuePosition": {
-                        "description": "Ordinal number of this video within its parent playlist in the queue",
-                        "example": 2,
-                        "type": "integer"
                       }
                     },
                     "type": "object"
@@ -499,11 +489,6 @@
           "videoUrl": {
             "example": "https://example.com/video.mp4",
             "type": "string"
-          },
-          "queuePosition": {
-            "description": "Ordinal number of this video within its parent playlist in the queue",
-            "example": 2,
-            "type": "integer"
           }
         },
         "type": "object"
@@ -1036,7 +1021,7 @@
   "paths": {
     "/api/categories": {
       "get": {
-        "description": " Retrieve a paginated list of room categories. Supports optional search by name.",
+        "description": "Retrieve a **paginated** list of room categories. Supports optional **search** by name.\n\n**Query Parameters Fallback:**\n* Invalid, missing, or non-numeric `page` values will default to **1**.\n* Invalid, missing, or non-numeric `limit` values (<1) will default to **10**. Limits >100 are capped at **100**.\n* `search`: optional string to filter categories by name (case-insensitive)\n",
         "parameters": [
           {
             "description": "Search categories by name",
@@ -1096,7 +1081,7 @@
         ]
       },
       "post": {
-        "description": " Create a new room category. Name is required (2-50 chars, unique). Only administrators can perform this action.",
+        "description": "Create a new room category for organizing rooms.\n\n**Validation Rules:**\n* Name is **required** (cannot be null, empty, or whitespace-only)\n* Name length must be **2-50 characters**\n* Category name must be **unique** (409 Conflict if already exists)\n\n**Security Note:**\n* This action **requires authentication**\n",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1126,7 +1111,7 @@
                 }
               }
             },
-            "description": "Invalid input data"
+            "description": "Invalid input data: name missing, empty, too short (<2), too long (>50), or whitespace-only. Also: malformed JSON, wrong Content-Type"
           },
           "401": {
             "content": {
@@ -1177,7 +1162,7 @@
     },
     "/api/categories/{id}": {
       "delete": {
-        "description": " Delete a room category by ID. Permanent action. Only administrators can perform this action.",
+        "description": "Delete a room category by ID. **Permanent action — cannot be undone.**\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Category ID (UUID v4 format)",
@@ -1251,7 +1236,7 @@
         ]
       },
       "put": {
-        "description": " Update an existing room category by ID. Only the name field is updateable. Only administrators can perform this action.",
+        "description": "Update an existing room category by ID. Only the **name** field is updateable.\n\n**Validation Rules:**\n* Name is **required** (cannot be null, empty, or whitespace-only)\n* Name length must be **2-50 characters**\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Category ID (UUID v4 format)",
@@ -1293,7 +1278,7 @@
                 }
               }
             },
-            "description": "Invalid input"
+            "description": "Invalid input: name missing, empty, too short (<2), too long (>50), whitespace-only, invalid UUID in path, or malformed JSON"
           },
           "401": {
             "content": {
@@ -1344,7 +1329,7 @@
     },
     "/api/rooms": {
       "post": {
-        "description": " Create a new room with a name, category ID, privacy setting, and optional thumbnail.",
+        "description": "Create a new room with a name, **category ID**, privacy setting, and optional **thumbnail**.\n\n**Validation Rules:**\n* `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only\n* `categoryId`: **required**, must be a valid UUID v4 format\n* `isPrivate`: **required**, must be valid boolean (\"true\" or \"false\")\n* `thumbnail`: optional file upload, max 2MB\n\n**Security Note:**\n* This action **requires authentication**\n* The authenticated user becomes the **room host (creator)**\n",
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -1393,7 +1378,7 @@
                 }
               }
             },
-            "description": "Invalid input"
+            "description": "Invalid input: name empty/too short/too long, invalid categoryId UUID, invalid isPrivate boolean, file too large or missing required fields"
           },
           "401": {
             "content": {
@@ -1424,7 +1409,7 @@
     },
     "/api/rooms/{id}": {
       "delete": {
-        "description": " Delete a room by ID. Permanent action - cannot be undone. Only the authorized room creator can delete.",
+        "description": "Delete a room by ID. **Permanent action — cannot be undone.**\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n\n**Security Note:**\n* This action **requires authentication**\n* **Only the room host** can delete this room\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -1469,7 +1454,7 @@
                 }
               }
             },
-            "description": "Not authorized"
+            "description": "Not authorized - only the room creator can delete"
           },
           "404": {
             "content": {
@@ -1498,7 +1483,7 @@
         ]
       },
       "get": {
-        "description": " Retrieve a room by its ID. Only the room creator (host) can retrieve the room by ID.",
+        "description": "Retrieve a room by its ID.\n\n**Access Rules:**\n* Only the **room creator (host)** can retrieve the room by ID\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -1550,7 +1535,7 @@
                 }
               }
             },
-            "description": "Access denied"
+            "description": "Access denied - only the room creator can retrieve"
           },
           "404": {
             "content": {
@@ -1579,7 +1564,7 @@
         ]
       },
       "put": {
-        "description": " Update a room's name, category ID, privacy setting, and thumbnail by ID. Only the authorized room creator can update.",
+        "description": "Update a room's name, **category ID**, privacy setting, and **thumbnail** by ID.\n\n**Validation Rules:**\n* `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only\n* `categoryId`: **required**, must be a valid UUID v4 format\n* `isPrivate`: **required**, must be valid boolean (\"true\" or \"false\")\n* `thumbnail`: optional file upload, max 2MB\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n\n**Security Note:**\n* This action **requires authentication**\n* **Only the room host** can update this room\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -1640,7 +1625,7 @@
                 }
               }
             },
-            "description": "Invalid input"
+            "description": "Invalid input: name validation failed, invalid UUID, invalid boolean, file too large, or missing required fields"
           },
           "401": {
             "content": {
@@ -1660,7 +1645,7 @@
                 }
               }
             },
-            "description": "Not authorized"
+            "description": "Not authorized - only the room creator can update"
           },
           "404": {
             "content": {
@@ -1691,7 +1676,7 @@
     },
     "/api/rooms/{id}/members": {
       "get": {
-        "description": " Retrieve a paginated list of members for a specific room. Supports optional search by username.",
+        "description": "Retrieve a **paginated** list of members for a specific room. Supports optional **search** by username.\n\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be >= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n* `search`: **optional**, filters members by username (case-insensitive partial match)\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -1783,7 +1768,7 @@
     },
     "/api/rooms/{id}/members/{memberId}": {
       "delete": {
-        "description": " Remove a user from a room's member list. Only the room host can remove members. The host cannot remove themselves.",
+        "description": "Remove a user from a room's member list. **This action cannot be undone.**\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n* `memberId`: must be a valid UUID v4 format (member user ID)\n\n**Access Rules:**\n* Only the **room host** can remove members\n* The host **cannot remove themselves** from the room\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -1869,7 +1854,7 @@
     },
     "/api/rooms/{id}/members/{memberId}/points": {
       "patch": {
-        "description": "Add or subtract points for a room member. Only the room host can update points.",
+        "description": "Add or subtract points for a room member. Points are applied as a **delta** value.\n\n**Request Body Validation:**\n* `points`: **required**, integer value (positive to add, negative to subtract)\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n* `memberId`: must be a valid UUID v4 format (member user ID)\n\n**Access Rules:**\n* Only the **room host** can update member points\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -1921,7 +1906,7 @@
                 }
               }
             },
-            "description": "Invalid input"
+            "description": "Invalid input: missing or non-integer points value, invalid UUID format"
           },
           "401": {
             "content": {
@@ -1972,7 +1957,7 @@
     },
     "/api/rooms/{id}/queue": {
       "get": {
-        "description": " Retrieve the playback queue for a room with enriched media data. Pagination is based on individual videos. Only room members can view the queue.",
+        "description": "Retrieve the playback queue for a room with enriched media data.\nPagination is based on individual videos: standalone videos count as 1, each video inside a playlist counts as 1.\nPlaylists are returned with their `children` truncated to the videos that fall within the current page.\n\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be >= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n\n**Access Rules:**\n* Only **room members** can view the queue\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -2024,7 +2009,7 @@
                 }
               }
             },
-            "description": "Invalid UUID or query parameters"
+            "description": "Invalid UUID format or invalid query parameters"
           },
           "401": {
             "content": {
@@ -2044,7 +2029,7 @@
                 }
               }
             },
-            "description": "Access denied"
+            "description": "Access denied - only room members can view the queue"
           },
           "500": {
             "content": {
@@ -2063,7 +2048,7 @@
         ]
       },
       "post": {
-        "description": " Add a video or playlist to the room's playback queue. Only room members can add items.",
+        "description": "Add a video or playlist to the room's playback queue.\n\n**Request Body Validation:**\n* `entityId`: **required**, must be a valid UUID v4 format\n* `entityType`: **required**, must be either \"video\" or \"playlist\"\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n\n**Access Rules:**\n* Only **room members** can add items to the queue\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -2105,7 +2090,7 @@
                 }
               }
             },
-            "description": "Invalid input"
+            "description": "Invalid input: bad UUID format, invalid entityType (must be 'video' or 'playlist')"
           },
           "401": {
             "content": {
@@ -2156,7 +2141,7 @@
     },
     "/api/rooms/{id}/queue/{itemId}": {
       "delete": {
-        "description": " Remove a video or playlist from the room's playback queue. Only room members can remove. Only standalone videos or playlists can be deleted, not individual playlist children.",
+        "description": "Remove a video or playlist from the room's playback queue.\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n* `itemId`: must be a valid UUID v4 format (queue item ID)\n\n**Access Rules:**\n* Only **room members** can remove items from the queue\n\n**Important:**\n* Only a **standalone video** or the **playlist itself** can be deleted — individual videos within a playlist **cannot** be deleted separately\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -2198,7 +2183,7 @@
                 }
               }
             },
-            "description": "Invalid UUID format"
+            "description": "Invalid UUID format in path"
           },
           "401": {
             "content": {
@@ -2218,7 +2203,7 @@
                 }
               }
             },
-            "description": "Access denied"
+            "description": "Access denied - only room members can remove from queue"
           },
           "404": {
             "content": {
@@ -2249,7 +2234,7 @@
     },
     "/api/rooms/my": {
       "get": {
-        "description": " Retrieve a paginated list of all rooms created by the authenticated user. Returns both public and private rooms.",
+        "description": "Retrieve a **paginated** list of all rooms created by the authenticated user.\n\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be >= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n\n**Security Note:**\n* This action **requires authentication**\n* Returns **only** the authenticated user's rooms\n* List includes both public and private rooms owned by the user\n",
         "parameters": [
           {
             "description": "Page number (default: 1)",
@@ -2291,7 +2276,7 @@
                 }
               }
             },
-            "description": "Invalid query parameters"
+            "description": "Invalid query parameters: page or limit not numeric, or outside valid range"
           },
           "401": {
             "content": {
@@ -2322,7 +2307,7 @@
     },
     "/api/rooms/public": {
       "get": {
-        "description": " Retrieve a paginated list of all publicly visible rooms. Supports optional search and category filter.",
+        "description": "Retrieve a **paginated** list of all publicly visible rooms in the system.\n\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be >= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n* `search`: **optional**, filters rooms by name (case-insensitive partial match)\n* `category`: **optional**, filters rooms by category ID (UUID v4 format)\n\n**Security Note:**\n* Returns **only** public rooms (private rooms are excluded)\n* Pagination prevents excessive data retrieval\n",
         "parameters": [
           {
             "description": "Page number (default: 1)",
@@ -2382,7 +2367,7 @@
                 }
               }
             },
-            "description": "Invalid query parameters"
+            "description": "Invalid query parameters: page or limit not numeric, or outside valid range"
           },
           "500": {
             "content": {
@@ -2403,7 +2388,7 @@
     },
     "/api/rooms/token": {
       "post": {
-        "description": " Retrieve room information using its unique invite token. Token is required and cannot be empty.",
+        "description": "Retrieve room information using its unique invite token.\n\n**Request Body Validation:**\n* `token`: **required**, cannot be empty or whitespace-only\n\n**Security Note:**\n* This action **requires authentication**\n",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2474,7 +2459,7 @@
     },
     "/api/rooms/{id}/votes": {
       "post": {
-        "description": "Create a new vote (poll or next_video) in a room. Only the room host can create votes.",
+        "description": "Create a new vote (poll or next_video) in a room. The vote starts immediately upon creation.\n\n**Request Body Validation:**\n* `type`: **required**, must be either \"poll\" or \"next_video\"\n* `voteText`: **required**, 1-500 characters, question displayed to room members\n* `durationSeconds`: **required**, between 60 (1 minute) and 604800 (7 days)\n* `choices`: **required**, array of 2-20 choice items\n  * Each choice requires a `name` (display label)\n  * For \"next_video\" type, each choice should reference a `queueItemId`\n\n**Vote Types:**\n* `poll` — text poll created by host with arbitrary choices\n* `next_video` — vote for the next queue item to play; the winning choice's queue item is moved to the top of the queue\n\n**Access Rules:**\n* Only the **room host** can create votes\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -2515,7 +2500,7 @@
                 }
               }
             },
-            "description": "Invalid input"
+            "description": "Invalid input: missing type/voteText/choices, invalid durationSeconds range, fewer than 2 or more than 20 choices"
           },
           "401": {
             "content": {
@@ -2564,7 +2549,7 @@
         ]
       },
       "get": {
-        "description": "List all votes (polls and next_video) for a room. Only room members can view.",
+        "description": "List all votes (polls and next_video) for a room. Returns each vote with full details including choices, percentages, expiry, and the current user's selection.\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n\n**Access Rules:**\n* Only **room members** can view the vote list\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -2595,7 +2580,7 @@
                 }
               }
             },
-            "description": "Invalid room ID"
+            "description": "Invalid room ID format (UUID v4 required)"
           },
           "401": {
             "content": {
@@ -2615,7 +2600,7 @@
                 }
               }
             },
-            "description": "Access denied - only room members"
+            "description": "Access denied - only room members can view votes"
           },
           "500": {
             "content": {
@@ -2636,7 +2621,7 @@
     },
     "/api/rooms/{id}/votes/{voteId}": {
       "get": {
-        "description": "Get detailed information about a specific vote including choices, percentages, and user's selection.",
+        "description": "Get detailed information about a specific vote including choices with vote counts, percentages, expiry status, winner (if expired), and the current user's selection.\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n* `voteId`: must be a valid UUID v4 format (vote ID)\n\n**Response Details:**\n* `isExpired`: computed from `createdAt + durationSeconds`\n* `userVotedChoiceId`: the choice the current user voted for (null if not voted)\n* `winnerId`: set only for expired \"next_video\" votes — tie-broken by host's double vote, then first candidate\n\n**Access Rules:**\n* Only **room members** can view vote details\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -2676,7 +2661,7 @@
                 }
               }
             },
-            "description": "Invalid ID format"
+            "description": "Invalid ID format (UUID v4 required)"
           },
           "401": {
             "content": {
@@ -2696,7 +2681,7 @@
                 }
               }
             },
-            "description": "Access denied - only room members"
+            "description": "Access denied - only room members can view vote details"
           },
           "404": {
             "content": {
@@ -2725,7 +2710,7 @@
         ]
       },
       "delete": {
-        "description": "Delete a vote. Only the room host can delete votes. All associated choices and user votes are also removed.",
+        "description": "Delete a vote and all associated choices and user votes. **Permanent action — cannot be undone.**\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n* `voteId`: must be a valid UUID v4 format (vote ID)\n\n**Access Rules:**\n* Only the **room host** can delete votes\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -2765,7 +2750,7 @@
                 }
               }
             },
-            "description": "Invalid ID format"
+            "description": "Invalid ID format (UUID v4 required)"
           },
           "401": {
             "content": {
@@ -2785,7 +2770,7 @@
                 }
               }
             },
-            "description": "Access denied - only room host"
+            "description": "Access denied - only the room host can delete votes"
           },
           "404": {
             "content": {
@@ -2816,7 +2801,7 @@
     },
     "/api/rooms/{id}/votes/{voteId}/cast": {
       "post": {
-        "description": "Cast a vote for a specific choice. Only room members can vote. Each user can vote once per vote.",
+        "description": "Cast a vote for a specific choice. Each user can only vote **once** per vote.\n\n**Request Body Validation:**\n* `choiceId`: **required**, must be a valid UUID v4 format (choice ID)\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n* `voteId`: must be a valid UUID v4 format (vote ID)\n\n**Business Rules:**\n* The vote must be **active** (not expired) to accept votes\n* A user who has already voted will receive a **409 Conflict** response\n* Returns updated vote details with recalculated percentages\n\n**Access Rules:**\n* Only **room members** can cast votes\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -2866,7 +2851,7 @@
                 }
               }
             },
-            "description": "Invalid input or vote expired"
+            "description": "Invalid input: bad UUID format or vote has expired"
           },
           "401": {
             "content": {
@@ -2886,7 +2871,7 @@
                 }
               }
             },
-            "description": "Access denied - only room members"
+            "description": "Access denied - only room members can cast votes"
           },
           "404": {
             "content": {
@@ -2906,7 +2891,7 @@
                 }
               }
             },
-            "description": "User has already voted"
+            "description": "Conflict: user has already voted on this vote"
           },
           "500": {
             "content": {
@@ -2925,7 +2910,7 @@
         ]
       },
       "delete": {
-        "description": "Remove the current user's vote from a vote. Only possible while the vote is still active.",
+        "description": "Remove the current user's vote from an active vote (unvote).\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n* `voteId`: must be a valid UUID v4 format (vote ID)\n\n**Business Rules:**\n* The vote must be **active** (not expired) to allow unvoting\n* The user must have **previously voted** on this vote\n* Returns updated vote details with recalculated percentages\n\n**Access Rules:**\n* Only **room members** can remove their votes\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -2965,7 +2950,7 @@
                 }
               }
             },
-            "description": "Invalid ID or vote expired"
+            "description": "Invalid ID format or vote has expired"
           },
           "401": {
             "content": {
@@ -2985,7 +2970,7 @@
                 }
               }
             },
-            "description": "Access denied - only room members"
+            "description": "Access denied - only room members can unvote"
           },
           "404": {
             "content": {

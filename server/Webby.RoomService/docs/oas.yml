@@ -189,10 +189,6 @@ components:
               videoUrl:
                 example: https://example.com/video.mp4
                 type: string
-              queuePosition:
-                description: Ordinal number of this video within its parent playlist in the queue
-                example: 2
-                type: integer
             type: object
           type: array
         entityId:
@@ -288,10 +284,6 @@ components:
                     videoUrl:
                       example: https://example.com/video.mp4
                       type: string
-                    queuePosition:
-                      description: Ordinal number of this video within its parent playlist in the queue
-                      example: 2
-                      type: integer
                   type: object
                 type: array
               entityId:
@@ -357,10 +349,6 @@ components:
         videoUrl:
           example: https://example.com/video.mp4
           type: string
-        queuePosition:
-          description: Ordinal number of this video within its parent playlist in the queue
-          example: 2
-          type: integer
       type: object
     RoomApiResponse:
       properties:
@@ -738,8 +726,13 @@ openapi: 3.0.0
 paths:
   /api/categories:
     get:
-      description: ' Retrieve a paginated list of room categories. Supports optional
-        search by name.'
+      description: |
+        Retrieve a **paginated** list of room categories. Supports optional **search** by name.
+
+        **Query Parameters Fallback:**
+        * Invalid, missing, or non-numeric `page` values will default to **1**.
+        * Invalid, missing, or non-numeric `limit` values (<1) will default to **10**. Limits >100 are capped at **100**.
+        * `search`: optional string to filter categories by name (case-insensitive)
       parameters:
       - description: Search categories by name
         in: query
@@ -778,8 +771,16 @@ paths:
       tags:
       - RoomCategory
     post:
-      description: ' Create a new room category. Name is required (2-50 chars, unique).
-        Only administrators can perform this action.'
+      description: |
+        Create a new room category for organizing rooms.
+
+        **Validation Rules:**
+        * Name is **required** (cannot be null, empty, or whitespace-only)
+        * Name length must be **2-50 characters**
+        * Category name must be **unique** (409 Conflict if already exists)
+
+        **Security Note:**
+        * This action **requires authentication**
       requestBody:
         content:
           application/json:
@@ -798,7 +799,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid input data
+          description: "Invalid input data: name missing, empty, too short (<2), too long (>50), or whitespace-only. Also: malformed JSON, wrong Content-Type"
         "401":
           content:
             application/json:
@@ -816,7 +817,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: 'Conflict: Category name already exists'
+          description: "Conflict: Category name already exists"
         "500":
           content:
             application/json:
@@ -828,8 +829,14 @@ paths:
       - RoomCategory
   /api/categories/{id}:
     delete:
-      description: ' Delete a room category by ID. Permanent action. Only administrators
-        can perform this action.'
+      description: |
+        Delete a room category by ID. **Permanent action — cannot be undone.**
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Category ID (UUID v4 format)
         in: path
@@ -875,8 +882,18 @@ paths:
       tags:
       - RoomCategory
     put:
-      description: ' Update an existing room category by ID. Only the name field is
-        updateable. Only administrators can perform this action.'
+      description: |
+        Update an existing room category by ID. Only the **name** field is updateable.
+
+        **Validation Rules:**
+        * Name is **required** (cannot be null, empty, or whitespace-only)
+        * Name length must be **2-50 characters**
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Category ID (UUID v4 format)
         in: path
@@ -903,7 +920,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid input
+          description: "Invalid input: name missing, empty, too short (<2), too long (>50), whitespace-only, invalid UUID in path, or malformed JSON"
         "401":
           content:
             application/json:
@@ -933,8 +950,18 @@ paths:
       - RoomCategory
   /api/rooms:
     post:
-      description: ' Create a new room with a name, category ID, privacy setting,
-        and optional thumbnail.'
+      description: |
+        Create a new room with a name, **category ID**, privacy setting, and optional **thumbnail**.
+
+        **Validation Rules:**
+        * `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only
+        * `categoryId`: **required**, must be a valid UUID v4 format
+        * `isPrivate`: **required**, must be valid boolean ("true" or "false")
+        * `thumbnail`: optional file upload, max 2MB
+
+        **Security Note:**
+        * This action **requires authentication**
+        * The authenticated user becomes the **room host (creator)**
       requestBody:
         content:
           multipart/form-data:
@@ -967,7 +994,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid input
+          description: "Invalid input: name empty/too short/too long, invalid categoryId UUID, invalid isPrivate boolean, file too large or missing required fields"
         "401":
           content:
             application/json:
@@ -985,8 +1012,15 @@ paths:
       - Rooms
   /api/rooms/{id}:
     delete:
-      description: ' Delete a room by ID. Permanent action - cannot be undone. Only
-        the authorized room creator can delete.'
+      description: |
+        Delete a room by ID. **Permanent action — cannot be undone.**
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+
+        **Security Note:**
+        * This action **requires authentication**
+        * **Only the room host** can delete this room
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1015,7 +1049,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Not authorized
+          description: Not authorized - only the room creator can delete
         "404":
           content:
             application/json:
@@ -1032,8 +1066,17 @@ paths:
       tags:
       - Rooms
     get:
-      description: ' Retrieve a room by its ID. Only the room creator (host) can retrieve
-        the room by ID.'
+      description: |
+        Retrieve a room by its ID.
+
+        **Access Rules:**
+        * Only the **room creator (host)** can retrieve the room by ID
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1066,7 +1109,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Access denied
+          description: Access denied - only the room creator can retrieve
         "404":
           content:
             application/json:
@@ -1083,8 +1126,21 @@ paths:
       tags:
       - Rooms
     put:
-      description: ' Update a room''s name, category ID, privacy setting, and thumbnail
-        by ID. Only the authorized room creator can update.'
+      description: |
+        Update a room's name, **category ID**, privacy setting, and **thumbnail** by ID.
+
+        **Validation Rules:**
+        * `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only
+        * `categoryId`: **required**, must be a valid UUID v4 format
+        * `isPrivate`: **required**, must be valid boolean ("true" or "false")
+        * `thumbnail`: optional file upload, max 2MB
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+
+        **Security Note:**
+        * This action **requires authentication**
+        * **Only the room host** can update this room
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1125,7 +1181,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid input
+          description: "Invalid input: name validation failed, invalid UUID, invalid boolean, file too large, or missing required fields"
         "401":
           content:
             application/json:
@@ -1137,7 +1193,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Not authorized
+          description: Not authorized - only the room creator can update
         "404":
           content:
             application/json:
@@ -1155,8 +1211,19 @@ paths:
       - Rooms
   /api/rooms/{id}/members:
     get:
-      description: ' Retrieve a paginated list of members for a specific room. Supports
-        optional search by username.'
+      description: |
+        Retrieve a **paginated** list of members for a specific room. Supports optional **search** by username.
+
+        **Query Parameter Validation:**
+        * `page`: **optional** (default: 1), must be >= 1, must be numeric
+        * `limit`: **optional** (default: 10), must be 1-100, must be numeric
+        * `search`: **optional**, filters members by username (case-insensitive partial match)
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1215,8 +1282,19 @@ paths:
       - Rooms
   /api/rooms/{id}/members/{memberId}:
     delete:
-      description: ' Remove a user from a room''s member list. Only the room host
-        can remove members. The host cannot remove themselves.'
+      description: |
+        Remove a user from a room's member list. **This action cannot be undone.**
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+        * `memberId`: must be a valid UUID v4 format (member user ID)
+
+        **Access Rules:**
+        * Only the **room host** can remove members
+        * The host **cannot remove themselves** from the room
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1270,8 +1348,21 @@ paths:
       - Rooms
   /api/rooms/{id}/members/{memberId}/points:
     patch:
-      description: Add or subtract points for a room member. Only the room host can
-        update points.
+      description: |
+        Add or subtract points for a room member. Points are applied as a **delta** value.
+
+        **Request Body Validation:**
+        * `points`: **required**, integer value (positive to add, negative to subtract)
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+        * `memberId`: must be a valid UUID v4 format (member user ID)
+
+        **Access Rules:**
+        * Only the **room host** can update member points
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1305,7 +1396,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid input
+          description: "Invalid input: missing or non-integer points value, invalid UUID format"
         "401":
           content:
             application/json:
@@ -1335,8 +1426,23 @@ paths:
       - Rooms
   /api/rooms/{id}/queue:
     get:
-      description: ' Retrieve the playback queue for a room with enriched media data.
-        Pagination is based on individual videos. Only room members can view the queue.'
+      description: |
+        Retrieve the playback queue for a room with enriched media data.
+        Pagination is based on individual videos: standalone videos count as 1, each video inside a playlist counts as 1.
+        Playlists are returned with their `children` truncated to the videos that fall within the current page.
+
+        **Query Parameter Validation:**
+        * `page`: **optional** (default: 1), must be >= 1, must be numeric
+        * `limit`: **optional** (default: 10), must be 1-100, must be numeric
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+
+        **Access Rules:**
+        * Only **room members** can view the queue
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1371,7 +1477,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid UUID or query parameters
+          description: Invalid UUID format or invalid query parameters
         "401":
           content:
             application/json:
@@ -1383,7 +1489,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Access denied
+          description: Access denied - only room members can view the queue
         "500":
           content:
             application/json:
@@ -1394,8 +1500,21 @@ paths:
       tags:
       - RoomQueue
     post:
-      description: ' Add a video or playlist to the room''s playback queue. Only room
-        members can add items.'
+      description: |
+        Add a video or playlist to the room's playback queue.
+
+        **Request Body Validation:**
+        * `entityId`: **required**, must be a valid UUID v4 format
+        * `entityType`: **required**, must be either "video" or "playlist"
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+
+        **Access Rules:**
+        * Only **room members** can add items to the queue
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1422,7 +1541,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid input
+          description: "Invalid input: bad UUID format, invalid entityType (must be 'video' or 'playlist')"
         "401":
           content:
             application/json:
@@ -1452,9 +1571,21 @@ paths:
       - RoomQueue
   /api/rooms/{id}/queue/{itemId}:
     delete:
-      description: ' Remove a video or playlist from the room''s playback queue. Only
-        room members can remove. Only standalone videos or playlists can be deleted,
-        not individual playlist children.'
+      description: |
+        Remove a video or playlist from the room's playback queue.
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+        * `itemId`: must be a valid UUID v4 format (queue item ID)
+
+        **Access Rules:**
+        * Only **room members** can remove items from the queue
+
+        **Important:**
+        * Only a **standalone video** or the **playlist itself** can be deleted — individual videos within a playlist **cannot** be deleted separately
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1482,7 +1613,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid UUID format
+          description: Invalid UUID format in path
         "401":
           content:
             application/json:
@@ -1494,7 +1625,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Access denied
+          description: Access denied - only room members can remove from queue
         "404":
           content:
             application/json:
@@ -1512,8 +1643,17 @@ paths:
       - RoomQueue
   /api/rooms/my:
     get:
-      description: ' Retrieve a paginated list of all rooms created by the authenticated
-        user. Returns both public and private rooms.'
+      description: |
+        Retrieve a **paginated** list of all rooms created by the authenticated user.
+
+        **Query Parameter Validation:**
+        * `page`: **optional** (default: 1), must be >= 1, must be numeric
+        * `limit`: **optional** (default: 10), must be 1-100, must be numeric
+
+        **Security Note:**
+        * This action **requires authentication**
+        * Returns **only** the authenticated user's rooms
+        * List includes both public and private rooms owned by the user
       parameters:
       - description: 'Page number (default: 1)'
         in: query
@@ -1535,13 +1675,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoomListApiResponse'
-          description: User's rooms successfully retrieved
+          description: "User's rooms successfully retrieved"
         "400":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid query parameters
+          description: "Invalid query parameters: page or limit not numeric, or outside valid range"
         "401":
           content:
             application/json:
@@ -1559,8 +1699,18 @@ paths:
       - Rooms
   /api/rooms/public:
     get:
-      description: ' Retrieve a paginated list of all publicly visible rooms. Supports
-        optional search and category filter.'
+      description: |
+        Retrieve a **paginated** list of all publicly visible rooms in the system.
+
+        **Query Parameter Validation:**
+        * `page`: **optional** (default: 1), must be >= 1, must be numeric
+        * `limit`: **optional** (default: 10), must be 1-100, must be numeric
+        * `search`: **optional**, filters rooms by name (case-insensitive partial match)
+        * `category`: **optional**, filters rooms by category ID (UUID v4 format)
+
+        **Security Note:**
+        * Returns **only** public rooms (private rooms are excluded)
+        * Pagination prevents excessive data retrieval
       parameters:
       - description: 'Page number (default: 1)'
         in: query
@@ -1600,7 +1750,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid query parameters
+          description: "Invalid query parameters: page or limit not numeric, or outside valid range"
         "500":
           content:
             application/json:
@@ -1612,8 +1762,14 @@ paths:
       - Rooms
   /api/rooms/token:
     post:
-      description: ' Retrieve room information using its unique invite token. Token
-        is required and cannot be empty.'
+      description: |
+        Retrieve room information using its unique invite token.
+
+        **Request Body Validation:**
+        * `token`: **required**, cannot be empty or whitespace-only
+
+        **Security Note:**
+        * This action **requires authentication**
       requestBody:
         content:
           application/json:
@@ -1656,7 +1812,26 @@ paths:
       - Rooms
   /api/rooms/{id}/votes:
     post:
-      description: Create a new vote (poll or next_video) in a room. Only the room host can create votes.
+      description: |
+        Create a new vote (poll or next_video) in a room. The vote starts immediately upon creation.
+
+        **Request Body Validation:**
+        * `type`: **required**, must be either "poll" or "next_video"
+        * `voteText`: **required**, 1-500 characters, question displayed to room members
+        * `durationSeconds`: **required**, between 60 (1 minute) and 604800 (7 days)
+        * `choices`: **required**, array of 2-20 choice items
+          * Each choice requires a `name` (display label)
+          * For "next_video" type, each choice should reference a `queueItemId`
+
+        **Vote Types:**
+        * `poll` — text poll created by host with arbitrary choices
+        * `next_video` — vote for the next queue item to play; the winning choice's queue item is moved to the top of the queue
+
+        **Access Rules:**
+        * Only the **room host** can create votes
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1682,7 +1857,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid input
+          description: "Invalid input: missing type/voteText/choices, invalid durationSeconds range, fewer than 2 or more than 20 choices"
         "401":
           content:
             application/json:
@@ -1711,7 +1886,17 @@ paths:
       tags:
       - Votes
     get:
-      description: List all votes (polls and next_video) for a room. Only room members can view.
+      description: |
+        List all votes (polls and next_video) for a room. Returns each vote with full details including choices, percentages, expiry, and the current user's selection.
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+
+        **Access Rules:**
+        * Only **room members** can view the vote list
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1731,7 +1916,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid room ID
+          description: Invalid room ID format (UUID v4 required)
         "401":
           content:
             application/json:
@@ -1743,7 +1928,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Access denied - only room members
+          description: Access denied - only room members can view votes
         "500":
           content:
             application/json:
@@ -1755,7 +1940,23 @@ paths:
       - Votes
   /api/rooms/{id}/votes/{voteId}:
     get:
-      description: Get detailed information about a specific vote including choices, percentages, and user's selection.
+      description: |
+        Get detailed information about a specific vote including choices with vote counts, percentages, expiry status, winner (if expired), and the current user's selection.
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+        * `voteId`: must be a valid UUID v4 format (vote ID)
+
+        **Response Details:**
+        * `isExpired`: computed from `createdAt + durationSeconds`
+        * `userVotedChoiceId`: the choice the current user voted for (null if not voted)
+        * `winnerId`: set only for expired "next_video" votes — tie-broken by host's double vote, then first candidate
+
+        **Access Rules:**
+        * Only **room members** can view vote details
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1781,7 +1982,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid ID format
+          description: Invalid ID format (UUID v4 required)
         "401":
           content:
             application/json:
@@ -1793,7 +1994,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Access denied - only room members
+          description: Access denied - only room members can view vote details
         "404":
           content:
             application/json:
@@ -1810,7 +2011,18 @@ paths:
       tags:
       - Votes
     delete:
-      description: Delete a vote. Only the room host can delete votes. All associated choices and user votes are also removed.
+      description: |
+        Delete a vote and all associated choices and user votes. **Permanent action — cannot be undone.**
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+        * `voteId`: must be a valid UUID v4 format (vote ID)
+
+        **Access Rules:**
+        * Only the **room host** can delete votes
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1836,7 +2048,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid ID format
+          description: Invalid ID format (UUID v4 required)
         "401":
           content:
             application/json:
@@ -1848,7 +2060,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Access denied - only room host
+          description: Access denied - only the room host can delete votes
         "404":
           content:
             application/json:
@@ -1866,7 +2078,26 @@ paths:
       - Votes
   /api/rooms/{id}/votes/{voteId}/cast:
     post:
-      description: Cast a vote for a specific choice. Only room members can vote. Each user can vote once per vote.
+      description: |
+        Cast a vote for a specific choice. Each user can only vote **once** per vote.
+
+        **Request Body Validation:**
+        * `choiceId`: **required**, must be a valid UUID v4 format (choice ID)
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+        * `voteId`: must be a valid UUID v4 format (vote ID)
+
+        **Business Rules:**
+        * The vote must be **active** (not expired) to accept votes
+        * A user who has already voted will receive a **409 Conflict** response
+        * Returns updated vote details with recalculated percentages
+
+        **Access Rules:**
+        * Only **room members** can cast votes
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1898,7 +2129,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid input or vote expired
+          description: "Invalid input: bad UUID format or vote has expired"
         "401":
           content:
             application/json:
@@ -1910,7 +2141,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Access denied - only room members
+          description: Access denied - only room members can cast votes
         "404":
           content:
             application/json:
@@ -1922,7 +2153,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: User has already voted
+          description: "Conflict: user has already voted on this vote"
         "500":
           content:
             application/json:
@@ -1933,7 +2164,23 @@ paths:
       tags:
       - Votes
     delete:
-      description: Remove the current user's vote from a vote. Only possible while the vote is still active.
+      description: |
+        Remove the current user's vote from an active vote (unvote).
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+        * `voteId`: must be a valid UUID v4 format (vote ID)
+
+        **Business Rules:**
+        * The vote must be **active** (not expired) to allow unvoting
+        * The user must have **previously voted** on this vote
+        * Returns updated vote details with recalculated percentages
+
+        **Access Rules:**
+        * Only **room members** can remove their votes
+
+        **Security Note:**
+        * This action **requires authentication**
       parameters:
       - description: Room ID (UUID v4 format)
         in: path
@@ -1959,7 +2206,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid ID or vote expired
+          description: "Invalid ID format or vote has expired"
         "401":
           content:
             application/json:
@@ -1971,13 +2218,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Access denied - only room members
+          description: Access denied - only room members can unvote
         "404":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Vote not found or user hasn't voted
+          description: "Vote not found or user hasn't voted"
         "500":
           content:
             application/json:
