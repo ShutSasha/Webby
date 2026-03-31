@@ -49,7 +49,7 @@ public class MediaGrpcService : MediaService.GrpcServer.MediaService.MediaServic
       
       var videosResult = await _videoService.SearchVideoInPlaylist(null,playlistId, new SearchOptions
       {
-         Page = request.Page, 
+         Page = request.Page,
          PageSize = request.PageSize
       });
       

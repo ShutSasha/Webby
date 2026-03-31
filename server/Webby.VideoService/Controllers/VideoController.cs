@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Jwt;
 using Webby.VideoService.Helpers.Response;
@@ -33,7 +35,7 @@ public class VideoController: ControllerBase
 
    [HttpGet("search")]
    [SwaggerOperation("Search video route")]
-   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> SearchVideo([FromQuery] SearchOptions searchOptions)
+   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> SearchVideo([FromQuery] SearchVideoOptions searchOptions)
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
       var videos = await _videoService.SearchVideo(requestUserId,searchOptions);
@@ -47,6 +49,16 @@ public class VideoController: ControllerBase
       var isVideoUploaded = await _videoService.CheckUploadStatus(videoId);
       return Ok(ApiResponse<bool>.Ok("Successfully extract video status",isVideoUploaded));
    }
+
+   [HttpGet("global-search")]
+   public async Task<ActionResult<ApiResponse<GlobalSearchVideoResponse>>> SearchGlobalVideos([FromQuery] GlobalSearchOptions options)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      
+      var globalVideoSearchResult = await _videoService.GlobalSearchVideos(requestUserId,options);
+      return Ok(ApiResponse.Ok("Successfully retrieved global videos", globalVideoSearchResult));
+   } 
+   
    
    [HttpGet("{playlistId:guid}/search")]
    [SwaggerOperation("Search video in playlist route")]

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Jwt;
 using Webby.VideoService.Helpers.Response;
@@ -62,6 +63,13 @@ public class PlaylistController : ControllerBase
       return Ok(ApiResponse<GetPlaylistResponse>.Ok("Successfully retrieved playlist information", playlistInformation));
    }
    
+   [HttpGet("global-search")]
+   public async Task<ActionResult<ApiResponse<GlobalSearchPlaylistResponse>>> SearchGlobalPlaylists([FromQuery] GlobalSearchOptions options)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var playlistGlobalSearchResult = await _playlistService.GlobalPlaylistsSearch(requestUserId, options);
+      return Ok(ApiResponse<GlobalSearchPlaylistResponse>.Ok("Successfully retrieved global playlists",playlistGlobalSearchResult));
+   } 
    
    [HttpGet("search")]
    [SwaggerOperation("Search playlists route")]
