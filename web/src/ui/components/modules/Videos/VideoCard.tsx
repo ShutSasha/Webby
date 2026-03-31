@@ -68,8 +68,7 @@ export default function VideoCard({
           className="absolute bottom-2 right-2 z-10 bg-black/80 px-1.5 py-0.5 rounded text-[11px] font-medium
             text-neutral-100 tracking-wide"
         >
-          {/* TODO: remove hardcodeed value and put a real number of duration */}
-          {formatVideoTime(500)}
+          {formatVideoTime(duration)}
         </div>
       </div>
 

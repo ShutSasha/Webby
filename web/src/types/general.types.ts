@@ -19,4 +19,6 @@ type PaginatedData<T> = {
   totalCount: number
 }
 
-export { type FormActionState, type BaseServerResponse, type PaginatedData }
+type Platform = 'Webby' | 'Youtube' | 'Twitch'
+
+export { type FormActionState, type BaseServerResponse, type PaginatedData, type Platform }

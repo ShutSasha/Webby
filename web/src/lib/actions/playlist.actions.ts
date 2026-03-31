@@ -210,3 +210,20 @@ export async function checkVideoInPlaylist(
     }
   }
 }
+
+export async function deletePlaylist(playlistId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(`${endpoint}/${playlistId}`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('DELETE_PLAYLIST_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to delete the playlist`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
