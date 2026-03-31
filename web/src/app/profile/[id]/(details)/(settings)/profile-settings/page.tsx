@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
-import { getUser } from '@/app/api/user'
+import { getUser } from '@/lib/actions/user.actions'
 import AboutContainer from '@/ui/components/modules/Profile/Settings/ProfileSettings/AboutContainer'
 import UploadAvatarContainer from '@/ui/components/modules/Profile/Settings/ProfileSettings/UploadAvatarContainer'
 import UserHeader from '@/ui/components/modules/Profile/Settings/UserHeader'

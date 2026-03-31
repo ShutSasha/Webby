@@ -1,6 +1,6 @@
 'use client'
 
-import MediaButton from '../../common/MediaButton'
+import MediaButton from '../../shared/MediaButton'
 
 export default function CreateRoomButton() {
   const handleClick = () => {

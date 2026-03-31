@@ -1,6 +1,6 @@
-import MediaHeader from '@/ui/components/common/MediaHeader'
 import PageToggle from '@/ui/components/modules/Playlists/PageToggle'
 import CreatePlaylistButton from '@/ui/components/modules/Rooms/InteractionBlock/Playlists/CreatePlaylistButton'
+import MediaHeader from '@/ui/components/shared/MediaHeader'
 
 type Props = Readonly<{
   children: React.ReactNode

@@ -6,7 +6,7 @@ import PlaylistIcon from '@/assets/icons/ic_playlist.svg'
 import UsersIcon from '@/assets/icons/ic_users.svg'
 import SettingsIcon from '@/assets/icons/shared/settings.svg'
 import XIcon from '@/assets/icons/shared/x.svg'
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 import { TabType, useRoomStore } from '@/stores/room.store'
 
 export default function RoomInteractionHeader() {

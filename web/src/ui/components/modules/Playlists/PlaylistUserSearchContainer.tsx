@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect } from 'react'
 
-import { BasePlaylist, searchUserPlaylists } from '@/app/api/playlists'
+import { BasePlaylist, searchUserPlaylists } from '@/lib/actions/playlist.actions'
 import { useInfiniteSearch } from '@/lib/hooks/useInfiniteSearch'
 
 import { PlaylistItemSkeleton } from './PlaylistItem'

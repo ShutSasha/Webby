@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
-import { getUserAchievements } from '@/app/api/achievements'
+import { getUserAchievements } from '@/lib/actions/achievement.actions'
 import AchievementItem from '@/ui/components/modules/Profile/Settings/Achievements/AchievementItem'
 import Splitter from '@/ui/components/modules/Profile/Settings/Achievements/Splitter'
 import UserHeader from '@/ui/components/modules/Profile/Settings/UserHeader'

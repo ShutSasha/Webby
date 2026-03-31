@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth'
 
 import { authConfig } from '../auth.config'
-import { clog } from './lib/utils/utils'
+import { clog } from './lib/utils/general.utils'
 
 const { auth } = NextAuth(authConfig)
 

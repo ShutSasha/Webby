@@ -1,0 +1,14 @@
+env: "local"
+connectionString: "{{UriConnectionString}}"
+jwtSecret: "{{JwtAccessSecretKey}}"
+http:
+  host: "localhost"
+  port: 8080
+  timeout: 10s
+aws:
+  accessKey: "{{AwsAccessKey}}"
+  secretKey: "{{AwsSecretKey}}"
+  region: "{{AwsRegion}}"
+  bucket: "{{AwsBucketName}}"
+grpc:
+  mediaServiceAddress: "localhost:5005"

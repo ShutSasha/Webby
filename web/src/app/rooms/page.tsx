@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 
-import CategoryToggle from '@/ui/components/common/GenreToggle'
-import MainLayout from '@/ui/components/MainLayout'
+import MainLayout from '@/ui/components/layouts/MainLayout'
+import CategoryToggle from '@/ui/components/modules/Rooms/GenreToggle'
 import RoomCard from '@/ui/components/modules/Rooms/RoomCard'
 import RoomPageHeader from '@/ui/components/modules/Rooms/RoomPageHeader'
 import GridCardsContainer from '@/ui/components/shared/GridCardsContainer'

@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 import { useProfileStore } from '@/stores/profile.store'
 import { BLUR_DATA_URLS } from '@/ui/images'
 

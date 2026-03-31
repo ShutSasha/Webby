@@ -3,10 +3,10 @@
 import { useEffect } from 'react'
 
 import { useCommonStore } from '@/stores/common.store'
-import CodeStep from '@/ui/components/common/ResetPassword/CodeStep'
-import EmailStep from '@/ui/components/common/ResetPassword/EmailStep'
-import NewPasswordStep from '@/ui/components/common/ResetPassword/NewPasswordStep'
-import MainLayout from '@/ui/components/MainLayout'
+import MainLayout from '@/ui/components/layouts/MainLayout'
+import CodeStep from '@/ui/components/modules/Auth/ResetPassword/CodeStep'
+import EmailStep from '@/ui/components/modules/Auth/ResetPassword/EmailStep'
+import NewPasswordStep from '@/ui/components/modules/Auth/ResetPassword/NewPasswordStep'
 
 export default function ForgotPasswordPage() {
   const step = useCommonStore(state => state.forgotPasswordStep)

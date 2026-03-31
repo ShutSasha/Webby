@@ -6,12 +6,12 @@ import Link from 'next/link'
 import LogoIcon from '@/assets/icons/ic_logo.svg'
 import ExpandIcon from '@/assets/icons/Nav/arrow-right-from-line.svg'
 import { navDesktopElements } from '@/lib/placeholder-data/nav-side'
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 
 import { DesktopNavElement } from './NavElements'
 import { UserProfile } from './UserProfile'
-import Search from '../../Search'
 import Modal from '../../shared/Modal'
+import Search from '../../shared/Search'
 
 export default function DesktopNav() {
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
