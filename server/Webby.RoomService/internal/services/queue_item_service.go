@@ -208,7 +208,7 @@ func (s *QueueItemService) GetQueue(ctx context.Context, roomId, userId uuid.UUI
 					vids = vids[subStart:]
 				}
 				children := make([]QueueVideoChild, 0, len(vids))
-				for j, v := range vids {
+				for _, v := range vids {
 					children = append(children, QueueVideoChild{
 						Id:        v.Id,
 						Title:     v.Title,

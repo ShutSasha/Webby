@@ -212,7 +212,7 @@ type VoteDetailResponse struct {
 	TotalVotes        int                        `json:"totalVotes" example:"8" description:"Sum of all votes across all choices"`
 	UserVotedChoiceId *string                    `json:"userVotedChoiceId" example:"550e8400-e29b-41d4-a716-446655440000" description:"Choice UUID the current user voted for (null if not voted)"`
 	WinnerId          *string                    `json:"winnerId" example:"550e8400-e29b-41d4-a716-446655440000" description:"Choice UUID of the winner (only set for expired 'next_video' votes). In a tie the host's vote counts double; if still tied the first candidate wins"`
-	Choices           []VoteChoiceDetailResponse  `json:"choices"`
+	Choices           []VoteChoiceDetailResponse `json:"choices"`
 }
 
 type VoteApiResponse struct {
