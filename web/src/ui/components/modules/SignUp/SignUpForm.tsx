@@ -21,6 +21,9 @@ const initialState = {
 
 export default function SignUpForm() {
   const [state, formAction, isPending] = useActionState(registerUser, initialState)
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const togglePassword = () => setShowPassword(prev => !prev)
+
   const { register, handleSubmit } = useForm({
     defaultValues: {
       email: '',
@@ -29,10 +32,6 @@ export default function SignUpForm() {
       repeatPassword: '',
     },
   })
-
-  const [showPassword, setShowPassword] = useState<boolean>(false)
-
-  const togglePassword = () => setShowPassword(prev => !prev)
 
   const onSubmit = (data: any) => {
     const formData = new FormData()
@@ -44,12 +43,14 @@ export default function SignUpForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col">
-      <h1 className="text-white text-xl font-bold text-center mb-4">Sign up</h1>
-
-      <div className="flex flex-col gap-3 mb-2">
-        <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" />
+    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6">
+      <div className="flex flex-col gap-1 text-center">
+        <h1 className="text-white text-2xl font-bold">Create account</h1>
+        <p className="text-sm text-neutral-400">Join Webby to start watching and chatting.</p>
+      </div>
+      <div className="flex flex-col gap-4">
         <AuthInput Icon={UsernameIcon} {...register('username')} name="username" type="text" placeholder="Username" />
+        <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" />
         <AuthInput
           Icon={PasswordIcon}
           {...register('password')}
@@ -66,34 +67,41 @@ export default function SignUpForm() {
           type="password"
           placeholder="Repeat Password"
         />
-        <div>
-          {state.errors &&
-            Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
-              <p key={field} className="text-red-500 text-sm">
-                {message}
-              </p>
-            ))}
-        </div>
-        <Button
-          disabled={isPending}
-          type="submit"
-          viewType="confirm"
-          className={`text-[16px] leading-[22px] font-semibold w-fit mx-auto
-            ${isPending ? 'bg-neutral-700 hover:bg-neutral-700 cursor-not-allowed' : 'cursor-pointer'}`}
-          paddingClasses="px-5 py-2"
-        >
-          {isPending ? 'Sending...' : 'Sign Up'}
-        </Button>
-        <p className="text-center text-sm leading-5 text-neutral-300">
-          Already have an account?{' '}
-          <Link href="/login" className="text-emerald-500 hover:underline">
-            Log in
-          </Link>
-        </p>
-        <hr className="border-neutral-300" />
-        <p className="text-center text-sm leading-5 text-neutral-300">or sign up via </p>
       </div>
+
+      {state.errors && (
+        <div className="flex flex-col gap-1">
+          {Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
+            <p key={field} className="text-red-500 text-sm">
+              {message}
+            </p>
+          ))}
+        </div>
+      )}
+      <Button
+        disabled={isPending}
+        type="submit"
+        viewType={isPending ? 'loading' : 'confirm'}
+        className="w-full text-[16px]"
+        paddingClasses="py-3"
+      >
+        {isPending ? 'Creating account...' : 'Create account'}
+      </Button>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px w-full bg-neutral-800" />
+        <span className="text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">or continue with</span>
+        <div className="h-px w-full bg-neutral-800" />
+      </div>
+
       <AuthSocialButtons />
+
+      <p className="text-center text-sm text-neutral-400 mt-2">
+        Already have an account?{' '}
+        <Link href="/login" className="text-white font-semibold hover:underline">
+          Log in
+        </Link>
+      </p>
     </form>
   )
 }

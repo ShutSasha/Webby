@@ -10,17 +10,24 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   paddingClasses?: string
 }
 
-export default function Button({ children, viewType, paddingClasses = 'px-4 py-2', className, ...props }: ButtonProps) {
+export default function Button({
+  children,
+  viewType,
+  paddingClasses = 'px-4 py-2.5',
+  className,
+  ...props
+}: ButtonProps) {
   return (
     <button
       {...props}
       className={cn(
+        'flex items-center justify-center rounded-full font-semibold transition-all duration-300 ease-out',
         paddingClasses,
-        'w-fit rounded transition-all duration-300 ease-in-out',
         {
           'bg-emerald-500 hover:bg-emerald-400 text-neutral-900 cursor-pointer': viewType === 'confirm',
-          'hover:border-border border border-gray-50/0 bg-neutral-900 cursor-pointer': viewType === 'cancel',
-          'hover:border-border border border-gray-50/0 bg-neutral-900 cursor-not-allowed': viewType === 'loading',
+          [`bg-transparent border border-neutral-700 text-neutral-300 hover:border-neutral-500 hover:text-neutral-100
+          hover:bg-neutral-800/50 cursor-pointer`]: viewType === 'cancel',
+          'bg-neutral-800 text-neutral-500 cursor-not-allowed': viewType === 'loading',
         },
         className,
       )}

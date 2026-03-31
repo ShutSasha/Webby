@@ -60,12 +60,16 @@ export default function LoginForm() {
   }, [state.success])
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col">
-      <h1 className="text-white text-xl font-bold text-center mb-4">Login</h1>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6">
+      <div className="flex flex-col gap-1 text-center">
+        <h1 className="text-neutral-100 text-2xl font-bold">Log in to Webby</h1>
+        <p className="text-sm text-neutral-400">Welcome back! Please enter your details.</p>
+      </div>
 
-      <div className="flex flex-col mb-2">
-        <div className="flex flex-col gap-3">
-          <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" autoComplete="email" />
+      <div className="flex flex-col gap-4">
+        <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" autoComplete="email" />
+
+        <div className="flex flex-col gap-2">
           <AuthInput
             Icon={PasswordIcon}
             {...register('password')}
@@ -74,40 +78,43 @@ export default function LoginForm() {
             type="password"
             placeholder="Password"
           />
-        </div>
-        <div className="flex items-center justify-between my-2">
-          <p className="text-center text-sm leading-5 text-neutral-300">
-            {`Haven't`} an account yet?{' '}
-            <Link href="/sign-up" className="text-emerald-500 hover:underline">
-              Sign up
-            </Link>
-          </p>
+
           <Link
             href={'/forgot-password'}
-            className="text-right text-emerald-500 text-sm hover:underline cursor-pointer"
+            className="text-xs text-neutral-400 hover:text-neutral-200 transition-colors self-end"
           >
-            Forgot your password?
+            Forgot password?
           </Link>
         </div>
-        <AuthErrorDisplay email={watchedEmail} state={state} className="my-2" />
-        <input type="hidden" name="redirectTo" value={callbackUrl} />
-        <Button
-          disabled={isPending}
-          type="submit"
-          viewType="confirm"
-          className={`text-[16px] leading-[22px] font-semibold w-fit mx-auto mb-3 ${
-            isPending ? 'bg-neutral-700 hover:bg-neutral-700 cursor-not-allowed' : 'cursor-pointer'
-          }`}
-          paddingClasses="px-5 py-2"
-        >
-          {isPending ? 'Sending...' : 'Log in'}
-        </Button>
+      </div>
 
-        <hr className="border-neutral-300 mb-2" />
-        <p className="text-center text-sm leading-5 text-neutral-300">or log in via </p>
+      <AuthErrorDisplay email={watchedEmail} state={state} />
+      <input type="hidden" name="redirectTo" value={callbackUrl} />
+
+      <Button
+        disabled={isPending}
+        type="submit"
+        viewType={isPending ? 'loading' : 'confirm'}
+        className="w-full text-[16px]"
+        paddingClasses="py-3"
+      >
+        {isPending ? 'Logging in...' : 'Log in'}
+      </Button>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px w-full bg-neutral-800" />
+        <span className="text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">or continue with</span>
+        <div className="h-px w-full bg-neutral-800" />
       </div>
 
       <AuthSocialButtons />
+
+      <p className="text-center text-sm text-neutral-400 mt-2">
+        Don&apos;t have an account?{' '}
+        <Link href="/sign-up" className="text-white font-semibold hover:underline">
+          Sign up
+        </Link>
+      </p>
     </form>
   )
 }
