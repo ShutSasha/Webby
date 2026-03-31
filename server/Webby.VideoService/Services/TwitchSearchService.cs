@@ -6,6 +6,7 @@ using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.External;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
+using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.External;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Services;
@@ -140,7 +141,7 @@ public class TwitchSearchService : IExternalVideoSearchService
             return MapToVideoDto(videoItem, avatars.GetValueOrDefault(videoItem.UserId));
         }
 
-        return null;
+        throw new ApiException("Get twitch stream error", 404, "Stream wasn't found");
     }
     
     private VideoDto MapToVideoDto(TwitchItem item, string? avatarUrl)
