@@ -1,11 +1,9 @@
-export type RoomTabValue = 'all' | 'cinema' | 'music' | 'games' | 'education'
+export type RoomTabValue = 'all' | 'cinema' | 'music' | 'gaming' | 'education'
 
 export const ROOM_TABS_CONFIG: { label: string; value: RoomTabValue }[] = [
   { label: 'All', value: 'all' },
   { label: 'Cinema', value: 'cinema' },
   { label: 'Music', value: 'music' },
-  { label: 'Games', value: 'games' },
+  { label: 'Gaming', value: 'gaming' },
   { label: 'Education', value: 'education' },
 ]
-
-export const ALLOWED_ROOM_TABS = ROOM_TABS_CONFIG.map(tab => tab.value)

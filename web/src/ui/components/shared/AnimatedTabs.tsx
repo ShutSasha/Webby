@@ -48,3 +48,22 @@ export default function AnimatedTabs({ tabs, layoutId = 'active-pill', className
     </div>
   )
 }
+
+type SkeletonProps = {
+  count?: number
+  className?: string
+  tabClassName?: string
+}
+
+export function AnimatedTabsSkeleton({ count = 3, className, tabClassName }: SkeletonProps) {
+  return (
+    <div className={cn('flex items-center gap-2', className)}>
+      {Array.from({ length: count }).map((_, index) => (
+        <div
+          key={index}
+          className={cn('h-9 w-24 rounded-full bg-neutral-800/80 animate-pulse shrink-0', tabClassName)}
+        />
+      ))}
+    </div>
+  )
+}
