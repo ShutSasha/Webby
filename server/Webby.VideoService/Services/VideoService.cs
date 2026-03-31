@@ -171,9 +171,28 @@ public class VideoService : IVideoService
       await _videoRepository.DeleteAsync(videoId);
    }
 
-   public async Task<GetVideoInformationResponse> GetVideoInformation(Guid videoId, Guid? userId)
+   public async Task<VideoDto> GetVideoInformation(string videoId, Guid? userId, SearchPlatforms platform)
    {
-      var video = await _videoRepository.GetVideoInformationById(videoId)
+
+      switch (platform)
+      {
+         case SearchPlatforms.YouTube:
+         {
+            var youtubeVideoDto = await _youtubeSearchService.FindById(videoId);
+            return youtubeVideoDto;
+         }
+         case SearchPlatforms.Twitch:
+         {
+            var twitchStreamDto = await _twitchSearchService.FindById(videoId);
+            return twitchStreamDto;
+         }
+         case SearchPlatforms.Webby:
+            break;
+         default:
+            throw new ApiException("Get video information error", 400, "incorrect platform type");
+      }
+
+      var video = await _videoRepository.GetVideoInformationById(Guid.Parse(videoId))
                   ?? throw new ApiException("Get video information error", 404, "Video wasn't found");
 
       if (video.VideoUploadStatus is not VideoStatus.Ready)
@@ -189,13 +208,14 @@ public class VideoService : IVideoService
 
       var videoTagsNames = await _tagService.GetTagNames(video.VideoTags?.ToList());
 
-      return new GetVideoInformationResponse
+      return new VideoDto()
       {
          VideoId = videoId.ToString(),
          Name = video.Name,
          Views = video.Views,
          Description = video.Description,
          CreatedAt = video.CreatedAt,
+         Duration = video.Duration,
          VideoUrl = video.VideoUrl,
          PreviewUrl = video.PreviewUrl,
          IsPrivate = video.IsPrivate,

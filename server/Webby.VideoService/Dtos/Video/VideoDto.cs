@@ -19,8 +19,7 @@ public class VideoDto
    public DateTime CreatedAt { get; set; }
    public VideoStatus VideoUploadStatus { get; set; }
    
-   [JsonConverter(typeof(TimeSpanToStringConverter))]
-   public TimeSpan Duration { get; set; }
+   public long Duration { get; set; }
    public string? VideoUrl { get; set; }
    public List<string>? VideoTags { get; set; }
    public UserVideoDto? User { get; set; }

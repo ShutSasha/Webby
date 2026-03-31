@@ -95,7 +95,7 @@ public class TwitchSearchService : IExternalVideoSearchService
         CreatedAt = item.StartedAt,
         IsPrivate = false,
         VideoUploadStatus = VideoStatus.Ready,
-        Duration = TimeSpan.Zero,
+        Duration = 0L,
         Views = item.ViewerCount,
         User = new UserVideoDto
         {

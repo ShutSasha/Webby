@@ -91,8 +91,8 @@ public class YoutubeSearchService : IExternalVideoSearchService
         VideoUploadStatus = VideoStatus.Ready,
 
         Duration = !string.IsNullOrEmpty(item.ContentDetails?.Duration) 
-            ? System.Xml.XmlConvert.ToTimeSpan(item.ContentDetails.Duration) 
-            : TimeSpan.Zero,
+            ? (long)Math.Round(System.Xml.XmlConvert.ToTimeSpan(item.ContentDetails.Duration).TotalSeconds) 
+            : 0L,
             
         Views = int.TryParse(item.Statistics?.ViewCount, out var v) ? v : 0,
         VideoTags = item.Snippet.Tags,
@@ -172,8 +172,9 @@ public async Task<VideoDto> FindById(string videoId)
         IsPrivate = false,
         VideoUploadStatus = VideoStatus.Ready,
         Duration = !string.IsNullOrEmpty(item.ContentDetails?.Duration) 
-            ? System.Xml.XmlConvert.ToTimeSpan(item.ContentDetails.Duration) 
-            : TimeSpan.Zero,
+            ? (long)Math.Round(System.Xml.XmlConvert.ToTimeSpan(item.ContentDetails.Duration).TotalSeconds) 
+            : 0L,
+        
         Views = int.TryParse(item.Statistics?.ViewCount, out var v) ? v : 0,
         VideoTags = item.Snippet.Tags,
         
