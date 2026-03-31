@@ -17,6 +17,9 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
          .IsRequired()
          .HasMaxLength(500);
 
+      builder.Property(v => v.Duration)
+         .HasDefaultValue(0L);
+      
       builder.Property(v => v.Description)
          .HasMaxLength(1000);
 

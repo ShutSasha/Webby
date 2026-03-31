@@ -716,7 +716,7 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/videos/search",
+      "DownstreamPathTemplate": "/api/videos",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
