@@ -9,7 +9,7 @@ import UserProfileIcon from '@/assets/icons/ic_user_profile.svg'
 import { cn } from '@/lib/utils/general.utils'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
-import { DesktopNavElement } from './NavElements'
+import { DesktopNavElement } from './DesktopNavElement'
 
 type UserProfileProps = {
   isExpanded: boolean

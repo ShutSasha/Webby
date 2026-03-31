@@ -2,7 +2,6 @@
 
 import { ComponentProps, FC, SVGProps } from 'react'
 
-import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -10,14 +9,14 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils/general.utils'
 
 type DesktopNavProps = {
-  href?: ComponentProps<typeof Link>['href']
-  onClick?: () => void
   isExpanded: boolean
   Icon: FC<SVGProps<SVGSVGElement>> | string
   text: string
-  className?: string
   iconSize: string
+  href?: ComponentProps<typeof Link>['href']
+  className?: string
   isUserProfile?: boolean
+  onClick?: () => void
 }
 
 export function DesktopNavElement({
@@ -75,14 +74,7 @@ export function DesktopNavElement({
   if (href) {
     return (
       <Link href={href} className={elementClasses}>
-        {isActive && (
-          <motion.div
-            layoutId="sidebar-active-indicator"
-            className="absolute inset-0 bg-emerald-500/10 rounded-xl border border-emerald-500/20"
-            initial={false}
-            transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-          />
-        )}
+        {isActive && <div className="absolute inset-0 bg-emerald-500/10 rounded-xl border border-emerald-500/20" />}
         {content}
       </Link>
     )
@@ -92,38 +84,5 @@ export function DesktopNavElement({
     <button onClick={onClick} className={cn(elementClasses, 'w-full text-left bg-transparent border-none')}>
       {content}
     </button>
-  )
-}
-
-type MobileNavProps = {
-  href: ComponentProps<typeof Link>['href']
-  Icon: FC<SVGProps<SVGSVGElement>>
-  text: string
-  className?: string
-  iconSize: string
-  toggleMobileNav: () => void
-}
-
-export function MobileNavElement({ href, Icon, text, className, iconSize, toggleMobileNav }: MobileNavProps) {
-  const elementWrapperClasses = `flex h-fit cursor-pointer flex-col items-center rounded-sm hover:text-emerald-500 ${className}`
-
-  if (text === 'Menu') {
-    return (
-      <div className={elementWrapperClasses} onClick={toggleMobileNav}>
-        <div className={'w-full flex-1 flex flex-col items-center'}>
-          <Icon className={`${iconSize} shrink-0`} />
-          <p className="w-full overflow-hidden truncate max-[380px]:text-[12px] text-center">{text}</p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <Link href={href} className={elementWrapperClasses}>
-      <div className={'w-full flex-1 flex flex-col items-center'}>
-        <Icon className={`${iconSize} shrink-0`} />
-        <p className="w-full overflow-hidden truncate max-[380px]:text-[12px] text-center">{text}</p>
-      </div>
-    </Link>
   )
 }
