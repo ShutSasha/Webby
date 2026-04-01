@@ -50,6 +50,11 @@ public class TwitchSearchService : IExternalVideoSearchService
         var searchResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(
             QueryHelpers.AddQueryString(searchUrl, searchParams));
 
+        if (searchResponse == null)
+        {
+            return new PagedResponse<VideoDto>();
+        }
+
         nextPageToken = searchResponse.Pagination?.Cursor;
 
         if (searchResponse.Data.Any())
@@ -184,7 +189,12 @@ public class TwitchSearchService : IExternalVideoSearchService
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         
         var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return default!;
+        }
+        
         return await response.Content.ReadFromJsonAsync<T>();
     }
     
