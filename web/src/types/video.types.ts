@@ -25,4 +25,12 @@ export type Video = {
   user: VideoUser
 }
 
+export type UploadVideoResponse = {
+  videoId: string
+  userId: string
+  name: string
+  videoUploadStatus: UploadStatus
+  isPrivate: boolean
+}
+
 export type SearchVideosResponse = PaginatedData<Video>

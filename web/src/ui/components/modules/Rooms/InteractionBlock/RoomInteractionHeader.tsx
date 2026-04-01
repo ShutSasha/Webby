@@ -2,8 +2,8 @@
 
 import { FC, SVGProps } from 'react'
 
-import PlaylistIcon from '@/assets/icons/ic_playlist.svg'
 import UsersIcon from '@/assets/icons/ic_users.svg'
+import PlaylistIcon from '@/assets/icons/Nav/list-video.svg'
 import SettingsIcon from '@/assets/icons/shared/settings.svg'
 import XIcon from '@/assets/icons/shared/x.svg'
 import { cn } from '@/lib/utils/general.utils'
@@ -29,7 +29,7 @@ export default function RoomInteractionHeader() {
       <CurrentIcon
         onClick={() => toggleTab(type)}
         className={cn(
-          'size-6 cursor-pointer transition-all duration-300 ease-in-out select-none',
+          'size-6 cursor-pointer transition-all duration-300 ease-in-out select-none stroke-[1.5px]',
           isActive ? 'text-emerald-500' : 'text-neutral-300 hover:text-emerald-500',
         )}
       />

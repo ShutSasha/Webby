@@ -4,8 +4,9 @@ import type { RuleSetRule } from 'webpack'
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      bodySizeLimit: '10mb',
+      bodySizeLimit: '600mb',
     },
+    middlewareClientMaxBodySize: '600mb',
   },
   images: {
     remotePatterns: [

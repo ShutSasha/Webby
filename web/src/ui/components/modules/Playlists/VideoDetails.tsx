@@ -47,7 +47,6 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
   return (
     <div className="h-fit min-w-0 w-full">
       <CustomPlayer videoUrl={videoUrl} />
-
       <div className="flex items-start justify-between mt-3 mb-2">
         <div className="flex flex-col gap-0.5">
           <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
@@ -64,7 +63,6 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
           <ComplaintButton authorId={currentUserId} targetId={videoId} targetType="Video" />
         </div>
       </div>
-
       <div className="flex items-center gap-3">
         <Link href={`/profile/${user.userId}`} className="flex items-center gap-3">
           <Image
@@ -83,7 +81,6 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
           <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} currentUserId={currentUserId} />
         )}
       </div>
-
       <VideoDescription text={description ?? ''} views={views} date={createdAt} />
     </div>
   )
