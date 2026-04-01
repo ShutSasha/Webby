@@ -86,8 +86,8 @@ export default function VideoCard({
         <div className="flex flex-1 justify-between items-start gap-2">
           <div className="flex flex-col overflow-hidden">
             <h3
-              className="text-neutral-100 text-sm font-semibold leading-snug line-clamp-2 transition-colors duration-200
-                group-hover:text-emerald-400"
+              className="text-neutral-100 text-sm font-semibold leading-snug line-clamp-2 break-all transition-colors
+                duration-200 group-hover:text-emerald-400"
             >
               {title}
             </h3>
