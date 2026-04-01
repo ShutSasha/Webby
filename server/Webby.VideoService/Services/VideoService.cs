@@ -133,8 +133,8 @@ public class VideoService : IVideoService
          request.PreviewFile.ContentType
       );
 
-      video.Name = request.Name;
-      video.Description = request.Description;
+      video.Name = request.Name.Trim();
+      video.Description = request.Description?.Trim();
       video.PreviewUrl = previewUrl;
       video.IsPrivate = request.IsPrivate;
       video.IsPublished = true;
@@ -262,8 +262,8 @@ public class VideoService : IVideoService
       if (video.UserId != userId)
          throw new ApiException("Update information error", 403, "You don't have permission for updating this video");
       
-      video.Name = request.Name;
-      video.Description = request.Description;
+      video.Name = request.Name.Trim();
+      video.Description = request.Description?.Trim();
       video.IsPrivate = request.IsPrivate;
       
       if (request.PlaylistId != null)

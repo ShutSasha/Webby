@@ -10,7 +10,12 @@ public class MappingProfiles : Profile
    public MappingProfiles()
    {
       CreateMap<Models.Playlist, PlaylistDto>();
-      CreateMap<Models.Video, VideoDto>();
+      CreateMap<Models.Video, VideoDto>()
+         .ForMember(dest => dest.VideoTags, opt => opt.MapFrom(src => 
+            src.VideoTags
+               .Select(vt => vt.Tag.Name)
+               .ToList()));
+      
       CreateMap<Models.Video, UploadVideoResponse>();
    }
 }

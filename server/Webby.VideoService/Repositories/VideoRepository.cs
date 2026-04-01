@@ -22,10 +22,14 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
    public async Task<(List<Video>, int)> GetPaginatedUserVideos(Guid userId, bool isOwner, int page, int pageSize)
    {
       var query = _context.Videos
-         .Where(v => v.UserId == userId 
+         .Where(v => v.UserId == userId
                      && (isOwner || !v.IsPrivate)
-                     && (v.VideoUploadStatus == VideoStatus.Ready || (isOwner && v.VideoUploadStatus == VideoStatus.Uploading)));
-
+                     && (isOwner || v.IsPublished)
+                     && (v.VideoUploadStatus == VideoStatus.Ready ||
+                         (isOwner && v.VideoUploadStatus == VideoStatus.Uploading)))
+         .Include(v => v.VideoTags)!
+         .ThenInclude(vt => vt.Tag);
+      
       var totalCount = await query.CountAsync();
 
       var videos = await query
