@@ -18,7 +18,7 @@ public class VideoDto
    public required bool IsPrivate { get; set; }
    public DateTime CreatedAt { get; set; }
    public VideoStatus VideoUploadStatus { get; set; }
-   
+   public bool IsPublished { get; set; } = false;
    public long Duration { get; set; }
    public string? VideoUrl { get; set; }
    public List<string>? VideoTags { get; set; }

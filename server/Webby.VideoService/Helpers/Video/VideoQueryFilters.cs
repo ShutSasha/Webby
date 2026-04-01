@@ -66,22 +66,17 @@ public static class VideoQueryFilters
           )
           AND (
               ""VideoUploadStatus"" = {3}
-              OR (""UserId"" = {2} AND ""VideoUploadStatus"" = {4})
           )
       )
       ",
          new object[] 
          { 
             requestUserId ?? (object)DBNull.Value,
-            VideoStatus.Ready.ToString(),
-            VideoStatus.Uploading.ToString()
+            VideoStatus.Ready.ToString()
          },
          context => v => v.IsPublished == true
                          && (!v.IsPrivate || v.UserId == requestUserId)
-                         && (
-                            v.VideoUploadStatus == VideoStatus.Ready || 
-                            (v.UserId == requestUserId && v.VideoUploadStatus == VideoStatus.Uploading)
-                         )
+                         && v.VideoUploadStatus == VideoStatus.Ready
       );
    }
 }
