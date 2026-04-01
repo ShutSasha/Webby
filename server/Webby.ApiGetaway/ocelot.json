@@ -741,7 +741,10 @@
          "UpstreamPathTemplate": "/api/notifications/unread",
          "UpstreamHttpMethod": [
             "GET"
-         ]
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
       },
 
       {
@@ -756,7 +759,10 @@
          "UpstreamPathTemplate": "/api/notifications/read",
          "UpstreamHttpMethod": [
             "GET"
-         ]
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
       },
 
       {
@@ -771,7 +777,10 @@
          "UpstreamPathTemplate": "/api/notifications/count-unread-messages",
          "UpstreamHttpMethod": [
             "GET"
-         ]
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
       },
 
       {
@@ -786,7 +795,10 @@
          "UpstreamPathTemplate": "/api/notifications/set-read-status",
          "UpstreamHttpMethod": [
             "POST"
-         ]
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
       },
       
       {
@@ -830,7 +842,7 @@
 
       {
          "DownstreamPathTemplate": "/hubs/notifications",
-         "DownstreamScheme": "http",
+         "DownstreamScheme": "ws",
          "DownstreamHostAndPorts": [
             {
                "Host": "localhost",

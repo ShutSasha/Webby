@@ -51,7 +51,7 @@ if (app.Environment.IsDevelopment())
 
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/docs/notification-service/v1/swagger.json", "Video Service API");
+        c.SwaggerEndpoint("/docs/notification-service/v1/swagger.json", "Notification Service API");
     });
 }
 

@@ -34,11 +34,12 @@ public static class ApiExtension
    {
       services.AddSwaggerGen(options =>
       {
+         
          options.EnableAnnotations();
          
          options.SwaggerDoc("v1", new OpenApiInfo
          {
-            Title = "Video Service API",
+            Title = "Notification Service API",
             Version = "v1"
          });
          
