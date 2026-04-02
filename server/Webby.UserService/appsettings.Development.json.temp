@@ -14,5 +14,12 @@
     "SecretKey": "{{AwsSecretKey}}",
     "BucketName": "{{AwsBucketName}}",
     "Region": "{{AwsRegion}}"
+  },
+  
+  "PaymentOptions":{
+    "PaymentPublicKey": "{{StripePublishableKey}}",
+    "PaymentSecretKey": "{{StripeSecretKey}}",
+    "PaymentWebhookKey": "{{StripeWebhookKey}}"
   }
+  
 }

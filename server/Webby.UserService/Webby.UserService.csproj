@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Stripe.net" Version="51.0.0" />
     <Protobuf Include="Protos\user.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\video.proto" GrpcServices="Client" />
     <PackageReference Include="AutoMapper" Version="13.0.1" />

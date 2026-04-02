@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using Webby.UserService.Clients;
 using Webby.UserService.Data;
 using Webby.UserService.Dtos.Storage;
+using Webby.UserService.Helpers.Payment;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
 using Webby.UserService.Models;
@@ -79,6 +80,8 @@ public static class ApiExtension
       serviceCollection.AddScoped<IUserRepository, UserRepository>();
       serviceCollection.AddScoped<IComplaintRepository, ComplaintRepository>();
       serviceCollection.AddScoped<IAchievementRepository, AchievementRepository>();
+      serviceCollection.AddScoped<IPaymentRepository, PaymentRepository>();
+      serviceCollection.AddScoped<IUserPremiumRepository, UserPremiumRepository>();
    }
 
    public static void AddServices(this IServiceCollection serviceCollection)
@@ -87,11 +90,13 @@ public static class ApiExtension
       serviceCollection.AddScoped<IUserService,Services.UserService>();
       serviceCollection.AddScoped<IAchievementService, AchievementService>();
       serviceCollection.AddScoped<IComplaintService, ComplaintService>();
+      serviceCollection.AddScoped<IPaymentService, PaymentService>();
    }
 
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)
    {
       serviceCollection.Configure<AwsOptions>(config.GetSection(nameof(AwsOptions)));
+      serviceCollection.Configure<PaymentSettings>(config.GetSection("PaymentOptions"));
    }
    
    public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection)
