@@ -3,7 +3,7 @@
 import $api from '@/lib/config/api.config'
 import { clog, parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse, Platform } from '@/types/general.types'
-import { SearchVideosResponse, UploadVideoResponse, Video } from '@/types/video.types'
+import { GetUserVideosResponse, SearchVideosResponse, UploadVideoResponse, Video } from '@/types/video.types'
 
 const endpoint = '/videos'
 
@@ -82,6 +82,29 @@ export async function createVideoMetadataAction(formData: FormData): Promise<Bas
       data: null,
       success: false,
       message: 'Failed to save video metadata',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function getUserVideos(
+  userId: string,
+  page: number = 1,
+  pageSize: number = 10,
+): Promise<BaseServerResponse<GetUserVideosResponse>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<GetUserVideosResponse>>(
+      `${endpoint}/users/${userId}?page=${page}&pageSize=${pageSize}`,
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_USER_VIDEOS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve user videos',
       errors: parseAxiosError(error),
     }
   }

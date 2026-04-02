@@ -16,6 +16,7 @@ export type Video = {
   views: number
   previewUrl: string
   isPrivate: boolean
+  isPublished: boolean
   createdAt: string
   videoTags: string[] | null
   description: string | null
@@ -34,3 +35,5 @@ export type UploadVideoResponse = {
 }
 
 export type SearchVideosResponse = PaginatedData<Video>
+
+export type GetUserVideosResponse = PaginatedData<Video>
