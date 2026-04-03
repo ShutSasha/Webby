@@ -103,3 +103,20 @@ export async function deleteVideo(videoId: string): Promise<BaseServerResponse<n
     }
   }
 }
+
+export async function checkVideoUploadStatusAction(videoId: string): Promise<BaseServerResponse<boolean>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<boolean>>(`${endpoint}/${videoId}/check-upload-status`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('CHECK_VIDEO_UPLOAD_STATUS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to check video upload status',
+      errors: parseAxiosError(error),
+    }
+  }
+}

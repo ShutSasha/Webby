@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Image from 'next/image'
 import Link from 'next/link'
 
 import MoreVertical from '@/assets/icons/shared/more-vertical.svg'
+import { checkVideoUploadStatusAction } from '@/lib/actions/video.actions'
 import { useDeleteVideo } from '@/lib/hooks/api/video/useDeleteVideo'
 import { formatDate, formatVideoTime } from '@/lib/utils/date.utils'
 import { cn } from '@/lib/utils/general.utils'
@@ -18,6 +20,7 @@ type Props = {
 }
 
 export function StudioVideoRow({ video }: Props) {
+  const queryClient = useQueryClient()
   const { mutate, isPending } = useDeleteVideo()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -25,6 +28,22 @@ export function StudioVideoRow({ video }: Props) {
   const isReady = video.videoUploadStatus === 'Ready'
   const isUploading = video.videoUploadStatus === 'Uploading'
   const isFailed = video.videoUploadStatus === 'Failed'
+
+  useQuery({
+    queryKey: ['check-video-status', video.videoId],
+    queryFn: async () => {
+      const response = await checkVideoUploadStatusAction(video.videoId)
+
+      if (response.success && response.data === true) {
+        queryClient.invalidateQueries({ queryKey: ['user-videos'] })
+      }
+      return response
+    },
+
+    enabled: isUploading,
+
+    refetchInterval: isUploading ? 5000 : false,
+  })
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
