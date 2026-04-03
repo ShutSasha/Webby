@@ -490,7 +490,27 @@ public class VideoService : IVideoService
             TotalCount = youtubeVideos.TotalCount
          }
       };
-   } 
+   }
+
+   public async Task IncrementVideoView(Guid requestUserId, Guid videoId)
+   {
+      if (await _videoRepository.FindUserView(requestUserId, videoId))
+         return;
+
+      var video = await _videoRepository.FindById(videoId);
+
+      if (video == null)
+         return;
+
+      await _videoRepository.AddUserView(new UserView
+      {
+         UserId = requestUserId,
+         VideoId = videoId
+      });
+      
+      video.Views = await _videoRepository.CountUserView(videoId);
+      await _videoRepository.Update(video);
+   }
 
    public async Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId)
    {

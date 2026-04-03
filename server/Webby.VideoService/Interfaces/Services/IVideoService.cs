@@ -21,4 +21,5 @@ public interface IVideoService
    Task CancelVideoUploading(Guid requestUserId, Guid videoId);
    Task<bool> CheckUploadStatus(Guid videoId);
    Task<GlobalSearchVideoResponse> GlobalSearchVideos(Guid? requestUserId, GlobalSearchOptions searchOptions);
+   Task IncrementVideoView(Guid requestUserId, Guid videoId);
 }
