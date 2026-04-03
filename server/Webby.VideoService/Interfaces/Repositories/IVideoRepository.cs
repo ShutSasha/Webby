@@ -14,4 +14,6 @@ public interface IVideoRepository : IRepository<Video>
       string? searchText,
       int skip,
       int take);
+
+   Task UpdateVideoFileMetaData(Guid videoId, string videoFileUrl, long duration);
 }

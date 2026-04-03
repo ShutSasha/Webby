@@ -22,7 +22,7 @@ public class VideoUploadProcessor(IVideoRepository videoRepository, IStorageServ
       {
          var ffProbe = new FFProbe();
          var videoInfo = ffProbe.GetMediaInfo(filePath);
-         video!.Duration = (long)Math.Round(videoInfo.Duration.TotalSeconds);
+         var duration = (long)Math.Round(videoInfo.Duration.TotalSeconds);
 
          logger.LogInformation($"Uploading file to storage");
          await using var stream = File.OpenRead(filePath);
@@ -34,14 +34,15 @@ public class VideoUploadProcessor(IVideoRepository videoRepository, IStorageServ
             stream,
             contentType
          );
-
-         video.VideoUrl = videoFileUrl;
-         await videoRepository.Update(video);
+         
+         await videoRepository.UpdateVideoFileMetaData(video!.VideoId, videoFileUrl, duration);
 
          File.Delete(filePath);
       }
       catch (Exception ex)
       {
+         await videoRepository.ReloadAsync(video!);
+         
          if (!string.IsNullOrEmpty(videoFileUrl))
          {
             try
