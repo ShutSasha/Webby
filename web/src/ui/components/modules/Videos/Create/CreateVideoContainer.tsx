@@ -1,33 +1,40 @@
 'use client'
 
-import { useState } from 'react'
-
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
+import { cancelVideoUploadAction } from '@/lib/actions/video.actions'
 import { useCreateVideoMetadata, useUploadVideoFile } from '@/lib/hooks/api/video/useCreateVideo'
-import { UploadVideoResponse } from '@/types/video.types'
+import { useIsClient } from '@/lib/hooks/useIsClient'
+import { base64ToFile, fileToBase64 } from '@/lib/utils/file.utils'
+import { serverLog } from '@/lib/utils/general.utils'
+import { useToastStore } from '@/stores/toast-store'
+import { useVideoDraftStore } from '@/stores/video-draft.store'
 import CoreButton from '@/ui/components/shared/CoreButton'
+import PageLoading from '@/ui/components/shared/PageLoading'
 import Switch from '@/ui/components/shared/Switch'
 
 export default function CreateVideoContainer() {
   const router = useRouter()
+  const addToast = useToastStore(state => state.addToast)
+  const step = useVideoDraftStore(state => state.step)
+  const uploadedVideoData = useVideoDraftStore(state => state.uploadedVideoData)
+  const name = useVideoDraftStore(state => state.name)
+  const description = useVideoDraftStore(state => state.description)
+  const isPrivate = useVideoDraftStore(state => state.isPrivate)
+  const previewBase64 = useVideoDraftStore(state => state.previewBase64)
+  const setField = useVideoDraftStore(state => state.setField)
+  const setDraft = useVideoDraftStore(state => state.setDraft)
+  const clearDraft = useVideoDraftStore(state => state.clearDraft)
 
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadVideoFile()
   const { mutateAsync: createMetadata, isPending: isSaving } = useCreateVideoMetadata()
 
-  const [step, setStep] = useState<1 | 2>(1)
-  const [uploadedVideoData, setUploadedVideoData] = useState<UploadVideoResponse | null>(null)
-
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [isPrivate, setIsPrivate] = useState(false)
-  const [previewFile, setPreviewFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const isClient = useIsClient()
 
   const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
+    if (!file) return addToast(`File not found try again or select another file`, 'error')
 
     const formData = new FormData()
     formData.append('VideoFile', file)
@@ -35,41 +42,76 @@ export default function CreateVideoContainer() {
     const response = await uploadFile(formData)
 
     if (response.success && response.data) {
-      setUploadedVideoData(response.data)
-      setName(response.data.name || file.name.split('.')[0])
-      setStep(2)
+      setDraft({
+        uploadedVideoData: response.data,
+        name: file.name.split('.')[0],
+        step: 2,
+      })
     }
   }
 
-  const handlePreviewSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePreviewSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      setPreviewFile(file)
-      setPreviewUrl(URL.createObjectURL(file))
+    if (!file) return addToast(`File not found try again or select another file`, 'error')
+
+    if (file.size > 2 * 1024 * 1024) {
+      addToast('Thumbnail is too large. Max size is 2MB for draft saving.', 'error')
+      return
     }
+
+    const base64 = await fileToBase64(file)
+    setField('previewBase64', base64)
   }
 
   const handleSubmitMetadata = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!uploadedVideoData || !previewFile || !name || !description) return
+    if (!uploadedVideoData) return addToast(`Video has not been uploaded yet or try it again`, 'error')
+    if (!previewBase64) return addToast(`Image for video has not been added yet or try it again`, 'error')
+    if (!name) return addToast(`Title for video has not been added yet or try it again`, 'error')
+    if (!description) return addToast(`Description for video has not been added yet or try it again`, 'error')
 
     const formData = new FormData()
 
     formData.append('VideoId', uploadedVideoData.videoId)
     formData.append('Name', name)
     formData.append('Description', description)
-    formData.append('PreviewFile', previewFile)
     formData.append('IsPrivate', isPrivate.toString())
+
+    const previewFile = base64ToFile(previewBase64, 'thumbnail.png')
+    formData.append('PreviewFile', previewFile)
     // TODO: add tags
     // formData.append('PlaylistId', '...')
     // formData.append('VideoTags', '...')
 
+    const data = Object.fromEntries(formData.entries())
+    console.log(data)
+
     const response = await createMetadata(formData)
 
     if (response.success) {
+      clearDraft()
       router.push('/studio')
-      setStep(1)
     }
+  }
+
+  const cancelUploadVideo = async () => {
+    try {
+      if (!uploadedVideoData) {
+        return clearDraft()
+      }
+
+      const response = await cancelVideoUploadAction(uploadedVideoData.videoId)
+
+      if (response.success) {
+        return clearDraft()
+      }
+    } catch (error) {
+      serverLog('FAILED_CANCEL_UPLOAD_VIDEO', error, true)
+    }
+  }
+
+  if (!isClient) {
+    return <PageLoading />
   }
 
   return (
@@ -130,7 +172,7 @@ export default function CreateVideoContainer() {
                   type="text"
                   required
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={e => setField('name', e.target.value)}
                   className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-neutral-100
                     focus:outline-none focus:border-emerald-500 transition-colors"
                   placeholder="Catchy title for your video"
@@ -144,7 +186,7 @@ export default function CreateVideoContainer() {
                 <textarea
                   required
                   value={description}
-                  onChange={e => setDescription(e.target.value)}
+                  onChange={e => setField('description', e.target.value)}
                   rows={5}
                   className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-neutral-100
                     focus:outline-none focus:border-emerald-500 transition-colors resize-none"
@@ -152,7 +194,7 @@ export default function CreateVideoContainer() {
                 />
               </label>
               <label className="flex items-center gap-3 mt-2 cursor-pointer w-fit">
-                <Switch isChecked={isPrivate} toggle={() => setIsPrivate(prev => !prev)} />
+                <Switch isChecked={isPrivate} toggle={() => setField('isPrivate', !isPrivate)} />
                 <span className="text-sm text-neutral-300">Make video Private</span>
               </label>
             </div>
@@ -166,8 +208,8 @@ export default function CreateVideoContainer() {
                   bg-neutral-800/50 overflow-hidden flex items-center justify-center cursor-pointer
                   hover:border-emerald-500/50 transition-colors group"
               >
-                {previewUrl ? (
-                  <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+                {previewBase64 ? (
+                  <Image src={previewBase64} width={1280} height={720} alt="Preview" className="object-cover" />
                 ) : (
                   <div className="text-center p-4">
                     <p className="text-sm text-neutral-400 group-hover:text-emerald-400 transition-colors">
@@ -182,7 +224,7 @@ export default function CreateVideoContainer() {
           </div>
 
           <div className="flex justify-end gap-3 pt-6 border-t border-neutral-800 mt-2">
-            <CoreButton type="button" variant="secondary" onClick={() => setStep(1)} disabled={isSaving}>
+            <CoreButton type="button" variant="secondary" onClick={cancelUploadVideo} disabled={isSaving}>
               Cancel
             </CoreButton>
             <CoreButton
@@ -190,7 +232,7 @@ export default function CreateVideoContainer() {
               variant="primary"
               className="w-32"
               isLoading={isSaving}
-              disabled={!previewFile || !name || !description}
+              disabled={!previewBase64 || !name || !description}
             >
               Publish
             </CoreButton>

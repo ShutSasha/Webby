@@ -120,3 +120,20 @@ export async function checkVideoUploadStatusAction(videoId: string): Promise<Bas
     }
   }
 }
+
+export async function cancelVideoUploadAction(videoId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(`${endpoint}/${videoId}/cancel`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('CANCEL_VIDEO_UPLOAD_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to cancel video upload',
+      errors: parseAxiosError(error),
+    }
+  }
+}
