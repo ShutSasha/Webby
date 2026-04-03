@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Webby.NotificationService.Hubs;
 
@@ -13,8 +14,7 @@ public class NotificationHub : Hub
          Context.Abort();
          return;
       }
-
-      Console.WriteLine("CONNECTED: " + Context.UserIdentifier);
+      
       await base.OnConnectedAsync();
    }
    
