@@ -60,6 +60,7 @@ export default function CreateVideoContainer() {
     formData.append('Description', description)
     formData.append('PreviewFile', previewFile)
     formData.append('IsPrivate', isPrivate.toString())
+    // TODO: add tags
     // formData.append('PlaylistId', '...')
     // formData.append('VideoTags', '...')
 

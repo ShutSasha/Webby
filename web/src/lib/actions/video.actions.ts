@@ -1,9 +1,9 @@
 'use server'
 
 import $api from '@/lib/config/api.config'
-import { clog, parseAxiosError, serverLog } from '@/lib/utils/general.utils'
+import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse, Platform } from '@/types/general.types'
-import { GetUserVideosResponse, SearchVideosResponse, UploadVideoResponse, Video } from '@/types/video.types'
+import { GetUserVideosResponse, SearchVideosResponse, Video } from '@/types/video.types'
 
 const endpoint = '/videos'
 
@@ -47,29 +47,6 @@ export async function searchVideos(
   }
 }
 
-// TODO: maybe do it in server action
-// export async function uploadVideoFileAction(formData: FormData): Promise<BaseServerResponse<UploadVideoResponse>> {
-//   try {
-//     const file = formData.get('VideoFile') as File | null
-//     if (!file) {
-//       throw new Error('VideoFile is missing in the request')
-//     }
-
-//     const { data: response } = await $api.post<BaseServerResponse<UploadVideoResponse>>(`${endpoint}/upload`, file)
-
-//     return response
-//   } catch (error: unknown) {
-//     serverLog('UPLOAD_VIDEO_FILE_ERROR', error, true)
-
-//     return {
-//       data: null,
-//       success: false,
-//       message: 'Failed to upload video file',
-//       errors: parseAxiosError(error),
-//     }
-//   }
-// }
-
 export async function createVideoMetadataAction(formData: FormData): Promise<BaseServerResponse<null>> {
   try {
     const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}`, formData)
@@ -105,6 +82,23 @@ export async function getUserVideos(
       data: null,
       success: false,
       message: 'Failed to retrieve user videos',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function deleteVideo(videoId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(`${endpoint}/${videoId}`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('DELETE_VIDEO_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to delete the video`,
       errors: parseAxiosError(error),
     }
   }

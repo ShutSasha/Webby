@@ -1,4 +1,4 @@
-import { StudioVideoRow } from '@/ui/components/modules/Studio/StudioVideoRow'
+import StudioVideosContainer from '@/ui/components/modules/Studio/StudioVideosContainer'
 import AnimatedTabs from '@/ui/components/shared/AnimatedTabs'
 
 type Props = {
@@ -34,11 +34,8 @@ export default async function StudioPage({ searchParams }: Props) {
           <div className="w-12 shrink-0"></div>
         </div>
 
-        <div className="flex flex-col">
-          {[1, 2, 3, 4, 5].map(item => (
-            <StudioVideoRow key={item} id={item.toString()} />
-          ))}
-        </div>
+        {currentTab === 'videos' && <StudioVideosContainer />}
+        {currentTab === 'playlists' && <div className="p-8 text-center text-neutral-500">Playlists coming soon...</div>}
       </div>
     </>
   )

@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { createVideoMetadataAction } from '@/lib/actions/video.actions'
 import $api from '@/lib/config/api.config'
@@ -43,7 +43,7 @@ export const useUploadVideoFile = () => {
 
 export const useCreateVideoMetadata = () => {
   const addToast = useToastStore(state => state.addToast)
-  // const queryClient = useQueryClient()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (formData: FormData) => await createVideoMetadataAction(formData),
@@ -51,7 +51,12 @@ export const useCreateVideoMetadata = () => {
       if (response.success) {
         addToast('Video successfully published!', 'success')
 
-        // queryClient.invalidateQueries({ queryKey: ['videos'] })
+        queryClient.invalidateQueries({
+          queryKey: ['user-videos'],
+        })
+        queryClient.invalidateQueries({
+          queryKey: ['search-videos'],
+        })
       } else {
         const msg = extractServerMessage(response.errors)
         addToast(msg || 'Error publishing video', 'error')
