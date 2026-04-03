@@ -39,7 +39,7 @@ public class NotificationController : ControllerBase
    }
 
    [HttpGet("count-unread-messages")]
-   [SwaggerOperation("Get user unread messages count","AUTH REQUIRED")]
+   [SwaggerOperation("Get user unread messages count")]
    public async Task<ActionResult<ApiResponse<int>>> GetUnreadMessagesCount()
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext,shouldThrowException: false);

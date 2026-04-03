@@ -1,5 +1,5 @@
 {
-   "Routes": [
+   "Routes":[
       {
          "DownstreamPathTemplate": "/docs/auth-service/v1/swagger.json",
          "DownstreamScheme": "http",
@@ -12,7 +12,7 @@
          "UpstreamPathTemplate": "/auth/swagger/v1/swagger.json",
          "UpstreamHttpMethod": [ "GET" ]
       },
-      
+
       {
          "DownstreamPathTemplate": "/api/auth/sign-in",
          "DownstreamScheme": "http",
@@ -27,7 +27,7 @@
             "POST"
          ]
       },
-      
+
       {
          "DownstreamPathTemplate": "/api/auth/sign-up",
          "DownstreamScheme": "http",
@@ -45,7 +45,7 @@
             "AllowAnonymous": true
          }
       },
-      
+
       {
          "DownstreamPathTemplate": "/api/auth/verify-user",
          "DownstreamScheme": "http",
@@ -63,7 +63,7 @@
             "AllowAnonymous": true
          }
       },
-      
+
       {
          "DownstreamPathTemplate": "/api/auth/resend-verification-code",
          "DownstreamScheme": "http",
@@ -81,7 +81,7 @@
             "AllowAnonymous": true
          }
       },
-      
+
       {
          "DownstreamPathTemplate": "/api/auth/google-auth",
          "DownstreamScheme": "http",
@@ -99,7 +99,7 @@
             "AllowAnonymous": true
          }
       },
-      
+
       {
          "DownstreamPathTemplate": "/api/auth/refresh",
          "DownstreamScheme": "http",
@@ -117,9 +117,9 @@
             "AllowAnonymous": true
          }
       },
-      
+
       {
-         "DownstreamPathTemplate": "/api/auth/change-password/",
+         "DownstreamPathTemplate": "/api/auth/change-password",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
             {
@@ -127,7 +127,7 @@
                "Port": 5001
             }
          ],
-         "UpstreamPathTemplate": "/api/auth/change-password/",
+         "UpstreamPathTemplate": "/api/auth/change-password",
          "UpstreamHttpMethod": [
             "PATCH"
          ],
@@ -135,7 +135,22 @@
             "AuthenticationProviderKey": "Bearer"
          }
       },
-      
+
+      {
+         "DownstreamPathTemplate": "/api/auth/reset-password",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5001
+            }
+         ],
+         "UpstreamPathTemplate": "/api/auth/reset-password",
+         "UpstreamHttpMethod": [
+            "PATCH"
+         ]
+      },
+
       {
          "DownstreamPathTemplate": "/api/auth/check",
          "DownstreamScheme": "http",
