@@ -16,5 +16,5 @@ public interface IAchievementService
    Task UpdateUserAchievement(UserAchievement userAchievement);
    Task<List<ProfileAchievementDto>> GetPinnedAchievements(Guid userId);
    Task<GetUserAchievementsResponse> GetUserAchievementsBlock(Guid userId);
-   
+   Task<int> GetPinnedAchievementsCount(Guid userId);
 }

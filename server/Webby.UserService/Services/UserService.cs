@@ -147,6 +147,11 @@ public class UserService : IUserService
       
       var userAchievement = await _achievementService.GetUserAchievement(userId,achievementId);
 
+      if (await _achievementService.GetPinnedAchievementsCount(user.UserId) > 3)
+      {
+         throw new ApiException("Pin user achievement error", 400, "You can't pin more than 3 achievements");
+      }
+
       userAchievement.IsPinned = true;
       await _achievementService.UpdateUserAchievement(userAchievement);
    }
