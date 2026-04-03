@@ -810,10 +810,7 @@
          "UpstreamPathTemplate": "/api/notifications/count-unread-messages",
          "UpstreamHttpMethod": [
             "GET"
-         ],
-         "AuthenticationOptions": {
-            "AuthenticationProviderKey": "Bearer"
-         }
+         ]
       },
 
       {
