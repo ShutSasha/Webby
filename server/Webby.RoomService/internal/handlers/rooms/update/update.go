@@ -17,7 +17,7 @@ import (
 )
 
 type Updater interface {
-	Update(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (uuid.UUID, error)
+	Update(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (*models.Room, error)
 }
 
 func New(logger *slog.Logger, updater Updater) http.Handler {
@@ -25,12 +25,12 @@ func New(logger *slog.Logger, updater Updater) http.Handler {
 }
 
 // @Title Update a room
-// @Description Update a room's name, category ID, privacy setting, and thumbnail by ID. Only the authorized room creator can update.
+// @Description Update a room's properties. You can update any combination of fields (name, categoryName, isPrivate, thumbnail). Only the room creator can update the room. Fields not provided in the request will not be changed.
 // @Param  id          path  string  true   "Room ID (UUID v4 format)"
-// @Param  name        form  string  true   "Room name (2-50 chars, required)"
-// @Param  categoryId  form  string  true   "Category ID (UUID v4, required)"
-// @Param  isPrivate   form  string  true   "Visibility flag ('true' or 'false', required)"
-// @Param  thumbnail   file  file    false  "New thumbnail image (optional, max 2MB)"
+// @Param  name        form  string  false  "Room name (2-50 chars, optional)"
+// @Param  categoryName form  string  false  "Category name (optional)"
+// @Param  isPrivate   form  string  false  "Visibility flag ('true' or 'false', optional)"
+// @Param  thumbnail   file  file    false  "Room thumbnail image (optional, max 2MB)"
 // @Success  200  object docs.RoomApiResponse  "Room successfully updated"
 // @Failure  400  object docs.ErrorResponse  "Invalid input"
 // @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
@@ -45,11 +45,11 @@ func updateRoom(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 	const maxFileSize = 2 * 1024 * 1024 // 2 MB
 
 	type response struct {
-		Id         uuid.UUID `json:"id"`
-		Name       string    `json:"name"`
-		CategoryId uuid.UUID `json:"categoryId"`
-		IsPrivate  bool      `json:"isPrivate"`
-		Thumbnail  string    `json:"thumbnail,omitempty"`
+		Id           uuid.UUID `json:"id"`
+		Name         string    `json:"name"`
+		CategoryName string    `json:"categoryName"`
+		IsPrivate    bool      `json:"isPrivate"`
+		Thumbnail    string    `json:"thumbnail,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
@@ -66,32 +66,36 @@ func updateRoom(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 			return responses.NewApiError("Validation error", apperrors.ErrInvalidInput)
 		}
 
-		name := r.FormValue("name")
-		categoryIdStr := r.FormValue("categoryId")
-		isPrivateStr := r.FormValue("isPrivate")
+		var name, categoryName *string
+		var isPrivate *bool
+		problems := make(map[string]string)
 
-		if strings.TrimSpace(name) == "" || len(name) < 2 || len(name) > 50 {
-			problems := map[string]string{
-				"name": "must be between 2 and 50 characters and cannot be empty",
+		if nameVal := r.FormValue("name"); nameVal != "" {
+			if strings.TrimSpace(nameVal) == "" || len(nameVal) < 2 || len(nameVal) > 50 {
+				problems["name"] = "must be between 2 and 50 characters and cannot be empty"
+			} else {
+				name = &nameVal
 			}
-			return responses.NewValidationError("Validation error", problems)
 		}
 
-		categoryId, err := uuid.Parse(categoryIdStr)
-		if err != nil {
-			problems := map[string]string{
-				"categoryId": "invalid UUID format",
+		if categoryVal := r.FormValue("categoryName"); categoryVal != "" {
+			if strings.TrimSpace(categoryVal) == "" {
+				problems["categoryName"] = "category name cannot be whitespace-only"
+			} else {
+				categoryName = &categoryVal
 			}
-			log.Debug("invalid categoryId format", slog.String("categoryId", categoryIdStr))
-			return responses.NewValidationError("Validation error", problems)
 		}
 
-		isPrivate, err := strconv.ParseBool(isPrivateStr)
-		if err != nil {
-			problems := map[string]string{
-				"isPrivate": "must be 'true' or 'false'",
+		if isPrivateStr := r.FormValue("isPrivate"); isPrivateStr != "" {
+			isParsed, err := strconv.ParseBool(isPrivateStr)
+			if err != nil {
+				problems["isPrivate"] = "must be 'true' or 'false'"
+			} else {
+				isPrivate = &isParsed
 			}
-			log.Debug("invalid isPrivate format", slog.String("isPrivate", isPrivateStr))
+		}
+
+		if len(problems) > 0 {
 			return responses.NewValidationError("Validation error", problems)
 		}
 
@@ -103,10 +107,10 @@ func updateRoom(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 			defer file.Close()
 
 			if fileHeader.Size > maxFileSize {
-				problems := map[string]string{
+				probs := map[string]string{
 					"thumbnail": "file size must not exceed 2MB",
 				}
-				return responses.NewValidationError("Validation error", problems)
+				return responses.NewValidationError("Validation error", probs)
 			}
 
 			thumbnailData = make([]byte, fileHeader.Size)
@@ -120,31 +124,26 @@ func updateRoom(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 			return responses.NewApiError("File upload error", apperrors.ErrInvalidInput)
 		}
 
-		room := &models.Room{
-			Id:         id,
-			CategoryId: categoryId,
-			Name:       name,
-			IsPrivate:  isPrivate,
-		}
-
 		userIdStr := r.Context().Value("userID").(string)
 		userId, _ := uuid.Parse(userIdStr)
 
-		_, err = updater.Update(r.Context(), room, thumbnailData, thumbnailFilename, userId)
+		updatedRoom, err := updater.Update(r.Context(), id, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)
 		if err != nil {
 			return responses.NewApiError("Update room error", err)
+		}
+
+		respData := &response{
+			Id:           updatedRoom.Id,
+			Name:         updatedRoom.Name,
+			CategoryName: updatedRoom.CategoryName,
+			IsPrivate:    updatedRoom.IsPrivate,
+			Thumbnail:    updatedRoom.Thumbnail,
 		}
 
 		render.Encode(w, r, http.StatusOK, responses.ApiResponse[response]{
 			Success: true,
 			Message: "Room updated",
-			Data: &response{
-				Id:         id,
-				Name:       name,
-				CategoryId: categoryId,
-				IsPrivate:  isPrivate,
-				Thumbnail:  room.Thumbnail,
-			},
+			Data:    respData,
 		})
 		return nil
 	}

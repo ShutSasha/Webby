@@ -34,7 +34,8 @@ tasks:
     cmds:
       - |
         cd ./Webby.RoomService
-        go run ./cmd/server/main.go --config ./config/config.yaml
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
 
   run_all:
     desc: "Run all services"

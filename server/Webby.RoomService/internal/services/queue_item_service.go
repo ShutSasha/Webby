@@ -11,10 +11,10 @@ import (
 )
 
 type QueueItemRepository interface {
-	Create(item *models.QueueItem) (uuid.UUID, error)
-	Delete(id uuid.UUID) error
-	GetById(id uuid.UUID) (*models.QueueItem, error)
-	ListByRoom(roomId uuid.UUID) ([]models.QueueItem, error)
+	Create(ctx context.Context, item *models.QueueItem) (uuid.UUID, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	GetById(ctx context.Context, id uuid.UUID) (*models.QueueItem, error)
+	ListByRoom(ctx context.Context, roomId uuid.UUID) ([]models.QueueItem, error)
 }
 
 type MediaClient interface {
@@ -23,7 +23,7 @@ type MediaClient interface {
 }
 
 type MemberChecker interface {
-	Exists(roomId, userId uuid.UUID) (bool, error)
+	Exists(ctx context.Context, roomId, userId uuid.UUID) (bool, error)
 }
 
 type QueueItemService struct {
@@ -61,8 +61,8 @@ type QueueItemEnriched struct {
 	Children      []QueueVideoChild `json:"children,omitempty"`
 }
 
-func (s *QueueItemService) ensureMember(roomId, userId uuid.UUID) error {
-	exists, err := s.memberChecker.Exists(roomId, userId)
+func (s *QueueItemService) ensureMember(ctx context.Context, roomId, userId uuid.UUID) error {
+	exists, err := s.memberChecker.Exists(ctx, roomId, userId)
 	if err != nil {
 		return fmt.Errorf("check membership: %w", err)
 	}
@@ -73,7 +73,7 @@ func (s *QueueItemService) ensureMember(roomId, userId uuid.UUID) error {
 }
 
 func (s *QueueItemService) AddToQueue(ctx context.Context, roomId, userId, entityId uuid.UUID, entityType string) (*models.QueueItem, error) {
-	if err := s.ensureMember(roomId, userId); err != nil {
+	if err := s.ensureMember(ctx, roomId, userId); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (s *QueueItemService) AddToQueue(ctx context.Context, roomId, userId, entit
 		IsActive:   false,
 	}
 
-	id, err := s.repo.Create(item)
+	id, err := s.repo.Create(ctx, item)
 	if err != nil {
 		return nil, err
 	}
@@ -109,11 +109,11 @@ func (s *QueueItemService) AddToQueue(ctx context.Context, roomId, userId, entit
 }
 
 func (s *QueueItemService) GetQueue(ctx context.Context, roomId, userId uuid.UUID, page, limit int) ([]QueueItemEnriched, int, error) {
-	if err := s.ensureMember(roomId, userId); err != nil {
+	if err := s.ensureMember(ctx, roomId, userId); err != nil {
 		return nil, 0, err
 	}
 
-	items, err := s.repo.ListByRoom(roomId)
+	items, err := s.repo.ListByRoom(ctx, roomId)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -229,14 +229,14 @@ func (s *QueueItemService) GetQueue(ctx context.Context, roomId, userId uuid.UUI
 }
 
 func (s *QueueItemService) DeleteFromQueue(ctx context.Context, itemId, userId uuid.UUID) error {
-	item, err := s.repo.GetById(itemId)
+	item, err := s.repo.GetById(ctx, itemId)
 	if err != nil {
 		return err
 	}
 
-	if err := s.ensureMember(item.RoomId, userId); err != nil {
+	if err := s.ensureMember(ctx, item.RoomId, userId); err != nil {
 		return err
 	}
 
-	return s.repo.Delete(itemId)
+	return s.repo.Delete(ctx, itemId)
 }

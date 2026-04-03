@@ -1,6 +1,7 @@
 package list
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -9,12 +10,10 @@ import (
 	"webby/internal/handlers/responses"
 	"webby/internal/models"
 	"webby/pkg/http/render"
-
-	"github.com/google/uuid"
 )
 
 type Lister interface {
-	List(search string, page int, limit int) ([]models.Category, int64, error)
+	List(ctx context.Context, search string, page int, limit int) ([]models.Category, int64, error)
 }
 
 func New(logger *slog.Logger, lister Lister) http.Handler {
@@ -33,12 +32,8 @@ func New(logger *slog.Logger, lister Lister) http.Handler {
 func listCategories(logger *slog.Logger, lister Lister) errorWrapper.APIFunc {
 	_ = logger.With(slog.String("operation", "httpserver.categories.list"))
 
-	type categoryResponse struct {
-		Id   uuid.UUID `json:"id"`
-		Name string    `json:"name"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) error {
+		ctx := r.Context()
 		params := r.URL.Query()
 
 		page, _ := strconv.Atoi(params.Get("page"))
@@ -55,23 +50,20 @@ func listCategories(logger *slog.Logger, lister Lister) errorWrapper.APIFunc {
 
 		search := params.Get("search")
 
-		categories, total, err := lister.List(search, page, limit)
+		categories, total, err := lister.List(ctx, search, page, limit)
 		if err != nil {
 			return err
 		}
 
-		items := make([]categoryResponse, len(categories))
+		items := make([]string, len(categories))
 		for i, c := range categories {
-			items[i] = categoryResponse{
-				Id:   c.Id,
-				Name: c.Name,
-			}
+			items[i] = c.Name
 		}
 
-		render.Encode(w, r, http.StatusOK, responses.ApiResponse[responses.PaginatedResponse[categoryResponse]]{
+		render.Encode(w, r, http.StatusOK, responses.ApiResponse[responses.PaginatedResponse[string]]{
 			Success: true,
 			Message: "Categories retrieved successfully",
-			Data: &responses.PaginatedResponse[categoryResponse]{
+			Data: &responses.PaginatedResponse[string]{
 				Items: items,
 				Page:  page,
 				Limit: limit,

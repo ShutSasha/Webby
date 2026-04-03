@@ -12,24 +12,24 @@ import (
 )
 
 type VoteRepo interface {
-	CreateVote(vote *models.Vote) (uuid.UUID, error)
-	CreateChoice(choice *models.VoteChoice) (uuid.UUID, error)
-	DeleteVote(id uuid.UUID) error
-	GetVoteById(id uuid.UUID) (*models.Vote, error)
-	ListByRoom(roomId uuid.UUID) ([]models.Vote, error)
-	GetChoicesByVoteId(voteId uuid.UUID) ([]models.VoteChoice, error)
-	CastVote(choiceId, userId uuid.UUID) error
-	RemoveUserVote(voteId, userId uuid.UUID) error
-	GetUserVoteForVote(voteId, userId uuid.UUID) (*uuid.UUID, error)
-	GetChoiceById(choiceId uuid.UUID) (*models.VoteChoice, error)
+	CreateVote(ctx context.Context, vote *models.Vote) (uuid.UUID, error)
+	CreateChoice(ctx context.Context, choice *models.VoteChoice) (uuid.UUID, error)
+	DeleteVote(ctx context.Context, id uuid.UUID) error
+	GetVoteById(ctx context.Context, id uuid.UUID) (*models.Vote, error)
+	ListByRoom(ctx context.Context, roomId uuid.UUID) ([]models.Vote, error)
+	GetChoicesByVoteId(ctx context.Context, voteId uuid.UUID) ([]models.VoteChoice, error)
+	CastVote(ctx context.Context, choiceId, userId uuid.UUID) error
+	RemoveUserVote(ctx context.Context, voteId, userId uuid.UUID) error
+	GetUserVoteForVote(ctx context.Context, voteId, userId uuid.UUID) (*uuid.UUID, error)
+	GetChoiceById(ctx context.Context, choiceId uuid.UUID) (*models.VoteChoice, error)
 }
 
 type RoomGetter interface {
-	GetById(id uuid.UUID) (*models.Room, error)
+	GetById(ctx context.Context, id uuid.UUID) (*models.Room, error)
 }
 
 type QueueItemMover interface {
-	MoveToTop(id uuid.UUID) error
+	MoveToTop(ctx context.Context, id uuid.UUID) error
 }
 
 type VoteService struct {
@@ -78,13 +78,13 @@ type VoteDetail struct {
 	Choices           []VoteChoiceDetail `json:"choices"`
 }
 
-func (s *VoteService) enrichVote(vote *models.Vote, userId uuid.UUID) (*VoteDetail, error) {
-	choices, err := s.voteRepo.GetChoicesByVoteId(vote.Id)
+func (s *VoteService) enrichVote(ctx context.Context, vote *models.Vote, userId uuid.UUID) (*VoteDetail, error) {
+	choices, err := s.voteRepo.GetChoicesByVoteId(ctx, vote.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	userChoiceId, err := s.voteRepo.GetUserVoteForVote(vote.Id, userId)
+	userChoiceId, err := s.voteRepo.GetUserVoteForVote(ctx, vote.Id, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -115,11 +115,11 @@ func (s *VoteService) enrichVote(vote *models.Vote, userId uuid.UUID) (*VoteDeta
 
 	var winnerId *uuid.UUID
 	if isExpired && vote.Type == "next_video" {
-		winnerId = s.computeWinner(vote, choices)
+		winnerId = s.computeWinner(ctx, vote, choices)
 		if winnerId != nil {
 			for _, c := range choices {
 				if c.Id == *winnerId && c.QueueItemId != nil {
-					_ = s.queueItemMover.MoveToTop(*c.QueueItemId)
+					_ = s.queueItemMover.MoveToTop(ctx, *c.QueueItemId)
 					break
 				}
 			}
@@ -142,12 +142,12 @@ func (s *VoteService) enrichVote(vote *models.Vote, userId uuid.UUID) (*VoteDeta
 	}, nil
 }
 
-func (s *VoteService) computeWinner(vote *models.Vote, choices []models.VoteChoice) *uuid.UUID {
+func (s *VoteService) computeWinner(ctx context.Context, vote *models.Vote, choices []models.VoteChoice) *uuid.UUID {
 	if len(choices) == 0 {
 		return nil
 	}
 
-	room, err := s.roomGetter.GetById(vote.RoomId)
+	room, err := s.roomGetter.GetById(ctx, vote.RoomId)
 	if err != nil {
 		maxVotes := -1
 		var winner uuid.UUID
@@ -178,7 +178,7 @@ func (s *VoteService) computeWinner(vote *models.Vote, choices []models.VoteChoi
 		return &tied[0].Id
 	}
 
-	hostChoiceId, _ := s.voteRepo.GetUserVoteForVote(vote.Id, room.HostId)
+	hostChoiceId, _ := s.voteRepo.GetUserVoteForVote(ctx, vote.Id, room.HostId)
 	if hostChoiceId != nil {
 		for _, c := range tied {
 			if c.Id == *hostChoiceId {
@@ -191,7 +191,7 @@ func (s *VoteService) computeWinner(vote *models.Vote, choices []models.VoteChoi
 }
 
 func (s *VoteService) CreateVote(ctx context.Context, roomId, userId uuid.UUID, voteType, voteText string, durationSeconds int, choices []CreateChoiceInput) (*VoteDetail, error) {
-	room, err := s.roomGetter.GetById(roomId)
+	room, err := s.roomGetter.GetById(ctx, roomId)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (s *VoteService) CreateVote(ctx context.Context, roomId, userId uuid.UUID, 
 		DurationSeconds: durationSeconds,
 	}
 
-	_, err = s.voteRepo.CreateVote(vote)
+	_, err = s.voteRepo.CreateVote(ctx, vote)
 	if err != nil {
 		return nil, err
 	}
@@ -225,17 +225,17 @@ func (s *VoteService) CreateVote(ctx context.Context, roomId, userId uuid.UUID, 
 			IsCorrect:   ci.IsCorrect,
 			QueueItemId: ci.QueueItemId,
 		}
-		_, err := s.voteRepo.CreateChoice(choice)
+		_, err := s.voteRepo.CreateChoice(ctx, choice)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return s.enrichVote(vote, userId)
+	return s.enrichVote(ctx, vote, userId)
 }
 
 func (s *VoteService) ListVotes(ctx context.Context, roomId, userId uuid.UUID) ([]VoteDetail, error) {
-	exists, err := s.memberChecker.Exists(roomId, userId)
+	exists, err := s.memberChecker.Exists(ctx, roomId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -243,14 +243,14 @@ func (s *VoteService) ListVotes(ctx context.Context, roomId, userId uuid.UUID) (
 		return nil, apperrors.ErrForbidden
 	}
 
-	votes, err := s.voteRepo.ListByRoom(roomId)
+	votes, err := s.voteRepo.ListByRoom(ctx, roomId)
 	if err != nil {
 		return nil, err
 	}
 
 	details := make([]VoteDetail, 0, len(votes))
 	for _, v := range votes {
-		d, err := s.enrichVote(&v, userId)
+		d, err := s.enrichVote(ctx, &v, userId)
 		if err != nil {
 			return nil, err
 		}
@@ -261,12 +261,12 @@ func (s *VoteService) ListVotes(ctx context.Context, roomId, userId uuid.UUID) (
 }
 
 func (s *VoteService) GetVote(ctx context.Context, voteId, userId uuid.UUID) (*VoteDetail, error) {
-	vote, err := s.voteRepo.GetVoteById(voteId)
+	vote, err := s.voteRepo.GetVoteById(ctx, voteId)
 	if err != nil {
 		return nil, err
 	}
 
-	exists, err := s.memberChecker.Exists(vote.RoomId, userId)
+	exists, err := s.memberChecker.Exists(ctx, vote.RoomId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -274,16 +274,16 @@ func (s *VoteService) GetVote(ctx context.Context, voteId, userId uuid.UUID) (*V
 		return nil, apperrors.ErrForbidden
 	}
 
-	return s.enrichVote(vote, userId)
+	return s.enrichVote(ctx, vote, userId)
 }
 
 func (s *VoteService) CastVote(ctx context.Context, voteId, choiceId, userId uuid.UUID) (*VoteDetail, error) {
-	vote, err := s.voteRepo.GetVoteById(voteId)
+	vote, err := s.voteRepo.GetVoteById(ctx, voteId)
 	if err != nil {
 		return nil, err
 	}
 
-	exists, err := s.memberChecker.Exists(vote.RoomId, userId)
+	exists, err := s.memberChecker.Exists(ctx, vote.RoomId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +296,7 @@ func (s *VoteService) CastVote(ctx context.Context, voteId, choiceId, userId uui
 		return nil, fmt.Errorf("%w: vote has expired", apperrors.ErrInvalidInput)
 	}
 
-	choice, err := s.voteRepo.GetChoiceById(choiceId)
+	choice, err := s.voteRepo.GetChoiceById(ctx, choiceId)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +304,7 @@ func (s *VoteService) CastVote(ctx context.Context, voteId, choiceId, userId uui
 		return nil, fmt.Errorf("%w: choice does not belong to this vote", apperrors.ErrInvalidInput)
 	}
 
-	existing, err := s.voteRepo.GetUserVoteForVote(voteId, userId)
+	existing, err := s.voteRepo.GetUserVoteForVote(ctx, voteId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -312,20 +312,20 @@ func (s *VoteService) CastVote(ctx context.Context, voteId, choiceId, userId uui
 		return nil, fmt.Errorf("%w: user has already voted", apperrors.ErrConflict)
 	}
 
-	if err := s.voteRepo.CastVote(choiceId, userId); err != nil {
+	if err := s.voteRepo.CastVote(ctx, choiceId, userId); err != nil {
 		return nil, err
 	}
 
-	return s.enrichVote(vote, userId)
+	return s.enrichVote(ctx, vote, userId)
 }
 
 func (s *VoteService) RemoveVote(ctx context.Context, voteId, userId uuid.UUID) (*VoteDetail, error) {
-	vote, err := s.voteRepo.GetVoteById(voteId)
+	vote, err := s.voteRepo.GetVoteById(ctx, voteId)
 	if err != nil {
 		return nil, err
 	}
 
-	exists, err := s.memberChecker.Exists(vote.RoomId, userId)
+	exists, err := s.memberChecker.Exists(ctx, vote.RoomId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -338,20 +338,20 @@ func (s *VoteService) RemoveVote(ctx context.Context, voteId, userId uuid.UUID) 
 		return nil, fmt.Errorf("%w: vote has expired", apperrors.ErrInvalidInput)
 	}
 
-	if err := s.voteRepo.RemoveUserVote(voteId, userId); err != nil {
+	if err := s.voteRepo.RemoveUserVote(ctx, voteId, userId); err != nil {
 		return nil, err
 	}
 
-	return s.enrichVote(vote, userId)
+	return s.enrichVote(ctx, vote, userId)
 }
 
 func (s *VoteService) DeleteVote(ctx context.Context, voteId, userId uuid.UUID) error {
-	vote, err := s.voteRepo.GetVoteById(voteId)
+	vote, err := s.voteRepo.GetVoteById(ctx, voteId)
 	if err != nil {
 		return err
 	}
 
-	room, err := s.roomGetter.GetById(vote.RoomId)
+	room, err := s.roomGetter.GetById(ctx, vote.RoomId)
 	if err != nil {
 		return err
 	}
@@ -359,5 +359,5 @@ func (s *VoteService) DeleteVote(ctx context.Context, voteId, userId uuid.UUID) 
 		return apperrors.ErrForbidden
 	}
 
-	return s.voteRepo.DeleteVote(voteId)
+	return s.voteRepo.DeleteVote(ctx, voteId)
 }

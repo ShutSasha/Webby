@@ -22,21 +22,25 @@ import (
 
 func TestListPublicRooms_Success(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	categoryId := uuid.New()
-	baseRooms := []models.Room{
+	categoryName := "Gaming"
+	baseRooms := []models.PublicRoom{
 		{
-			Id:         uuid.New(),
-			HostId:     uuid.New(),
-			CategoryId: categoryId,
-			Name:       "Public Room 1",
-			IsPrivate:  false,
+			Id:            uuid.New(),
+			HostId:        uuid.New(),
+			HostUsername:  "JohnDoe",
+			HostAvatarUrl: "https://example.com/avatar1.jpg",
+			CategoryName:  categoryName,
+			Name:          "Public Room 1",
+			IsPrivate:     false,
 		},
 		{
-			Id:         uuid.New(),
-			HostId:     uuid.New(),
-			CategoryId: categoryId,
-			Name:       "Public Room 2",
-			IsPrivate:  false,
+			Id:            uuid.New(),
+			HostId:        uuid.New(),
+			HostUsername:  "JaneDoe",
+			HostAvatarUrl: "https://example.com/avatar2.jpg",
+			CategoryName:  categoryName,
+			Name:          "Public Room 2",
+			IsPrivate:     false,
 		},
 	}
 
@@ -90,7 +94,7 @@ func TestListPublicRooms_Success(t *testing.T) {
 			name:  "Empty Result Set",
 			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}},
 			mockSetup: func(mpl *mocks.MockPublicLister) {
-				expectListPublic(mpl, 1, 10, "", nil, []models.Room{}, 0, nil)
+				expectListPublic(mpl, 1, 10, "", nil, []models.PublicRoom{}, 0, nil)
 			},
 			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assertSuccessResponse(t, w, 1, 10, 0, 0)
@@ -110,7 +114,7 @@ func TestListPublicRooms_Success(t *testing.T) {
 			name:  "Search With No Results",
 			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "search": []string{"nonexistent"}},
 			mockSetup: func(mpl *mocks.MockPublicLister) {
-				expectListPublic(mpl, 1, 10, "nonexistent", nil, []models.Room{}, 0, nil)
+				expectListPublic(mpl, 1, 10, "nonexistent", nil, []models.PublicRoom{}, 0, nil)
 			},
 			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assertSuccessResponse(t, w, 1, 10, 0, 0)
@@ -128,9 +132,9 @@ func TestListPublicRooms_Success(t *testing.T) {
 		},
 		{
 			name:  "Filter By Category",
-			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{categoryId.String()}},
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{categoryName}},
 			mockSetup: func(mpl *mocks.MockPublicLister) {
-				expectListPublic(mpl, 1, 10, "", &categoryId, baseRooms, 2, nil)
+				expectListPublic(mpl, 1, 10, "", &categoryName, baseRooms, 2, nil)
 			},
 			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assertSuccessResponse(t, w, 1, 10, 2, 2)
@@ -138,9 +142,9 @@ func TestListPublicRooms_Success(t *testing.T) {
 		},
 		{
 			name:  "Filter By Category With No Results",
-			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{uuid.New().String()}},
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{"Nonexistent"}},
 			mockSetup: func(mpl *mocks.MockPublicLister) {
-				mpl.EXPECT().ListPublic(1, 10, "", mock.AnythingOfType("*uuid.UUID")).Return([]models.Room{}, int64(0), nil).Once()
+				mpl.EXPECT().ListPublic(mock.Anything, 1, 10, "", mock.AnythingOfType("*string")).Return([]models.PublicRoom{}, int64(0), nil).Once()
 			},
 			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assertSuccessResponse(t, w, 1, 10, 0, 0)
@@ -148,9 +152,9 @@ func TestListPublicRooms_Success(t *testing.T) {
 		},
 		{
 			name:  "Search And Category Combined",
-			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "search": []string{"Public"}, "category": []string{categoryId.String()}},
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "search": []string{"Public"}, "category": []string{categoryName}},
 			mockSetup: func(mpl *mocks.MockPublicLister) {
-				expectListPublic(mpl, 1, 10, "Public", &categoryId, baseRooms, 2, nil)
+				expectListPublic(mpl, 1, 10, "Public", &categoryName, baseRooms, 2, nil)
 			},
 			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assertSuccessResponse(t, w, 1, 10, 2, 2)
@@ -158,9 +162,9 @@ func TestListPublicRooms_Success(t *testing.T) {
 		},
 		{
 			name:  "Search And Category Combined With Pagination",
-			query: url.Values{"page": []string{"2"}, "limit": []string{"5"}, "search": []string{"Room"}, "category": []string{categoryId.String()}},
+			query: url.Values{"page": []string{"2"}, "limit": []string{"5"}, "search": []string{"Room"}, "category": []string{categoryName}},
 			mockSetup: func(mpl *mocks.MockPublicLister) {
-				expectListPublic(mpl, 2, 5, "Room", &categoryId, baseRooms[:1], 6, nil)
+				expectListPublic(mpl, 2, 5, "Room", &categoryName, baseRooms[:1], 6, nil)
 			},
 			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
 				assertSuccessResponse(t, w, 2, 5, 6, 1)
@@ -216,14 +220,6 @@ func TestListPublicRooms_ValidationErrors(t *testing.T) {
 			name:  "Error Guessing Malformed Limit Type",
 			query: url.Values{"page": []string{"1"}, "limit": []string{"xyz"}},
 		},
-		{
-			name:  "Invalid Category UUID Format",
-			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{"not-a-uuid"}},
-		},
-		{
-			name:  "Invalid Category UUID Partial",
-			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{"123e4567"}},
-		},
 	}
 
 	for _, tt := range tests {
@@ -249,21 +245,21 @@ func TestListPublicRooms_InternalErrors(t *testing.T) {
 			name:  "Database Error Default Params",
 			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}},
 			mockSetup: func(mpl *mocks.MockPublicLister) {
-				expectListPublic(mpl, 1, 10, "", nil, []models.Room{}, 0, errors.New("database error"))
+				expectListPublic(mpl, 1, 10, "", nil, []models.PublicRoom{}, 0, errors.New("database error"))
 			},
 		},
 		{
 			name:  "Database Error With Search",
 			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "search": []string{"test"}},
 			mockSetup: func(mpl *mocks.MockPublicLister) {
-				expectListPublic(mpl, 1, 10, "test", nil, []models.Room{}, 0, errors.New("database error"))
+				expectListPublic(mpl, 1, 10, "test", nil, []models.PublicRoom{}, 0, errors.New("database error"))
 			},
 		},
 		{
 			name:  "Database Error With Category",
-			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{uuid.New().String()}},
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{"Gaming"}},
 			mockSetup: func(mpl *mocks.MockPublicLister) {
-				mpl.EXPECT().ListPublic(1, 10, "", mock.AnythingOfType("*uuid.UUID")).Return([]models.Room{}, int64(0), errors.New("database error")).Once()
+				mpl.EXPECT().ListPublic(mock.Anything, 1, 10, "", mock.AnythingOfType("*string")).Return([]models.PublicRoom{}, int64(0), errors.New("database error")).Once()
 			},
 		},
 	}
@@ -281,8 +277,8 @@ func TestListPublicRooms_InternalErrors(t *testing.T) {
 	}
 }
 
-func expectListPublic(mpl *mocks.MockPublicLister, page, limit int, search string, categoryId *uuid.UUID, rooms []models.Room, total int64, err error) {
-	mpl.EXPECT().ListPublic(page, limit, search, categoryId).Return(rooms, total, err).Once()
+func expectListPublic(mpl *mocks.MockPublicLister, page, limit int, search string, categoryName *string, rooms []models.PublicRoom, total int64, err error) {
+	mpl.EXPECT().ListPublic(mock.Anything, page, limit, search, categoryName).Return(rooms, total, err).Once()
 }
 
 func executeRequest(logger *slog.Logger, lister *mocks.MockPublicLister, query url.Values) *httptest.ResponseRecorder {

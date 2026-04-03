@@ -1,13 +1,17 @@
 {
   "components": {
     "schemas": {
-      "AddMemberRequest": {
+      "AddMembersRequest": {
         "properties": {
-          "userId": {
-            "example": "550e8400-e29b-41d4-a716-446655440000",
-            "type": "string"
+          "userIds": {
+            "items": {
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            },
+            "type": "array"
           }
         },
+        "required": ["userIds"],
         "type": "object"
       },
       "AddQueueItemRequest": {
@@ -1764,6 +1768,90 @@
         "tags": [
           "Rooms"
         ]
+      },
+      "post": {
+        "description": "Add users to a room's member list. **This operation updates the room membership immediately.**\n\n**Request Body Validation:**\n* `userIds` is **required**\n* `userIds` must contain at least **1** UUID\n* Every entry in `userIds` must be a valid UUID v4 format\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n\n**Access Rules:**\n* Only the **room host** can add members\n\n**Security Note:**\n* This action **requires authentication**\n",
+        "parameters": [
+          {
+            "description": "Room ID (UUID v4 format)",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Room ID (UUID v4 format)",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMembersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Members successfully added"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid input: missing or empty userIds, invalid UUID format"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid authentication token"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authorized - only host can add members"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Room not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal server error"
+          }
+        },
+        "summary": "Add members to a room",
+        "tags": [
+          "Rooms"
+        ]
       }
     },
     "/api/rooms/{id}/members/{memberId}": {
@@ -2381,77 +2469,6 @@
           }
         },
         "summary": "List all public rooms",
-        "tags": [
-          "Rooms"
-        ]
-      }
-    },
-    "/api/rooms/token": {
-      "post": {
-        "description": "Retrieve room information using its unique invite token.\n\n**Request Body Validation:**\n* `token`: **required**, cannot be empty or whitespace-only\n\n**Security Note:**\n* This action **requires authentication**\n",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetByTokenRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RoomApiResponse"
-                }
-              }
-            },
-            "description": "Room successfully retrieved by token"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request body or missing token"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Missing or invalid authentication token"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Room with given token not found"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Internal server error"
-          }
-        },
-        "summary": "Get a room by invite token",
         "tags": [
           "Rooms"
         ]

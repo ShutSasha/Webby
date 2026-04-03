@@ -1,10 +1,17 @@
 components:
   schemas:
-    AddMemberRequest:
+    AddMembersRequest:
       properties:
-        userId:
-          example: 550e8400-e29b-41d4-a716-446655440000
-          type: string
+        userIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - 550e8400-e29b-41d4-a716-446655440000
+            - 660e8400-e29b-41d4-a716-446655440001
+      required:
+        - userIds
       type: object
     AddQueueItemRequest:
       properties:
@@ -43,7 +50,8 @@ components:
       properties:
         items:
           items:
-            $ref: '#/components/schemas/CategoryResponse'
+            type: string
+            example: Gaming
           type: array
         page:
           example: 1
@@ -57,9 +65,6 @@ components:
       type: object
     CategoryResponse:
       properties:
-        id:
-          example: 123e4567-e89b-12d3-a456-426614174000
-          type: string
         name:
           example: Gaming
           type: string
@@ -86,12 +91,6 @@ components:
         success:
           example: false
           type: boolean
-      type: object
-    GetByTokenRequest:
-      properties:
-        token:
-          example: abc123def456ghij
-          type: string
       type: object
     MemberApiResponse:
       properties:
@@ -376,11 +375,17 @@ components:
       type: object
     RoomListItem:
       properties:
-        categoryId:
-          example: 123e4567-e89b-12d3-a456-426614174000
+        categoryName:
+          example: Gaming
           type: string
         hostId:
           example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        hostUsername:
+          example: JohnDoe
+          type: string
+        hostAvatarUrl:
+          example: https://example.com/avatar.jpg
           type: string
         id:
           example: 550e8400-e29b-41d4-a716-446655440000
@@ -394,20 +399,23 @@ components:
         thumbnail:
           example: https://example.com/thumbnail.jpg
           type: string
-        token:
-          example: abc123def456ghij
-          type: string
       type: object
     RoomListPagData:
       properties:
         items:
           items:
             properties:
-              categoryId:
-                example: 123e4567-e89b-12d3-a456-426614174000
+              categoryName:
+                example: Gaming
                 type: string
               hostId:
                 example: 550e8400-e29b-41d4-a716-446655440000
+                type: string
+              hostUsername:
+                example: JohnDoe
+                type: string
+              hostAvatarUrl:
+                example: https://example.com/avatar.jpg
                 type: string
               id:
                 example: 550e8400-e29b-41d4-a716-446655440000
@@ -420,9 +428,6 @@ components:
                 type: string
               thumbnail:
                 example: https://example.com/thumbnail.jpg
-                type: string
-              token:
-                example: abc123def456ghij
                 type: string
             type: object
           type: array
@@ -453,8 +458,8 @@ components:
       type: object
     RoomResponse:
       properties:
-        categoryId:
-          example: 123e4567-e89b-12d3-a456-426614174000
+        categoryName:
+          example: Gaming
           type: string
         hostId:
           example: 550e8400-e29b-41d4-a716-446655440000
@@ -471,9 +476,6 @@ components:
         thumbnail:
           example: https://example.com/thumbnail.jpg
           type: string
-        token:
-          example: abc123def456ghij
-          type: string
       type: object
     SuccessResponse:
       properties:
@@ -489,59 +491,6 @@ components:
         name:
           example: Education
           type: string
-      type: object
-    docs.CategoryApiResponse:
-      properties:
-        data:
-          $ref: '#/components/schemas/CategoryResponse'
-          type: object
-        message:
-          example: Category created
-          type: string
-        success:
-          example: true
-          type: boolean
-      type: object
-    docs.ErrorResponse:
-      properties:
-        data:
-          example: "null"
-          type: string
-        errors:
-          properties:
-            key:
-              type: string
-          type: object
-        message:
-          example: An error occurred
-          type: string
-        success:
-          example: false
-          type: boolean
-      type: object
-    docs.RoomApiResponse:
-      properties:
-        data:
-          $ref: '#/components/schemas/RoomResponse'
-          type: object
-        message:
-          example: Room created
-          type: string
-        success:
-          example: true
-          type: boolean
-      type: object
-    docs.RoomListApiResponse:
-      properties:
-        data:
-          $ref: '#/components/schemas/RoomListPagData'
-          type: object
-        message:
-          example: Rooms retrieved
-          type: string
-        success:
-          example: true
-          type: boolean
       type: object
     UpdatePointsRequest:
       properties:
@@ -827,23 +776,23 @@ paths:
       summary: Create a new category
       tags:
       - RoomCategory
-  /api/categories/{id}:
+  /api/categories/{name}:
     delete:
       description: |
-        Delete a room category by ID. **Permanent action — cannot be undone.**
+        Delete a room category by name. **Permanent action — cannot be undone.**
 
         **Path Parameter Validation:**
-        * `id`: must be a valid UUID v4 format
+        * `name`: must be a valid category name
 
         **Security Note:**
         * This action **requires authentication**
       parameters:
-      - description: Category ID (UUID v4 format)
+      - description: Category name
         in: path
-        name: id
+        name: name
         required: true
         schema:
-          description: Category ID (UUID v4 format)
+          description: Category name
           type: string
       responses:
         "204":
@@ -853,7 +802,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid UUID format in path
+          description: Invalid category name in path
         "401":
           content:
             application/json:
@@ -883,24 +832,24 @@ paths:
       - RoomCategory
     put:
       description: |
-        Update an existing room category by ID. Only the **name** field is updateable.
+        Update an existing room category by name. Only the **name** field is updateable.
 
         **Validation Rules:**
         * Name is **required** (cannot be null, empty, or whitespace-only)
         * Name length must be **2-50 characters**
 
         **Path Parameter Validation:**
-        * `id`: must be a valid UUID v4 format
+        * `name`: must be a valid category name
 
         **Security Note:**
         * This action **requires authentication**
       parameters:
-      - description: Category ID (UUID v4 format)
+      - description: Category name
         in: path
-        name: id
+        name: name
         required: true
         schema:
-          description: Category ID (UUID v4 format)
+          description: Category name
           type: string
       requestBody:
         content:
@@ -920,7 +869,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: "Invalid input: name missing, empty, too short (<2), too long (>50), whitespace-only, invalid UUID in path, or malformed JSON"
+          description: "Invalid input: name missing, empty, too short (<2), too long (>50), whitespace-only, or malformed JSON"
         "401":
           content:
             application/json:
@@ -951,11 +900,11 @@ paths:
   /api/rooms:
     post:
       description: |
-        Create a new room with a name, **category ID**, privacy setting, and optional **thumbnail**.
+        Create a new room with a name, **category name**, privacy setting, and optional **thumbnail**.
 
         **Validation Rules:**
         * `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only
-        * `categoryId`: **required**, must be a valid UUID v4 format
+        * `categoryName`: **required**, must be an existing category name
         * `isPrivate`: **required**, must be valid boolean ("true" or "false")
         * `thumbnail`: optional file upload, max 2MB
 
@@ -967,8 +916,8 @@ paths:
           multipart/form-data:
             schema:
               properties:
-                categoryId:
-                  description: Category ID (UUID v4, required)
+                categoryName:
+                  description: Category name (required)
                   type: string
                 isPrivate:
                   description: 'Visibility flag: ''true'' or ''false'''
@@ -994,7 +943,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: "Invalid input: name empty/too short/too long, invalid categoryId UUID, invalid isPrivate boolean, file too large or missing required fields"
+          description: "Invalid input: name empty/too short/too long, invalid categoryName, invalid isPrivate boolean, file too large or missing required fields"
         "401":
           content:
             application/json:
@@ -1070,7 +1019,8 @@ paths:
         Retrieve a room by its ID.
 
         **Access Rules:**
-        * Only the **room creator (host)** can retrieve the room by ID
+        * For **public rooms**, the requesting user is automatically added as a member
+        * For **private rooms**, only existing **room members** can access the room (returns 403 if not a member)
 
         **Path Parameter Validation:**
         * `id`: must be a valid UUID v4 format
@@ -1109,7 +1059,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Access denied - only the room creator can retrieve
+          description: Access denied - not a member of private room
         "404":
           content:
             application/json:
@@ -1127,11 +1077,11 @@ paths:
       - Rooms
     put:
       description: |
-        Update a room's name, **category ID**, privacy setting, and **thumbnail** by ID.
+        Update a room's name, **category name**, privacy setting, and **thumbnail** by ID.
 
         **Validation Rules:**
         * `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only
-        * `categoryId`: **required**, must be a valid UUID v4 format
+        * `categoryName`: **required**, must be an existing category name
         * `isPrivate`: **required**, must be valid boolean ("true" or "false")
         * `thumbnail`: optional file upload, max 2MB
 
@@ -1154,8 +1104,8 @@ paths:
           multipart/form-data:
             schema:
               properties:
-                categoryId:
-                  description: Category ID (UUID v4, required)
+                categoryName:
+                  description: Category name (required)
                   type: string
                 isPrivate:
                   description: Visibility flag ('true' or 'false', required)
@@ -1181,7 +1131,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: "Invalid input: name validation failed, invalid UUID, invalid boolean, file too large, or missing required fields"
+          description: "Invalid input: name validation failed, invalid category name, invalid boolean, file too large, or missing required fields"
         "401":
           content:
             application/json:
@@ -1278,6 +1228,71 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Internal server error
       summary: List room members
+      tags:
+      - Rooms
+    post:
+      description: |
+        Add one or more users to a room's member list.
+
+        **Request Body Validation:**
+        * `userIds`: **required**, non-empty array of valid UUID v4 strings
+
+        **Path Parameter Validation:**
+        * `id`: must be a valid UUID v4 format (room ID)
+
+        **Access Rules:**
+        * Only the **room host** can add members
+
+        **Security Note:**
+        * This action **requires authentication**
+      parameters:
+      - description: Room ID (UUID v4 format)
+        in: path
+        name: id
+        required: true
+        schema:
+          description: Room ID (UUID v4 format)
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMembersRequest'
+        required: true
+      responses:
+        "204":
+          description: Members successfully added
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: "Invalid input: missing or empty userIds, invalid UUID format"
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Missing or invalid authentication token
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not authorized - only host can add members
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Room not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+      summary: Add members to a room
       tags:
       - Rooms
   /api/rooms/{id}/members/{memberId}:
@@ -1706,7 +1721,7 @@ paths:
         * `page`: **optional** (default: 1), must be >= 1, must be numeric
         * `limit`: **optional** (default: 10), must be 1-100, must be numeric
         * `search`: **optional**, filters rooms by name (case-insensitive partial match)
-        * `category`: **optional**, filters rooms by category ID (UUID v4 format)
+        * `category`: **optional**, filters rooms by category name
 
         **Security Note:**
         * Returns **only** public rooms (private rooms are excluded)
@@ -1732,11 +1747,11 @@ paths:
         schema:
           description: Search rooms by name (case-insensitive)
           type: string
-      - description: Filter by category ID (UUID v4 format)
+      - description: Filter by category name
         in: query
         name: category
         schema:
-          description: Filter by category ID (UUID v4 format)
+          description: Filter by category name
           type: string
       responses:
         "200":
@@ -1758,56 +1773,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Internal server error
       summary: List all public rooms
-      tags:
-      - Rooms
-  /api/rooms/token:
-    post:
-      description: |
-        Retrieve room information using its unique invite token.
-
-        **Request Body Validation:**
-        * `token`: **required**, cannot be empty or whitespace-only
-
-        **Security Note:**
-        * This action **requires authentication**
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetByTokenRequest'
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RoomApiResponse'
-          description: Room successfully retrieved by token
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: Invalid request body or missing token
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: Missing or invalid authentication token
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: Room with given token not found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: Internal server error
-      summary: Get a room by invite token
       tags:
       - Rooms
   /api/rooms/{id}/votes:

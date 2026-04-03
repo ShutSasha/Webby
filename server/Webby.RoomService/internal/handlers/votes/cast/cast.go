@@ -39,7 +39,7 @@ func castVote(logger *slog.Logger, caster Caster) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.votes.cast"))
 
 	type request struct {
-		ChoiceId string `json:"choiceId" validate:"required,uuid4"`
+		ChoiceId string `json:"choiceId" validate:"required,uuid"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {

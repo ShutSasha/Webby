@@ -17,13 +17,12 @@ type SuccessResponse struct {
 // --- Room ---
 
 type RoomResponse struct {
-	Id         string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Name       string `json:"name" example:"Room Name"`
-	CategoryId string `json:"categoryId" example:"123e4567-e89b-12d3-a456-426614174000"`
-	IsPrivate  bool   `json:"isPrivate" example:"false"`
-	HostId     string `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Thumbnail  string `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
-	Token      string `json:"token" example:"abc123def456ghij"`
+	Id           string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name         string `json:"name" example:"Room Name"`
+	CategoryName string `json:"categoryName" example:"Gaming"`
+	IsPrivate    bool   `json:"isPrivate" example:"false"`
+	HostId       string `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Thumbnail    string `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
 }
 
 type RoomApiResponse struct {
@@ -33,13 +32,14 @@ type RoomApiResponse struct {
 }
 
 type RoomListItem struct {
-	Id         string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Name       string `json:"name" example:"Room Name"`
-	CategoryId string `json:"categoryId" example:"123e4567-e89b-12d3-a456-426614174000"`
-	IsPrivate  bool   `json:"isPrivate" example:"false"`
-	HostId     string `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Thumbnail  string `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
-	Token      string `json:"token" example:"abc123def456ghij"`
+	Id            string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name          string `json:"name" example:"Room Name"`
+	CategoryName  string `json:"categoryName" example:"Gaming"`
+	IsPrivate     bool   `json:"isPrivate" example:"false"`
+	HostId        string `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
+	HostUsername  string `json:"hostUsername" example:"JohnDoe"`
+	HostAvatarUrl string `json:"hostAvatarUrl" example:"https://example.com/avatar.jpg"`
+	Thumbnail     string `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
 }
 
 type RoomListApiResponse struct {
@@ -58,7 +58,6 @@ type RoomListPagData struct {
 // --- Category ---
 
 type CategoryResponse struct {
-	Id   string `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
 	Name string `json:"name" example:"Gaming"`
 }
 
@@ -75,10 +74,10 @@ type CategoryListApiResponse struct {
 }
 
 type CategoryListPagData struct {
-	Items []CategoryResponse `json:"items"`
-	Page  int                `json:"page" example:"1"`
-	Limit int                `json:"pageSize" example:"10"`
-	Total int                `json:"totalCount" example:"100"`
+	Items []string `json:"items" example:"Gaming,Education,Music"`
+	Page  int      `json:"page" example:"1"`
+	Limit int      `json:"pageSize" example:"10"`
+	Total int      `json:"totalCount" example:"100"`
 }
 
 type CreateCategoryRequest struct {
@@ -111,18 +110,14 @@ type MemberListPagData struct {
 	Total int              `json:"totalCount" example:"100"`
 }
 
-type AddMemberRequest struct {
-	UserId string `json:"userId" validate:"required,uuid4" example:"550e8400-e29b-41d4-a716-446655440000"`
-}
-
-type GetByTokenRequest struct {
-	Token string `json:"token" validate:"required,notblank" example:"abc123def456ghij"`
+type AddMembersRequest struct {
+	UserIds []string `json:"userIds" validate:"required,min=1,dive,uuid"`
 }
 
 // --- Queue ---
 
 type AddQueueItemRequest struct {
-	EntityId   string `json:"entityId" validate:"required,uuid4" example:"550e8400-e29b-41d4-a716-446655440000"`
+	EntityId   string `json:"entityId" validate:"required,uuid" example:"550e8400-e29b-41d4-a716-446655440000"`
 	EntityType string `json:"entityType" validate:"required,oneof=video playlist" example:"video"`
 }
 
@@ -188,7 +183,7 @@ type CreateChoiceInput struct {
 }
 
 type CastVoteRequest struct {
-	ChoiceId string `json:"choiceId" validate:"required,uuid4" example:"550e8400-e29b-41d4-a716-446655440000" description:"UUID of the choice to vote for"`
+	ChoiceId string `json:"choiceId" validate:"required,uuid" example:"550e8400-e29b-41d4-a716-446655440000" description:"UUID of the choice to vote for"`
 }
 
 type VoteChoiceDetailResponse struct {

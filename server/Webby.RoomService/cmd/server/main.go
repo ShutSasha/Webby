@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"log/slog"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"strconv"
@@ -53,6 +55,7 @@ func run(ctx context.Context, w io.Writer) error {
 		logger.Error("database connection failed", slog.String("error", err.Error()))
 		return err
 	}
+
 	defer db.Close()
 
 	logger.Info("database connected successfully")
@@ -92,6 +95,10 @@ func run(ctx context.Context, w io.Writer) error {
 		WriteTimeout: config.Http.Timeout,
 		Handler:      server,
 	}
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	go func() {
 		logger.Info(

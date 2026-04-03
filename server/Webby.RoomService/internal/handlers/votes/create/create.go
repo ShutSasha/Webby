@@ -39,7 +39,7 @@ func createVote(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 	type choiceRequest struct {
 		Name        string  `json:"name" validate:"required,min=1,max=200"`
 		IsCorrect   bool    `json:"isCorrect"`
-		QueueItemId *string `json:"queueItemId" validate:"omitempty,uuid4"`
+		QueueItemId *string `json:"queueItemId" validate:"omitempty,uuid"`
 	}
 
 	type request struct {

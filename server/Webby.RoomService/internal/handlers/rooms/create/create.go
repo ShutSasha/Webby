@@ -26,8 +26,8 @@ func New(logger *slog.Logger, creator Creator) http.Handler {
 
 // @Title Create a new room
 // @Description Create a new room with a name, category ID, privacy setting, and optional thumbnail.
-// @Param  name       form  string  true   "Room name (2-50 chars, required, non-whitespace)"
-// @Param  categoryId form  string  true   "Category ID (UUID v4, required)"
+// @Param  name           form  string  true   "Room name (2-50 chars, required, non-whitespace)"
+// @Param  categoryName   form  string  true   "Category name (required)"
 // @Param  isPrivate  form  string  true   "Visibility flag: 'true' or 'false'"
 // @Param  thumbnail  file  file    false  "Room thumbnail image (optional, max 2MB)"
 // @Success  201  object docs.RoomApiResponse  "Room successfully created"
@@ -42,12 +42,11 @@ func createRoom(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 	const maxFileSize = 2 * 1024 * 1024
 
 	type roomResponse struct {
-		Id         uuid.UUID `json:"id"`
-		Name       string    `json:"name"`
-		CategoryId uuid.UUID `json:"categoryId"`
-		IsPrivate  bool      `json:"isPrivate"`
-		Thumbnail  string    `json:"thumbnail,omitempty"`
-		Token      string    `json:"token"`
+		Id           uuid.UUID `json:"id"`
+		Name         string    `json:"name"`
+		CategoryName string    `json:"categoryName"`
+		IsPrivate    bool      `json:"isPrivate"`
+		Thumbnail    string    `json:"thumbnail,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
@@ -57,7 +56,7 @@ func createRoom(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 		}
 
 		name := r.FormValue("name")
-		categoryIdStr := r.FormValue("categoryId")
+		categoryName := r.FormValue("categoryName")
 		isPrivateStr := r.FormValue("isPrivate")
 
 		if strings.TrimSpace(name) == "" || len(name) < 2 || len(name) > 50 {
@@ -67,12 +66,11 @@ func createRoom(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 			return responses.NewValidationError("Validation error", problems)
 		}
 
-		categoryId, err := uuid.Parse(categoryIdStr)
-		if err != nil {
+		if strings.TrimSpace(categoryName) == "" {
 			problems := map[string]string{
-				"categoryId": "invalid UUID format",
+				"categoryName": "category name is required",
 			}
-			log.Debug("invalid categoryId format", slog.String("categoryId", categoryIdStr))
+			log.Debug("empty categoryName")
 			return responses.NewValidationError("Validation error", problems)
 		}
 
@@ -121,10 +119,10 @@ func createRoom(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 		}
 
 		room, err := creator.Create(r.Context(), &models.Room{
-			HostId:     hostId,
-			CategoryId: categoryId,
-			Name:       name,
-			IsPrivate:  isPrivate,
+			HostId:       hostId,
+			CategoryName: categoryName,
+			Name:         name,
+			IsPrivate:    isPrivate,
 		}, thumbnailData, thumbnailFilename)
 		if err != nil {
 			return responses.NewApiError("Create room error", err)
@@ -134,14 +132,16 @@ func createRoom(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 			Success: true,
 			Message: "Room created",
 			Data: &roomResponse{
-				Id:         room.Id,
-				Name:       room.Name,
-				CategoryId: room.CategoryId,
-				IsPrivate:  room.IsPrivate,
-				Thumbnail:  room.Thumbnail,
-				Token:      room.Token,
+				Id:           room.Id,
+				Name:         room.Name,
+				CategoryName: room.CategoryName,
+				IsPrivate:    room.IsPrivate,
+				Thumbnail:    room.Thumbnail,
 			},
 		})
 		return nil
 	}
 }
+
+
+      

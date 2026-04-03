@@ -24,6 +24,6 @@ func RegisterCategories(mux *http.ServeMux, jwtSecret []byte, logger *slog.Logge
 	mux.Handle("GET /api/categories", list.New(logger, categoryService))
 
 	mux.Handle("POST /api/categories", requireAuth(create.New(logger, categoryService)))
-	mux.Handle("PUT /api/categories/{id}", requireAuth(update.New(logger, categoryService)))
-	mux.Handle("DELETE /api/categories/{id}", requireAuth(delete.New(logger, categoryService)))
+	mux.Handle("PUT /api/categories/{name}", requireAuth(update.New(logger, categoryService)))
+	mux.Handle("DELETE /api/categories/{name}", requireAuth(delete.New(logger, categoryService)))
 }

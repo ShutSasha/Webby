@@ -24,17 +24,25 @@ import (
 )
 
 var (
-	validRoomID     = uuid.MustParse("11111111-1111-1111-1111-111111111111")
-	validCategoryID = uuid.MustParse("22222222-2222-2222-2222-222222222222")
-	validUserID     = uuid.MustParse("33333333-3333-3333-3333-333333333333")
-	logger          = slog.New(slog.NewTextHandler(io.Discard, nil))
+	validRoomID       = uuid.MustParse("11111111-1111-1111-1111-111111111111")
+	validCategoryName = "Gaming"
+	validUserID       = uuid.MustParse("33333333-3333-3333-3333-333333333333")
+	logger            = slog.New(slog.NewTextHandler(io.Discard, nil))
 )
+
+func strPtr(s string) *string {
+	return &s
+}
+
+func boolPtr(b bool) *bool {
+	return &b
+}
 
 func buildValidPayload() map[string]string {
 	return map[string]string{
-		"name":       "Standard Room",
-		"categoryId": validCategoryID.String(),
-		"isPrivate":  "false",
+		"name":         "Standard Room",
+		"categoryName": validCategoryName,
+		"isPrivate":    "false",
 	}
 }
 
@@ -54,16 +62,17 @@ func buildRequest(t *testing.T, roomID string, payload map[string]string) *http.
 	return req.WithContext(ctx)
 }
 
-func expectUpdate(mu *mocks.MockUpdater, roomID uuid.UUID, expectedName string, expectedIsPrivate bool, returnID uuid.UUID, returnErr error) {
+func expectUpdate(mu *mocks.MockUpdater, roomID uuid.UUID, expectedName *string, expectedCategoryName *string, expectedIsPrivate *bool, returnRoom *models.Room, returnErr error) {
 	mu.EXPECT().Update(
 		mock.Anything,
-		mock.MatchedBy(func(r *models.Room) bool {
-			return r.Id == roomID && r.Name == expectedName && r.IsPrivate == expectedIsPrivate
-		}),
+		roomID,
+		expectedName,
+		expectedCategoryName,
+		expectedIsPrivate,
 		mock.Anything,
 		mock.Anything,
 		validUserID,
-	).Return(returnID, returnErr).Once()
+	).Return(returnRoom, returnErr).Once()
 }
 
 func assertResponse(t *testing.T, body string, expectedStatus int, expectedSuccess bool) {
@@ -75,41 +84,79 @@ func assertResponse(t *testing.T, body string, expectedStatus int, expectedSucce
 
 func TestUpdateRoom_Success(t *testing.T) {
 	tests := []struct {
-		name              string
-		mutateData        func(map[string]string)
-		expectedName      string
-		expectedIsPrivate bool
+		name                 string
+		mutateData           func(map[string]string)
+		removeFields         []string
+		expectedName         *string
+		expectedCategoryName *string
+		expectedIsPrivate    *bool
 	}{
 		{
-			name:              "Success - Standard Payload",
-			mutateData:        func(d map[string]string) {},
-			expectedName:      "Standard Room",
-			expectedIsPrivate: false,
+			name:                 "Success - All Fields",
+			mutateData:           func(d map[string]string) {},
+			removeFields:         []string{},
+			expectedName:         strPtr("Standard Room"),
+			expectedCategoryName: strPtr(validCategoryName),
+			expectedIsPrivate:    boolPtr(false),
 		},
 		{
-			name: "Success - Room Updated to Private",
+			name: "Success - Name Only",
 			mutateData: func(d map[string]string) {
-				d["name"] = "Private Room"
+				d["name"] = "Updated Name"
+			},
+			removeFields:         []string{"categoryName", "isPrivate"},
+			expectedName:         strPtr("Updated Name"),
+			expectedCategoryName: nil,
+			expectedIsPrivate:    nil,
+		},
+		{
+			name:                 "Success - CategoryName Only",
+			mutateData:           func(d map[string]string) {},
+			removeFields:         []string{"name", "isPrivate"},
+			expectedName:         nil,
+			expectedCategoryName: strPtr(validCategoryName),
+			expectedIsPrivate:    nil,
+		},
+		{
+			name: "Success - IsPrivate Only",
+			mutateData: func(d map[string]string) {
 				d["isPrivate"] = "true"
 			},
-			expectedName:      "Private Room",
-			expectedIsPrivate: true,
+			removeFields:         []string{"name", "categoryName"},
+			expectedName:         nil,
+			expectedCategoryName: nil,
+			expectedIsPrivate:    boolPtr(true),
 		},
 		{
-			name: "Success - BVA Name Exact Min Length (2)",
+			name: "Success - Name and IsPrivate",
+			mutateData: func(d map[string]string) {
+				d["name"] = "New Name"
+				d["isPrivate"] = "true"
+			},
+			removeFields:         []string{"categoryName"},
+			expectedName:         strPtr("New Name"),
+			expectedCategoryName: nil,
+			expectedIsPrivate:    boolPtr(true),
+		},
+		{
+			name: "Success - BVA Name Min Length (2)",
 			mutateData: func(d map[string]string) {
 				d["name"] = "AB"
 			},
-			expectedName:      "AB",
-			expectedIsPrivate: false,
+			removeFields:         []string{"categoryName", "isPrivate"},
+			expectedName:         strPtr("AB"),
+			expectedCategoryName: nil,
+			expectedIsPrivate:    nil,
 		},
 		{
-			name: "Success - BVA Name Exact Max Length (50)",
+			name: "Success - BVA Name Max Length (50)",
 			mutateData: func(d map[string]string) {
 				d["name"] = "ThisNameIsExactlyFiftyCharactersLongSoItShouldPass"
 			},
-			expectedName:      "ThisNameIsExactlyFiftyCharactersLongSoItShouldPass",
-			expectedIsPrivate: false,
+			removeFields:         []string{"categoryName", "isPrivate"},
+			expectedName:         strPtr("ThisNameIsExactlyFiftyCharactersLongSoItShouldPass"),
+			expectedCategoryName: nil,
+			expectedIsPrivate:    nil,
 		},
 	}
 
@@ -118,8 +165,20 @@ func TestUpdateRoom_Success(t *testing.T) {
 			payload := buildValidPayload()
 			tt.mutateData(payload)
 
+			// Remove specified fields to test optionality
+			for _, field := range tt.removeFields {
+				delete(payload, field)
+			}
+
 			mockUpdater := mocks.NewMockUpdater(t)
-			expectUpdate(mockUpdater, validRoomID, tt.expectedName, tt.expectedIsPrivate, validRoomID, nil)
+			room := &models.Room{
+				Id:           validRoomID,
+				Name:         "Updated Name",
+				CategoryName: validCategoryName,
+				IsPrivate:    true,
+				Thumbnail:    "thumbnail.jpg",
+			}
+			expectUpdate(mockUpdater, validRoomID, tt.expectedName, tt.expectedCategoryName, tt.expectedIsPrivate, room, nil)
 
 			handler := update.New(logger, mockUpdater)
 			req := buildRequest(t, validRoomID.String(), payload)
@@ -141,61 +200,40 @@ func TestUpdateRoom_ValidationErrors(t *testing.T) {
 		mutateData func(map[string]string)
 	}{
 		{
-			name:       "Failure - EG Invalid Path ID Format",
+			name:       "Failure - Invalid Path ID Format",
 			roomID:     "not-a-uuid",
 			mutateData: func(d map[string]string) {},
 		},
 		{
-			name:   "Failure - EG Missing Name",
-			roomID: validRoomID.String(),
-			mutateData: func(d map[string]string) {
-				delete(d, "name")
-			},
-		},
-		{
-			name:   "Failure - EG Whitespace Only Name",
-			roomID: validRoomID.String(),
-			mutateData: func(d map[string]string) {
-				d["name"] = "   "
-			},
-		},
-		{
-			name:   "Failure - BVA Name Too Short (1 char)",
+			name:   "Failure - Name Too Short (1 char)",
 			roomID: validRoomID.String(),
 			mutateData: func(d map[string]string) {
 				d["name"] = "A"
 			},
 		},
 		{
-			name:   "Failure - BVA Name Too Long (51 chars)",
+			name:   "Failure - Name Too Long (51 chars)",
 			roomID: validRoomID.String(),
 			mutateData: func(d map[string]string) {
 				d["name"] = "ThisNameIsExactlyFiftyOneCharactersLongWhichIsWrong"
 			},
 		},
 		{
-			name:   "Failure - EG Missing Category ID",
+			name:   "Failure - Whitespace Only Name",
 			roomID: validRoomID.String(),
 			mutateData: func(d map[string]string) {
-				delete(d, "categoryId")
+				d["name"] = "   "
 			},
 		},
 		{
-			name:   "Failure - EP Invalid Category ID Format",
+			name:   "Failure - Category Name Whitespace Only",
 			roomID: validRoomID.String(),
 			mutateData: func(d map[string]string) {
-				d["categoryId"] = "invalid-uuid"
+				d["categoryName"] = "   "
 			},
 		},
 		{
-			name:   "Failure - EG Missing IsPrivate",
-			roomID: validRoomID.String(),
-			mutateData: func(d map[string]string) {
-				delete(d, "isPrivate")
-			},
-		},
-		{
-			name:   "Failure - EP Invalid IsPrivate Boolean Format",
+			name:   "Failure - Invalid IsPrivate Boolean Format",
 			roomID: validRoomID.String(),
 			mutateData: func(d map[string]string) {
 				d["isPrivate"] = "yes"
@@ -209,8 +247,9 @@ func TestUpdateRoom_ValidationErrors(t *testing.T) {
 			tt.mutateData(payload)
 
 			mockUpdater := mocks.NewMockUpdater(t)
-			handler := update.New(logger, mockUpdater)
+			// Don't set any expectations - validation errors should prevent Update call
 
+			handler := update.New(logger, mockUpdater)
 			req := buildRequest(t, tt.roomID, payload)
 			w := httptest.NewRecorder()
 
@@ -218,7 +257,7 @@ func TestUpdateRoom_ValidationErrors(t *testing.T) {
 
 			require.Equal(t, http.StatusBadRequest, w.Code)
 			assertResponse(t, w.Body.String(), http.StatusBadRequest, false)
-			mockUpdater.AssertExpectations(t)
+			mockUpdater.AssertNotCalled(t, "Update")
 		})
 	}
 }
@@ -232,21 +271,21 @@ func TestUpdateRoom_ServiceErrors(t *testing.T) {
 		{
 			name: "Failure - Room Not Found",
 			mockSetup: func(mu *mocks.MockUpdater) {
-				mu.EXPECT().Update(mock.Anything, mock.Anything, mock.Anything, mock.Anything, validUserID).Return(uuid.UUID{}, apperrors.ErrNotFound).Once()
+				mu.EXPECT().Update(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, validUserID).Return(nil, apperrors.ErrNotFound).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 		},
 		{
 			name: "Failure - Not Authorized to Update",
 			mockSetup: func(mu *mocks.MockUpdater) {
-				mu.EXPECT().Update(mock.Anything, mock.Anything, mock.Anything, mock.Anything, validUserID).Return(uuid.UUID{}, apperrors.ErrForbidden).Once()
+				mu.EXPECT().Update(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, validUserID).Return(nil, apperrors.ErrForbidden).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
 			name: "Failure - Service Generic Error",
 			mockSetup: func(mu *mocks.MockUpdater) {
-				mu.EXPECT().Update(mock.Anything, mock.Anything, mock.Anything, mock.Anything, validUserID).Return(uuid.UUID{}, errors.New("database connection lost")).Once()
+				mu.EXPECT().Update(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, validUserID).Return(nil, errors.New("database connection lost")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 		},
