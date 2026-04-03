@@ -1,4 +1,7 @@
+using System.Text;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Webby.NotificationService.Extensions;
 using Webby.NotificationService.Hubs;
 using Webby.NotificationService.Middlewares;
@@ -24,11 +27,13 @@ builder.Services.AddSignalR(options =>
 services.AddRepositories();
 services.AddServices();
 services.AddProviders();
+services.AddJwtAuthorization(configuration);
 
 services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
+
 
 var app = builder.Build();
 
