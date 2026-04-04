@@ -82,7 +82,7 @@ export default function PlaylistQueueContainer({
   }, [currentV])
 
   return (
-    <div className="w-[300px] xl:w-[320px] 2xl:w-[368px] flex flex-col h-[90vh] shrink-0">
+    <div className="w-[300px] xl:w-[320px] 2xl:w-[388px] flex flex-col h-[90vh] shrink-0">
       <PlaylistContainerHeader playlistName={playlistName} hiddenVideosCount={hiddenVideosCount} />
       <Search loading={isLoading} handleSearchChange={debouncedSearch} />
       <QueueContainer>

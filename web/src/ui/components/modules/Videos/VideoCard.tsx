@@ -12,6 +12,7 @@ import { formatViews } from '@/lib/utils/video.utils'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import ComplaintModal from '../../shared/ComplaintModal'
+import SaveToPlaylistModal from '../Playlists/SaveToPlaylistModal'
 
 type Props = {
   videoId: string
@@ -39,6 +40,7 @@ export default function VideoCard({
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [isComplaintOpen, setIsComplaintOpen] = useState(false)
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -133,6 +135,7 @@ export default function VideoCard({
                       e.preventDefault()
                       e.stopPropagation()
                       setIsMenuOpen(false)
+                      setIsPlaylistModalOpen(true)
                     }}
                   >
                     <span>Add to playlist</span>
@@ -161,6 +164,12 @@ export default function VideoCard({
         authorId={currentUserId}
         targetId={videoId}
         targetType="Video"
+      />
+      <SaveToPlaylistModal
+        isOpen={isPlaylistModalOpen}
+        onClose={() => setIsPlaylistModalOpen(false)}
+        videoId={videoId}
+        userId={currentUserId}
       />
     </>
   )
