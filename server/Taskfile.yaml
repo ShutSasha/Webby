@@ -45,6 +45,13 @@ tasks:
         CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
         ./server.exe --config ./config/config.yaml
 
+  run_notification_service:
+    desc: "Run the C# NotificationService"
+    cmds:
+      - |
+        cd ./Webby.NotificationService
+        dotnet run
+  
   run_all:
     desc: "Run all services"
     deps:
@@ -54,3 +61,4 @@ tasks:
       - run_video_service
       - run_room_service
       - run_chat_service
+      - run_notification_service

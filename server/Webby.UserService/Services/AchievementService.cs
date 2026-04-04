@@ -190,5 +190,7 @@ public class AchievementService : IAchievementService
 
         return getUserAchievementsResponse;
     }
-    
+
+    public async Task<int> GetPinnedAchievementsCount(Guid userId) 
+        => await _achievementRepository.CountPinnedAchievements(userId);
 }

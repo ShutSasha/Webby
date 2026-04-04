@@ -38,11 +38,13 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/user/swagger/v1/swagger.json", "UserService");
         c.SwaggerEndpoint("/video/swagger/v1/swagger.json", "VideoService");
         c.SwaggerEndpoint("/room/swagger/v1/swagger.json", "RoomService");
-        c.SwaggerEndpoint("/chat/swagger/v1/swagger.json", "ChatSetvice");
+        c.SwaggerEndpoint("/chat/swagger/v1/swagger.json", "ChatService");
+        c.SwaggerEndpoint("/notification/swagger/v1/swagger.json", "NotificationService");
         c.RoutePrefix = "";
     });
 }
 app.UseApiExceptionHandling();
 
+app.UseWebSockets();
 await app.UseOcelot();
 app.Run();

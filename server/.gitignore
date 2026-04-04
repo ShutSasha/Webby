@@ -486,3 +486,4 @@ $RECYCLE.BIN/
 
 appsettings.Development.json
 Migrations/
+ocelot.json

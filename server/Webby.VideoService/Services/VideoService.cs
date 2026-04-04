@@ -2,6 +2,7 @@
 using UserService;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
@@ -26,7 +27,9 @@ public class VideoService : IVideoService
    private readonly IMapper _mapper;
    private readonly IBackgroundTaskQueue _queue;
    private readonly IServiceScopeFactory _scopeFactory;
-   public VideoService(IVideoRepository videoRepository, IStorageService storageService, ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, IMapper mapper, IBackgroundTaskQueue queue, IServiceScopeFactory scopeFactory)
+   private readonly YoutubeSearchService _youtubeSearchService;
+   private readonly TwitchSearchService _twitchSearchService;
+   public VideoService(IVideoRepository videoRepository, IStorageService storageService, ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, IMapper mapper, IBackgroundTaskQueue queue, IServiceScopeFactory scopeFactory, YoutubeSearchService youtubeSearchService, TwitchSearchService twitchSearchService)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
@@ -36,6 +39,8 @@ public class VideoService : IVideoService
       _mapper = mapper;
       _queue = queue;
       _scopeFactory = scopeFactory;
+      _youtubeSearchService = youtubeSearchService;
+      _twitchSearchService = twitchSearchService;
    }
 
    public async Task<Video> GetVideoById(Guid videoId)
@@ -186,7 +191,7 @@ public class VideoService : IVideoService
 
       return new GetVideoInformationResponse
       {
-         VideoId = videoId,
+         VideoId = videoId.ToString(),
          Name = video.Name,
          Views = video.Views,
          Description = video.Description,
@@ -197,7 +202,7 @@ public class VideoService : IVideoService
          VideoTags = videoTagsNames,
          User = new UserVideoDto
          {
-            UserId = Guid.Parse(userResponse.UserId),
+            UserId = userResponse.UserId,
             Username = userResponse.Username,
             AvatarUrl = userResponse.AvatarUrl,
             IsFollowed = userResponse.IsFollowed
@@ -271,8 +276,21 @@ public class VideoService : IVideoService
       await _videoRepository.Update(video);
    }
 
-   public async Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchOptions options)
+   public async Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchVideoOptions options)
    {
+
+      if (options.SearchPlatform == SearchPlatforms.YouTube)
+      {
+         var youtubeResponse = await _youtubeSearchService.SearchAsync(options);
+         return youtubeResponse;
+      }
+
+      if (options.SearchPlatform == SearchPlatforms.Twitch)
+      {
+         var twitchResponse = await _twitchSearchService.SearchAsync(options);
+         return twitchResponse;
+      }
+      
       var skip = (options.Page - 1) * options.PageSize;
       var (additionalConditional, parameters, predicate) = VideoQueryFilters.SearchVideoFilter(requestUserId);
       
@@ -335,6 +353,81 @@ public class VideoService : IVideoService
          _ => false 
       };
    }
+
+   
+   //TODO: refactor global search method
+   public async Task<GlobalSearchVideoResponse> GlobalSearchVideos(Guid? requestUserId, GlobalSearchOptions searchOptions)
+   {
+      if (searchOptions.SectionType is not (SearchSections.Playlists or SearchSections.Videos))
+      {
+         throw new ApiException("Global video search error",400,"Incorrect search section type");
+      }
+
+      if (searchOptions.SectionType == SearchSections.Streams)
+      {
+         var twitchStreams = await _twitchSearchService.SearchAsync(new SearchVideoOptions
+         {
+            Page = searchOptions.Page,
+            SearchPlatform = SearchPlatforms.Twitch,
+            SearchText = searchOptions.SearchText,
+            PageSize = 5
+         });
+
+         return new GlobalSearchVideoResponse()
+         {
+            TwitchStreams = new SearchSection<VideoDto>()
+            {
+               Items = twitchStreams.Items,
+               NextPageToken = twitchStreams.NextPageToken,
+               Page = searchOptions.Page
+            }
+         };
+      }
+      
+      var skip = (searchOptions.Page - 1) * 5;
+      var (additionalConditional, parameters, predicate) = VideoQueryFilters.SearchVideoFilter(requestUserId);
+
+      var webbySearchTask = _videoRepository.SearchAsync(
+         "Videos",
+         "Name",
+         searchOptions.SearchText,
+         skip,
+         searchOptions.PageSize,
+         additionalConditional,
+         parameters,
+         predicateFactory: predicate
+      );
+
+      var youtubeSearchTask = _youtubeSearchService.SearchAsync(new SearchVideoOptions
+      {
+         Page = searchOptions.Page,
+         PageSize = 5,
+         SearchPlatform = SearchPlatforms.YouTube,
+         SearchText = searchOptions.SearchText
+      });
+
+      await Task.WhenAll(webbySearchTask, youtubeSearchTask);
+
+      var (webbyVideos, total) = await webbySearchTask;
+      var youtubeVideos = await youtubeSearchTask;
+
+      return new GlobalSearchVideoResponse
+      {
+         WebbyVideos = new SearchSection<VideoDto>
+         {
+            Items = MapToDto(webbyVideos),
+            Page = searchOptions.Page,
+            TotalCount = total,
+         },
+         YouTubeVideos = new SearchSection<VideoDto>
+         {
+            Items = youtubeVideos.Items,
+            NextPageToken = youtubeVideos.NextPageToken,
+            Page = searchOptions.Page,
+            TotalCount = youtubeVideos.TotalCount
+         }
+      };
+   } 
 
    public async Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId)
    {

@@ -72,4 +72,8 @@ public class AchievementRepository : GenericRepository<Achievement>, IAchievemen
          })
          .ToListAsync();
    }
+
+   public async Task<int> CountPinnedAchievements(Guid userId) 
+      => await _context.UserAchievements
+         .CountAsync(a => a.UserId == userId && a.IsPinned == true);
 }

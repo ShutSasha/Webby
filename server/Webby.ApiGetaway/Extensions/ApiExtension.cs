@@ -74,11 +74,11 @@ public static class ApiExtension
 
       services.AddAuthorization();
    }
+   
    public static void RegisterApiConfig(this ConfigurationManager configuration, IWebHostEnvironment env)
    {
-       configuration.SetBasePath(env.ContentRootPath)
-          .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
-          .AddEnvironmentVariables();
+      configuration.SetBasePath(env.ContentRootPath)
+         .AddOcelot("Configurations", env);
    }
    
    public static IApplicationBuilder UseApiExceptionHandling(this IApplicationBuilder app)
