@@ -31,6 +31,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [prevVolume, setPrevVolume] = useState(1)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const toggleThrottleRef = useRef<NodeJS.Timeout | null>(null)
   const [showCustomControls, setShowCustomControls] = useState(true)
   const isPlatformMode = usePlayerControls(videoUrl)
 
@@ -105,7 +106,13 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       }
     }
 
+    if (toggleThrottleRef.current) return
+
     togglePlay()
+
+    toggleThrottleRef.current = setTimeout(() => {
+      toggleThrottleRef.current = null
+    }, 300)
   }
 
   const handleSetPlaybackRate = (event: React.SyntheticEvent<HTMLButtonElement>) => {
@@ -336,12 +343,39 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
           }
         }}
         onPlay={() => {
+          if (playerRef.current?.paused) return
+
           setPlaying(true)
           setState(prev => ({ ...prev, buffering: false }))
         }}
-        onPause={() => setPlaying(false)}
+        onPause={() => {
+          if (!playerRef.current?.paused) return
+
+          setPlaying(false)
+        }}
         onEnded={() => {
           triggerEnded()
+        }}
+        onError={(e: any) => {
+          if (e?.name === 'AbortError') {
+            console.warn('Play interrupted safely. (AbortError)')
+            setPlaying(false)
+            return
+          }
+
+          if (e?.name === 'NotAllowedError') {
+            console.warn('Autoplay prevented by browser. User must click play.')
+            setPlaying(false)
+            return
+          }
+
+          const target = e?.target as HTMLVideoElement | undefined
+          if (target?.error) {
+            console.error('Video Media Error. Code:', target.error.code, 'Message:', target.error.message)
+            return
+          }
+
+          console.error('Unhandled ReactPlayer Error:', e)
         }}
       />
 
