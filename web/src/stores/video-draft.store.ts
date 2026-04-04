@@ -10,6 +10,7 @@ interface VideoDraftState {
   description: string
   isPrivate: boolean
   previewBase64: string | null
+  videoTags: string[]
 }
 
 interface VideoDraftActions {
@@ -25,6 +26,7 @@ const initialState: VideoDraftState = {
   description: '',
   isPrivate: false,
   previewBase64: null,
+  videoTags: [],
 }
 
 export const useVideoDraftStore = create<VideoDraftState & VideoDraftActions>()(

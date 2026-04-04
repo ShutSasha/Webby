@@ -37,7 +37,7 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
     return <VideoNotFound />
   }
 
-  const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate } = video.data
+  const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate, videoTags } = video.data
   const isOwner = currentUserId === user.userId
 
   if (isPrivate && !isOwner) {
@@ -81,7 +81,7 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
           <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} currentUserId={currentUserId} />
         )}
       </div>
-      <VideoDescription text={description ?? ''} views={views} date={createdAt} />
+      <VideoDescription text={description ?? ''} views={views} date={createdAt} videoTags={videoTags} />
     </div>
   )
 }

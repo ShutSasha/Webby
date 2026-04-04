@@ -1,5 +1,7 @@
 'use client'
 
+import { MouseEvent, useState } from 'react'
+
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
@@ -14,6 +16,8 @@ import CoreButton from '@/ui/components/shared/CoreButton'
 import PageLoading from '@/ui/components/shared/PageLoading'
 import Switch from '@/ui/components/shared/Switch'
 
+const MAX_TAGS = 10
+
 export default function CreateVideoContainer() {
   const router = useRouter()
   const addToast = useToastStore(state => state.addToast)
@@ -26,15 +30,18 @@ export default function CreateVideoContainer() {
   const setField = useVideoDraftStore(state => state.setField)
   const setDraft = useVideoDraftStore(state => state.setDraft)
   const clearDraft = useVideoDraftStore(state => state.clearDraft)
+  const videoTags = useVideoDraftStore(state => state.videoTags || [])
 
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadVideoFile()
   const { mutateAsync: createMetadata, isPending: isSaving } = useCreateVideoMetadata()
 
   const isClient = useIsClient()
 
+  const [tagInput, setTagInput] = useState('')
+
   const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return addToast(`File not found try again or select another file`, 'error')
+    if (!file) return addToast('Please select a valid video file.', 'error')
 
     const formData = new FormData()
     formData.append('VideoFile', file)
@@ -52,10 +59,18 @@ export default function CreateVideoContainer() {
 
   const handlePreviewSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return addToast(`File not found try again or select another file`, 'error')
+    if (!file) return addToast('Please select a valid image file.', 'error')
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      addToast('Unsupported file format. Please select a JPEG, PNG, or WEBP image.', 'error')
+
+      e.target.value = ''
+      return
+    }
 
     if (file.size > 2 * 1024 * 1024) {
-      addToast('Thumbnail is too large. Max size is 2MB for draft saving.', 'error')
+      addToast('Thumbnail image is too large. The maximum allowed size is 2MB.', 'error')
       return
     }
 
@@ -65,10 +80,10 @@ export default function CreateVideoContainer() {
 
   const handleSubmitMetadata = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!uploadedVideoData) return addToast(`Video has not been uploaded yet or try it again`, 'error')
-    if (!previewBase64) return addToast(`Image for video has not been added yet or try it again`, 'error')
-    if (!name) return addToast(`Title for video has not been added yet or try it again`, 'error')
-    if (!description) return addToast(`Description for video has not been added yet or try it again`, 'error')
+    if (!uploadedVideoData) return addToast('Video data is missing. Please try uploading again.', 'error')
+    if (!previewBase64) return addToast('Please upload a thumbnail for your video.', 'error')
+    if (!name) return addToast('Please enter a title for your video.', 'error')
+    if (!description) return addToast('Please enter a description for your video.', 'error')
 
     const formData = new FormData()
 
@@ -79,12 +94,12 @@ export default function CreateVideoContainer() {
 
     const previewFile = base64ToFile(previewBase64, 'thumbnail.png')
     formData.append('PreviewFile', previewFile)
-    // TODO: add tags
-    // formData.append('PlaylistId', '...')
-    // formData.append('VideoTags', '...')
 
-    const data = Object.fromEntries(formData.entries())
-    console.log(data)
+    if (videoTags.length > 0) {
+      videoTags.forEach(tag => {
+        formData.append('VideoTags', tag)
+      })
+    }
 
     const response = await createMetadata(formData)
 
@@ -108,6 +123,37 @@ export default function CreateVideoContainer() {
     } catch (error) {
       serverLog('FAILED_CANCEL_UPLOAD_VIDEO', error, true)
     }
+  }
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+
+      const newTag = tagInput.trim().toLowerCase()
+
+      if (!newTag) return
+
+      if (videoTags.length >= MAX_TAGS) {
+        addToast(`You can only add up to ${MAX_TAGS} tags.`, 'error')
+        return
+      }
+
+      if (videoTags.includes(newTag)) {
+        setTagInput('')
+        return
+      }
+
+      setField('videoTags', [...videoTags, newTag])
+      setTagInput('')
+    }
+  }
+
+  const removeTag = (e: MouseEvent<HTMLButtonElement>, tagToRemove: string) => {
+    e.preventDefault()
+    setField(
+      'videoTags',
+      videoTags.filter(tag => tag !== tagToRemove),
+    )
   }
 
   if (!isClient) {
@@ -197,6 +243,55 @@ export default function CreateVideoContainer() {
                 <Switch isChecked={isPrivate} toggle={() => setField('isPrivate', !isPrivate)} />
                 <span className="text-sm text-neutral-300">Make video Private</span>
               </label>
+
+              <div className="flex flex-col gap-2 mt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-neutral-300">Tags</span>
+                  <span className="text-xs text-neutral-500">
+                    {videoTags.length} / {MAX_TAGS}
+                  </span>
+                </div>
+
+                <div
+                  className="flex flex-col gap-3 p-3 bg-neutral-800 border border-neutral-700 rounded-lg
+                    transition-colors"
+                >
+                  {videoTags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {videoTags.map(tag => (
+                        <span
+                          key={tag}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-700 text-xs font-medium
+                            text-neutral-200"
+                        >
+                          #{tag}
+                          <button
+                            type="button"
+                            onClick={e => removeTag(e, tag)}
+                            className="text-neutral-400 hover:text-red-400 transition-colors focus:outline-none"
+                            aria-label={`Remove tag ${tag}`}
+                          >
+                            &times;
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={e => setTagInput(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    disabled={videoTags.length >= MAX_TAGS}
+                    className="bg-transparent border-none text-sm text-neutral-100 focus:outline-none focus:ring-0
+                      w-full placeholder:text-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder={
+                      videoTags.length >= MAX_TAGS ? 'Maximum tags reached' : 'Add a tag and press Enter or comma'
+                    }
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="w-full md:w-[280px] flex flex-col gap-2">
