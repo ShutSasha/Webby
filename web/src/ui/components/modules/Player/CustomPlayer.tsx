@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import ReactPlayer from 'react-player'
 
@@ -23,7 +23,7 @@ type PlayerProps = {
 }
 
 export default function CustomPlayer({ videoUrl }: PlayerProps) {
-  const playerRef = useRef<HTMLVideoElement | null>(null)
+  const playerRef = useRef<HTMLVideoElement>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
   const isMounted = useIsClient()
 
@@ -39,11 +39,6 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   const baseUserVolume = usePlayerStore(state => state.baseVolume)
   const setBaseUserVolume = usePlayerStore(state => state.setBaseVolume)
-
-  const setPlayerRef = useCallback((player: HTMLVideoElement) => {
-    if (!player) return
-    playerRef.current = player
-  }, [])
 
   const triggerEnded = usePlayerPlayStore(state => state.triggerEnded)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
@@ -63,13 +58,15 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     loadedSeconds: 0,
     playedSeconds: 0,
     showSettings: false,
+    buffering: true,
+    isReady: false,
   }
 
   type PlayerState = typeof initialState
 
   const [state, setState] = useState<PlayerState>(initialState)
 
-  const { light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings } = state
+  const { light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings, buffering, isReady } = state
 
   useEffect(() => {
     setState(prev => ({
@@ -286,7 +283,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     >
       <ReactPlayer
         className="react-player"
-        ref={setPlayerRef}
+        ref={playerRef}
         playing={playing}
         controls={isPlatformMode}
         width="100%"
@@ -313,28 +310,57 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
             setBaseUserVolume(volume)
           }
         }}
-        onPlay={() => setPlaying(true)}
+        onReady={() => {
+          const videoElement = playerRef.current
+
+          if (videoElement) {
+            const isActuallyLoaded = videoElement.readyState >= 3
+
+            setState(prev => ({
+              ...prev,
+              buffering: !isActuallyLoaded,
+              isReady: isActuallyLoaded,
+            }))
+
+            videoElement.onwaiting = () => setState(prev => ({ ...prev, buffering: true }))
+            videoElement.onloadeddata = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
+            videoElement.onplaying = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
+            videoElement.oncanplay = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
+          }
+        }}
+        onPlay={() => {
+          setPlaying(true)
+          setState(prev => ({ ...prev, buffering: false }))
+        }}
         onPause={() => setPlaying(false)}
         onEnded={() => {
           triggerEnded()
         }}
       />
 
+      {(!isReady || buffering) && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+          <div className="w-16 h-16 border-6 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+        </div>
+      )}
+
       {/* Overlay */}
-      {!isPlatformMode && (
+      {isReady && !isPlatformMode && (
         <div
           className={`absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent transition-opacity
           duration-400 ease-in-out ${showCustomControls ? 'opacity-100' : 'opacity-0'}`}
           onClick={handlePlayPause}
         >
           {/* Play button on the overlay */}
-          <div
-            className={`${playing === false ? 'opacity-100' : 'opacity-0'} absolute w-12 h-12 md:w-18 md:h-18
-            bg-black/15 rounded-full top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center justify-center
-            pl-1 transition-opacity duration-400 ease-in-out`}
-          >
-            <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-white/70" />
-          </div>
+          {!buffering && (
+            <div
+              className={`${playing === false ? 'opacity-100' : 'opacity-0'} absolute w-12 h-12 md:w-18 md:h-18
+              bg-black/15 rounded-full top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center
+              justify-center pl-1 transition-opacity duration-400 ease-in-out`}
+            >
+              <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-white/70" />
+            </div>
+          )}
 
           {/* Settings Menu Popup */}
           {showSettings && (
