@@ -135,12 +135,19 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const handleProgress = () => {
     const player = playerRef.current
     // We only want to update time slider if we are not currently seeking
-    if (!player || state.seeking || !player.buffered?.length) return
+    if (!player || state.seeking) return
+
+    const buffered = player.buffered
+
+    if (!buffered || buffered.length === 0) return
+
+    const lastIndex = buffered.length - 1
+    const loadedSeconds = buffered.end(lastIndex)
 
     setState(prevState => ({
       ...prevState,
-      loadedSeconds: player.buffered?.end(player.buffered?.length - 1),
-      loaded: player.buffered?.end(player.buffered?.length - 1) / player.duration,
+      loadedSeconds,
+      loaded: player.duration ? loadedSeconds / player.duration : 0,
     }))
   }
 
@@ -355,10 +362,10 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
           {!buffering && (
             <div
               className={`${playing === false ? 'opacity-100' : 'opacity-0'} absolute w-12 h-12 md:w-18 md:h-18
-              bg-black/15 rounded-full top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center
+              bg-black/40 rounded-full top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center
               justify-center pl-1 transition-opacity duration-400 ease-in-out`}
             >
-              <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-white/70" />
+              <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-white/90" />
             </div>
           )}
 
@@ -452,13 +459,13 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
                 <button onClick={handlePlayPause} className="cursor-pointer">
                   {playing ? (
                     <PauseIcon
-                      className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out
-                        transition-colors"
+                      className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors
+                        stroke-[1.5px]"
                     />
                   ) : (
                     <PlayIcon
-                      className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out
-                        transition-colors"
+                      className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors
+                        stroke-[1.5px]"
                     />
                   )}
                 </button>
@@ -474,17 +481,20 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
                   <button onClick={toggleMute} className="cursor-pointer">
                     {baseUserVolume >= 0.5 && (
                       <MaxVolume
-                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
+                          stroke-[1.5px]"
                       />
                     )}
                     {baseUserVolume < 0.5 && baseUserVolume > 0 && (
                       <MinVolume
-                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
+                          stroke-[1.5px]"
                       />
                     )}
                     {baseUserVolume === 0 && (
                       <MutedVolume
-                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
+                          stroke-[1.5px]"
                       />
                     )}
                   </button>
@@ -522,13 +532,14 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
               <div className="flex items-center gap-3">
                 <button type="button" onClick={toggleSettings} className={'cursor-pointer group/settings'}>
                   <SettingsIcon
-                    className={`w-6 h-6 transition-colors duration-300
+                    className={`w-6 h-6 transition-colors duration-300 stroke-[1.5px]
                     ${showSettings ? 'text-emerald-500 rotate-45' : 'text-neutral-300 group-hover/settings:text-emerald-500'}`}
                   />
                 </button>
                 <button type="button" onClick={toggleFullScreen} className="cursor-pointer group/fullscreen">
                   <FullscreenIcon
-                    className="text-neutral-300 w-6 h-6 group-hover/fullscreen:text-emerald-500 transition-colors"
+                    className="text-neutral-300 w-6 h-6 group-hover/fullscreen:text-emerald-500 transition-colors
+                      stroke-[1.5px]"
                   />
                 </button>
               </div>
