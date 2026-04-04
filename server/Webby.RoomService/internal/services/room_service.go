@@ -36,17 +36,25 @@ type FileRepository interface {
 	Remove(ctx context.Context, key string) error
 }
 
+type ChatClientInterface interface {
+	CreateChat(ctx context.Context, roomId uuid.UUID) (uuid.UUID, error)
+	GetChatByRoomId(ctx context.Context, roomId uuid.UUID) (uuid.UUID, error)
+	AddChatMember(ctx context.Context, chatId, userId uuid.UUID) error
+}
+
 type RoomService struct {
 	roomRepo       RoomRepository
 	roomMemberRepo RoomMemberRepository
 	fileRepo       FileRepository
+	chatClient     ChatClientInterface
 }
 
-func NewRoomService(repo RoomRepository, roomMemberRepo RoomMemberRepository, fileRepo FileRepository) *RoomService {
+func NewRoomService(repo RoomRepository, roomMemberRepo RoomMemberRepository, fileRepo FileRepository, chatClient ChatClientInterface) *RoomService {
 	return &RoomService{
 		roomRepo:       repo,
 		roomMemberRepo: roomMemberRepo,
 		fileRepo:       fileRepo,
+		chatClient:     chatClient,
 	}
 }
 
@@ -84,6 +92,27 @@ func (r *RoomService) Create(ctx context.Context, room *models.Room, thumbnailDa
 			slog.String("hostId", room.HostId.String()),
 			slog.String("error", err.Error()),
 		)
+	}
+
+	if r.chatClient != nil {
+		chatId, err := r.chatClient.CreateChat(ctx, room.Id)
+		if err != nil {
+			slog.Warn("failed to create chat for room",
+				slog.String("roomId", room.Id.String()),
+				slog.String("error", err.Error()),
+			)
+		} else {
+			room.ChatId = &chatId
+
+			if err := r.chatClient.AddChatMember(ctx, chatId, room.HostId); err != nil {
+				slog.Warn("failed to add host as chat member",
+					slog.String("roomId", room.Id.String()),
+					slog.String("chatId", chatId.String()),
+					slog.String("hostId", room.HostId.String()),
+					slog.String("error", err.Error()),
+				)
+			}
+		}
 	}
 
 	return room, nil
@@ -137,6 +166,27 @@ func (r *RoomService) GetById(ctx context.Context, roomId uuid.UUID, userId uuid
 		}
 	}
 
+	if r.chatClient != nil {
+		chatId, err := r.chatClient.GetChatByRoomId(ctx, room.Id)
+		if err != nil {
+			slog.Warn("failed to get chat for room",
+				slog.String("roomId", room.Id.String()),
+				slog.String("error", err.Error()),
+			)
+		} else {
+			room.ChatId = &chatId
+
+			if err := r.chatClient.AddChatMember(ctx, chatId, userId); err != nil {
+				slog.Warn("failed to add user as chat member",
+					slog.String("roomId", room.Id.String()),
+					slog.String("chatId", chatId.String()),
+					slog.String("userId", userId.String()),
+					slog.String("error", err.Error()),
+				)
+			}
+		}
+	}
+
 	return room, nil
 }
 
@@ -180,6 +230,27 @@ func (r *RoomService) AddMembers(ctx context.Context, roomId uuid.UUID, memberId
 	for _, memberId := range memberIds {
 		if err := r.roomMemberRepo.EnsureMember(ctx, roomId, memberId); err != nil {
 			return err
+		}
+	}
+
+	if r.chatClient != nil {
+		chatId, err := r.chatClient.GetChatByRoomId(ctx, roomId)
+		if err != nil {
+			slog.Warn("failed to get chat for room when adding members",
+				slog.String("roomId", roomId.String()),
+				slog.String("error", err.Error()),
+			)
+		} else {
+			for _, memberId := range memberIds {
+				if err := r.chatClient.AddChatMember(ctx, chatId, memberId); err != nil {
+					slog.Warn("failed to add room member as chat member",
+						slog.String("roomId", roomId.String()),
+						slog.String("chatId", chatId.String()),
+						slog.String("memberId", memberId.String()),
+						slog.String("error", err.Error()),
+					)
+				}
+			}
 		}
 	}
 

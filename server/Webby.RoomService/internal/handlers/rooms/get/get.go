@@ -36,12 +36,13 @@ func getRoom(logger *slog.Logger, getter Getter) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.rooms.get"))
 
 	type response struct {
-		Id           uuid.UUID `json:"id"`
-		Name         string    `json:"name"`
-		CategoryName string    `json:"categoryName"`
-		IsPrivate    bool      `json:"isPrivate"`
-		HostId       uuid.UUID `json:"hostId"`
-		Thumbnail    string    `json:"thumbnail"`
+		Id           uuid.UUID  `json:"id"`
+		Name         string     `json:"name"`
+		CategoryName string     `json:"categoryName"`
+		IsPrivate    bool       `json:"isPrivate"`
+		HostId       uuid.UUID  `json:"hostId"`
+		Thumbnail    string     `json:"thumbnail"`
+		ChatId       *uuid.UUID `json:"chatId,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
@@ -73,6 +74,7 @@ func getRoom(logger *slog.Logger, getter Getter) errorWrapper.APIFunc {
 				IsPrivate:    room.IsPrivate,
 				HostId:       room.HostId,
 				Thumbnail:    room.Thumbnail,
+				ChatId:       room.ChatId,
 			},
 		})
 		return nil

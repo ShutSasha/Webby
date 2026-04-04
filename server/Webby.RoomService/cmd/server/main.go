@@ -73,7 +73,15 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer mediaClient.Close()
 
-	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage)
+	chatClient, err := grpcClient.NewChatClient(config.Grpc.ChatServiceAddress)
+	if err != nil {
+		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
+		chatClient = nil
+	} else {
+		defer chatClient.Close()
+	}
+
+	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, chatClient)
 	categoryService := services.NewCategoryService(categoryRepository)
 	queueItemService := services.NewQueueItemService(queueItemRepository, mediaClient, roomMemberRepository)
 	voteRepository := repository.NewVoteRepository(db)

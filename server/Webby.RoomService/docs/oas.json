@@ -533,8 +533,8 @@
       },
       "RoomListItem": {
         "properties": {
-          "categoryId": {
-            "example": "123e4567-e89b-12d3-a456-426614174000",
+          "categoryName": {
+            "example": "Gaming",
             "type": "string"
           },
           "hostId": {
@@ -569,8 +569,8 @@
           "items": {
             "items": {
               "properties": {
-                "categoryId": {
-                  "example": "123e4567-e89b-12d3-a456-426614174000",
+                "categoryName": {
+                  "example": "Gaming",
                   "type": "string"
                 },
                 "hostId": {
@@ -640,9 +640,16 @@
       },
       "RoomResponse": {
         "properties": {
-          "categoryId": {
-            "example": "123e4567-e89b-12d3-a456-426614174000",
+          "categoryName": {
+            "example": "Gaming",
             "type": "string"
+          },
+          "chatId": {
+            "description": "Chat ID associated with this room (from ChatService)",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
           },
           "hostId": {
             "example": "550e8400-e29b-41d4-a716-446655440000",
@@ -662,10 +669,6 @@
           },
           "thumbnail": {
             "example": "https://example.com/thumbnail.jpg",
-            "type": "string"
-          },
-          "token": {
-            "example": "abc123def456ghij",
             "type": "string"
           }
         },
@@ -1333,14 +1336,14 @@
     },
     "/api/rooms": {
       "post": {
-        "description": "Create a new room with a name, **category ID**, privacy setting, and optional **thumbnail**.\n\n**Validation Rules:**\n* `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only\n* `categoryId`: **required**, must be a valid UUID v4 format\n* `isPrivate`: **required**, must be valid boolean (\"true\" or \"false\")\n* `thumbnail`: optional file upload, max 2MB\n\n**Security Note:**\n* This action **requires authentication**\n* The authenticated user becomes the **room host (creator)**\n",
+        "description": "Create a new room with a name, **category name**, privacy setting, and optional **thumbnail**.\n\n**Validation Rules:**\n* `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only\n* `categoryName`: **required**, must be a non-empty string\n* `isPrivate`: **required**, must be valid boolean (\"true\" or \"false\")\n* `thumbnail`: optional file upload, max 2MB\n\n**Security Note:**\n* This action **requires authentication**\n* The authenticated user becomes the **room host (creator)**\n",
         "requestBody": {
           "content": {
             "multipart/form-data": {
               "schema": {
                 "properties": {
-                  "categoryId": {
-                    "description": "Category ID (UUID v4, required)",
+                  "categoryName": {
+                    "description": "Category name (required)",
                     "type": "string"
                   },
                   "isPrivate": {
@@ -1382,7 +1385,7 @@
                 }
               }
             },
-            "description": "Invalid input: name empty/too short/too long, invalid categoryId UUID, invalid isPrivate boolean, file too large or missing required fields"
+            "description": "Invalid input: name empty/too short/too long, invalid categoryName, invalid isPrivate boolean, file too large or missing required fields"
           },
           "401": {
             "content": {
@@ -1568,7 +1571,7 @@
         ]
       },
       "put": {
-        "description": "Update a room's name, **category ID**, privacy setting, and **thumbnail** by ID.\n\n**Validation Rules:**\n* `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only\n* `categoryId`: **required**, must be a valid UUID v4 format\n* `isPrivate`: **required**, must be valid boolean (\"true\" or \"false\")\n* `thumbnail`: optional file upload, max 2MB\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n\n**Security Note:**\n* This action **requires authentication**\n* **Only the room host** can update this room\n",
+        "description": "Update a room's name, **category name**, privacy setting, and **thumbnail** by ID.\n\n**Validation Rules:**\n* `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only\n* `categoryName`: **required**, must be a non-empty string\n* `isPrivate`: **required**, must be valid boolean (\"true\" or \"false\")\n* `thumbnail`: optional file upload, max 2MB\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n\n**Security Note:**\n* This action **requires authentication**\n* **Only the room host** can update this room\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",
@@ -1586,8 +1589,8 @@
             "multipart/form-data": {
               "schema": {
                 "properties": {
-                  "categoryId": {
-                    "description": "Category ID (UUID v4, required)",
+                  "categoryName": {
+                    "description": "Category name (required)",
                     "type": "string"
                   },
                   "isPrivate": {

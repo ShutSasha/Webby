@@ -461,6 +461,12 @@ components:
         categoryName:
           example: Gaming
           type: string
+        chatId:
+          description: Chat ID associated with this room (from ChatService)
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+          format: uuid
+          nullable: true
         hostId:
           example: 550e8400-e29b-41d4-a716-446655440000
           type: string
@@ -901,6 +907,7 @@ paths:
     post:
       description: |
         Create a new room with a name, **category name**, privacy setting, and optional **thumbnail**.
+        A **chat** is automatically created for the room via the ChatService (returned as `chatId` in the response).
 
         **Validation Rules:**
         * `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only
@@ -1016,7 +1023,7 @@ paths:
       - Rooms
     get:
       description: |
-        Retrieve a room by its ID.
+        Retrieve a room by its ID. The response includes the associated `chatId` from the ChatService.
 
         **Access Rules:**
         * For **public rooms**, the requesting user is automatically added as a member

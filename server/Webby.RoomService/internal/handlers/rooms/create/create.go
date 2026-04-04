@@ -42,11 +42,12 @@ func createRoom(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 	const maxFileSize = 2 * 1024 * 1024
 
 	type roomResponse struct {
-		Id           uuid.UUID `json:"id"`
-		Name         string    `json:"name"`
-		CategoryName string    `json:"categoryName"`
-		IsPrivate    bool      `json:"isPrivate"`
-		Thumbnail    string    `json:"thumbnail,omitempty"`
+		Id           uuid.UUID  `json:"id"`
+		Name         string     `json:"name"`
+		CategoryName string     `json:"categoryName"`
+		IsPrivate    bool       `json:"isPrivate"`
+		Thumbnail    string     `json:"thumbnail,omitempty"`
+		ChatId       *uuid.UUID `json:"chatId,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
@@ -137,11 +138,9 @@ func createRoom(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 				CategoryName: room.CategoryName,
 				IsPrivate:    room.IsPrivate,
 				Thumbnail:    room.Thumbnail,
+				ChatId:       room.ChatId,
 			},
 		})
 		return nil
 	}
 }
-
-
-      

@@ -23,6 +23,7 @@ type RoomResponse struct {
 	IsPrivate    bool   `json:"isPrivate" example:"false"`
 	HostId       string `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
 	Thumbnail    string `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
+	ChatId       string `json:"chatId,omitempty" example:"550e8400-e29b-41d4-a716-446655440000" description:"Chat ID associated with this room (from ChatService)"`
 }
 
 type RoomApiResponse struct {
