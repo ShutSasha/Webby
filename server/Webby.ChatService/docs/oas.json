@@ -1,0 +1,268 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Webby.ChatService",
+    "description": "Real-time chat service for Webby rooms. Provides REST endpoints for chat management\nand Socket.IO WebSocket events for real-time messaging.\n\n## Socket.IO Events\n\nConnect to `ws://localhost:8081/socket.io/` with query param `?token=<JWT>`.\n\n### Client → Server Events\n\n| Event | Payload | Description |\n|-------|---------|-------------|\n| `chat:join` | `{ \"chatId\": \"uuid\" }` | Join a chat room (must be a member) |\n| `messages:list` | `{ \"chatId\": \"uuid\", \"page\": 1, \"limit\": 50 }` | Get paginated messages (newest first) |\n| `messages:send` | `{ \"chatId\": \"uuid\", \"content\": \"text\" }` | Send a message to chat |\n| `messages:edit` | `{ \"messageId\": \"uuid\", \"content\": \"new text\" }` | Edit own message |\n| `messages:delete` | `{ \"messageId\": \"uuid\" }` | Delete own message |\n\n### Server → Client Events\n\n| Event | Payload | Description |\n|-------|---------|-------------|\n| `messages:list:response` | `{ items, page, pageSize, totalCount }` | Response to messages:list |\n| `messages:new` | `{ id, senderId, chatId, content, createdAt }` | New message broadcast |\n| `messages:edited` | `{ id, senderId, chatId, content, isEdited, editedAt }` | Edited message broadcast |\n| `messages:deleted` | `{ id, chatId }` | Deleted message broadcast |\n",
+    "version": "1.0",
+    "contact": {
+      "name": "Webby Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8081",
+      "description": "Local development"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ChatResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "550e8400-e29b-41d4-a716-446655440001"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-04T12:00:00Z"
+          }
+        }
+      },
+      "MessageResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "senderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "chatId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string",
+            "example": "Hello, world!"
+          },
+          "isEdited": {
+            "type": "boolean",
+            "example": false
+          },
+          "editedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiSuccessChat": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Chat created"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ChatResponse"
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "An error occurred"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PaginatedMessages": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageResponse"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 50
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 100
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/chats": {
+      "post": {
+        "summary": "Create a new chat",
+        "description": "Create a new chat, optionally linked to a room.",
+        "tags": [
+          "Chats"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roomId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Optional room ID to link the chat to"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Chat created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccessChat"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chats/{id}": {
+      "get": {
+        "summary": "Get a chat by ID",
+        "description": "Retrieve a chat by its UUID.",
+        "tags": [
+          "Chats"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chat retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccessChat"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chat not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
