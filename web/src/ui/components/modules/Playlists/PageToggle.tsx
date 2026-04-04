@@ -5,7 +5,7 @@ import { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 
 type Tab = {
   label: string

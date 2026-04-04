@@ -5,11 +5,11 @@ import { useActionState, startTransition, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 
-import { resetPasswordAction } from '@/app/api/auth'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
+import { resetPasswordAction } from '@/lib/actions/auth.actions'
 import { useCommonStore } from '@/stores/common.store'
 import { useToastStore } from '@/stores/toast-store'
-import AuthInput from '@/ui/components/AuthInput'
+import AuthInput from '@/ui/components/modules/Auth/AuthInput'
 import Button from '@/ui/components/shared/Button'
 
 export default function NewPasswordStep() {

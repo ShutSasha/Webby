@@ -1,5 +1,5 @@
 import CreateVideoButton from './CreateVideoButton'
-import Search from '../../Search'
+import Search from '../../shared/Search'
 
 export default function VideoPageHeader() {
   return (

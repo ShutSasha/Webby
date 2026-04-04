@@ -1,5 +1,5 @@
 import CreateRoomButton from './CreateRoomButton'
-import Search from '../../Search'
+import Search from '../../shared/Search'
 
 export default function RoomPageHeader() {
   return (

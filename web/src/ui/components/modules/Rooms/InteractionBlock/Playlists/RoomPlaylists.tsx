@@ -84,7 +84,6 @@ export default function RoomPlaylists() {
         />
       </div>
 
-      {/* TODO: add custom scrolbar styles */}
       <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2 pr-1 custom-scrollbar">
         {filteredPlaylist.map(video => (
           <PlaylistItem key={video.id} video={video} />

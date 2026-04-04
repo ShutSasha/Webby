@@ -8,7 +8,7 @@ public class Video
    public Guid UserId { get; set; }
    public required string Name { get; set; }
    public VideoStatus VideoUploadStatus { get; set; }
-   public TimeSpan Duration { get; set; }
+   public long Duration { get; set; }
    public string? Description { get; set; }
    public int Views { get; set; }
    public DateTime CreatedAt { get; set; }

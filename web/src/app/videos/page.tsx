@@ -1,4 +1,4 @@
-import MainLayout from '@/ui/components/MainLayout'
+import MainLayout from '@/ui/components/layouts/MainLayout'
 import VideoCard from '@/ui/components/modules/Videos/VideoCard'
 import VideoPageHeader from '@/ui/components/modules/Videos/VideoPageHeader'
 import GridCardsContainer from '@/ui/components/shared/GridCardsContainer'

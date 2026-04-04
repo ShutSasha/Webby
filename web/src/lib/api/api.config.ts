@@ -1,7 +1,6 @@
 import axios from 'axios'
 
-import { getGlobalToken, setGlobalToken, triggerSessionUpdate } from '@/lib/utils/auth-token'
-import { clog } from '@/lib/utils/utils'
+import { getGlobalToken, setGlobalToken, triggerSessionUpdate } from '@/lib/utils/auth-token.utils'
 import { auth } from '@/workspace/auth'
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api'
@@ -20,13 +19,9 @@ $api.interceptors.request.use(async config => {
     token = getGlobalToken()
   }
 
-  clog('token', token)
-
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
-
-  clog('req SERVER HTTP headers', config.headers)
 
   return config
 })

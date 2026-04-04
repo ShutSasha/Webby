@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import { getUser } from '@/app/api/user'
+import { getUser } from '@/lib/actions/user.actions'
 import FollowsContainer from '@/ui/components/modules/Profile/CommonFollow/FollowsContainer'
 import { FollowsContainerSkeleton } from '@/ui/components/modules/Profile/CommonFollow/FollowsContainerSkeleton'
 import { FollowsToggle } from '@/ui/components/modules/Profile/CommonFollow/FollowToggle'
@@ -28,14 +28,11 @@ export default async function Follows({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Header Navigation */}
       <HeaderNavigation id={id} image={user.user.avatarUrl} username={user.user.username}>
         <FollowsToggle id={id} />
       </HeaderNavigation>
 
       <hr className="border-emerald-400/50 mb-1" />
-
-      {/* Grid List */}
 
       <Suspense fallback={<FollowsContainerSkeleton />}>
         <FollowsContainer id={id} />

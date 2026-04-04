@@ -1,6 +1,6 @@
 import { User } from 'next-auth'
 
-import { Role } from './user'
+import { Role } from './user.types'
 
 type AuthRes = {
   success: boolean

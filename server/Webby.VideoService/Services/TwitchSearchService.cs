@@ -6,6 +6,7 @@ using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.External;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
+using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.External;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Services;
@@ -25,7 +26,7 @@ public class TwitchSearchService : IExternalVideoSearchService
         _options = options.Value.TwitchOptions;
     }
     
-public async Task<PagedResponse<VideoDto>> SearchAsync(SearchVideoOptions options)
+    public async Task<PagedResponse<VideoDto>> SearchAsync(SearchVideoOptions options)
 {
     await AuthenticateAsync();
 
@@ -48,6 +49,11 @@ public async Task<PagedResponse<VideoDto>> SearchAsync(SearchVideoOptions option
 
         var searchResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(
             QueryHelpers.AddQueryString(searchUrl, searchParams));
+
+        if (searchResponse == null)
+        {
+            return new PagedResponse<VideoDto>();
+        }
 
         nextPageToken = searchResponse.Pagination?.Cursor;
 
@@ -95,7 +101,7 @@ public async Task<PagedResponse<VideoDto>> SearchAsync(SearchVideoOptions option
         CreatedAt = item.StartedAt,
         IsPrivate = false,
         VideoUploadStatus = VideoStatus.Ready,
-        Duration = TimeSpan.Zero,
+        Duration = 0L,
         Views = item.ViewerCount,
         User = new UserVideoDto
         {
@@ -113,6 +119,60 @@ public async Task<PagedResponse<VideoDto>> SearchAsync(SearchVideoOptions option
         PageSize = options.PageSize
     };
 }
+
+    public async Task<VideoDto> FindById(string videoId)
+    {
+        if (string.IsNullOrEmpty(videoId)) return null;
+
+        await AuthenticateAsync();
+        
+        var streamUrl = $"{DefaultLinks.BaseTwitchStreamLink}?user_id={videoId}";
+        var streamResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(streamUrl);
+        var streamItem = streamResponse.Data?.FirstOrDefault();
+
+        if (streamItem != null)
+        {
+            var avatars = await GetUsersAvatarsAsync(new[] { streamItem.UserId });
+            return MapToVideoDto(streamItem, avatars.GetValueOrDefault(streamItem.UserId));
+        }
+        
+        var videoUrl = $"https://api.twitch.tv/helix/videos?id={videoId}";
+        var vResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(videoUrl);
+        var videoItem = vResponse.Data?.FirstOrDefault();
+
+        if (videoItem != null)
+        {
+            var avatars = await GetUsersAvatarsAsync(new[] { videoItem.UserId });
+            return MapToVideoDto(videoItem, avatars.GetValueOrDefault(videoItem.UserId));
+        }
+
+        throw new ApiException("Get twitch stream error", 404, "Stream wasn't found");
+    }
+    
+    private VideoDto MapToVideoDto(TwitchItem item, string? avatarUrl)
+    {
+        return new VideoDto
+        {
+            VideoId = item.Id,
+            Name = item.Title,
+            Description = $"Streaming: {item.GameName}",
+            Source = "Twitch",
+            PreviewUrl = item.ThumbnailUrl?.Replace("{width}", "1280").Replace("{height}", "720") ?? "",
+            VideoUrl = item.ThumbnailUrl.Replace("{width}", "640").Replace("{height}", "360"),
+            CreatedAt = item.StartedAt,
+            IsPrivate = false,
+            VideoUploadStatus = VideoStatus.Ready,
+            Views = item.ViewerCount > 0 ? item.ViewerCount : 0,
+            User = new UserVideoDto
+            {
+                UserId = item.UserId,
+                Username = item.UserName ?? item.DisplayName ?? "Unknown",
+                AvatarUrl = avatarUrl ?? "",
+                IsFollowed = false
+            }
+        };
+    }
+
     private async Task<Dictionary<string, string>> GetUsersAvatarsAsync(IEnumerable<string> userIds)
     {
         var query = string.Join("&id=", userIds);
@@ -129,7 +189,12 @@ public async Task<PagedResponse<VideoDto>> SearchAsync(SearchVideoOptions option
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         
         var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return default!;
+        }
+        
         return await response.Content.ReadFromJsonAsync<T>();
     }
     

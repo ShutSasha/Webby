@@ -2,9 +2,10 @@ import { useState, useTransition } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { createUserPlaylist } from '@/app/api/playlists'
-import { extractServerMessage, serverLog } from '@/lib/utils/utils'
+import { extractServerMessage, serverLog } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
+
+import { createUserPlaylist } from '../actions/playlist.actions'
 
 type UseCreatePlaylistProps = {
   onSuccess: () => void

@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import MoreVertical from '@/assets/icons/shared/more-vertical.svg'
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 export default function VideoCard() {

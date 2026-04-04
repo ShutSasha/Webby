@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Route } from 'next'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 
 type Genre = {
   label: string

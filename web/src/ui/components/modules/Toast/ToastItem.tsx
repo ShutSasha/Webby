@@ -7,7 +7,7 @@ import CheckCircle from '@/assets/icons/shared/check-circle.svg'
 import XCircleIcon from '@/assets/icons/shared/circle-xmark.svg'
 import InfoCircle from '@/assets/icons/shared/info-circle.svg'
 import X from '@/assets/icons/shared/x.svg'
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 import { ToastType, useToastStore } from '@/stores/toast-store'
 
 interface ToastItemProps {

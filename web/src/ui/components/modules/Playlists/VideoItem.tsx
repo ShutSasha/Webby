@@ -10,7 +10,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import TrashIcon from '@/assets/icons/ic_trash.svg'
 import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 import { usePlayerPlayStore } from '@/stores/player.store'
 
 interface Props {

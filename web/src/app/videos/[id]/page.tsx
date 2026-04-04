@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import MainLayout from '@/ui/components/MainLayout'
+import MainLayout from '@/ui/components/layouts/MainLayout'
 import PlayerSkeleton from '@/ui/components/modules/Playlists/PlayerSkeleton'
 import VideoDetails from '@/ui/components/modules/Playlists/VideoDetails'
 import AsideVideoCard from '@/ui/components/modules/Videos/AsideVideoCard'
