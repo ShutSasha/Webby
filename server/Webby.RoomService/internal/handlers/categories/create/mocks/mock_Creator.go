@@ -3,7 +3,8 @@
 package mocks
 
 import (
-	uuid "github.com/google/uuid"
+	context "context"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -20,34 +21,22 @@ func (_m *MockCreator) EXPECT() *MockCreator_Expecter {
 	return &MockCreator_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: name
-func (_m *MockCreator) Create(name string) (uuid.UUID, error) {
-	ret := _m.Called(name)
+// Create provides a mock function with given fields: ctx, name
+func (_m *MockCreator) Create(ctx context.Context, name string) error {
+	ret := _m.Called(ctx, name)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 uuid.UUID
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (uuid.UUID, error)); ok {
-		return rf(name)
-	}
-	if rf, ok := ret.Get(0).(func(string) uuid.UUID); ok {
-		r0 = rf(name)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, name)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(uuid.UUID)
-		}
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(name)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // MockCreator_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
@@ -56,24 +45,25 @@ type MockCreator_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
+//   - ctx context.Context
 //   - name string
-func (_e *MockCreator_Expecter) Create(name interface{}) *MockCreator_Create_Call {
-	return &MockCreator_Create_Call{Call: _e.mock.On("Create", name)}
+func (_e *MockCreator_Expecter) Create(ctx interface{}, name interface{}) *MockCreator_Create_Call {
+	return &MockCreator_Create_Call{Call: _e.mock.On("Create", ctx, name)}
 }
 
-func (_c *MockCreator_Create_Call) Run(run func(name string)) *MockCreator_Create_Call {
+func (_c *MockCreator_Create_Call) Run(run func(ctx context.Context, name string)) *MockCreator_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *MockCreator_Create_Call) Return(_a0 uuid.UUID, _a1 error) *MockCreator_Create_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *MockCreator_Create_Call) Return(_a0 error) *MockCreator_Create_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockCreator_Create_Call) RunAndReturn(run func(string) (uuid.UUID, error)) *MockCreator_Create_Call {
+func (_c *MockCreator_Create_Call) RunAndReturn(run func(context.Context, string) error) *MockCreator_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }

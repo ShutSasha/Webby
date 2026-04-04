@@ -32,6 +32,7 @@ type AwsConfig struct {
 
 type GrpcConfig struct {
 	MediaServiceAddress string `yaml:"mediaServiceAddress"`
+	ChatServiceAddress  string `yaml:"chatServiceAddress"`
 }
 
 func MustLoad() *Config {

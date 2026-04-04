@@ -1,18 +1,17 @@
 package create
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	_ "webby/internal/handlers/docs"
 	httpErrors "webby/internal/handlers/errors"
 	"webby/internal/handlers/responses"
 	"webby/pkg/http/render"
-
-	"github.com/google/uuid"
 )
 
 type Creator interface {
-	Create(name string) (uuid.UUID, error)
+	Create(ctx context.Context, name string) error
 }
 
 func New(logger *slog.Logger, creator Creator) http.Handler {
@@ -38,11 +37,11 @@ func createCategory(logger *slog.Logger, creator Creator) httpErrors.APIFunc {
 	}
 
 	type response struct {
-		Id   uuid.UUID `json:"id"`
-		Name string    `json:"name"`
+		Name string `json:"name"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		ctx := r.Context()
 		var req request
 		req, problems, err := render.DecodeValid[request](r)
 		if len(problems) > 0 {
@@ -53,8 +52,7 @@ func createCategory(logger *slog.Logger, creator Creator) httpErrors.APIFunc {
 			return responses.NewApiError("Validation error", err)
 		}
 
-		id, err := creator.Create(req.Name)
-		if err != nil {
+		if err := creator.Create(ctx, req.Name); err != nil {
 			return responses.NewApiError("Create category error", err)
 		}
 
@@ -62,7 +60,6 @@ func createCategory(logger *slog.Logger, creator Creator) httpErrors.APIFunc {
 			Success: true,
 			Message: "Category created",
 			Data: &response{
-				Id:   id,
 				Name: req.Name,
 			},
 		})

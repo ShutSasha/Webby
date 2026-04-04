@@ -4,8 +4,7 @@ package mocks
 
 import (
 	context "context"
-
-	"webby/internal/models"
+	models "webby/internal/models"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -36,11 +35,19 @@ func (_m *MockPointsUpdater) UpdateMemberPoints(ctx context.Context, roomId uuid
 	var r0 *models.RoomMemberInfo
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, uuid.UUID) (*models.RoomMemberInfo, error)); ok {
-		r0, r1 = rf(ctx, roomId, memberId, delta, userId)
+		return rf(ctx, roomId, memberId, delta, userId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, uuid.UUID) *models.RoomMemberInfo); ok {
+		r0 = rf(ctx, roomId, memberId, delta, userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.RoomMemberInfo)
 		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, int, uuid.UUID) error); ok {
+		r1 = rf(ctx, roomId, memberId, delta, userId)
+	} else {
 		r1 = ret.Error(1)
 	}
 

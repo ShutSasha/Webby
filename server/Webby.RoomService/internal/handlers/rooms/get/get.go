@@ -22,12 +22,12 @@ func New(logger *slog.Logger, getter Getter) http.Handler {
 }
 
 // @Title Get a room by ID
-// @Description Retrieve a room by its ID. Only the room creator (host) can retrieve the room by ID.
+// @Description Retrieve a room by its ID. For public rooms, the requesting user is automatically added as a member. For private rooms, only existing members can access the room.
 // @Param  id  path  string  true  "Room ID (UUID v4 format)"
 // @Success  200  object docs.RoomApiResponse  "Room successfully retrieved"
 // @Failure  400  object docs.ErrorResponse  "Invalid UUID format in path"
 // @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
-// @Failure  403  object docs.ErrorResponse  "Access denied"
+// @Failure  403  object docs.ErrorResponse  "Not authorized - not a member of private room"
 // @Failure  404  object docs.ErrorResponse  "Room not found"
 // @Failure  500  object docs.ErrorResponse  "Internal server error"
 // @Resource Rooms
@@ -36,13 +36,13 @@ func getRoom(logger *slog.Logger, getter Getter) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.rooms.get"))
 
 	type response struct {
-		Id         uuid.UUID `json:"id"`
-		Name       string    `json:"name"`
-		CategoryId uuid.UUID `json:"categoryId"`
-		IsPrivate  bool      `json:"isPrivate"`
-		HostId     uuid.UUID `json:"hostId"`
-		Thumbnail  string    `json:"thumbnail"`
-		Token      string    `json:"token"`
+		Id           uuid.UUID  `json:"id"`
+		Name         string     `json:"name"`
+		CategoryName string     `json:"categoryName"`
+		IsPrivate    bool       `json:"isPrivate"`
+		HostId       uuid.UUID  `json:"hostId"`
+		Thumbnail    string     `json:"thumbnail"`
+		ChatId       *uuid.UUID `json:"chatId,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
@@ -68,13 +68,13 @@ func getRoom(logger *slog.Logger, getter Getter) errorWrapper.APIFunc {
 			Success: true,
 			Message: "Room retrieved",
 			Data: &response{
-				Id:         room.Id,
-				Name:       room.Name,
-				CategoryId: room.CategoryId,
-				IsPrivate:  room.IsPrivate,
-				HostId:     room.HostId,
-				Thumbnail:  room.Thumbnail,
-				Token:      room.Token,
+				Id:           room.Id,
+				Name:         room.Name,
+				CategoryName: room.CategoryName,
+				IsPrivate:    room.IsPrivate,
+				HostId:       room.HostId,
+				Thumbnail:    room.Thumbnail,
+				ChatId:       room.ChatId,
 			},
 		})
 		return nil

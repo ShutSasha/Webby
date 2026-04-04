@@ -37,7 +37,7 @@ func addToQueue(logger *slog.Logger, adder Adder) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.roomqueues.add"))
 
 	type request struct {
-		EntityId   string `json:"entityId" validate:"required,uuid4"`
+		EntityId   string `json:"entityId" validate:"required,uuid"`
 		EntityType string `json:"entityType" validate:"required,oneof=video playlist"`
 	}
 
@@ -46,6 +46,7 @@ func addToQueue(logger *slog.Logger, adder Adder) errorWrapper.APIFunc {
 		EntityId   uuid.UUID `json:"entityId"`
 		EntityType string    `json:"entityType"`
 		IsActive   bool      `json:"isActive"`
+		Position   int       `json:"position"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
@@ -85,6 +86,7 @@ func addToQueue(logger *slog.Logger, adder Adder) errorWrapper.APIFunc {
 				EntityId:   item.EntityId,
 				EntityType: item.EntityType,
 				IsActive:   item.IsActive,
+				Position:   item.Position,
 			},
 		})
 		return nil

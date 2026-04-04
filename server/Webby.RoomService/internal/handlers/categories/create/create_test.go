@@ -15,8 +15,8 @@ import (
 	"webby/internal/handlers/categories/create/mocks"
 	"webby/internal/handlers/responses"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +25,6 @@ type createCategoryRequest struct {
 }
 
 func TestCreateCategory(t *testing.T) {
-	testID := uuid.New()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	tests := []struct {
@@ -43,11 +42,11 @@ func TestCreateCategory(t *testing.T) {
 				Name: "Gaming",
 			},
 			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create("Gaming").Return(testID, nil).Once()
+				mc.EXPECT().Create(mock.Anything, "Gaming").Return(nil).Once()
 			},
 			expectedStatus: http.StatusCreated,
 			validateBody: func(t *testing.T, body string) {
-				assertSuccessResponse(t, body, testID)
+				assertSuccessResponse(t, body, "Gaming")
 			},
 		},
 		{
@@ -56,11 +55,11 @@ func TestCreateCategory(t *testing.T) {
 				Name: "Go",
 			},
 			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create("Go").Return(testID, nil).Once()
+				mc.EXPECT().Create(mock.Anything, "Go").Return(nil).Once()
 			},
 			expectedStatus: http.StatusCreated,
 			validateBody: func(t *testing.T, body string) {
-				assertSuccessResponse(t, body, testID)
+				assertSuccessResponse(t, body, "Go")
 			},
 		},
 		{
@@ -69,11 +68,11 @@ func TestCreateCategory(t *testing.T) {
 				Name: "12345678901234567890123456789012345678901234567890",
 			},
 			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create("12345678901234567890123456789012345678901234567890").Return(testID, nil).Once()
+				mc.EXPECT().Create(mock.Anything, "12345678901234567890123456789012345678901234567890").Return(nil).Once()
 			},
 			expectedStatus: http.StatusCreated,
 			validateBody: func(t *testing.T, body string) {
-				assertSuccessResponse(t, body, testID)
+				assertSuccessResponse(t, body, "12345678901234567890123456789012345678901234567890")
 			},
 		},
 		{
@@ -82,7 +81,7 @@ func TestCreateCategory(t *testing.T) {
 				Name: "Gaming",
 			},
 			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create("Gaming").Return(uuid.Nil, apperrors.ErrConflict).Once()
+				mc.EXPECT().Create(mock.Anything, "Gaming").Return(apperrors.ErrConflict).Once()
 			},
 			expectedStatus: http.StatusConflict,
 			validateBody: func(t *testing.T, body string) {
@@ -193,7 +192,7 @@ func TestCreateCategory(t *testing.T) {
 				Name: "Gaming",
 			},
 			mockSetup: func(mc *mocks.MockCreator) {
-				mc.EXPECT().Create("Gaming").Return(uuid.Nil, errors.New("db error")).Once()
+				mc.EXPECT().Create(mock.Anything, "Gaming").Return(errors.New("db error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody: func(t *testing.T, body string) {
@@ -236,7 +235,7 @@ func TestCreateCategory(t *testing.T) {
 	}
 }
 
-func assertSuccessResponse(t *testing.T, body string, expectedID uuid.UUID) {
+func assertSuccessResponse(t *testing.T, body string, expectedName string) {
 	var resp responses.ApiResponse[map[string]any]
 	err := json.Unmarshal([]byte(body), &resp)
 
@@ -244,7 +243,7 @@ func assertSuccessResponse(t *testing.T, body string, expectedID uuid.UUID) {
 	require.True(t, resp.Success, "Expected success=true, but got false. Body: %s", body)
 	require.NotNil(t, resp.Data, "Expected Data field in response, but got nil. Body: %s", body)
 
-	assert.Equal(t, expectedID.String(), (*resp.Data)["id"])
+	assert.Equal(t, expectedName, (*resp.Data)["name"])
 }
 
 func assertErrorResponse(t *testing.T, body string) {

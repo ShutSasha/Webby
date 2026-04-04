@@ -1,23 +1,26 @@
 package repository
 
 import (
-	"database/sql"
+	"context"
+	"errors"
 	"fmt"
 	"webby/internal/apperrors"
 	"webby/internal/models"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type RoomMemberRepository struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewRoomMemberRepository(db *sql.DB) *RoomMemberRepository {
+func NewRoomMemberRepository(db *pgxpool.Pool) *RoomMemberRepository {
 	return &RoomMemberRepository{db: db}
 }
 
-func (r *RoomMemberRepository) Create(member *models.RoomMember) error {
+func (r *RoomMemberRepository) Create(ctx context.Context, member *models.RoomMember) error {
 	const op = "repository.RoomMemberRepository.Create"
 
 	if member == nil {
@@ -37,7 +40,7 @@ func (r *RoomMemberRepository) Create(member *models.RoomMember) error {
 		VALUES ($1, $2, $3)
 	`
 
-	_, err := r.db.Exec(query, member.RoomId, member.UserId, member.RoomPoints)
+	_, err := r.db.Exec(ctx, query, member.RoomId, member.UserId, member.RoomPoints)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -45,7 +48,7 @@ func (r *RoomMemberRepository) Create(member *models.RoomMember) error {
 	return nil
 }
 
-func (r *RoomMemberRepository) Exists(roomId, userId uuid.UUID) (bool, error) {
+func (r *RoomMemberRepository) Exists(ctx context.Context, roomId, userId uuid.UUID) (bool, error) {
 	const op = "repository.RoomMemberRepository.Exists"
 
 	if roomId == uuid.Nil {
@@ -59,7 +62,7 @@ func (r *RoomMemberRepository) Exists(roomId, userId uuid.UUID) (bool, error) {
 	query := `SELECT EXISTS(SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2)`
 
 	var exists bool
-	err := r.db.QueryRow(query, roomId, userId).Scan(&exists)
+	err := r.db.QueryRow(ctx, query, roomId, userId).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -67,16 +70,8 @@ func (r *RoomMemberRepository) Exists(roomId, userId uuid.UUID) (bool, error) {
 	return exists, nil
 }
 
-func (r *RoomMemberRepository) EnsureMember(roomId, userId uuid.UUID) error {
+func (r *RoomMemberRepository) EnsureMember(ctx context.Context, roomId, userId uuid.UUID) error {
 	const op = "repository.RoomMemberRepository.EnsureMember"
-
-	if roomId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
-
-	if userId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
-	}
 
 	query := `
 		INSERT INTO room_members (room_id, user_id, room_points)
@@ -84,7 +79,7 @@ func (r *RoomMemberRepository) EnsureMember(roomId, userId uuid.UUID) error {
 		ON CONFLICT (room_id, user_id) DO NOTHING
 	`
 
-	_, err := r.db.Exec(query, roomId, userId)
+	_, err := r.db.Exec(ctx, query, roomId, userId)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -92,7 +87,7 @@ func (r *RoomMemberRepository) EnsureMember(roomId, userId uuid.UUID) error {
 	return nil
 }
 
-func (r *RoomMemberRepository) ListByRoom(roomId uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
+func (r *RoomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
 	const op = "repository.RoomMemberRepository.ListByRoom"
 
 	if roomId == uuid.Nil {
@@ -129,7 +124,7 @@ func (r *RoomMemberRepository) ListByRoom(roomId uuid.UUID, page, limit int, sea
 	`, whereClause)
 
 	var total int64
-	err := r.db.QueryRow(countQuery, countArgs...).Scan(&total)
+	err := r.db.QueryRow(ctx, countQuery, countArgs...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
@@ -145,7 +140,7 @@ func (r *RoomMemberRepository) ListByRoom(roomId uuid.UUID, page, limit int, sea
 
 	dataArgs := append(countArgs, limit, offset)
 
-	rows, err := r.db.Query(dataQuery, dataArgs...)
+	rows, err := r.db.Query(ctx, dataQuery, dataArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
@@ -173,7 +168,7 @@ func (r *RoomMemberRepository) ListByRoom(roomId uuid.UUID, page, limit int, sea
 	return members, total, nil
 }
 
-func (r *RoomMemberRepository) Delete(roomId, userId uuid.UUID) error {
+func (r *RoomMemberRepository) Delete(ctx context.Context, roomId, userId uuid.UUID) error {
 	const op = "repository.RoomMemberRepository.Delete"
 
 	if roomId == uuid.Nil {
@@ -186,24 +181,19 @@ func (r *RoomMemberRepository) Delete(roomId, userId uuid.UUID) error {
 
 	query := `DELETE FROM room_members WHERE room_id = $1 AND user_id = $2`
 
-	result, err := r.db.Exec(query, roomId, userId)
+	tag, err := r.db.Exec(ctx, query, roomId, userId)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("%s: getting rows affected failed: %w", op, err)
-	}
-
-	if rowsAffected == 0 {
+	if tag.RowsAffected() == 0 {
 		return fmt.Errorf("%s: member not found in room: %w", op, apperrors.ErrNotFound)
 	}
 
 	return nil
 }
 
-func (r *RoomMemberRepository) UpdatePoints(roomId, userId uuid.UUID, delta int) (*models.RoomMemberInfo, error) {
+func (r *RoomMemberRepository) UpdatePoints(ctx context.Context, roomId, userId uuid.UUID, delta int) (*models.RoomMemberInfo, error) {
 	const op = "repository.RoomMemberRepository.UpdatePoints"
 
 	if roomId == uuid.Nil {
@@ -225,15 +215,15 @@ func (r *RoomMemberRepository) UpdatePoints(roomId, userId uuid.UUID, delta int)
 	`
 
 	var member models.RoomMemberInfo
-	err := r.db.QueryRow(query, roomId, userId, delta).Scan(
+	err := r.db.QueryRow(ctx, query, roomId, userId, delta).Scan(
 		&member.UserId,
 		&member.Username,
 		&member.AvatarUrl,
 		&member.RoomPoints,
 	)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			exists, exErr := r.Exists(roomId, userId)
+		if errors.Is(err, pgx.ErrNoRows) {
+			exists, exErr := r.Exists(ctx, roomId, userId)
 			if exErr != nil {
 				return nil, fmt.Errorf("%s: %w", op, exErr)
 			}

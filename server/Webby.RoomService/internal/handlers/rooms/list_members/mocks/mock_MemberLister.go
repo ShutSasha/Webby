@@ -3,9 +3,11 @@
 package mocks
 
 import (
-	models "webby/internal/models"
+	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+
+	models "webby/internal/models"
 
 	uuid "github.com/google/uuid"
 )
@@ -23,9 +25,9 @@ func (_m *MockMemberLister) EXPECT() *MockMemberLister_Expecter {
 	return &MockMemberLister_Expecter{mock: &_m.Mock}
 }
 
-// ListMembers provides a mock function with given fields: roomId, page, limit, search
-func (_m *MockMemberLister) ListMembers(roomId uuid.UUID, page int, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
-	ret := _m.Called(roomId, page, limit, search)
+// ListMembers provides a mock function with given fields: ctx, roomId, page, limit, search
+func (_m *MockMemberLister) ListMembers(ctx context.Context, roomId uuid.UUID, page int, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
+	ret := _m.Called(ctx, roomId, page, limit, search)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListMembers")
@@ -34,25 +36,25 @@ func (_m *MockMemberLister) ListMembers(roomId uuid.UUID, page int, limit int, s
 	var r0 []models.RoomMemberInfo
 	var r1 int64
 	var r2 error
-	if rf, ok := ret.Get(0).(func(uuid.UUID, int, int, string) ([]models.RoomMemberInfo, int64, error)); ok {
-		return rf(roomId, page, limit, search)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int, string) ([]models.RoomMemberInfo, int64, error)); ok {
+		return rf(ctx, roomId, page, limit, search)
 	}
-	if rf, ok := ret.Get(0).(func(uuid.UUID, int, int, string) []models.RoomMemberInfo); ok {
-		r0 = rf(roomId, page, limit, search)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int, string) []models.RoomMemberInfo); ok {
+		r0 = rf(ctx, roomId, page, limit, search)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.RoomMemberInfo)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(uuid.UUID, int, int, string) int64); ok {
-		r1 = rf(roomId, page, limit, search)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, int, int, string) int64); ok {
+		r1 = rf(ctx, roomId, page, limit, search)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
 
-	if rf, ok := ret.Get(2).(func(uuid.UUID, int, int, string) error); ok {
-		r2 = rf(roomId, page, limit, search)
+	if rf, ok := ret.Get(2).(func(context.Context, uuid.UUID, int, int, string) error); ok {
+		r2 = rf(ctx, roomId, page, limit, search)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -66,17 +68,18 @@ type MockMemberLister_ListMembers_Call struct {
 }
 
 // ListMembers is a helper method to define mock.On call
+//   - ctx context.Context
 //   - roomId uuid.UUID
 //   - page int
 //   - limit int
 //   - search string
-func (_e *MockMemberLister_Expecter) ListMembers(roomId interface{}, page interface{}, limit interface{}, search interface{}) *MockMemberLister_ListMembers_Call {
-	return &MockMemberLister_ListMembers_Call{Call: _e.mock.On("ListMembers", roomId, page, limit, search)}
+func (_e *MockMemberLister_Expecter) ListMembers(ctx interface{}, roomId interface{}, page interface{}, limit interface{}, search interface{}) *MockMemberLister_ListMembers_Call {
+	return &MockMemberLister_ListMembers_Call{Call: _e.mock.On("ListMembers", ctx, roomId, page, limit, search)}
 }
 
-func (_c *MockMemberLister_ListMembers_Call) Run(run func(roomId uuid.UUID, page int, limit int, search string)) *MockMemberLister_ListMembers_Call {
+func (_c *MockMemberLister_ListMembers_Call) Run(run func(ctx context.Context, roomId uuid.UUID, page int, limit int, search string)) *MockMemberLister_ListMembers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(uuid.UUID), args[1].(int), args[2].(int), args[3].(string))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(int), args[3].(int), args[4].(string))
 	})
 	return _c
 }
@@ -86,7 +89,7 @@ func (_c *MockMemberLister_ListMembers_Call) Return(_a0 []models.RoomMemberInfo,
 	return _c
 }
 
-func (_c *MockMemberLister_ListMembers_Call) RunAndReturn(run func(uuid.UUID, int, int, string) ([]models.RoomMemberInfo, int64, error)) *MockMemberLister_ListMembers_Call {
+func (_c *MockMemberLister_ListMembers_Call) RunAndReturn(run func(context.Context, uuid.UUID, int, int, string) ([]models.RoomMemberInfo, int64, error)) *MockMemberLister_ListMembers_Call {
 	_c.Call.Return(run)
 	return _c
 }

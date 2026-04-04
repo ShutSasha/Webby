@@ -29,12 +29,28 @@ tasks:
         cd ./Webby.ApiGetaway
         dotnet run
 
+  run_notification_service:
+    desc: "Run the C# NotificationService"
+    cmds:
+      - |
+        cd ./Webby.NotificationService
+        dotnet run
+  
   run_room_service:
     desc: "Run the Go RoomService"
     cmds:
       - |
         cd ./Webby.RoomService
-        go run ./cmd/server/main.go --config ./config/config.yaml
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
+
+  run_chat_service:
+    desc: "Run the Go ChatService"
+    cmds:
+      - |
+        cd ./Webby.ChatService
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
 
   run_all:
     desc: "Run all services"
@@ -43,4 +59,6 @@ tasks:
       - run_api_getaway
       - run_user_service
       - run_video_service
+      - run_notification_service
       - run_room_service
+      - run_chat_service
