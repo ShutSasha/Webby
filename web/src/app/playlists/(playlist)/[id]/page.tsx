@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 
 import { redirect } from 'next/navigation'
 
-import { getPlaylistInfo } from '@/app/api/playlists'
+import { getPlaylistInfo } from '@/lib/actions/playlist.actions'
 import PlayerSkeleton from '@/ui/components/modules/Playlists/PlayerSkeleton'
 import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer/PlaylistQueueContainer'
 import VideoDetails from '@/ui/components/modules/Playlists/VideoDetails'

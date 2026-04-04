@@ -42,8 +42,8 @@ public class NotificationController : ControllerBase
    [SwaggerOperation("Get user unread messages count","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse<int>>> GetUnreadMessagesCount()
    {
-      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
-      var countOfUnreadMessages = await _notificationService.GetNotificationsCount(requestUserId.Value);
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext,shouldThrowException: false);
+      var countOfUnreadMessages = await _notificationService.GetNotificationsCount(requestUserId);
       return Ok(ApiResponse<int>.Ok("Successfully retrieved count of unread messages", countOfUnreadMessages));
    }
 

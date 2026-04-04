@@ -66,8 +66,13 @@ public class NotificationService : INotificationService
          .GetByPredicate(n => n.UserId == userId && n.NotificationStatus == NotificationStatus.Read)).ToList();
    }
 
-   public async Task<int> GetNotificationsCount(Guid userId)
-      => await _notificationRepository.CountNotifications(userId,NotificationStatus.Unread);
+   public async Task<int> GetNotificationsCount(Guid? userId)
+   {
+      if (userId == null)
+         return 0;
+
+      return await _notificationRepository.CountNotifications(userId.Value,NotificationStatus.Unread);
+   }
 
    public async Task DeleteNotification(Guid requestUserId, Guid notificationId)
    {

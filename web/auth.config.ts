@@ -1,8 +1,8 @@
 import type { NextAuthConfig } from 'next-auth'
 
-import { mapUserData, refreshAccessToken } from '@/lib/utils/auth'
-import { serverLog } from '@/lib/utils/utils'
-import { AuthRes } from '@/types/auth'
+import { mapUserData, refreshAccessToken } from '@/lib/utils/auth.utils'
+import { serverLog } from '@/lib/utils/general.utils'
+import { AuthRes } from '@/types/auth.types'
 
 const TOKEN_REFRESH_BUFFER = 120
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api'

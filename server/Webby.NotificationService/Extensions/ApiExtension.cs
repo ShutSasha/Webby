@@ -71,6 +71,40 @@ public static class ApiExtension
  
       return services;
    }
+
+   public static void AddJwtAuthorization(this IServiceCollection serviceCollection, IConfiguration configuration)
+   {
+      serviceCollection.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+         .AddJwtBearer(options =>
+         {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+               ValidateIssuer = false,
+               ValidateAudience = false,
+               ValidateLifetime = true,
+               ValidateIssuerSigningKey = true,
+               IssuerSigningKey = new SymmetricSecurityKey(
+                  Encoding.UTF8.GetBytes(configuration["JwtOptions:AccessSecretKey"]!)),
+               ClockSkew = TimeSpan.Zero
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+               OnMessageReceived = context =>
+               {
+                  var accessToken = context.Request.Query["accessToken"];
+                  var path = context.HttpContext.Request.Path;
+
+                  if (!string.IsNullOrEmpty(accessToken) && 
+                      path.StartsWithSegments("/hubs/notifications"))
+                  {
+                     context.Token = accessToken;
+                  }
+                  return Task.CompletedTask;
+               }
+            };
+         });
+   }
    
    public static void AddDbConnection(this IServiceCollection serviceCollection, IConfiguration configuration)
    {

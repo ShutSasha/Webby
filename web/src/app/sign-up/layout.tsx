@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import MainLayout from '@/ui/components/MainLayout'
+import MainLayout from '@/ui/components/layouts/MainLayout'
 
 export const metadata: Metadata = {
   title: 'Webby Sign Up',

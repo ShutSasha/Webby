@@ -38,6 +38,8 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/user/swagger/v1/swagger.json", "UserService");
         c.SwaggerEndpoint("/video/swagger/v1/swagger.json", "VideoService");
         c.SwaggerEndpoint("/notification/swagger/v1/swagger.json", "NotificationService");
+        c.SwaggerEndpoint("/room/swagger/v1/swagger.json", "RoomService");
+        c.SwaggerEndpoint("/chat/swagger/v1/swagger.json", "ChatSetvice");
         c.RoutePrefix = "";
     });
 }

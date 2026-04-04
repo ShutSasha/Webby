@@ -10,7 +10,7 @@ public interface INotificationService
    Task<Notification> UpdateNotification(UpdateNotificationRequest request);
    Task<List<Notification>> GetUnreadNotifications(Guid userId);
    Task<List<Notification>> GetReadNotifications(Guid userId);
-   Task<int> GetNotificationsCount(Guid userId);
+   Task<int> GetNotificationsCount(Guid? userId);
    Task DeleteNotification(Guid requestUserId, Guid notificationId);
    Task ChangeReadStatus(List<Guid> notificationIds);
    Task<GetNotificationsCountResponse> GetUsersNotificationsCount(Guid userId);
