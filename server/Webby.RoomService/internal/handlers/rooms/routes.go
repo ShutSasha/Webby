@@ -3,10 +3,10 @@ package rooms
 import (
 	"log/slog"
 	"net/http"
+	addMember "webby/internal/handlers/rooms/add_member"
 	"webby/internal/handlers/rooms/create"
 	"webby/internal/handlers/rooms/delete"
 	"webby/internal/handlers/rooms/get"
-	getByToken "webby/internal/handlers/rooms/get_by_token"
 	listMembers "webby/internal/handlers/rooms/list_members"
 	listMy "webby/internal/handlers/rooms/list_my"
 	listPublic "webby/internal/handlers/rooms/list_public"
@@ -21,10 +21,10 @@ type RoomService interface {
 	listMy.MyLister
 	listPublic.PublicLister
 	get.Getter
-	getByToken.TokenGetter
 	update.Updater
 	delete.Deleter
 	listMembers.MemberLister
+	addMember.MemberAdder
 	removeMember.MemberRemover
 	updatePoints.PointsUpdater
 }
@@ -36,10 +36,10 @@ func RegisterRooms(mux *http.ServeMux, jwtSecret []byte, logger *slog.Logger,
 	mux.Handle("GET /api/rooms/public", listPublic.New(logger, roomService))
 
 	mux.Handle("POST /api/rooms", requireAuth(create.New(logger, roomService)))
-	mux.Handle("POST /api/rooms/token", requireAuth(getByToken.New(logger, roomService)))
 	mux.Handle("GET /api/rooms/my", requireAuth(listMy.New(logger, roomService)))
 	mux.Handle("GET /api/rooms/{id}", requireAuth(get.New(logger, roomService)))
 	mux.Handle("GET /api/rooms/{id}/members", requireAuth(listMembers.New(logger, roomService)))
+	mux.Handle("POST /api/rooms/{id}/members", requireAuth(addMember.New(logger, roomService)))
 	mux.Handle("DELETE /api/rooms/{id}/members/{memberId}", requireAuth(removeMember.New(logger, roomService)))
 	mux.Handle("PATCH /api/rooms/{id}/members/{memberId}/points", requireAuth(updatePoints.New(logger, roomService)))
 	mux.Handle("PUT /api/rooms/{id}", requireAuth(update.New(logger, roomService)))

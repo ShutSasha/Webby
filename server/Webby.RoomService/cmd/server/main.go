@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"log/slog"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"strconv"
@@ -53,6 +55,7 @@ func run(ctx context.Context, w io.Writer) error {
 		logger.Error("database connection failed", slog.String("error", err.Error()))
 		return err
 	}
+
 	defer db.Close()
 
 	logger.Info("database connected successfully")
@@ -70,9 +73,19 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer mediaClient.Close()
 
-	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage)
+	chatClient, err := grpcClient.NewChatClient(config.Grpc.ChatServiceAddress)
+	if err != nil {
+		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
+		chatClient = nil
+	} else {
+		defer chatClient.Close()
+	}
+
+	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, chatClient)
 	categoryService := services.NewCategoryService(categoryRepository)
 	queueItemService := services.NewQueueItemService(queueItemRepository, mediaClient, roomMemberRepository)
+	voteRepository := repository.NewVoteRepository(db)
+	voteService := services.NewVoteService(voteRepository, roomRepository, roomMemberRepository, queueItemRepository)
 
 	logger.Info("repositories initialized")
 
@@ -82,6 +95,7 @@ func run(ctx context.Context, w io.Writer) error {
 		roomService,
 		categoryService,
 		queueItemService,
+		voteService,
 	)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(config.Http.Host, strconv.Itoa(config.Http.Port)),
@@ -89,6 +103,10 @@ func run(ctx context.Context, w io.Writer) error {
 		WriteTimeout: config.Http.Timeout,
 		Handler:      server,
 	}
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	go func() {
 		logger.Info(

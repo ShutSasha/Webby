@@ -1,16 +1,15 @@
 package services
 
 import (
+	"context"
 	"webby/internal/models"
-
-	"github.com/google/uuid"
 )
 
 type CategoryRepository interface {
-	Create(name string) (uuid.UUID, error)
-	Delete(id uuid.UUID) error
-	List(search string, offset int, limit int) ([]models.Category, int64, error)
-	Update(id uuid.UUID, name string) error
+	Create(ctx context.Context, name string) error
+	Delete(ctx context.Context, name string) error
+	List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int64, error)
+	Update(ctx context.Context, oldName string, newName string) error
 }
 
 type CategoryService struct {
@@ -23,36 +22,24 @@ func NewCategoryService(repo CategoryRepository) *CategoryService {
 	}
 }
 
-func (c *CategoryService) Create(name string) (uuid.UUID, error) {
-	id, err := c.repo.Create(name)
-	if err != nil {
-		return uuid.Nil, err
-	}
-	return id, nil
+func (c *CategoryService) Create(ctx context.Context, name string) error {
+	return c.repo.Create(ctx, name)
 }
 
-func (c *CategoryService) Delete(id uuid.UUID) error {
-	err := c.repo.Delete(id)
-	if err != nil {
-		return err
-	}
-	return nil
+func (c *CategoryService) Delete(ctx context.Context, name string) error {
+	return c.repo.Delete(ctx, name)
 }
 
-func (c *CategoryService) List(search string, page int, limit int) ([]models.Category, int64, error) {
+func (c *CategoryService) List(ctx context.Context, search string, page int, limit int) ([]models.Category, int64, error) {
 	offset := (page - 1) * limit
-	
-	categories, total, err := c.repo.List(search, offset, limit)
+
+	categories, total, err := c.repo.List(ctx, search, offset, limit)
 	if err != nil {
 		return nil, 0, err
 	}
 	return categories, total, nil
 }
 
-func (c *CategoryService) Update(id uuid.UUID, name string) error {
-	err := c.repo.Update(id, name)
-	if err != nil {
-		return err
-	}
-	return nil
+func (c *CategoryService) Update(ctx context.Context, oldName string, newName string) error {
+	return c.repo.Update(ctx, oldName, newName)
 }

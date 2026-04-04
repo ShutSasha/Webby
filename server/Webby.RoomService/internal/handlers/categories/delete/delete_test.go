@@ -14,59 +14,50 @@ import (
 	"webby/internal/handlers/categories/delete/mocks"
 	"webby/internal/handlers/responses"
 
-	"github.com/google/uuid"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestDeleteCategory(t *testing.T) {
-	validUUID := uuid.New()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	tests := []struct {
 		name           string
-		pathID         string
+		pathName       string
 		mockSetup      func(*mocks.MockDeleter)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
 		{
-			name:   "Success_CategoryDeleted",
-			pathID: validUUID.String(),
+			name:     "Success_CategoryDeleted",
+			pathName: "Gaming",
 			mockSetup: func(md *mocks.MockDeleter) {
-				md.EXPECT().Delete(validUUID).Return(nil).Once()
+				md.EXPECT().Delete(mock.Anything, "Gaming").Return(nil).Once()
 			},
 			expectedStatus: http.StatusNoContent,
 			validateBody:   validateNoContent,
 		},
 		{
-			name:   "Failure_InvalidUUID_NonHexadecimal",
-			pathID: "invalid-uuid-format",
+			name:     "Failure_EmptyName",
+			pathName: "",
 			mockSetup: func(md *mocks.MockDeleter) {
 			},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   validateErrorResponse,
 		},
 		{
-			name:   "Failure_InvalidUUID_IncompleteLength",
-			pathID: "550e8400-e29b-41d4-a716",
+			name:     "Failure_CategoryNotFound",
+			pathName: "NonExistent",
 			mockSetup: func(md *mocks.MockDeleter) {
-			},
-			expectedStatus: http.StatusBadRequest,
-			validateBody:   validateErrorResponse,
-		},
-		{
-			name:   "Failure_CategoryNotFound",
-			pathID: validUUID.String(),
-			mockSetup: func(md *mocks.MockDeleter) {
-				md.EXPECT().Delete(validUUID).Return(apperrors.ErrNotFound).Once()
+				md.EXPECT().Delete(mock.Anything, "NonExistent").Return(apperrors.ErrNotFound).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   validateErrorResponse,
 		},
 		{
-			name:   "Failure_ServiceGenericError",
-			pathID: validUUID.String(),
+			name:     "Failure_ServiceGenericError",
+			pathName: "Gaming",
 			mockSetup: func(md *mocks.MockDeleter) {
-				md.EXPECT().Delete(validUUID).Return(errors.New("database connection lost")).Once()
+				md.EXPECT().Delete(mock.Anything, "Gaming").Return(errors.New("database connection lost")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody:   validateErrorMessage("Internal server error"),
@@ -80,9 +71,9 @@ func TestDeleteCategory(t *testing.T) {
 
 			handler := delete.New(logger, mockDeleter)
 
-			targetURL := "/api/categories/" + tt.pathID
+			targetURL := "/api/categories/" + tt.pathName
 			req := httptest.NewRequest(http.MethodDelete, targetURL, nil)
-			req.SetPathValue("id", tt.pathID)
+			req.SetPathValue("name", tt.pathName)
 
 			w := httptest.NewRecorder()
 

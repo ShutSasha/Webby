@@ -11,16 +11,17 @@ import (
 	catUpdate "webby/internal/handlers/categories/update"
 	"webby/internal/handlers/roomqueues"
 	"webby/internal/handlers/rooms"
+	addMember "webby/internal/handlers/rooms/add_member"
 	"webby/internal/handlers/rooms/create"
 	"webby/internal/handlers/rooms/delete"
 	"webby/internal/handlers/rooms/get"
-	getByToken "webby/internal/handlers/rooms/get_by_token"
 	listMembers "webby/internal/handlers/rooms/list_members"
 	listMy "webby/internal/handlers/rooms/list_my"
 	listPublic "webby/internal/handlers/rooms/list_public"
 	removeMember "webby/internal/handlers/rooms/remove_member"
 	"webby/internal/handlers/rooms/update"
 	updatePoints "webby/internal/handlers/rooms/update_points"
+	"webby/internal/handlers/votes"
 )
 
 type RoomService interface {
@@ -28,10 +29,10 @@ type RoomService interface {
 	listMy.MyLister
 	listPublic.PublicLister
 	get.Getter
-	getByToken.TokenGetter
 	update.Updater
 	delete.Deleter
 	listMembers.MemberLister
+	addMember.MemberAdder
 	removeMember.MemberRemover
 	updatePoints.PointsUpdater
 }
@@ -47,6 +48,10 @@ type QueueItemService interface {
 	roomqueues.QueueItemService
 }
 
+type VoteService interface {
+	votes.VoteService
+}
+
 func addRoutes(
 	mux *http.ServeMux,
 	cfg *config.Config,
@@ -54,12 +59,14 @@ func addRoutes(
 	roomService RoomService,
 	categoryService CategoryService,
 	queueItemService QueueItemService,
+	voteService VoteService,
 ) {
 	mux.Handle("/api/", http.NotFoundHandler())
 
 	rooms.RegisterRooms(mux, []byte(cfg.JwtSecret), logger, roomService)
 	categories.RegisterCategories(mux, []byte(cfg.JwtSecret), logger, categoryService)
 	roomqueues.RegisterRoomQueue(mux, []byte(cfg.JwtSecret), logger, queueItemService)
+	votes.RegisterVotes(mux, []byte(cfg.JwtSecret), logger, voteService)
 
 	mux.HandleFunc("GET /swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

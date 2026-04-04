@@ -12,5 +12,6 @@ type QueueItem struct {
 	EntityId   uuid.UUID
 	EntityType string
 	IsActive   bool
+	Position   int
 	CreatedAt  time.Time
 }

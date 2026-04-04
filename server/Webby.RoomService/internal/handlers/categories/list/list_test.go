@@ -14,8 +14,8 @@ import (
 	"webby/internal/handlers/responses"
 	"webby/internal/models"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestListCategories(t *testing.T) {
@@ -33,9 +33,9 @@ func TestListCategories(t *testing.T) {
 			queryParams: map[string]string{},
 			mockSetup: func(ml *mocks.MockLister) {
 				categories := []models.Category{
-					{Id: uuid.New(), Name: "Gaming"},
+					{Name: "Gaming"},
 				}
-				ml.EXPECT().List("", 1, 10).Return(categories, int64(1), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return(categories, int64(1), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -50,10 +50,10 @@ func TestListCategories(t *testing.T) {
 			},
 			mockSetup: func(ml *mocks.MockLister) {
 				categories := []models.Category{
-					{Id: uuid.New(), Name: "Gaming"},
-					{Id: uuid.New(), Name: "Education"},
+					{Name: "Gaming"},
+					{Name: "Education"},
 				}
-				ml.EXPECT().List("", 1, 10).Return(categories, int64(2), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return(categories, int64(2), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -69,9 +69,9 @@ func TestListCategories(t *testing.T) {
 			},
 			mockSetup: func(ml *mocks.MockLister) {
 				categories := []models.Category{
-					{Id: uuid.New(), Name: "Gaming"},
+					{Name: "Gaming"},
 				}
-				ml.EXPECT().List("Gaming", 1, 10).Return(categories, int64(1), nil).Once()
+				ml.EXPECT().List(mock.Anything, "Gaming", 1, 10).Return(categories, int64(1), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -86,9 +86,9 @@ func TestListCategories(t *testing.T) {
 			},
 			mockSetup: func(ml *mocks.MockLister) {
 				categories := []models.Category{
-					{Id: uuid.New(), Name: "Category 11"},
+					{Name: "Category 11"},
 				}
-				ml.EXPECT().List("", 2, 10).Return(categories, int64(15), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 2, 10).Return(categories, int64(15), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -103,9 +103,9 @@ func TestListCategories(t *testing.T) {
 			},
 			mockSetup: func(ml *mocks.MockLister) {
 				categories := []models.Category{
-					{Id: uuid.New(), Name: "Gaming"},
+					{Name: "Gaming"},
 				}
-				ml.EXPECT().List("", 1, 1).Return(categories, int64(50), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 1).Return(categories, int64(50), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -120,9 +120,9 @@ func TestListCategories(t *testing.T) {
 			},
 			mockSetup: func(ml *mocks.MockLister) {
 				categories := []models.Category{
-					{Id: uuid.New(), Name: "Gaming"},
+					{Name: "Gaming"},
 				}
-				ml.EXPECT().List("", 1, 100).Return(categories, int64(1), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 100).Return(categories, int64(1), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -137,7 +137,7 @@ func TestListCategories(t *testing.T) {
 				"limit":  "10",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
-				ml.EXPECT().List("NonExistent", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+				ml.EXPECT().List(mock.Anything, "NonExistent", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -151,7 +151,7 @@ func TestListCategories(t *testing.T) {
 				"limit": "10",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
-				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -165,7 +165,7 @@ func TestListCategories(t *testing.T) {
 				"limit": "101",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
-				ml.EXPECT().List("", 1, 100).Return([]models.Category{}, int64(0), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 100).Return([]models.Category{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -179,7 +179,7 @@ func TestListCategories(t *testing.T) {
 				"limit": "10",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
-				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), errors.New("database error")).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), errors.New("database error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody: func(t *testing.T, body string) {
@@ -193,7 +193,7 @@ func TestListCategories(t *testing.T) {
 				"limit": "10",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
-				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -207,7 +207,7 @@ func TestListCategories(t *testing.T) {
 				"limit": "0",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
-				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -221,7 +221,7 @@ func TestListCategories(t *testing.T) {
 				"limit": "-5",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
-				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -235,7 +235,7 @@ func TestListCategories(t *testing.T) {
 				"limit": "10",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
-				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -249,7 +249,7 @@ func TestListCategories(t *testing.T) {
 				"limit": "xyz",
 			},
 			mockSetup: func(ml *mocks.MockLister) {
-				ml.EXPECT().List("", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -291,7 +291,7 @@ func TestListCategories(t *testing.T) {
 }
 
 func assertPaginatedSuccess(t *testing.T, body string, page, limit, total, items int) {
-	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]any]]
+	var resp responses.ApiResponse[responses.PaginatedResponse[string]]
 	err := json.Unmarshal([]byte(body), &resp)
 	assert.NoError(t, err)
 	assert.True(t, resp.Success)
@@ -302,7 +302,7 @@ func assertPaginatedSuccess(t *testing.T, body string, page, limit, total, items
 }
 
 func assertPaginatedEmptySuccess(t *testing.T, body string) {
-	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]any]]
+	var resp responses.ApiResponse[responses.PaginatedResponse[string]]
 	err := json.Unmarshal([]byte(body), &resp)
 	assert.NoError(t, err)
 	assert.True(t, resp.Success)
@@ -326,7 +326,7 @@ func assertErrorMessage(t *testing.T, body string, msg string) {
 }
 
 func assertPaginatedPageAndTotal(t *testing.T, body string, page, total int) {
-	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]any]]
+	var resp responses.ApiResponse[responses.PaginatedResponse[string]]
 	err := json.Unmarshal([]byte(body), &resp)
 	assert.NoError(t, err)
 	assert.Equal(t, page, resp.Data.Page)

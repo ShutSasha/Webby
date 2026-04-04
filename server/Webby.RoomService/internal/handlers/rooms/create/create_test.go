@@ -25,7 +25,7 @@ import (
 )
 
 func TestCreateRoom_Success(t *testing.T) {
-	categoryID := uuid.New()
+	categoryName := "Gaming"
 	testUserID := uuid.New()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
@@ -38,34 +38,34 @@ func TestCreateRoom_Success(t *testing.T) {
 	}{
 		{
 			name:      "Public Room Created",
-			roomData:  map[string]string{"name": "Gaming Room", "categoryId": categoryID.String(), "isPrivate": "false"},
+			roomData:  map[string]string{"name": "Gaming Room", "categoryName": categoryName, "isPrivate": "false"},
 			isPrivate: false,
 		},
 		{
 			name:      "Private Room Created",
-			roomData:  map[string]string{"name": "Private Gaming Room", "categoryId": categoryID.String(), "isPrivate": "true"},
+			roomData:  map[string]string{"name": "Private Gaming Room", "categoryName": categoryName, "isPrivate": "true"},
 			isPrivate: true,
 		},
 		{
 			name:      "Name Exactly 2 Characters",
-			roomData:  map[string]string{"name": "Go", "categoryId": categoryID.String(), "isPrivate": "false"},
+			roomData:  map[string]string{"name": "Go", "categoryName": categoryName, "isPrivate": "false"},
 			isPrivate: false,
 		},
 		{
 			name:      "Name Exactly 50 Characters",
-			roomData:  map[string]string{"name": strings.Repeat("A", 50), "categoryId": categoryID.String(), "isPrivate": "true"},
+			roomData:  map[string]string{"name": strings.Repeat("A", 50), "categoryName": categoryName, "isPrivate": "true"},
 			isPrivate: true,
 		},
 		{
 			name:        "With Thumbnail Upload",
-			roomData:    map[string]string{"name": "Art Room", "categoryId": categoryID.String(), "isPrivate": "false"},
+			roomData:    map[string]string{"name": "Art Room", "categoryName": categoryName, "isPrivate": "false"},
 			fileName:    "thumb.png",
 			fileContent: []byte("fake-image-data"),
 			isPrivate:   false,
 		},
 		{
 			name:        "Thumbnail Exactly 2MB",
-			roomData:    map[string]string{"name": "Art Room", "categoryId": categoryID.String(), "isPrivate": "false"},
+			roomData:    map[string]string{"name": "Art Room", "categoryName": categoryName, "isPrivate": "false"},
 			fileName:    "thumb.png",
 			fileContent: make([]byte, 2*1024*1024),
 			isPrivate:   false,
@@ -77,7 +77,7 @@ func TestCreateRoom_Success(t *testing.T) {
 			mockCreator := mocks.NewMockCreator(t)
 			expectedRoom := &models.Room{Id: uuid.New(), Name: tt.roomData["name"]}
 
-			expectCreate(mockCreator, tt.roomData["name"], categoryID, tt.isPrivate, testUserID, tt.fileContent, tt.fileName, expectedRoom, nil)
+			expectCreate(mockCreator, tt.roomData["name"], categoryName, tt.isPrivate, testUserID, tt.fileContent, tt.fileName, expectedRoom, nil)
 
 			handler := create.New(logger, mockCreator)
 			req := buildMultipartRequest(t, testUserID, tt.roomData, tt.fileName, tt.fileContent, false)
@@ -92,7 +92,7 @@ func TestCreateRoom_Success(t *testing.T) {
 }
 
 func TestCreateRoom_ValidationErrors(t *testing.T) {
-	categoryID := uuid.New()
+	categoryName := "Gaming"
 	testUserID := uuid.New()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
@@ -107,8 +107,8 @@ func TestCreateRoom_ValidationErrors(t *testing.T) {
 		{name: "Name Exactly 51 Characters", mutateData: func(m map[string]string) { m["name"] = strings.Repeat("A", 51) }},
 		{name: "Name Whitespace Only", mutateData: func(m map[string]string) { m["name"] = "     " }},
 		{name: "Missing Name Field", mutateData: func(m map[string]string) { delete(m, "name") }},
-		{name: "Invalid CategoryId UUID", mutateData: func(m map[string]string) { m["categoryId"] = "invalid-uuid-format" }},
-		{name: "Missing CategoryId Field", mutateData: func(m map[string]string) { delete(m, "categoryId") }},
+		{name: "Empty CategoryName", mutateData: func(m map[string]string) { m["categoryName"] = "" }},
+		{name: "Missing CategoryName Field", mutateData: func(m map[string]string) { delete(m, "categoryName") }},
 		{name: "Invalid IsPrivate Boolean", mutateData: func(m map[string]string) { m["isPrivate"] = "not-a-bool" }},
 		{name: "Missing IsPrivate Field", mutateData: func(m map[string]string) { delete(m, "isPrivate") }},
 		{name: "Thumbnail Exceeds 2MB", fileName: "huge.png", fileContent: make([]byte, 2*1024*1024+1)},
@@ -122,9 +122,9 @@ func TestCreateRoom_ValidationErrors(t *testing.T) {
 			handler := create.New(logger, mockCreator)
 
 			data := map[string]string{
-				"name":       "Valid Room Name",
-				"categoryId": categoryID.String(),
-				"isPrivate":  "false",
+				"name":         "Valid Room Name",
+				"categoryName": categoryName,
+				"isPrivate":    "false",
 			}
 
 			if tt.mutateData != nil {
@@ -144,18 +144,18 @@ func TestCreateRoom_ValidationErrors(t *testing.T) {
 }
 
 func TestCreateRoom_InternalError(t *testing.T) {
-	categoryID := uuid.New()
+	categoryName := "Gaming"
 	testUserID := uuid.New()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	mockCreator := mocks.NewMockCreator(t)
 
 	data := map[string]string{
-		"name":       "Gaming Room",
-		"categoryId": categoryID.String(),
-		"isPrivate":  "false",
+		"name":         "Gaming Room",
+		"categoryName": categoryName,
+		"isPrivate":    "false",
 	}
 
-	expectCreate(mockCreator, data["name"], categoryID, false, testUserID, nil, "", nil, apperrors.ErrInternal)
+	expectCreate(mockCreator, data["name"], categoryName, false, testUserID, nil, "", nil, apperrors.ErrInternal)
 
 	handler := create.New(logger, mockCreator)
 	req := buildMultipartRequest(t, testUserID, data, "", nil, false)
@@ -171,11 +171,11 @@ func TestCreateRoom_InternalError(t *testing.T) {
 	require.False(t, resp.Success)
 }
 
-func expectCreate(mc *mocks.MockCreator, name string, categoryID uuid.UUID, isPrivate bool, hostID uuid.UUID, thumbData []byte, thumbName string, retRoom *models.Room, retErr error) {
+func expectCreate(mc *mocks.MockCreator, name string, categoryName string, isPrivate bool, hostID uuid.UUID, thumbData []byte, thumbName string, retRoom *models.Room, retErr error) {
 	mc.EXPECT().Create(
 		mock.Anything,
 		mock.MatchedBy(func(r *models.Room) bool {
-			return r.Name == name && r.CategoryId == categoryID && r.IsPrivate == isPrivate && r.HostId == hostID
+			return r.Name == name && r.CategoryName == categoryName && r.IsPrivate == isPrivate && r.HostId == hostID
 		}),
 		mock.MatchedBy(func(data []byte) bool {
 			if len(thumbData) == 0 {

@@ -3,7 +3,8 @@
 package mocks
 
 import (
-	uuid "github.com/google/uuid"
+	context "context"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -20,17 +21,17 @@ func (_m *MockDeleter) EXPECT() *MockDeleter_Expecter {
 	return &MockDeleter_Expecter{mock: &_m.Mock}
 }
 
-// Delete provides a mock function with given fields: id
-func (_m *MockDeleter) Delete(id uuid.UUID) error {
-	ret := _m.Called(id)
+// Delete provides a mock function with given fields: ctx, name
+func (_m *MockDeleter) Delete(ctx context.Context, name string) error {
+	ret := _m.Called(ctx, name)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(uuid.UUID) error); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, name)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -44,14 +45,15 @@ type MockDeleter_Delete_Call struct {
 }
 
 // Delete is a helper method to define mock.On call
-//   - id uuid.UUID
-func (_e *MockDeleter_Expecter) Delete(id interface{}) *MockDeleter_Delete_Call {
-	return &MockDeleter_Delete_Call{Call: _e.mock.On("Delete", id)}
+//   - ctx context.Context
+//   - name string
+func (_e *MockDeleter_Expecter) Delete(ctx interface{}, name interface{}) *MockDeleter_Delete_Call {
+	return &MockDeleter_Delete_Call{Call: _e.mock.On("Delete", ctx, name)}
 }
 
-func (_c *MockDeleter_Delete_Call) Run(run func(id uuid.UUID)) *MockDeleter_Delete_Call {
+func (_c *MockDeleter_Delete_Call) Run(run func(ctx context.Context, name string)) *MockDeleter_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(uuid.UUID))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -61,7 +63,7 @@ func (_c *MockDeleter_Delete_Call) Return(_a0 error) *MockDeleter_Delete_Call {
 	return _c
 }
 
-func (_c *MockDeleter_Delete_Call) RunAndReturn(run func(uuid.UUID) error) *MockDeleter_Delete_Call {
+func (_c *MockDeleter_Delete_Call) RunAndReturn(run func(context.Context, string) error) *MockDeleter_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }

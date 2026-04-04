@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"webby/internal/apperrors"
@@ -8,12 +9,10 @@ import (
 	errorWrapper "webby/internal/handlers/errors"
 	"webby/internal/handlers/responses"
 	"webby/pkg/http/render"
-
-	"github.com/google/uuid"
 )
 
 type Updater interface {
-	Update(id uuid.UUID, name string) error
+	Update(ctx context.Context, oldName string, newName string) error
 }
 
 func New(logger *slog.Logger, updater Updater) http.Handler {
@@ -21,8 +20,8 @@ func New(logger *slog.Logger, updater Updater) http.Handler {
 }
 
 // @Title Update a category
-// @Description Update an existing room category by ID. Only the name field is updateable. Only administrators can perform this action.
-// @Param  id       path  string          true  "Category ID (UUID v4 format)"
+// @Description Update an existing room category by name. Only the name field is updateable. Only administrators can perform this action.
+// @Param  name     path  string          true  "Current category name"
 // @Param  request  body  docs.UpdateCategoryRequest  true  "Category update data - Name (2-50 chars, required)"
 // @Success  200  object docs.CategoryApiResponse  "Category successfully updated"
 // @Failure  400  object docs.ErrorResponse  "Invalid input"
@@ -31,7 +30,7 @@ func New(logger *slog.Logger, updater Updater) http.Handler {
 // @Failure  404  object docs.ErrorResponse  "Category not found"
 // @Failure  500  object docs.ErrorResponse  "Internal server error"
 // @Resource RoomCategory
-// @Route /api/categories/{id} [put]
+// @Route /api/categories/{name} [put]
 func updateCategory(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.categories.update"))
 
@@ -40,16 +39,15 @@ func updateCategory(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 	}
 
 	type response struct {
-		Id   uuid.UUID `json:"id"`
-		Name string    `json:"name"`
+		Name string `json:"name"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
-		idStr := r.PathValue("id")
+		ctx := r.Context()
+		oldName := r.PathValue("name")
 
-		id, err := uuid.Parse(idStr)
-		if err != nil {
-			log.Debug("invalid UUID format", slog.String("id", idStr))
+		if oldName == "" {
+			log.Debug("empty category name in path")
 			return responses.NewApiError("Validation error", apperrors.ErrInvalidInput)
 		}
 
@@ -63,7 +61,7 @@ func updateCategory(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 			return responses.NewApiError("Validation error", err)
 		}
 
-		if err := updater.Update(id, req.Name); err != nil {
+		if err := updater.Update(ctx, oldName, req.Name); err != nil {
 			return responses.NewApiError("Update category error", err)
 		}
 
@@ -71,7 +69,6 @@ func updateCategory(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 			Success: true,
 			Message: "Category updated",
 			Data: &response{
-				Id:   id,
 				Name: req.Name,
 			},
 		})

@@ -24,29 +24,29 @@ func (_m *MockUpdater) EXPECT() *MockUpdater_Expecter {
 	return &MockUpdater_Expecter{mock: &_m.Mock}
 }
 
-// Update provides a mock function with given fields: ctx, room, thumbnailData, thumbnailFilename, userId
-func (_m *MockUpdater) Update(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (uuid.UUID, error) {
-	ret := _m.Called(ctx, room, thumbnailData, thumbnailFilename, userId)
+// Update provides a mock function with given fields: ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId
+func (_m *MockUpdater) Update(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (*models.Room, error) {
+	ret := _m.Called(ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
 	}
 
-	var r0 uuid.UUID
+	var r0 *models.Room
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.Room, []byte, string, uuid.UUID) (uuid.UUID, error)); ok {
-		return rf(ctx, room, thumbnailData, thumbnailFilename, userId)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *string, *string, *bool, []byte, string, uuid.UUID) (*models.Room, error)); ok {
+		return rf(ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *models.Room, []byte, string, uuid.UUID) uuid.UUID); ok {
-		r0 = rf(ctx, room, thumbnailData, thumbnailFilename, userId)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *string, *string, *bool, []byte, string, uuid.UUID) *models.Room); ok {
+		r0 = rf(ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(uuid.UUID)
+			r0 = ret.Get(0).(*models.Room)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *models.Room, []byte, string, uuid.UUID) error); ok {
-		r1 = rf(ctx, room, thumbnailData, thumbnailFilename, userId)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *string, *string, *bool, []byte, string, uuid.UUID) error); ok {
+		r1 = rf(ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -61,27 +61,30 @@ type MockUpdater_Update_Call struct {
 
 // Update is a helper method to define mock.On call
 //   - ctx context.Context
-//   - room *models.Room
+//   - roomId uuid.UUID
+//   - name *string
+//   - categoryName *string
+//   - isPrivate *bool
 //   - thumbnailData []byte
 //   - thumbnailFilename string
 //   - userId uuid.UUID
-func (_e *MockUpdater_Expecter) Update(ctx interface{}, room interface{}, thumbnailData interface{}, thumbnailFilename interface{}, userId interface{}) *MockUpdater_Update_Call {
-	return &MockUpdater_Update_Call{Call: _e.mock.On("Update", ctx, room, thumbnailData, thumbnailFilename, userId)}
+func (_e *MockUpdater_Expecter) Update(ctx interface{}, roomId interface{}, name interface{}, categoryName interface{}, isPrivate interface{}, thumbnailData interface{}, thumbnailFilename interface{}, userId interface{}) *MockUpdater_Update_Call {
+	return &MockUpdater_Update_Call{Call: _e.mock.On("Update", ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)}
 }
 
-func (_c *MockUpdater_Update_Call) Run(run func(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID)) *MockUpdater_Update_Call {
+func (_c *MockUpdater_Update_Call) Run(run func(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID)) *MockUpdater_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*models.Room), args[2].([]byte), args[3].(string), args[4].(uuid.UUID))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(*string), args[3].(*string), args[4].(*bool), args[5].([]byte), args[6].(string), args[7].(uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *MockUpdater_Update_Call) Return(_a0 uuid.UUID, _a1 error) *MockUpdater_Update_Call {
+func (_c *MockUpdater_Update_Call) Return(_a0 *models.Room, _a1 error) *MockUpdater_Update_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockUpdater_Update_Call) RunAndReturn(run func(context.Context, *models.Room, []byte, string, uuid.UUID) (uuid.UUID, error)) *MockUpdater_Update_Call {
+func (_c *MockUpdater_Update_Call) RunAndReturn(run func(context.Context, uuid.UUID, *string, *string, *bool, []byte, string, uuid.UUID) (*models.Room, error)) *MockUpdater_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

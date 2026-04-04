@@ -15,7 +15,7 @@ import (
 	"webby/internal/handlers/categories/update/mocks"
 	"webby/internal/handlers/responses"
 
-	"github.com/google/uuid"
+	"github.com/stretchr/testify/mock"
 )
 
 type updateCategoryRequest struct {
@@ -23,13 +23,13 @@ type updateCategoryRequest struct {
 }
 
 func TestUpdateCategory(t *testing.T) {
-	categoryID := uuid.New()
+	oldCategoryName := "Gaming"
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	tests := []struct {
 		name           string
-		categoryID     uuid.UUID
-		invalidUUID    bool
+		categoryName   string
+		emptyName      bool
 		requestBody    any
 		rawBody        []byte
 		mockSetup      func(*mocks.MockUpdater)
@@ -37,44 +37,44 @@ func TestUpdateCategory(t *testing.T) {
 		validateBody   func(t *testing.T, body string)
 	}{
 		{
-			name:       "Success - Category Updated (EP Valid)",
-			categoryID: categoryID,
+			name:         "Success - Category Updated (EP Valid)",
+			categoryName: oldCategoryName,
 			requestBody: updateCategoryRequest{
 				Name: "Updated Gaming",
 			},
 			mockSetup: func(mu *mocks.MockUpdater) {
-				mu.EXPECT().Update(categoryID, "Updated Gaming").Return(nil).Once()
+				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Updated Gaming").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody:   assertSuccessResponse,
 		},
 		{
-			name:       "Success - Name Exactly 2 Characters (BVA Min)",
-			categoryID: categoryID,
+			name:         "Success - Name Exactly 2 Characters (BVA Min)",
+			categoryName: oldCategoryName,
 			requestBody: updateCategoryRequest{
 				Name: "Ed",
 			},
 			mockSetup: func(mu *mocks.MockUpdater) {
-				mu.EXPECT().Update(categoryID, "Ed").Return(nil).Once()
+				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Ed").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody:   assertSuccessResponse,
 		},
 		{
-			name:       "Success - Name Exactly 50 Characters (BVA Max)",
-			categoryID: categoryID,
+			name:         "Success - Name Exactly 50 Characters (BVA Max)",
+			categoryName: oldCategoryName,
 			requestBody: updateCategoryRequest{
 				Name: strings.Repeat("A", 50),
 			},
 			mockSetup: func(mu *mocks.MockUpdater) {
-				mu.EXPECT().Update(categoryID, strings.Repeat("A", 50)).Return(nil).Once()
+				mu.EXPECT().Update(mock.Anything, oldCategoryName, strings.Repeat("A", 50)).Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody:   assertSuccessResponse,
 		},
 		{
-			name:       "Failure - Invalid Name Too Short (BVA Min - 1)",
-			categoryID: categoryID,
+			name:         "Failure - Invalid Name Too Short (BVA Min - 1)",
+			categoryName: oldCategoryName,
 			requestBody: updateCategoryRequest{
 				Name: "G",
 			},
@@ -83,8 +83,8 @@ func TestUpdateCategory(t *testing.T) {
 			validateBody:   assertErrorResponse,
 		},
 		{
-			name:       "Failure - Invalid Name Too Long (BVA Max + 1)",
-			categoryID: categoryID,
+			name:         "Failure - Invalid Name Too Long (BVA Max + 1)",
+			categoryName: oldCategoryName,
 			requestBody: updateCategoryRequest{
 				Name: strings.Repeat("A", 51),
 			},
@@ -93,8 +93,8 @@ func TestUpdateCategory(t *testing.T) {
 			validateBody:   assertErrorResponse,
 		},
 		{
-			name:       "Failure - Name is Whitespace Only (EG)",
-			categoryID: categoryID,
+			name:         "Failure - Name is Whitespace Only (EG)",
+			categoryName: oldCategoryName,
 			requestBody: updateCategoryRequest{
 				Name: "    ",
 			},
@@ -104,7 +104,7 @@ func TestUpdateCategory(t *testing.T) {
 		},
 		{
 			name:           "Failure - Missing Name Field (EG)",
-			categoryID:     categoryID,
+			categoryName:   oldCategoryName,
 			requestBody:    map[string]string{"unrelated_field": "value"},
 			mockSetup:      func(mu *mocks.MockUpdater) {},
 			expectedStatus: http.StatusBadRequest,
@@ -112,7 +112,7 @@ func TestUpdateCategory(t *testing.T) {
 		},
 		{
 			name:           "Failure - Empty JSON Body (EG)",
-			categoryID:     categoryID,
+			categoryName:   oldCategoryName,
 			requestBody:    updateCategoryRequest{},
 			mockSetup:      func(mu *mocks.MockUpdater) {},
 			expectedStatus: http.StatusBadRequest,
@@ -120,40 +120,40 @@ func TestUpdateCategory(t *testing.T) {
 		},
 		{
 			name:           "Failure - Malformed JSON (EG)",
-			categoryID:     categoryID,
+			categoryName:   oldCategoryName,
 			rawBody:        []byte(`{"name": "incomplete string`),
 			mockSetup:      func(mu *mocks.MockUpdater) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
 		{
-			name:           "Failure - Invalid UUID Path Parameter (EP Invalid)",
-			invalidUUID:    true,
+			name:           "Failure - Empty Path Parameter",
+			emptyName:      true,
 			requestBody:    updateCategoryRequest{Name: "Valid Name"},
 			mockSetup:      func(mu *mocks.MockUpdater) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
 		{
-			name:       "Failure - Category Not Found (CE)",
-			categoryID: categoryID,
+			name:         "Failure - Category Not Found (CE)",
+			categoryName: oldCategoryName,
 			requestBody: updateCategoryRequest{
 				Name: "Updated Name",
 			},
 			mockSetup: func(mu *mocks.MockUpdater) {
-				mu.EXPECT().Update(categoryID, "Updated Name").Return(apperrors.ErrNotFound).Once()
+				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Updated Name").Return(apperrors.ErrNotFound).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   assertErrorResponse,
 		},
 		{
-			name:       "Failure - Service Generic Error (CE)",
-			categoryID: categoryID,
+			name:         "Failure - Service Generic Error (CE)",
+			categoryName: oldCategoryName,
 			requestBody: updateCategoryRequest{
 				Name: "Updated Name",
 			},
 			mockSetup: func(mu *mocks.MockUpdater) {
-				mu.EXPECT().Update(categoryID, "Updated Name").Return(errors.New("database error")).Once()
+				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Updated Name").Return(errors.New("database error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody: func(t *testing.T, body string) {
@@ -182,10 +182,10 @@ func TestUpdateCategory(t *testing.T) {
 
 			path := "/api/categories/"
 			req := httptest.NewRequest(http.MethodPut, path, bytes.NewReader(body))
-			if tt.invalidUUID {
-				req.SetPathValue("id", "invalid-uuid")
+			if tt.emptyName {
+				req.SetPathValue("name", "")
 			} else {
-				req.SetPathValue("id", tt.categoryID.String())
+				req.SetPathValue("name", tt.categoryName)
 			}
 
 			w := httptest.NewRecorder()

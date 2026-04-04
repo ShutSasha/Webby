@@ -3,9 +3,11 @@
 package mocks
 
 import (
-	models "webby/internal/models"
+	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+
+	models "webby/internal/models"
 
 	uuid "github.com/google/uuid"
 )
@@ -23,9 +25,9 @@ func (_m *MockMyLister) EXPECT() *MockMyLister_Expecter {
 	return &MockMyLister_Expecter{mock: &_m.Mock}
 }
 
-// ListMy provides a mock function with given fields: id, page, limit
-func (_m *MockMyLister) ListMy(id uuid.UUID, page int, limit int) ([]models.Room, int64, error) {
-	ret := _m.Called(id, page, limit)
+// ListMy provides a mock function with given fields: ctx, id, page, limit
+func (_m *MockMyLister) ListMy(ctx context.Context, id uuid.UUID, page int, limit int) ([]models.Room, int64, error) {
+	ret := _m.Called(ctx, id, page, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListMy")
@@ -34,25 +36,25 @@ func (_m *MockMyLister) ListMy(id uuid.UUID, page int, limit int) ([]models.Room
 	var r0 []models.Room
 	var r1 int64
 	var r2 error
-	if rf, ok := ret.Get(0).(func(uuid.UUID, int, int) ([]models.Room, int64, error)); ok {
-		return rf(id, page, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int) ([]models.Room, int64, error)); ok {
+		return rf(ctx, id, page, limit)
 	}
-	if rf, ok := ret.Get(0).(func(uuid.UUID, int, int) []models.Room); ok {
-		r0 = rf(id, page, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int) []models.Room); ok {
+		r0 = rf(ctx, id, page, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Room)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(uuid.UUID, int, int) int64); ok {
-		r1 = rf(id, page, limit)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, int, int) int64); ok {
+		r1 = rf(ctx, id, page, limit)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
 
-	if rf, ok := ret.Get(2).(func(uuid.UUID, int, int) error); ok {
-		r2 = rf(id, page, limit)
+	if rf, ok := ret.Get(2).(func(context.Context, uuid.UUID, int, int) error); ok {
+		r2 = rf(ctx, id, page, limit)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -66,16 +68,17 @@ type MockMyLister_ListMy_Call struct {
 }
 
 // ListMy is a helper method to define mock.On call
+//   - ctx context.Context
 //   - id uuid.UUID
 //   - page int
 //   - limit int
-func (_e *MockMyLister_Expecter) ListMy(id interface{}, page interface{}, limit interface{}) *MockMyLister_ListMy_Call {
-	return &MockMyLister_ListMy_Call{Call: _e.mock.On("ListMy", id, page, limit)}
+func (_e *MockMyLister_Expecter) ListMy(ctx interface{}, id interface{}, page interface{}, limit interface{}) *MockMyLister_ListMy_Call {
+	return &MockMyLister_ListMy_Call{Call: _e.mock.On("ListMy", ctx, id, page, limit)}
 }
 
-func (_c *MockMyLister_ListMy_Call) Run(run func(id uuid.UUID, page int, limit int)) *MockMyLister_ListMy_Call {
+func (_c *MockMyLister_ListMy_Call) Run(run func(ctx context.Context, id uuid.UUID, page int, limit int)) *MockMyLister_ListMy_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(uuid.UUID), args[1].(int), args[2].(int))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(int), args[3].(int))
 	})
 	return _c
 }
@@ -85,7 +88,7 @@ func (_c *MockMyLister_ListMy_Call) Return(_a0 []models.Room, _a1 int64, _a2 err
 	return _c
 }
 
-func (_c *MockMyLister_ListMy_Call) RunAndReturn(run func(uuid.UUID, int, int) ([]models.Room, int64, error)) *MockMyLister_ListMy_Call {
+func (_c *MockMyLister_ListMy_Call) RunAndReturn(run func(context.Context, uuid.UUID, int, int) ([]models.Room, int64, error)) *MockMyLister_ListMy_Call {
 	_c.Call.Return(run)
 	return _c
 }

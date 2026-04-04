@@ -56,18 +56,17 @@ func TestGetRoom_Success(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	roomID := uuid.New()
 	ownerID := uuid.New()
-	categoryID := uuid.New()
+	categoryName := "Gaming"
 
 	t.Run("Room retrieved by owner", func(t *testing.T) {
 		mockGetter := mocks.NewMockGetter(t)
 		room := &models.Room{
-			Id:         roomID,
-			HostId:     ownerID,
-			CategoryId: categoryID,
-			Name:       "My Room",
-			Thumbnail:  "https://example.com/thumb.jpg",
-			Token:      "abc123token",
-			IsPrivate:  false,
+			Id:           roomID,
+			HostId:       ownerID,
+			CategoryName: categoryName,
+			Name:         "My Room",
+			Thumbnail:    "https://example.com/thumb.jpg",
+			IsPrivate:    false,
 		}
 		mockGetter.EXPECT().GetById(mock.Anything, roomID, ownerID).Return(room, nil).Once()
 
@@ -85,18 +84,16 @@ func TestGetRoom_Success(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, roomID.String(), (*resp.Data)["id"])
 		require.Equal(t, "My Room", (*resp.Data)["name"])
-		require.Equal(t, "abc123token", (*resp.Data)["token"])
 	})
 
 	t.Run("Private room retrieved by owner", func(t *testing.T) {
 		mockGetter := mocks.NewMockGetter(t)
 		room := &models.Room{
-			Id:         roomID,
-			HostId:     ownerID,
-			CategoryId: categoryID,
-			Name:       "Private Room",
-			Token:      "private-token-123",
-			IsPrivate:  true,
+			Id:           roomID,
+			HostId:       ownerID,
+			CategoryName: categoryName,
+			Name:         "Private Room",
+			IsPrivate:    true,
 		}
 		mockGetter.EXPECT().GetById(mock.Anything, roomID, ownerID).Return(room, nil).Once()
 
@@ -157,7 +154,7 @@ func TestGetRoom_AccessErrors(t *testing.T) {
 	roomID := uuid.New()
 	requesterID := uuid.New()
 
-	t.Run("Non-owner cannot retrieve room", func(t *testing.T) {
+	t.Run("Non-member cannot access private room", func(t *testing.T) {
 		mockGetter := mocks.NewMockGetter(t)
 		mockGetter.EXPECT().GetById(mock.Anything, roomID, requesterID).Return((*models.Room)(nil), apperrors.ErrForbidden).Once()
 
