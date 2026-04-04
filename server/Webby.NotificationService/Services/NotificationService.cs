@@ -1,0 +1,100 @@
+﻿using Microsoft.AspNetCore.SignalR;
+using Webby.NotificationService.Dtos.Notification;
+using Webby.NotificationService.Helpers.Exception;
+using Webby.NotificationService.Hubs;
+using Webby.NotificationService.Interfaces.Repositories;
+using Webby.NotificationService.Interfaces.Services;
+using Webby.NotificationService.Models;
+using Webby.NotificationService.Models.Enums;
+
+namespace Webby.NotificationService.Services;
+
+public class NotificationService : INotificationService
+{
+   private readonly INotificationRepository _notificationRepository;
+   private readonly IHubContext<NotificationHub> _hubContext;
+   public NotificationService(INotificationRepository notificationRepository, IHubContext<NotificationHub> hubContext)
+   {
+      _notificationRepository = notificationRepository;
+      _hubContext = hubContext;
+   }
+   
+   public async Task<Notification> CreateNotification(CreateNotificationRequest request)
+   {
+      var notification = new Notification()
+      {
+         NotificationId = Guid.NewGuid(),
+         UserId = request.UserId,
+         Title = request.Title,
+         Message = request.Message,
+         CreatedAt = DateTime.UtcNow,
+         TargetIdentifier = request.TargetIdentifier,
+         TargetType = request.TargetType,
+         NotificationStatus = NotificationStatus.Unread,
+      };
+      await _notificationRepository.Add(notification);
+      
+      await _hubContext.Clients.User(request.UserId.ToString())
+         .SendAsync("ReceiveNotification", notification);
+      return notification;
+   }
+
+   public async Task<Notification> UpdateNotification(UpdateNotificationRequest request)
+   {
+      var notification = await _notificationRepository.FindById(request.NotificationId)
+                         ?? throw new ApiException("Update notification error", 404, "Notification wasn't found");
+
+      notification.Message = request.Message;
+      notification.Title = request.Title;
+      notification.TargetType = request.TargetType;
+      notification.TargetIdentifier = request.TargetIdentifier;
+
+      await _notificationRepository.Update(notification);
+
+      return notification;
+   }
+
+   public async Task<List<Notification>> GetUnreadNotifications(Guid userId)
+   {
+      return (await _notificationRepository
+         .GetByPredicate(n => n.UserId == userId && n.NotificationStatus == NotificationStatus.Unread)).ToList();
+   }
+
+   public async Task<List<Notification>> GetReadNotifications(Guid userId)
+   {
+      return (await _notificationRepository
+         .GetByPredicate(n => n.UserId == userId && n.NotificationStatus == NotificationStatus.Read)).ToList();
+   }
+
+   public async Task<int> GetNotificationsCount(Guid? userId)
+   {
+      if (userId == null)
+         return 0;
+
+      return await _notificationRepository.CountNotifications(userId.Value,NotificationStatus.Unread);
+   }
+
+   public async Task DeleteNotification(Guid requestUserId, Guid notificationId)
+   {
+      var notification = await _notificationRepository.FindById(notificationId)
+                         ?? throw new ApiException("Delete notification error", 404, "Notification wasn't found");
+      if (notification.UserId != requestUserId)
+      {
+         throw new ApiException("Delete notification error", 403, "You can't delete this notification");
+      }
+      await _notificationRepository.DeleteAsync(notificationId);
+   }
+
+   public async Task ChangeReadStatus(List<Guid> notificationIds)
+      => await _notificationRepository.ChangeReadStatus(notificationIds);
+
+   public async Task<GetNotificationsCountResponse> GetUsersNotificationsCount(Guid userId)
+   {
+      return new GetNotificationsCountResponse
+      {
+         CountOfUnreadMessages = await _notificationRepository.CountNotifications(userId, NotificationStatus.Unread),
+         CountOfReadMessages = await _notificationRepository.CountNotifications(userId, NotificationStatus.Read),
+      };
+   }
+}
+   

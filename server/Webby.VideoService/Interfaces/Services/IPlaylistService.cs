@@ -1,4 +1,5 @@
 ﻿using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Models;
@@ -16,5 +17,6 @@ public interface IPlaylistService
    Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds, Guid requestUserId);
    Task<PagedResponse<SearchPlaylistDto>> SearchPlaylists(Guid? requestUserId, SearchOptions searchOptions);
    Task<bool> CheckIfVideoExistInPlaylist(Guid playlistId, Guid videoId);
-   
+   Task<GlobalSearchPlaylistResponse> GlobalPlaylistsSearch(Guid? requestUserId, GlobalSearchOptions searchOptions);
+
 }

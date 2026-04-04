@@ -6,9 +6,11 @@ namespace Webby.VideoService.Dtos.Video;
 
 public class VideoDto
 {
-   public Guid VideoId { get; set; }
+   public string VideoId { get; set; }
    public required string Name { get; set; }
    public string? Description { get; set; }
+   
+   public string Source { get; set; } = SearchPlatforms.Webby.ToString();
    public int Views { get; set; }
    public required string PreviewUrl { get; set; }
    public required bool IsPrivate { get; set; }

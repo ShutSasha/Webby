@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using UserService;
+using Webby.VideoService.Constants;
 using Webby.VideoService.Data;
+using Webby.VideoService.Helpers.External;
 using Webby.VideoService.Helpers.Queue;
 using Webby.VideoService.Helpers.Storage;
 using Webby.VideoService.Interfaces.Helpers;
@@ -98,9 +100,23 @@ public static class ApiExtension
       serviceCollection.AddScoped<IStorageService, StorageService>();
    }
 
+   public static void AddExternalServices(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddHttpClient<YoutubeSearchService>(options =>
+      {
+         options.BaseAddress = new Uri(DefaultLinks.BaseExternalApiYouTubeUrl);
+      });
+      
+      serviceCollection.AddHttpClient<TwitchSearchService>(options =>
+      {
+         options.BaseAddress = new Uri(DefaultLinks.BaseExternalApiTwitchLink);
+      });
+   }
+
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)
    {
       serviceCollection.Configure<AwsOptions>(config.GetSection(nameof(AwsOptions)));
+      serviceCollection.Configure<ExternalServicesOptions>(config.GetSection("ExternalServices"));
       
    }
 

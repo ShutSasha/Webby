@@ -5,5 +5,4 @@ public enum SearchPlatforms
    Webby =1,
    YouTube,
    Twitch,
-   All
 }
