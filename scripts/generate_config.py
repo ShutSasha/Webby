@@ -16,7 +16,8 @@ configs = [
     PROJECT_ROOT / "server/Webby.VideoService/appsettings.Development.json.temp",
     PROJECT_ROOT / "server/Webby.NotificationService/appsettings.Development.json.temp",
     PROJECT_ROOT / "server/Webby.RoomService/config/config.yaml.temp",
-    PROJECT_ROOT / "server/Webby.ChatService/config/config.yaml.temp"
+    PROJECT_ROOT / "server/Webby.ChatService/config/config.yaml.temp",
+    PROJECT_ROOT / "server/Webby.NotificationService/appsettings.Development.json.temp"
 ]
 
 
