@@ -339,7 +339,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       />
 
       {(!isReady || buffering) && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+        <div className="absolute inset-0 z-1 flex items-center justify-center pointer-events-none bg-black/40">
           <div className="w-16 h-16 border-6 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
         </div>
       )}
@@ -394,7 +394,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
           {/* Controls */}
           <div
             onClick={e => e.stopPropagation()}
-            className={`absolute bottom-3 left-3 right-3 flex flex-col gap-2 transition-transform duration-500
+            className={`absolute z-2 bottom-3 left-3 right-3 flex flex-col gap-2 transition-transform duration-500
             ${showCustomControls ? 'translate-y-0' : 'translate-y-10 pointer-events-none'}`}
           >
             {/* Progress Bar Container */}
