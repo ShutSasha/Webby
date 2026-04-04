@@ -1,5 +1,7 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
+
 import { useSearchVideosQuery } from '@/lib/hooks/api/video/useSearchVideos'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 
@@ -12,6 +14,7 @@ type Props = {
 
 export default function VideosPublicSearchContainer({ query }: Props) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchVideosQuery(query)
+  const { data: session } = useSession()
 
   const videos = data?.pages.flatMap(page => page?.data?.items || []) || []
 
@@ -62,6 +65,7 @@ export default function VideosPublicSearchContainer({ query }: Props) {
               views={video.views}
               createAt={video.createdAt}
               userAvatar={video.user.avatarUrl}
+              currentUserId={session?.user.id}
             />
           )
 

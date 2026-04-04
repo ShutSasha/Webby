@@ -9,7 +9,7 @@ import UserBioSection from '@/ui/components/modules/Profile/UserBioSection'
 import { BLUR_DATA_URLS } from '@/ui/images'
 import { auth } from '@/workspace/auth'
 
-import ComplaintButton from './ComplaintButton'
+import ComplaintButton from '../../shared/ComplaintButton'
 import FollowButton from './FollowButton'
 import ActionButton from '../../shared/ActionButton'
 import EmptyState from '../../shared/EmptyState'

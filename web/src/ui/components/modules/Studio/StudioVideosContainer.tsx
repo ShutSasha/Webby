@@ -1,21 +1,15 @@
 'use client'
 
-import { notFound } from 'next/navigation'
-import { useSession } from 'next-auth/react'
-
 import { useGetUserVideosQuery } from '@/lib/hooks/api/video/useGetUserVideosQuery'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import { StudioVideoRow } from '@/ui/components/modules/Studio/StudioVideoRow'
 
-export default function StudioVideosContainer() {
-  const { data: session } = useSession()
-  const userId = session?.user?.id
+type Props = {
+  currentUserId: string
+}
 
-  if (!userId) {
-    notFound()
-  }
-
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useGetUserVideosQuery(userId)
+export default function StudioVideosContainer({ currentUserId }: Props) {
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useGetUserVideosQuery(currentUserId)
 
   const videos = data?.pages.flatMap(page => page?.data?.items || []) || []
 

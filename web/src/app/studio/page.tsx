@@ -1,5 +1,7 @@
 import StudioVideosContainer from '@/ui/components/modules/Studio/StudioVideosContainer'
 import AnimatedTabs from '@/ui/components/shared/AnimatedTabs'
+import EmptyState from '@/ui/components/shared/EmptyState'
+import { auth } from '@/workspace/auth'
 
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -8,6 +10,18 @@ type Props = {
 export default async function StudioPage({ searchParams }: Props) {
   const { tab } = await searchParams
   const currentTab = tab === 'playlists' ? 'playlists' : 'videos'
+  const session = await auth()
+
+  if (!session) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+        <EmptyState
+          title="Sign in to view your content"
+          description="Please log in to manage your videos, playlists, and track your channel activity."
+        />
+      </div>
+    )
+  }
 
   const studioTabs = [
     { label: 'Videos', href: '?tab=videos', isActive: currentTab === 'videos' },
@@ -34,7 +48,7 @@ export default async function StudioPage({ searchParams }: Props) {
           <div className="w-12 shrink-0"></div>
         </div>
 
-        {currentTab === 'videos' && <StudioVideosContainer />}
+        {currentTab === 'videos' && <StudioVideosContainer currentUserId={session.user.id} />}
         {currentTab === 'playlists' && <div className="p-8 text-center text-neutral-500">Playlists coming soon...</div>}
       </div>
     </>

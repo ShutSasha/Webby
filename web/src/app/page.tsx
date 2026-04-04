@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -17,6 +19,7 @@ import $api from '../lib/config/api.config'
 // TODO: return server component
 export default function Home() {
   const addToast = useToastStore(state => state.addToast)
+  const [token, setToken] = useState(getGlobalToken())
 
   const handleTest = async () => {
     try {
@@ -24,6 +27,7 @@ export default function Home() {
 
       clog('test data response', data)
       clog('token', getGlobalToken())
+      setToken(getGlobalToken())
       addToast('Successss', 'success')
     } catch (error) {
       serverLog('TEST ERROR', error, true)
@@ -77,6 +81,7 @@ export default function Home() {
         >
           TEST BUTTON
         </button>
+        <p className="w-[700px] text-wrap wrap-break-word">{token}</p>
 
         <div className="bg-neutral-900 rounded-[20px] p-5">
           <ul className="flex flex-wrap justify-center sm:flex-row sm:flex-nowrap sm:justify-between mb-5 gap-2">

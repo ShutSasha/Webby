@@ -16,7 +16,7 @@ import CoreButton from '@/ui/components/shared/CoreButton'
 import PageLoading from '@/ui/components/shared/PageLoading'
 import Switch from '@/ui/components/shared/Switch'
 
-const MAX_TAGS = 10
+const MAX_TAGS = 5
 
 export default function CreateVideoContainer() {
   const router = useRouter()
