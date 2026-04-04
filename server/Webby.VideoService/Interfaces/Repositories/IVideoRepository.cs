@@ -14,4 +14,9 @@ public interface IVideoRepository : IRepository<Video>
       string? searchText,
       int skip,
       int take);
+
+   Task<bool> FindUserView(Guid userId, Guid videoId);
+   Task AddUserView(UserView userView);
+   Task<int> CountUserView(Guid videoId);
+   
 }

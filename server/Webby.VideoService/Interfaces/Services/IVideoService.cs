@@ -12,7 +12,7 @@ public interface IVideoService
    Task<UploadVideoResponse> UploadVideoFile(Guid userId, UploadVideoRequest request);
    Task CreateVideo(Guid userId, CreateVideoRequest request);
    Task DeleteVideo(Guid userId, Guid videoId);
-   Task<GetVideoInformationResponse> GetVideoInformation(Guid videoId, Guid? userId);
+   Task<VideoDto> GetVideoInformation(string videoId, Guid? userId, SearchPlatforms platform);
    Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId,Guid? requestUserId,int page,int pageSize);
    Task UpdateVideoInformation(Guid userId, UpdateVideoRequest request);
    Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchVideoOptions options);
@@ -21,4 +21,5 @@ public interface IVideoService
    Task CancelVideoUploading(Guid requestUserId, Guid videoId);
    Task<bool> CheckUploadStatus(Guid videoId);
    Task<GlobalSearchVideoResponse> GlobalSearchVideos(Guid? requestUserId, GlobalSearchOptions searchOptions);
+   Task IncrementVideoView(Guid requestUserId, Guid videoId);
 }

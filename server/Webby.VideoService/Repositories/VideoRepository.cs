@@ -22,10 +22,14 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
    public async Task<(List<Video>, int)> GetPaginatedUserVideos(Guid userId, bool isOwner, int page, int pageSize)
    {
       var query = _context.Videos
-         .Where(v => v.UserId == userId 
+         .Where(v => v.UserId == userId
                      && (isOwner || !v.IsPrivate)
-                     && (v.VideoUploadStatus == VideoStatus.Ready || (isOwner && v.VideoUploadStatus == VideoStatus.Uploading)));
-
+                     && (isOwner || v.IsPublished)
+                     && (v.VideoUploadStatus == VideoStatus.Ready ||
+                         (isOwner && v.VideoUploadStatus == VideoStatus.Uploading)))
+         .Include(v => v.VideoTags)!
+         .ThenInclude(vt => vt.Tag);
+      
       var totalCount = await query.CountAsync();
 
       var videos = await query
@@ -49,61 +53,74 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
                                       && v.UserId != requestUserId);
    }
    
-public async Task<(List<Video> Items, int Total)> SearchVideosInPlaylistAsync(
-   Guid playlistId,
-   Guid? requestUserId,
-   string? searchText,
-   int skip,
-   int take)
-{
-   var query = @"
-     SELECT v.*
-     FROM ""PlaylistVideos"" pv
-     JOIN ""Videos"" v ON v.""VideoId"" = pv.""VideoId""
-     WHERE pv.""PlaylistId"" = @playlistId
-       AND v.""IsPublished"" = TRUE
-       AND (v.""IsPrivate"" = FALSE OR v.""UserId"" = @requestUserId)
-       AND (
-           v.""VideoUploadStatus"" = @statusReady 
-           OR (v.""UserId"" = @requestUserId AND v.""VideoUploadStatus"" = @statusUploading)
-       )
- ";
-   
-   var parameters = new List<NpgsqlParameter>
+   public async Task<(List<Video> Items, int Total)> SearchVideosInPlaylistAsync(
+      Guid playlistId,
+      Guid? requestUserId,
+      string? searchText,
+      int skip,
+      int take)
    {
-      new NpgsqlParameter("@playlistId", playlistId),
-      new NpgsqlParameter("@requestUserId", (object?)requestUserId ?? DBNull.Value),
-      new NpgsqlParameter("@statusReady", VideoStatus.Ready.ToString()),
-      new NpgsqlParameter("@statusUploading", VideoStatus.Uploading.ToString())
-   };
+      var query = @"
+        SELECT v.*
+        FROM ""PlaylistVideos"" pv
+        JOIN ""Videos"" v ON v.""VideoId"" = pv.""VideoId""
+        WHERE pv.""PlaylistId"" = @playlistId
+          AND v.""IsPublished"" = TRUE
+          AND (v.""IsPrivate"" = FALSE OR v.""UserId"" = @requestUserId)
+          AND (
+              v.""VideoUploadStatus"" = @statusReady 
+              OR (v.""UserId"" = @requestUserId AND v.""VideoUploadStatus"" = @statusUploading)
+          )
+    ";
+      
+      var parameters = new List<NpgsqlParameter>
+      {
+         new NpgsqlParameter("@playlistId", playlistId),
+         new NpgsqlParameter("@requestUserId", (object?)requestUserId ?? DBNull.Value),
+         new NpgsqlParameter("@statusReady", VideoStatus.Ready.ToString()),
+         new NpgsqlParameter("@statusUploading", VideoStatus.Uploading.ToString())
+      };
 
-   if (!string.IsNullOrWhiteSpace(searchText) && searchText.Trim().Length >= 3)
+      if (!string.IsNullOrWhiteSpace(searchText) && searchText.Trim().Length >= 3)
+      {
+         query += " AND (v.\"Name\" <% @search OR v.\"Name\" ILIKE @likePattern) ";
+         parameters.Add(new NpgsqlParameter("@search", searchText));
+         parameters.Add(new NpgsqlParameter("@likePattern", $"%{searchText}%"));
+      }
+      
+      var countParameters = parameters.Select(p => p.Clone()).ToArray();
+      var total = await _context.Videos
+         .FromSqlRaw(query, countParameters)
+         .CountAsync();
+      
+      query += " ORDER BY " +
+               (!string.IsNullOrWhiteSpace(searchText) && searchText.Trim().Length >= 3
+                  ? "(CASE WHEN v.\"Name\" ILIKE @likePattern THEN 1 ELSE 0 END) DESC, " +
+                    "word_similarity(@search, v.\"Name\") DESC, "
+                  : "") +
+               "pv.\"CreatedAt\" DESC " +
+               "LIMIT @take OFFSET @skip";
+      
+      parameters.Add(new NpgsqlParameter("@take", take));
+      parameters.Add(new NpgsqlParameter("@skip", skip));
+
+      var items = await _context.Videos
+         .FromSqlRaw(query, parameters.ToArray())
+         .ToListAsync();
+
+      return (items, total);
+}  
+
+   public async Task<bool> FindUserView(Guid userId, Guid videoId) 
+      => await _context.UserViews.AnyAsync(uv => uv.UserId == userId && uv.VideoId == videoId);
+   
+
+   public async Task AddUserView(UserView userView)
    {
-      query += " AND (v.\"Name\" <% @search OR v.\"Name\" ILIKE @likePattern) ";
-      parameters.Add(new NpgsqlParameter("@search", searchText));
-      parameters.Add(new NpgsqlParameter("@likePattern", $"%{searchText}%"));
+      await _context.UserViews.AddAsync(userView);
+      await _context.SaveChangesAsync();
    }
-   
-   var countParameters = parameters.Select(p => p.Clone()).ToArray();
-   var total = await _context.Videos
-      .FromSqlRaw(query, countParameters)
-      .CountAsync();
-   
-   query += " ORDER BY " +
-            (!string.IsNullOrWhiteSpace(searchText) && searchText.Trim().Length >= 3
-               ? "(CASE WHEN v.\"Name\" ILIKE @likePattern THEN 1 ELSE 0 END) DESC, " +
-                 "word_similarity(@search, v.\"Name\") DESC, "
-               : "") +
-            "pv.\"CreatedAt\" DESC " +
-            "LIMIT @take OFFSET @skip";
-   
-   parameters.Add(new NpgsqlParameter("@take", take));
-   parameters.Add(new NpgsqlParameter("@skip", skip));
 
-   var items = await _context.Videos
-      .FromSqlRaw(query, parameters.ToArray())
-      .ToListAsync();
-
-   return (items, total);
-}
+   public async Task<int> CountUserView(Guid videoId) 
+      => await _context.UserViews.CountAsync(uv => uv.VideoId == videoId);
 }
