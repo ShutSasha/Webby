@@ -21,15 +21,15 @@ public class VideoController: ControllerBase
    }
 
 
-   [HttpGet("{videoId:guid}")]
+   [HttpGet("{videoId}")]
    [SwaggerOperation("Get video information")]
-   public async Task<ActionResult<ApiResponse<GetVideoInformationResponse>>> GetVideoInformation(
-      [FromRoute] Guid videoId)
+   public async Task<ActionResult<ApiResponse<VideoDto>>> GetVideoInformation(
+      [FromRoute] string videoId, [FromQuery] SearchPlatforms platform)
    {
       var requestedUserId = JwtHelper.ExtractUserId(HttpContext,false);
-      var getVideoInformationResult = await _videoService.GetVideoInformation(videoId, requestedUserId);
+      var getVideoInformationResult = await _videoService.GetVideoInformation(videoId, requestedUserId, platform);
 
-      return Ok(ApiResponse<GetVideoInformationResponse>.Ok("Successfully retrieved video information",
+      return Ok(ApiResponse<VideoDto>.Ok("Successfully retrieved video information",
          getVideoInformationResult));
    }
 
@@ -94,6 +94,15 @@ public class VideoController: ControllerBase
       var userId = JwtHelper.ExtractUserId(HttpContext)!;
       var uploadResponse = await _videoService.UploadVideoFile(userId.Value, request);
       return Ok(ApiResponse<UploadVideoResponse>.Ok("Successfully prepared for uploading video file",uploadResponse));
+   }
+   
+   [HttpPost("increment-view")]
+   [SwaggerOperation("Added view on specified video", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> IncrementVideoView([FromBody] Guid videoId)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _videoService.IncrementVideoView(requestUserId.Value, videoId);
+      return Ok(ApiResponse.Ok("Successfully increment video view"));
    }
    
    [HttpPost]

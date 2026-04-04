@@ -27,8 +27,12 @@ public class YouTubeVideoResponse
 
    public class ContentDetails { public string Duration { get; set; } }
    public class Statistics { public string ViewCount { get; set; } }
-    
-   public class Thumbnails { public Thumbnail Medium { get; set; } }
+
+   public class Thumbnails
+   {
+      public Thumbnail Default { get; set; }
+      public Thumbnail Medium { get; set; }
+   }
    public class Thumbnail { public string Url { get; set; } }
 
    public class PageInformation

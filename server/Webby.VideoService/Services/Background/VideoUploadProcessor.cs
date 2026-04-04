@@ -22,7 +22,7 @@ public class VideoUploadProcessor(IVideoRepository videoRepository, IStorageServ
       {
          var ffProbe = new FFProbe();
          var videoInfo = ffProbe.GetMediaInfo(filePath);
-         video!.Duration = videoInfo.Duration;
+         video!.Duration = (long)Math.Round(videoInfo.Duration.TotalSeconds);
 
          logger.LogInformation($"Uploading file to storage");
          await using var stream = File.OpenRead(filePath);
