@@ -137,3 +137,20 @@ export async function cancelVideoUploadAction(videoId: string): Promise<BaseServ
     }
   }
 }
+
+export async function updateVideoMetadataAction(formData: FormData): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.patch<BaseServerResponse<null>>(`${endpoint}`, formData)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('UPDATE_VIDEO_METADATA_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to update video metadata',
+      errors: parseAxiosError(error),
+    }
+  }
+}

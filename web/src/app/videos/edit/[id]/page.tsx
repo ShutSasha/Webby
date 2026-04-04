@@ -1,0 +1,30 @@
+import { getVideoInfo } from '@/lib/actions/video.actions'
+import EditVideoContainer from '@/ui/components/modules/Videos/Edit/EditVideoContainer'
+import EmptyState from '@/ui/components/shared/EmptyState'
+
+type Props = {
+  params: Promise<{ id: string }>
+}
+
+export default async function EditVideoPage({ params }: Props) {
+  const { id } = await params
+  const response = await getVideoInfo(id)
+
+  if (!response.success || !response.data) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+        <EmptyState
+          title="Video not found"
+          description="We couldn't find the video you're looking for. It might have been deleted or you may not have permission to edit it."
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col items-center w-full h-full p-6">
+      <h1 className="text-center text-2xl font-bold text-neutral-100 mb-6 tracking-tight">Edit Video</h1>
+      <EditVideoContainer initialVideo={response.data} />
+    </div>
+  )
+}

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 import MoreVertical from '@/assets/icons/shared/more-vertical.svg'
 import { checkVideoUploadStatusAction } from '@/lib/actions/video.actions'
@@ -24,6 +25,7 @@ export function StudioVideoRow({ video }: Props) {
   const { mutate, isPending } = useDeleteVideo()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
   const isReady = video.videoUploadStatus === 'Ready'
   const isUploading = video.videoUploadStatus === 'Uploading'
@@ -75,6 +77,13 @@ export function StudioVideoRow({ video }: Props) {
         },
       },
     )
+  }
+
+  const handleEditRedirect = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsMenuOpen(false)
+    router.push(`/videos/edit/${video.videoId}`)
   }
 
   return (
@@ -155,6 +164,17 @@ export function StudioVideoRow({ video }: Props) {
       </div>
 
       <div className="w-28 flex justify-center shrink-0">
+        <div
+          className={cn(
+            'flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md',
+            video.isPublished ? 'text-neutral-300' : 'bg-neutral-500/10 text-neutral-400',
+          )}
+        >
+          {video.isPublished ? 'Published' : 'Draft'}
+        </div>
+      </div>
+
+      <div className="w-28 flex justify-center shrink-0">
         <div className="flex items-center gap-1.5 text-xs text-neutral-300">
           {video.isPrivate ? <span>Private</span> : <span className="text-emerald-500">Public</span>}
         </div>
@@ -189,6 +209,13 @@ export function StudioVideoRow({ video }: Props) {
               shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
             onClick={e => e.preventDefault()}
           >
+            <button
+              className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors
+                flex items-center gap-3 cursor-pointer"
+              onClick={handleEditRedirect}
+            >
+              <span>Edit</span>
+            </button>
             <button
               className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors flex
                 items-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"

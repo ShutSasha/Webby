@@ -42,6 +42,7 @@ export default async function StudioPage({ searchParams }: Props) {
             top-0 bg-neutral-900 z-10"
         >
           <div className="flex-1 min-w-[300px]">Video</div>
+          <div className="w-28 text-center shrink-0">Status</div>
           <div className="w-28 text-center shrink-0">Visibility</div>
           <div className="w-32 text-center shrink-0">Date</div>
           <div className="w-24 text-center shrink-0">Views</div>
