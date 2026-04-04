@@ -7,7 +7,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 
 type DesktopNavProps = {
   href?: ComponentProps<typeof Link>['href']

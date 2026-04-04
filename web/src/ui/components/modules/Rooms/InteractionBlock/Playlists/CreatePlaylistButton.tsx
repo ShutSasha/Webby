@@ -3,9 +3,9 @@ import { ChangeEvent, FormEvent, useState } from 'react'
 
 import EditPenIcon from '@/assets/icons/shared/edit-pen.svg'
 import { useCreatePlaylist } from '@/lib/hooks/useCreatePlaylist'
-import MediaButton from '@/ui/components/common/MediaButton'
-import Input from '@/ui/components/Input'
 import Button from '@/ui/components/shared/Button'
+import Input from '@/ui/components/shared/Input'
+import MediaButton from '@/ui/components/shared/MediaButton'
 import Switch from '@/ui/components/shared/Switch'
 
 export default function CreatePlaylistButton() {

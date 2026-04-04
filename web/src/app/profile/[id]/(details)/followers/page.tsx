@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import { getUser } from '@/app/api/user'
+import { getUser } from '@/lib/actions/user.actions'
 import FollowersContainer from '@/ui/components/modules/Profile/CommonFollow/FollowersContainer'
 import { FollowsContainerSkeleton } from '@/ui/components/modules/Profile/CommonFollow/FollowsContainerSkeleton'
 import { FollowersToggle } from '@/ui/components/modules/Profile/CommonFollow/FollowToggle'

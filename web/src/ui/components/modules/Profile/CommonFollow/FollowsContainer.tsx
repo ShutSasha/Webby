@@ -1,4 +1,4 @@
-import { getUserFollows } from '@/app/api/user'
+import { getUserFollows } from '@/lib/actions/user.actions'
 import EmptyState from '@/ui/components/shared/EmptyState'
 
 import FollowItem from './FollowItem'

@@ -2,8 +2,8 @@
 
 import { useState, useRef, useLayoutEffect } from 'react'
 
-import { formatDate } from '@/lib/utils/date'
-import { cn } from '@/lib/utils/utils'
+import { formatDate } from '@/lib/utils/date.utils'
+import { cn } from '@/lib/utils/general.utils'
 
 type Props = {
   text: string

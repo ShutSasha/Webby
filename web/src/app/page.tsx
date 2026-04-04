@@ -6,12 +6,13 @@ import Link from 'next/link'
 import ImageBackgroundGroup from '@/assets/auth/bg-login.png'
 import ImageBackgroundMan from '@/assets/auth/home-page-man-sign-up.png'
 import { benefitsList } from '@/lib/placeholder-data/home-page'
-import { clog, serverLog } from '@/lib/utils/utils'
+import { getGlobalToken } from '@/lib/utils/auth-token.utils'
+import { clog, serverLog } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
-import MainLayout from '@/ui/components/MainLayout'
+import MainLayout from '@/ui/components/layouts/MainLayout'
 import Button from '@/ui/components/shared/Button'
 
-import $api from './api'
+import $api from '../lib/api/api.config'
 
 // TODO: return server component
 export default function Home() {
@@ -22,6 +23,7 @@ export default function Home() {
       const { data } = await $api.get('/auth/check')
 
       clog('test data response', data)
+      clog('token', getGlobalToken())
       addToast('Successss', 'success')
     } catch (error) {
       serverLog('TEST ERROR', error, true)
@@ -75,6 +77,7 @@ export default function Home() {
         >
           TEST BUTTON
         </button>
+
         <div className="bg-neutral-900 rounded-[20px] p-5">
           <ul className="flex flex-wrap justify-center sm:flex-row sm:flex-nowrap sm:justify-between mb-5 gap-2">
             {benefitsList.map((benefit, index) => (

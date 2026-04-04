@@ -6,7 +6,7 @@ import { signOut, useSession } from 'next-auth/react'
 
 import LogoutIcon from '@/assets/auth/ic_logout.svg'
 import UserProfileIcon from '@/assets/icons/ic_user_profile.svg'
-import { cn } from '@/lib/utils/utils'
+import { cn } from '@/lib/utils/general.utils'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import { DesktopNavElement } from './NavElements'

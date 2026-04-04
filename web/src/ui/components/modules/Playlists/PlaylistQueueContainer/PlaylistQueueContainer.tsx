@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'next/navigation'
 
-import { getPlaylistVideos, PlaylistVideo } from '@/app/api/playlists'
+import { getPlaylistVideos, PlaylistVideo } from '@/lib/actions/playlist.actions'
 import { useInfiniteSearch } from '@/lib/hooks/useInfiniteSearch'
 import { usePlaylistAutoPlay } from '@/lib/hooks/usePlaylistAutoPlay'
 import VideoItem from '@/ui/components/modules/Playlists/VideoItem'

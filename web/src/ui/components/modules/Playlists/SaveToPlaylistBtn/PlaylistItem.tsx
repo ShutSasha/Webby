@@ -2,8 +2,8 @@ import { useState } from 'react'
 
 import Image from 'next/image'
 
-import { togglePlaylistVideo } from '@/app/api/playlists'
-import { extractServerMessage, serverLog } from '@/lib/utils/utils'
+import { togglePlaylistVideo } from '@/lib/actions/playlist.actions'
+import { extractServerMessage, serverLog } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
 import { BLUR_DATA_URLS } from '@/ui/images'
 

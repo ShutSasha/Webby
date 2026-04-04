@@ -2,8 +2,8 @@
 
 import { useCallback, useState } from 'react'
 
-import { searchUserPlaylists, UserPlaylistDetails } from '@/app/api/playlists'
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
+import { searchUserPlaylists, UserPlaylistDetails } from '@/lib/actions/playlist.actions'
 import { useInfiniteSearch } from '@/lib/hooks/useInfiniteSearch'
 
 import PlaylistItem from './PlaylistItem'

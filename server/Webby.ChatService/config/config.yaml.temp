@@ -1,0 +1,9 @@
+env: "local"
+connectionString: "{{UriConnectionString}}"
+jwtSecret: "{{JwtAccessSecretKey}}"
+http:
+  host: "localhost"
+  port: 8081
+  timeout: 10s
+grpc:
+  port: 50051

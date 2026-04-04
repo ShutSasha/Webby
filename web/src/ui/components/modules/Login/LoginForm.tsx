@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useForm } from 'react-hook-form'
 
-import { authenticate } from '@/app/api/auth'
 import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
-import AuthInput from '@/components/AuthInput'
+import { authenticate } from '@/lib/actions/auth.actions'
+import AuthInput from '@/ui/components/modules/Auth/AuthInput'
 import Button from '@/ui/components/shared/Button'
 
 import AuthErrorDisplay from './ErrorDisplay'

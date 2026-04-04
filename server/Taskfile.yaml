@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 tasks:
   run_auth_service:
@@ -7,7 +7,7 @@ tasks:
       - |
         cd ./Webby.AuthService
         dotnet run
-  
+
   run_user_service:
     desc: "Run the C# UserService"
     cmds:
@@ -20,7 +20,7 @@ tasks:
     cmds:
       - |
         cd ./Webby.VideoService
-        dotnet run 
+        dotnet run
 
   run_api_getaway:
     desc: "Run the api getaway"
@@ -36,6 +36,22 @@ tasks:
         cd ./Webby.NotificationService
         dotnet run
   
+  run_room_service:
+    desc: "Run the Go RoomService"
+    cmds:
+      - |
+        cd ./Webby.RoomService
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
+
+  run_chat_service:
+    desc: "Run the Go ChatService"
+    cmds:
+      - |
+        cd ./Webby.ChatService
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
+
   run_all:
     desc: "Run all services"
     deps:
@@ -44,3 +60,5 @@ tasks:
       - run_user_service
       - run_video_service
       - run_notification_service
+      - run_room_service
+      - run_chat_service
