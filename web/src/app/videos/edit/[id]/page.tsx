@@ -1,6 +1,7 @@
 import { getVideoInfo } from '@/lib/actions/video.actions'
 import EditVideoContainer from '@/ui/components/modules/Videos/Edit/EditVideoContainer'
 import EmptyState from '@/ui/components/shared/EmptyState'
+import { auth } from '@/workspace/auth'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -8,7 +9,7 @@ type Props = {
 
 export default async function EditVideoPage({ params }: Props) {
   const { id } = await params
-  const response = await getVideoInfo(id)
+  const [session, response] = await Promise.all([auth(), getVideoInfo(id)])
 
   if (!response.success || !response.data) {
     return (
@@ -16,6 +17,17 @@ export default async function EditVideoPage({ params }: Props) {
         <EmptyState
           title="Video not found"
           description="We couldn't find the video you're looking for. It might have been deleted or you may not have permission to edit it."
+        />
+      </div>
+    )
+  }
+
+  if (!session || session.user.id !== response.data.user.userId) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+        <EmptyState
+          title="Access Denied"
+          description="You don't have permission to edit this video. Make sure you are logged into the correct account."
         />
       </div>
     )
