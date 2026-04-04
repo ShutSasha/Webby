@@ -11,4 +11,5 @@ public interface IAchievementRepository : IRepository<Achievement>
    Task UpdateUserAchievement(UserAchievement userAchievement);
    Task<List<UserAchievement>> GetUserPinnedAchievements(Guid userId);
    Task<List<AchievementDto>> GetAchievementsWithUserStatus(Guid userId);
+   Task<int> CountPinnedAchievements(Guid userId);
 }
