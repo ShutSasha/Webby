@@ -10,7 +10,7 @@ public interface IPlaylistService
 {
    Task<Playlist> GetPlaylistById(Guid playlistId);
    Task<PlaylistDto> CreatePlaylist(Guid userId, CreatePlaylistRequest request);
-   Task<PagedResponse<PlaylistPreviewDto>> GetUserPlaylists(Guid? requestUserId, Guid? videoId, Guid userId, SearchOptions searchOptions);
+   Task<PagedResponse<PlaylistPreviewDto>> GetUserPlaylists(Guid? requestUserId, Guid? videoId, Guid userId, GetUserPlaylistsRequest request);
    Task<PlaylistDto> UpdatePlaylist(Guid requestUserId, UpdatePlaylistRequest request);
    Task DeletePlaylist(Guid userId, Guid playlistId);
    Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId, Guid? requestedUserId);

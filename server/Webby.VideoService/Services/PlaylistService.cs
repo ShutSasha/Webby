@@ -59,25 +59,19 @@ public class PlaylistService : IPlaylistService
       return _mapper.Map<PlaylistDto>(playlist);
    }
 
-   public async Task<PagedResponse<PlaylistPreviewDto>> GetUserPlaylists
-   (
-      Guid? requestUserId,
-      Guid? videoId,
-      Guid userId,
-      SearchOptions searchOptions
-   )
+   public async Task<PagedResponse<PlaylistPreviewDto>> GetUserPlaylists(Guid? requestUserId, Guid? videoId, Guid userId, GetUserPlaylistsRequest request)
    {
-      var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
+      var skip = (request.Page - 1) * request.PageSize;
 
       var (additionalCondition, parameters, predicate)
-         = PlaylistSearchFilter.SearchUserPlaylistsFilter(userId, requestUserId == userId);
+         = PlaylistSearchFilter.SearchUserPlaylistsFilter(userId, requestUserId == userId,request.ShouldShowEmptyPlaylists);
 
       var playlists = await _playlistRepository.SearchAsync(
          "Playlists",
          "Name",
-         searchOptions.SearchText,
+         request.SearchText,
          skip,
-         searchOptions.PageSize,
+         request.PageSize,
          additionalCondition,
          parameters,
          predicateFactory: predicate
@@ -107,8 +101,8 @@ public class PlaylistService : IPlaylistService
       return new PagedResponse<PlaylistPreviewDto>
       {
          Items = playlistsPreviews,
-         PageSize = searchOptions.PageSize,
-         Page = searchOptions.Page,
+         PageSize = request.PageSize,
+         Page = request.Page,
          TotalCount = playlists.Total
       };
    }

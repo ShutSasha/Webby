@@ -234,21 +234,19 @@ public class VideoService : IVideoService
       };
    }
 
-   public async Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId, Guid? requestUserId, int page, int pageSize)
+   public async Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId, Guid? requestedUserId, GetUserVideosRequest request)
    {
-      page = page <= 0 ? 1 : page;
-      pageSize = pageSize <= 0 ? 10 : pageSize;
 
-      var isOwner = userId == requestUserId;
+      var isOwner = userId == requestedUserId;
 
       var (videos, totalCount) = await _videoRepository
-         .GetPaginatedUserVideos(userId, isOwner, page, pageSize);
+         .GetPaginatedUserVideos(userId, isOwner, request.Page, request.PageSize, request.ShouldShowDrafts);
 
       return new PagedResponse<VideoDto>
       {
          Items = MapToDto(videos),
-         Page = page,
-         PageSize = pageSize,
+         Page = request.Page,
+         PageSize = request.PageSize,
          TotalCount = totalCount
       };
    }
