@@ -63,12 +63,12 @@ export default function PlaylistItem({ video, isChild = false }: Props) {
           <button className="p-1.5 group/play hover:bg-neutral-300/10 rounded-full cursor-pointer">
             {video.isActive ? (
               <PauseIcon
-                className={`size-4 ${video.isActive ? 'text-neutral-300' : 'text-neutral-500'}
+                className={`size-4 stroke-[1.5px] ${video.isActive ? 'text-neutral-300' : 'text-neutral-500'}
                   group-hover/play:text-neutral-300`}
               />
             ) : (
               <PlayIcon
-                className={`size-4 ${video.isActive ? 'text-neutral-300' : 'text-neutral-500'}
+                className={`size-4 stroke-[1.5px] ${video.isActive ? 'text-neutral-300' : 'text-neutral-500'}
                   group-hover/play:text-neutral-300`}
               />
             )}
@@ -79,8 +79,8 @@ export default function PlaylistItem({ video, isChild = false }: Props) {
               cursor-pointer rounded-full"
           >
             <TrashIcon
-              className={`size-4 transition-colors ${video.isActive ? 'text-neutral-300' : 'text-neutral-500'}
-                group-hover/trash:text-red-500`}
+              className={`size-4 stroke-[1.5px] transition-colors
+                ${video.isActive ? 'text-neutral-300' : 'text-neutral-500'} group-hover/trash:text-red-500`}
             />
           </button>
 

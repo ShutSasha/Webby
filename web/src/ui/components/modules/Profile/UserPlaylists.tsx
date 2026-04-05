@@ -1,6 +1,6 @@
 'use client'
 
-import { useSearchUserPlaylistsQuery } from '@/lib/hooks/api/playlist/useSearchUserPlaylists' // Шлях до твого хука
+import { useSearchUserPlaylistsQuery } from '@/lib/hooks/api/playlist/useSearchUserPlaylists'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 
 import PlaylistItem, { PlaylistItemSkeleton } from '../Playlists/PlaylistItem'
