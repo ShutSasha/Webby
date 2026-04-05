@@ -145,15 +145,6 @@ public class VideoService : IVideoService
       {
          await _tagService.EnsureCreateTags(request.VideoTags, video.VideoId);
       }
-      
-      if (request.PlaylistId.HasValue)
-      {
-         await _playlistService.AttachVideoToPlaylist(
-            request.PlaylistId.Value,
-            [video.VideoId],
-            userId
-         );
-      }
    }
 
    public async Task DeleteVideo(Guid userId, Guid videoId)
@@ -305,6 +296,9 @@ public class VideoService : IVideoService
       {
          await _tagService.SyncVideoTags(video, request.VideoTags);
       }
+
+      if (!video.IsPublished)
+         video.IsPublished = true;
 
       await _videoRepository.Update(video);
    }
