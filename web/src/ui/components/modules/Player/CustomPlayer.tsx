@@ -290,7 +290,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     <div
       ref={playerContainerRef}
       onMouseMove={handleMouseMove}
-      onMouseLeave={() => playing && setShowCustomControls(false)}
+      onMouseLeave={() => playing && !showSettings && setShowCustomControls(false)}
       className={`group relative w-full bg-transparent overflow-hidden transition-all
         ${isFullScreen ? 'w-screen h-screen rounded-0' : 'aspect-video rounded-2xl'}
         ${!isPlatformMode && !showCustomControls ? 'cursor-none' : 'cursor-default'}`}
