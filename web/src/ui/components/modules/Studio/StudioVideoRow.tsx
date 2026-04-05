@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 
 import MoreVertical from '@/assets/icons/shared/more-vertical.svg'
 import { checkVideoUploadStatusAction } from '@/lib/actions/video.actions'
+import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
 import { useDeleteVideo } from '@/lib/hooks/api/video/useDeleteVideo'
 import { formatDate, formatVideoTime } from '@/lib/utils/date.utils'
 import { cn } from '@/lib/utils/general.utils'
@@ -96,10 +97,7 @@ export function StudioVideoRow({ video }: Props) {
       <div className="flex-1 flex gap-4 min-w-[300px]">
         <div className="relative w-32 aspect-video bg-neutral-800 rounded-lg overflow-hidden shrink-0">
           <Image
-            src={
-              video.previewUrl ||
-              'https://webby-watch-platform-bucket.s3.eu-north-1.amazonaws.com/videos/default_video_thumbnail.png'
-            }
+            src={video.previewUrl || DEFAULT_VIDEO_THUMBNAIL}
             alt="Video thumbnail"
             fill
             className={cn('object-cover transition-all', !isReady && 'opacity-40 grayscale-50')}
