@@ -35,15 +35,15 @@ export default function AnimatedTabsContainer({ currentTab }: Props) {
       ? [
           {
             label: 'All',
-            href: createQueryString('all'),
-            isActive: currentTab === 'all',
+            href: createQueryString('All'),
+            isActive: currentTab === 'All',
           },
           ...categories
-            .filter(category => category.name.toLowerCase() !== 'all')
+            .filter(category => category !== 'All')
             .map(category => ({
-              label: category.name,
-              href: createQueryString(category.name.toLowerCase()),
-              isActive: currentTab === category.name.toLowerCase(),
+              label: category,
+              href: createQueryString(category),
+              isActive: currentTab === category,
             })),
         ]
       : ROOM_TABS_CONFIG.map(config => ({

@@ -9,11 +9,7 @@ type Props = Readonly<{
 export default function Layout({ children }: Props) {
   return (
     <>
-      <MediaHeader
-        searchPlaceholder="Search a playlist"
-        actionSlot={<CreateRoomButton />}
-        pageToggle={<PageToggle />}
-      />
+      <MediaHeader searchPlaceholder="Search a room" actionSlot={<CreateRoomButton />} pageToggle={<PageToggle />} />
       {children}
     </>
   )
