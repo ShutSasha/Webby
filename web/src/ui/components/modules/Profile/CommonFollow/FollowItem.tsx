@@ -1,18 +1,32 @@
 import Link from 'next/link'
 
 import MailIcon from '@/assets/icons/ic_mail_with_background.svg'
-import TrashIcon from '@/assets/icons/ic_trash.svg'
 import SafeImage from '@/ui/components/shared/SafeImage'
 import { BLUR_DATA_URLS } from '@/ui/images'
+
+import UnfollowButton from './UnfollowButton'
 
 type Props = {
   userId: string
   avatarUrl: string
   followersCount: number
   username: string
+  isFollow: boolean
+  userProfileId: string
+  currentUserId?: string
 }
 
-export default function FollowItem({ userId, avatarUrl, followersCount, username }: Props) {
+export default function FollowItem({
+  userId,
+  avatarUrl,
+  followersCount,
+  username,
+  isFollow,
+  userProfileId,
+  currentUserId,
+}: Props) {
+  const isOwner = userProfileId === currentUserId
+
   return (
     <div
       className="bg-neutral-800 hover:bg-neutral-300/10 transition-all duration-200 ease-in rounded-xl p-2 flex
@@ -47,15 +61,7 @@ export default function FollowItem({ userId, avatarUrl, followersCount, username
               group-hover/mail:bg-emerald-500/20 transition-all duration-300 rounded-full"
           />
         </div>
-        <div className="relative group/trash cursor-pointer">
-          <TrashIcon
-            className="w-4.5 h-4.5 text-red-500/80 group-hover/trash:text-red-500/90 transition-all duration-300"
-          />
-          <div
-            className="absolute w-8 h-8 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2
-              group-hover/trash:bg-red-500/20 transition-all duration-300 rounded-full"
-          />
-        </div>
+        {isFollow && isOwner && <UnfollowButton targetId={userId} currentUserId={currentUserId} />}
       </div>
     </div>
   )

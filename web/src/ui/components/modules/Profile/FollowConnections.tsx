@@ -6,11 +6,7 @@ type FollowConnectionsProps = {
   followsCount: number
 }
 
-export default async function FollowConnections({
-  userId,
-  followersCount,
-  followsCount ,
-}: FollowConnectionsProps) {
+export default function FollowConnections({ userId, followersCount, followsCount }: FollowConnectionsProps) {
   const linkStyles = 'underline hover:text-emerald-400 transition-colors duration-300'
 
   return (

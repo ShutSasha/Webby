@@ -4,14 +4,15 @@ import SettingsIcon from '@/assets/icons/Profile/ic_settings.svg'
 
 export default function EditProfileBtn({ userId }: { userId: string }) {
   return (
-    <div className="flex group/settings self-end">
+    <div className="flex self-end">
       <Link
         href={`/profile/${userId}/profile-settings`}
-        className="flex items-center gap-2 py-2 px-3 border border-border text-sm rounded-full cursor-pointer
-          group-hover/settings:bg-emerald-400 transition-all duration-400 ease-in"
+        className="flex items-center gap-2 py-2 px-4 border border-neutral-700 text-sm rounded-full cursor-pointer
+          bg-transparent text-neutral-300 hover:text-white hover:border-neutral-500 hover:bg-neutral-800/50
+          transition-all duration-300 ease-out"
       >
-        <SettingsIcon className="w-4 h-4 group-hover/settings:text-neutral-900 transition-all duration-300 font-medium" />
-        <p className="group-hover/settings:text-neutral-900 transition-all duration-300 font-medium">Edit Profile</p>
+        <SettingsIcon className="w-4 h-4" />
+        <span className="font-medium">Edit Profile</span>
       </Link>
     </div>
   )

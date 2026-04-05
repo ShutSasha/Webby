@@ -8,7 +8,7 @@ import ExpandIcon from '@/assets/icons/Nav/arrow-right-from-line.svg'
 import { navDesktopElements } from '@/lib/placeholder-data/nav-side'
 import { cn } from '@/lib/utils/general.utils'
 
-import { DesktopNavElement } from './NavElements'
+import { DesktopNavElement } from './DesktopNavElement'
 import { UserProfile } from './UserProfile'
 import Modal from '../../shared/Modal'
 import Search from '../../shared/Search'
@@ -76,6 +76,7 @@ export default function DesktopNav() {
             {navDesktopElements.map(item => (
               <li key={item.key}>
                 <DesktopNavElement
+                  key={item.key}
                   href={item.href}
                   onClick={() => handleNavClick(item.action)}
                   text={item.text}

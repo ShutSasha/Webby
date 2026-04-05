@@ -2,6 +2,8 @@
 
 import { ReactNode } from 'react'
 
+import { cn } from '@/lib/utils/general.utils'
+
 interface Props {
   children: ReactNode
   label: string
@@ -13,13 +15,16 @@ export default function ActionButton({ children, label, onClick, btnClassName }:
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 bg-black/40 rounded-full transition-all duration-500 ease-in-out
-        cursor-pointer active:scale-90 group border border-transparent hover:border-neutral-700/70 text-nowrap
-        ${btnClassName}`}
+      className={cn(
+        'group flex items-center gap-2 shrink-0 px-3 py-2 md:px-4 md:py-2 rounded-full',
+        'transition-all duration-300 ease-out cursor-pointer text-nowrap',
+        'bg-transparent text-neutral-400',
+        'hover:bg-neutral-800 hover:text-neutral-100',
+        btnClassName,
+      )}
     >
       {children}
-
-      <span className="text-neutral-200 text-sm leading-none">{label}</span>
+      <span className="text-sm font-medium leading-none">{label}</span>
     </button>
   )
 }

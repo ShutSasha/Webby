@@ -1,18 +1,25 @@
 'use client'
 
-import MediaButton from '../../shared/MediaButton'
+import Link from 'next/link'
+
+import PlusIcon from '@/assets/icons/ic_plus_create.svg'
+import { cn } from '@/lib/utils/general.utils'
 
 export default function CreateVideoButton() {
-  const handleClick = () => {
-    alert('Create video logic here')
-  }
-
   return (
-    <MediaButton actionLabel="Create a video">
-      <h3 className="text-neutral-300 text-center mb-2">Create a video</h3>
-      <button className="bg-emerald-500 text-neutral-900" onClick={handleClick}>
-        click me
-      </button>
-    </MediaButton>
+    <Link
+      href={'/videos/create'}
+      className={cn(
+        'flex items-center gap-2 shrink-0 cursor-pointer order-3',
+        'bg-neutral-800 text-neutral-200',
+        'text-sm font-semibold px-5 py-2.5 rounded-full',
+        'transition-all duration-300 ease-out',
+        'hover:bg-neutral-700/40',
+        'shadow-none',
+      )}
+    >
+      <PlusIcon className="h-4 w-4 text-neutral-200" aria-hidden="true" />
+      Create
+    </Link>
   )
 }

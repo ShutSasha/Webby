@@ -109,7 +109,18 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
          .ToListAsync();
 
       return (items, total);
-}  
+   }
+
+   public async Task UpdateVideoFileMetaData(Guid videoId, string videoFileUrl, long duration)
+   {
+      await _context.Videos
+         .Where(v => v.VideoId == videoId)
+         .ExecuteUpdateAsync(s => s
+            .SetProperty(v => v.VideoUrl, videoFileUrl)
+            .SetProperty(v => v.Duration, duration)
+         );
+   }
+
 
    public async Task<bool> FindUserView(Guid userId, Guid videoId) 
       => await _context.UserViews.AnyAsync(uv => uv.UserId == userId && uv.VideoId == videoId);

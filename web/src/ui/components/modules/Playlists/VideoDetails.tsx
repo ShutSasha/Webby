@@ -7,19 +7,19 @@ import { getVideoInfo } from '@/lib/actions/video.actions'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import SaveToPlaylistButton from './SaveToPlaylistBtn/SaveToPlaylistButton'
+import ComplaintButton from '../../shared/ComplaintButton'
 import CustomPlayer from '../Player/CustomPlayer'
-import ComplaintButton from '../Profile/ComplaintButton'
 import FollowButton from '../Profile/FollowButton'
 import VideoDescription from '../Videos/VideoDescription'
 import VideoNotFound from '../Videos/VideoNotFound'
 
 type Props = {
   v: string | undefined
-  userId: string | undefined
+  currentUserId: string | undefined
   playlistId?: string
 }
 
-export default async function VideoDetails({ v, userId, playlistId }: Props) {
+export default async function VideoDetails({ v, currentUserId, playlistId }: Props) {
   if (!v) {
     return <VideoNotFound />
   }
@@ -37,17 +37,16 @@ export default async function VideoDetails({ v, userId, playlistId }: Props) {
     return <VideoNotFound />
   }
 
-  const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate } = video.data
-  const isOwner = userId === user.userId
+  const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate, videoTags } = video.data
+  const isOwner = currentUserId === user.userId
 
-  if (isPrivate) {
+  if (isPrivate && !isOwner) {
     return <VideoNotFound />
   }
 
   return (
     <div className="h-fit min-w-0 w-full">
       <CustomPlayer videoUrl={videoUrl} />
-
       <div className="flex items-start justify-between mt-3 mb-2">
         <div className="flex flex-col gap-0.5">
           <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
@@ -59,12 +58,11 @@ export default async function VideoDetails({ v, userId, playlistId }: Props) {
           )}
         </div>
         <div className="flex gap-3 items-center">
-          {userId && <SaveToPlaylistButton userId={userId} videoId={videoId} />}
+          {currentUserId && <SaveToPlaylistButton userId={currentUserId} videoId={videoId} />}
 
-          <ComplaintButton authorId={userId} targetId={videoId} targetType="Video" />
+          <ComplaintButton authorId={currentUserId} targetId={videoId} targetType="Video" />
         </div>
       </div>
-
       <div className="flex items-center gap-3">
         <Link href={`/profile/${user.userId}`} className="flex items-center gap-3">
           <Image
@@ -79,10 +77,11 @@ export default async function VideoDetails({ v, userId, playlistId }: Props) {
           />
           <p className="text-[16px] font-medium">{user.username}</p>
         </Link>
-        {!isOwner && <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} />}
+        {!isOwner && (
+          <FollowButton targetUserId={user.userId} initialIsFollowing={user.isFollowed} currentUserId={currentUserId} />
+        )}
       </div>
-
-      <VideoDescription text={description ?? ''} views={views} date={createdAt} />
+      <VideoDescription text={description ?? ''} views={views} date={createdAt} videoTags={videoTags} />
     </div>
   )
 }

@@ -10,8 +10,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import TrashIcon from '@/assets/icons/ic_trash.svg'
 import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
+import { useTogglePlaylistVideoMutation } from '@/lib/hooks/api/playlist/useTogglePlaylistVideo'
 import { cn } from '@/lib/utils/general.utils'
 import { usePlayerPlayStore } from '@/stores/player.store'
+import { useToastStore } from '@/stores/toast-store'
 
 interface Props {
   id: string
@@ -20,11 +22,23 @@ interface Props {
   playlistId: string
   optimisticId: string | null
   onOptimisticClick: () => void
+  isOwner: boolean
+  userId: string
 }
 
-export default function VideoItem({ id, title, thumbnail, playlistId, optimisticId, onOptimisticClick }: Props) {
+export default function VideoItem({
+  id,
+  title,
+  thumbnail,
+  playlistId,
+  optimisticId,
+  onOptimisticClick,
+  isOwner,
+  userId,
+}: Props) {
   const playing = usePlayerPlayStore(state => state.playing)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
+  const addToast = useToastStore(state => state.addToast)
   const router = useRouter()
   const searchParams = useSearchParams()
   const actualVideoId = searchParams.get('v')
@@ -35,6 +49,23 @@ export default function VideoItem({ id, title, thumbnail, playlistId, optimistic
   const isActive = isActuallyActive || isOptimisticallyActive
 
   const isLoading = isOptimisticallyActive && !isActuallyActive
+
+  const { mutate: toggleVideo, isPending } = useTogglePlaylistVideoMutation(userId)
+
+  const handleToggle = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+
+    if (isPending) return
+
+    toggleVideo(
+      { playlistId, videoId: id },
+      {
+        onError: () => {
+          addToast(`Failed to delete video in playlist`, 'error')
+        },
+      },
+    )
+  }
 
   const handlePlayPause = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -70,6 +101,7 @@ export default function VideoItem({ id, title, thumbnail, playlistId, optimistic
           duration-300 border-b-2 border-transparent group cursor-pointer`,
           isActuallyActive && 'border-emerald-500 bg-neutral-800',
           isOptimisticallyActive && 'border-amber-500 bg-neutral-800',
+          !isOwner && 'gap-2',
         )}
         scroll={false}
       >
@@ -119,16 +151,22 @@ export default function VideoItem({ id, title, thumbnail, playlistId, optimistic
               />
             )}
           </button>
-
-          <button
-            className="group/trash p-1.5 text-neutral-500 hover:text-red-500 transition-colors hover:bg-red-500/10
-              cursor-pointer rounded-full"
-          >
-            <TrashIcon
-              className={`size-4 transition-colors ${isActive ? 'text-neutral-300' : 'text-neutral-500'}
-                group-hover/trash:text-red-500`}
-            />
-          </button>
+          {isOwner && (
+            <button
+              className="group/trash p-1.5 text-neutral-500 hover:text-red-500 transition-colors hover:bg-red-500/10
+                cursor-pointer rounded-full"
+              onClick={handleToggle}
+            >
+              {isPending ? (
+                <div className="size-4 border-2 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
+              ) : (
+                <TrashIcon
+                  className={`size-4 transition-colors ${isActive ? 'text-neutral-300' : 'text-neutral-500'}
+                    group-hover/trash:text-red-500`}
+                />
+              )}
+            </button>
+          )}
         </div>
       </Link>
     </motion.div>

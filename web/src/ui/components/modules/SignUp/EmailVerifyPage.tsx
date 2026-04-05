@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { OTPInput, SlotProps } from 'input-otp'
 import Link from 'next/link'
 
-import $api from '@/lib/api/api.config'
+import $api from '@/lib/config/api.config'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { useResendTimer } from '@/lib/hooks/useResendTimer'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'

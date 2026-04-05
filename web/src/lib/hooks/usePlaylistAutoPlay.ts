@@ -11,9 +11,20 @@ type UsePlaylistAutoPlayProps = {
   currentV: string | null
   playlistId: string
   setOptimisticId: (id: string | null) => void
+  hasNextQueuePage?: boolean
+  fetchNextQueuePage?: () => void
+  isFetchingQueue?: boolean
 }
 
-export function usePlaylistAutoPlay({ videos, currentV, playlistId, setOptimisticId }: UsePlaylistAutoPlayProps) {
+export function usePlaylistAutoPlay({
+  videos,
+  currentV,
+  playlistId,
+  setOptimisticId,
+  hasNextQueuePage,
+  fetchNextQueuePage,
+  isFetchingQueue,
+}: UsePlaylistAutoPlayProps) {
   const router = useRouter()
   const endedSignal = usePlayerPlayStore(state => state.endedSignal)
 
@@ -22,6 +33,17 @@ export function usePlaylistAutoPlay({ videos, currentV, playlistId, setOptimisti
   useEffect(() => {
     latestVideos.current = videos
   }, [videos])
+
+  useEffect(() => {
+    if (!currentV || videos.length === 0) return
+    if (!hasNextQueuePage || !fetchNextQueuePage || isFetchingQueue) return
+
+    const currentIndex = videos.findIndex(v => v.videoId === currentV)
+
+    if (currentIndex !== -1 && currentIndex >= videos.length - 3) {
+      fetchNextQueuePage()
+    }
+  }, [currentV, videos.length, hasNextQueuePage, fetchNextQueuePage, isFetchingQueue, videos])
 
   useEffect(() => {
     if (endedSignal === 0) return

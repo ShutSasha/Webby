@@ -1,10 +1,9 @@
 'use server'
 
-import $api from '@/lib/api/api.config'
+import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse, Optional } from '@/types/general.types'
-
-import { Video } from './video.actions'
+import { Video } from '@/types/video.types'
 
 const endpoint = '/playlists'
 
@@ -134,7 +133,7 @@ export async function searchPlaylists(
   }
 }
 
-export type UserPlaylistsSearchData = PaginatedData<BasePlaylist>
+export type UserPlaylistsSearchData = PaginatedData<UserPlaylistDetails>
 
 export async function searchUserPlaylists(
   userId: string,
@@ -207,6 +206,23 @@ export async function checkVideoInPlaylist(
       data: null,
       success: false,
       message: `Failed to check video in playlist`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function deletePlaylist(playlistId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(`${endpoint}/${playlistId}`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('DELETE_PLAYLIST_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to delete the playlist`,
       errors: parseAxiosError(error),
     }
   }

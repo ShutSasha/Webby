@@ -9,6 +9,7 @@ type Props = {
   text: string
   views: number
   date: string
+  videoTags?: string[] | null
 }
 
 export default function VideoDescription(props: Props) {
@@ -22,23 +23,34 @@ export default function VideoDescription(props: Props) {
       const hasOverflow = element.scrollHeight > element.clientHeight
       setIsTruncated(hasOverflow)
     }
-  }, [props.text])
+  }, [props.text, props.videoTags])
 
   return (
     <div className="flex flex-col gap-2 rounded-xl bg-black/40 p-3 mt-4 overflow-hidden">
       <p className="text-sm font-bold text-neutral-300">
-        {props.views} {props.views > 1 ? 'views' : 'view'} | {formatDate(props.date)}
+        {props.views} {props.views === 1 ? 'view' : 'views'} | {formatDate(props.date)}
       </p>
 
       <div className="relative">
         <p
           ref={textRef}
           className={cn(
-            'text-sm text-neutral-300 break-all leading-relaxed transition-all',
+            'text-sm text-neutral-300 wrap-break-word whitespace-pre-wrap leading-relaxed transition-all',
             !isExpanded && 'line-clamp-3',
           )}
         >
           {props.text}
+
+          {props.videoTags && props.videoTags.length > 0 && (
+            <>
+              {'\n\n'}
+              {props.videoTags.map(tag => (
+                <span key={tag} className="text-neutral-500 font-medium mr-2 transition-colors">
+                  #{tag}
+                </span>
+              ))}
+            </>
+          )}
         </p>
 
         {(isTruncated || isExpanded) && (

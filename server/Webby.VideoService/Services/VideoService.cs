@@ -165,9 +165,17 @@ public class VideoService : IVideoService
       {
          throw new ApiException("Delete video error", 403, "You can't delete this video");
       }
+
+      if (!string.IsNullOrEmpty(video.VideoUrl))
+      {
+         await _storageService.DeleteFileAsync(video.VideoUrl);
+      }
+
+      if (!string.IsNullOrEmpty(video.PreviewUrl))
+      {
+         await _storageService.DeleteFileAsync(video.PreviewUrl);
+      }
       
-      await _storageService.DeleteFileAsync(video.VideoUrl);
-      await _storageService.DeleteFileAsync(video.PreviewUrl);
       await _videoRepository.DeleteAsync(videoId);
    }
 

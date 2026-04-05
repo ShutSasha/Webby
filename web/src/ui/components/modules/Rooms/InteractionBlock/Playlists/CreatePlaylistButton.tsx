@@ -2,7 +2,7 @@
 import { ChangeEvent, FormEvent, useState } from 'react'
 
 import EditPenIcon from '@/assets/icons/shared/edit-pen.svg'
-import { useCreatePlaylist } from '@/lib/hooks/useCreatePlaylist'
+import { useCreatePlaylist } from '@/lib/hooks/api/playlist/useCreatePlaylist'
 import Button from '@/ui/components/shared/Button'
 import Input from '@/ui/components/shared/Input'
 import MediaButton from '@/ui/components/shared/MediaButton'
@@ -30,7 +30,7 @@ export default function CreatePlaylistButton() {
   }
 
   return (
-    <MediaButton actionLabel="Create a playlist" isOpen={isModalOpen} setIsOpen={setIsModalOpen}>
+    <MediaButton isOpen={isModalOpen} setIsOpen={setIsModalOpen}>
       <form className="flex flex-col" onSubmit={handleSubmit}>
         <h3 className="text-neutral-300 text-center mb-4 font-semibold text-xl">Create a new playlist</h3>
 

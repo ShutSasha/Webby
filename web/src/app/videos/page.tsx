@@ -1,21 +1,18 @@
-import MainLayout from '@/ui/components/layouts/MainLayout'
-import VideoCard from '@/ui/components/modules/Videos/VideoCard'
 import VideoPageHeader from '@/ui/components/modules/Videos/VideoPageHeader'
-import GridCardsContainer from '@/ui/components/shared/GridCardsContainer'
+import VideosPublicSearchContainer from '@/ui/components/modules/Videos/VideosPublicSearchContainer'
 
-export default function VideosPage() {
+type Props = {
+  searchParams: Promise<{ query?: string }>
+}
+
+export default async function VideosPage({ searchParams }: Props) {
+  const { query } = await searchParams
+  const safeQuery = query || ''
+
   return (
-    <MainLayout>
-      <div className="flex flex-col w-full bg-neutral-900 rounded-[20px] p-5 gap-4 box-border">
-        <VideoPageHeader />
-
-        {/* Room list goes here */}
-        <GridCardsContainer>
-          {Array.from({ length: 10 }).map((_, index) => (
-            <VideoCard key={index} />
-          ))}
-        </GridCardsContainer>
-      </div>
-    </MainLayout>
+    <>
+      <VideoPageHeader />
+      <VideosPublicSearchContainer query={safeQuery} />
+    </>
   )
 }

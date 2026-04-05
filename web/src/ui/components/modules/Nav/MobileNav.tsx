@@ -4,7 +4,7 @@ import { navMobileElements } from '@/lib/placeholder-data/nav-side'
 import { useCommonStore } from '@/stores/common.store'
 
 import MobileDrawer from './MobileDrawer'
-import { MobileNavElement } from './NavElements'
+import { MobileNavElement } from './MobileNavElement'
 
 export default function MobileNav() {
   const isMobileNavOpen = useCommonStore(state => state.isMobileNavOpen)

@@ -1,33 +1,34 @@
 import { Suspense } from 'react'
 
-import ProfileTab from '@/ui/components/modules/Profile/ProfileTab'
+import { ALLOWED_PROFILE_TABS, PROFILE_TABS_CONFIG, ProfileTabValue } from '@/lib/constants/profile.constants'
 import UserPlaylists, { UserPlaylistsSkeleton } from '@/ui/components/modules/Profile/UserPlaylists'
 import UserVideos, { UserVideosSkeleton } from '@/ui/components/modules/Profile/UserVideos'
+import AnimatedTabs from '@/ui/components/shared/AnimatedTabs'
 
 type ProfileProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-type Tab = 'Video' | 'Playlist'
-const allowedTabs = ['Video', 'Playlist'] as const
-
 export default async function Profile({ searchParams }: ProfileProps) {
   const { tab } = await searchParams
-  const currentTab = allowedTabs.includes(tab as Tab) ? tab : 'Video'
+  const currentTab = ALLOWED_PROFILE_TABS.includes(tab as ProfileTabValue) ? (tab as ProfileTabValue) : 'video'
+
+  const profileTabs = PROFILE_TABS_CONFIG.map(config => ({
+    label: config.label,
+    href: `?tab=${config.value}`,
+    isActive: currentTab === config.value,
+  }))
 
   return (
     <div className="bg-neutral-900 rounded-[20px] p-5 flex flex-col gap-5">
-      <div className="flex gap-2 items-center">
-        <ProfileTab label="Video" />
-        <ProfileTab label="Playlist" />
-      </div>
+      <AnimatedTabs tabs={profileTabs} layoutId="profile-tabs" linkClassName="py-1" />
 
-      {currentTab === 'Video' && (
+      {currentTab === 'video' && (
         <Suspense fallback={<UserVideosSkeleton />}>
           <UserVideos />
         </Suspense>
       )}
-      {currentTab === 'Playlist' && (
+      {currentTab === 'playlist' && (
         <Suspense fallback={<UserPlaylistsSkeleton />}>
           <UserPlaylists />
         </Suspense>

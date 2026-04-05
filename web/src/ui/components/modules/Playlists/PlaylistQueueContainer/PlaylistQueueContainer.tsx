@@ -1,12 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'next/navigation'
+import { useDebouncedCallback } from 'use-debounce'
 
-import { getPlaylistVideos, PlaylistVideo } from '@/lib/actions/playlist.actions'
-import { useInfiniteSearch } from '@/lib/hooks/useInfiniteSearch'
+import { useSearchPlaylistVideosQuery } from '@/lib/hooks/api/playlist/useSearchPlaylistVideos'
+import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import { usePlaylistAutoPlay } from '@/lib/hooks/usePlaylistAutoPlay'
 import VideoItem from '@/ui/components/modules/Playlists/VideoItem'
 
@@ -19,38 +20,61 @@ type Props = {
   playlistId: string
   hiddenVideosCount: number
   playlistName: string
+  authorId: string
+  guestUserId: string | undefined
 }
 
-export default function PlaylistQueueContainer({ playlistId, hiddenVideosCount, playlistName }: Props) {
+export default function PlaylistQueueContainer({
+  playlistId,
+  hiddenVideosCount,
+  playlistName,
+  authorId,
+  guestUserId,
+}: Props) {
   const searchParams = useSearchParams()
   const currentV = searchParams.get('v')
   const [optimisticId, setOptimisticId] = useState<string | null>(null)
 
-  const fetchVideosFn = useCallback(
-    (query: string, page: number, pageSize: number) => {
-      return getPlaylistVideos(playlistId, query, page, pageSize)
-    },
-    [playlistId],
-  )
+  const [query, setQuery] = useState('')
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setQuery(value)
+  }, 400)
 
   const {
-    items: videos,
-    loading,
-    fetchingMore,
-    hasMore,
-    appliedQuery,
-    lastElementRef,
-    handleSearchChange,
-  } = useInfiniteSearch<PlaylistVideo>({
-    fetchFn: fetchVideosFn,
-    pageSize: 20,
+    data: searchData,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useSearchPlaylistVideosQuery(playlistId, query)
+
+  const uiVideos = searchData?.pages.flatMap(page => page?.data?.items || []) || []
+
+  const {
+    data: queueData,
+    hasNextPage: hasNextQueuePage,
+    fetchNextPage: fetchNextQueuePage,
+    isFetchingNextPage: isFetchingQueue,
+  } = useSearchPlaylistVideosQuery(playlistId, '')
+
+  const queueVideos = queueData?.pages.flatMap(page => page?.data?.items || []) || []
+
+  const lastElementRef = useInfiniteScroll({
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
   })
 
   usePlaylistAutoPlay({
-    videos,
+    videos: queueVideos,
     currentV,
     playlistId,
     setOptimisticId,
+    hasNextQueuePage,
+    fetchNextQueuePage,
+    isFetchingQueue,
   })
 
   useEffect(() => {
@@ -58,17 +82,17 @@ export default function PlaylistQueueContainer({ playlistId, hiddenVideosCount, 
   }, [currentV])
 
   return (
-    <div className="w-[300px] xl:w-[320px] 2xl:w-[368px] flex flex-col h-[90vh] shrink-0">
+    <div className="w-[300px] xl:w-[320px] 2xl:w-[388px] flex flex-col h-[90vh] shrink-0">
       <PlaylistContainerHeader playlistName={playlistName} hiddenVideosCount={hiddenVideosCount} />
-      <Search loading={loading} handleSearchChange={handleSearchChange} />
+      <Search loading={isLoading} handleSearchChange={debouncedSearch} />
       <QueueContainer>
-        {loading && videos.length === 0 ? (
+        {isLoading && uiVideos.length === 0 ? (
           <p className="text-center text-neutral-500 py-10">Loading queue...</p>
         ) : (
           <>
             <AnimatePresence mode="popLayout">
-              {videos.map((video, index) => {
-                const isLast = videos.length === index + 1
+              {uiVideos.map((video, index) => {
+                const isLast = uiVideos.length === index + 1
                 const item = (
                   <VideoItem
                     key={video.videoId}
@@ -78,6 +102,8 @@ export default function PlaylistQueueContainer({ playlistId, hiddenVideosCount, 
                     playlistId={playlistId}
                     optimisticId={optimisticId}
                     onOptimisticClick={() => setOptimisticId(video.videoId)}
+                    isOwner={guestUserId === authorId}
+                    userId={guestUserId || ''}
                   />
                 )
 
@@ -93,11 +119,11 @@ export default function PlaylistQueueContainer({ playlistId, hiddenVideosCount, 
             </AnimatePresence>
 
             <PlaylistQueueFooter
-              fetchingMore={fetchingMore}
-              hasMore={hasMore}
-              videosLength={videos.length}
-              loading={loading}
-              appliedQuery={appliedQuery}
+              fetchingMore={isFetchingNextPage}
+              hasMore={hasNextPage}
+              videosLength={uiVideos.length}
+              loading={isLoading}
+              appliedQuery={query}
             />
           </>
         )}

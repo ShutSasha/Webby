@@ -12,4 +12,13 @@ interface BaseServerResponse<T = any> {
   success: boolean
 }
 
-export { type FormActionState, type BaseServerResponse }
+type PaginatedData<T> = {
+  items: T[]
+  page: number
+  pageSize: number
+  totalCount: number
+}
+
+type Platform = 'Webby' | 'Youtube' | 'Twitch'
+
+export { type FormActionState, type BaseServerResponse, type PaginatedData, type Platform }

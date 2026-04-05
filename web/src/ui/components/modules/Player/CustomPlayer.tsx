@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import ReactPlayer from 'react-player'
 
@@ -23,7 +23,7 @@ type PlayerProps = {
 }
 
 export default function CustomPlayer({ videoUrl }: PlayerProps) {
-  const playerRef = useRef<HTMLVideoElement | null>(null)
+  const playerRef = useRef<HTMLVideoElement>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
   const isMounted = useIsClient()
 
@@ -31,6 +31,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [prevVolume, setPrevVolume] = useState(1)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const toggleThrottleRef = useRef<NodeJS.Timeout | null>(null)
   const [showCustomControls, setShowCustomControls] = useState(true)
   const isPlatformMode = usePlayerControls(videoUrl)
 
@@ -39,11 +40,6 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
   const baseUserVolume = usePlayerStore(state => state.baseVolume)
   const setBaseUserVolume = usePlayerStore(state => state.setBaseVolume)
-
-  const setPlayerRef = useCallback((player: HTMLVideoElement) => {
-    if (!player) return
-    playerRef.current = player
-  }, [])
 
   const triggerEnded = usePlayerPlayStore(state => state.triggerEnded)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
@@ -63,13 +59,15 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     loadedSeconds: 0,
     playedSeconds: 0,
     showSettings: false,
+    buffering: true,
+    isReady: false,
   }
 
   type PlayerState = typeof initialState
 
   const [state, setState] = useState<PlayerState>(initialState)
 
-  const { light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings } = state
+  const { light, muted, loop, played, loaded, duration, playbackRate, pip, showSettings, buffering, isReady } = state
 
   useEffect(() => {
     setState(prev => ({
@@ -108,7 +106,13 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       }
     }
 
+    if (toggleThrottleRef.current) return
+
     togglePlay()
+
+    toggleThrottleRef.current = setTimeout(() => {
+      toggleThrottleRef.current = null
+    }, 300)
   }
 
   const handleSetPlaybackRate = (event: React.SyntheticEvent<HTMLButtonElement>) => {
@@ -138,12 +142,19 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const handleProgress = () => {
     const player = playerRef.current
     // We only want to update time slider if we are not currently seeking
-    if (!player || state.seeking || !player.buffered?.length) return
+    if (!player || state.seeking) return
+
+    const buffered = player.buffered
+
+    if (!buffered || buffered.length === 0) return
+
+    const lastIndex = buffered.length - 1
+    const loadedSeconds = buffered.end(lastIndex)
 
     setState(prevState => ({
       ...prevState,
-      loadedSeconds: player.buffered?.end(player.buffered?.length - 1),
-      loaded: player.buffered?.end(player.buffered?.length - 1) / player.duration,
+      loadedSeconds,
+      loaded: player.duration ? loadedSeconds / player.duration : 0,
     }))
   }
 
@@ -279,14 +290,14 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     <div
       ref={playerContainerRef}
       onMouseMove={handleMouseMove}
-      onMouseLeave={() => playing && setShowCustomControls(false)}
+      onMouseLeave={() => playing && !showSettings && setShowCustomControls(false)}
       className={`group relative w-full bg-transparent overflow-hidden transition-all
         ${isFullScreen ? 'w-screen h-screen rounded-0' : 'aspect-video rounded-2xl'}
         ${!isPlatformMode && !showCustomControls ? 'cursor-none' : 'cursor-default'}`}
     >
       <ReactPlayer
         className="react-player"
-        ref={setPlayerRef}
+        ref={playerRef}
         playing={playing}
         controls={isPlatformMode}
         width="100%"
@@ -313,29 +324,84 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
             setBaseUserVolume(volume)
           }
         }}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
+        onReady={() => {
+          const videoElement = playerRef.current
+
+          if (videoElement) {
+            const isActuallyLoaded = videoElement.readyState >= 3
+
+            setState(prev => ({
+              ...prev,
+              buffering: !isActuallyLoaded,
+              isReady: isActuallyLoaded,
+            }))
+
+            videoElement.onwaiting = () => setState(prev => ({ ...prev, buffering: true }))
+            videoElement.onloadeddata = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
+            videoElement.onplaying = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
+            videoElement.oncanplay = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
+          }
+        }}
+        onPlay={() => {
+          if (playerRef.current?.paused) return
+
+          setPlaying(true)
+          setState(prev => ({ ...prev, buffering: false }))
+        }}
+        onPause={() => {
+          if (!playerRef.current?.paused) return
+
+          setPlaying(false)
+        }}
         onEnded={() => {
           triggerEnded()
         }}
-        onError={() => setPlaying(false)}
+        onError={(e: any) => {
+          if (e?.name === 'AbortError') {
+            console.warn('Play interrupted safely. (AbortError)')
+            setPlaying(false)
+            return
+          }
+
+          if (e?.name === 'NotAllowedError') {
+            console.warn('Autoplay prevented by browser. User must click play.')
+            setPlaying(false)
+            return
+          }
+
+          const target = e?.target as HTMLVideoElement | undefined
+          if (target?.error) {
+            console.error('Video Media Error. Code:', target.error.code, 'Message:', target.error.message)
+            return
+          }
+
+          console.error('Unhandled ReactPlayer Error:', e)
+        }}
       />
 
+      {(!isReady || buffering) && (
+        <div className="absolute inset-0 z-1 flex items-center justify-center pointer-events-none bg-black/40">
+          <div className="w-16 h-16 border-6 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+        </div>
+      )}
+
       {/* Overlay */}
-      {!isPlatformMode && (
+      {isReady && !isPlatformMode && (
         <div
           className={`absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent transition-opacity
           duration-400 ease-in-out ${showCustomControls ? 'opacity-100' : 'opacity-0'}`}
           onClick={handlePlayPause}
         >
           {/* Play button on the overlay */}
-          <div
-            className={`${playing === false ? 'opacity-100' : 'opacity-0'} absolute w-12 h-12 md:w-18 md:h-18
-            bg-black/15 rounded-full top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center justify-center
-            pl-1 transition-opacity duration-400 ease-in-out`}
-          >
-            <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-white/70" />
-          </div>
+          {!buffering && (
+            <div
+              className={`${playing === false ? 'opacity-100' : 'opacity-0'} absolute w-12 h-12 md:w-18 md:h-18
+              bg-black/40 rounded-full top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center
+              justify-center pl-1 transition-opacity duration-400 ease-in-out`}
+            >
+              <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-white/90" />
+            </div>
+          )}
 
           {/* Settings Menu Popup */}
           {showSettings && (
@@ -369,7 +435,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
           {/* Controls */}
           <div
             onClick={e => e.stopPropagation()}
-            className={`absolute bottom-3 left-3 right-3 flex flex-col gap-2 transition-transform duration-500
+            className={`absolute z-2 bottom-3 left-3 right-3 flex flex-col gap-2 transition-transform duration-500
             ${showCustomControls ? 'translate-y-0' : 'translate-y-10 pointer-events-none'}`}
           >
             {/* Progress Bar Container */}
@@ -427,13 +493,13 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
                 <button onClick={handlePlayPause} className="cursor-pointer">
                   {playing ? (
                     <PauseIcon
-                      className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out
-                        transition-colors"
+                      className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors
+                        stroke-[1.5px]"
                     />
                   ) : (
                     <PlayIcon
-                      className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out
-                        transition-colors"
+                      className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors
+                        stroke-[1.5px]"
                     />
                   )}
                 </button>
@@ -449,17 +515,20 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
                   <button onClick={toggleMute} className="cursor-pointer">
                     {baseUserVolume >= 0.5 && (
                       <MaxVolume
-                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
+                          stroke-[1.5px]"
                       />
                     )}
                     {baseUserVolume < 0.5 && baseUserVolume > 0 && (
                       <MinVolume
-                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
+                          stroke-[1.5px]"
                       />
                     )}
                     {baseUserVolume === 0 && (
                       <MutedVolume
-                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors"
+                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
+                          stroke-[1.5px]"
                       />
                     )}
                   </button>
@@ -497,13 +566,14 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
               <div className="flex items-center gap-3">
                 <button type="button" onClick={toggleSettings} className={'cursor-pointer group/settings'}>
                   <SettingsIcon
-                    className={`w-6 h-6 transition-colors duration-300
+                    className={`w-6 h-6 transition-colors duration-300 stroke-[1.5px]
                     ${showSettings ? 'text-emerald-500 rotate-45' : 'text-neutral-300 group-hover/settings:text-emerald-500'}`}
                   />
                 </button>
                 <button type="button" onClick={toggleFullScreen} className="cursor-pointer group/fullscreen">
                   <FullscreenIcon
-                    className="text-neutral-300 w-6 h-6 group-hover/fullscreen:text-emerald-500 transition-colors"
+                    className="text-neutral-300 w-6 h-6 group-hover/fullscreen:text-emerald-500 transition-colors
+                      stroke-[1.5px]"
                   />
                 </button>
               </div>

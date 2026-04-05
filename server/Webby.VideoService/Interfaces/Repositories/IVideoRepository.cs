@@ -15,6 +15,7 @@ public interface IVideoRepository : IRepository<Video>
       int skip,
       int take);
 
+   Task UpdateVideoFileMetaData(Guid videoId, string videoFileUrl, long duration);
    Task<bool> FindUserView(Guid userId, Guid videoId);
    Task AddUserView(UserView userView);
    Task<int> CountUserView(Guid videoId);

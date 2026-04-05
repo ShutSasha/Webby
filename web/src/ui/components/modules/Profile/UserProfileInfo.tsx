@@ -9,7 +9,7 @@ import UserBioSection from '@/ui/components/modules/Profile/UserBioSection'
 import { BLUR_DATA_URLS } from '@/ui/images'
 import { auth } from '@/workspace/auth'
 
-import ComplaintButton from './ComplaintButton'
+import ComplaintButton from '../../shared/ComplaintButton'
 import FollowButton from './FollowButton'
 import ActionButton from '../../shared/ActionButton'
 import EmptyState from '../../shared/EmptyState'
@@ -34,51 +34,53 @@ export default async function UserProfileInfo({ id }: { id: string }) {
 
   return (
     <div className="bg-neutral-900 rounded-[20px] p-5 flex flex-col md:flex-row justify-between gap-4">
-      {/* Left Part of user profle*/}
       <div className="flex flex-col gap-4">
-        <div className="flex gap-4">
-          <Image
-            src={userData.user.avatarUrl}
-            alt=""
-            width={300}
-            height={300}
-            placeholder="blur"
-            blurDataURL={BLUR_DATA_URLS['neutral800']}
-            className={cn(
-              'aspect-square rounded-full object-cover shrink-0 transition-all duration-500',
-              'size-20',
-              isOwner ? 'md:size-[175px]' : 'md:size-[125px]',
-            )}
-            preload
-            loading="eager"
-          />
+        <div className="flex items-start justify-between">
+          <div className="flex gap-4">
+            <Image
+              src={userData.user.avatarUrl}
+              alt=""
+              width={300}
+              height={300}
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URLS['neutral800']}
+              className={cn(
+                'aspect-square rounded-full object-cover shrink-0 transition-all duration-500',
+                'size-20',
+                isOwner ? 'md:size-[175px]' : 'md:size-[125px]',
+              )}
+              preload
+              loading="eager"
+            />
 
-          <UserBioSection
-            userId={id}
-            username={userData.user.username}
-            bio={userData.user.about}
-            followersCount={userData.userFollowStats.followers}
-            followsCount={userData.userFollowStats.following}
-          />
+            <UserBioSection userId={id} initialUserData={userData} />
+          </div>
+          {session?.user.id === id && (
+            <div className="block md:hidden">
+              <EditProfileBtn userId={id} />
+            </div>
+          )}
         </div>
 
         {!isOwner && (
           <div className="flex items-center gap-2">
+            <FollowButton targetUserId={id} initialIsFollowing={isFollowing} currentUserId={session?.user.id} />
+
             <ActionButton label="Chat">
               <MailIcon className="w-4 h-4" />
             </ActionButton>
-
-            <FollowButton targetUserId={id} initialIsFollowing={isFollowing} />
           </div>
         )}
       </div>
 
-      {/* Right Part of user profile*/}
       <div className="flex flex-col gap-2">
-        {session?.user.id === id && <EditProfileBtn userId={id} />}
-        {session && session?.user.id !== id && (
-          <ComplaintButton authorId={session.user.id} targetId={id} targetType="User" />
+        {isOwner && (
+          <div className="hidden md:flex self-end">
+            <EditProfileBtn userId={id} />
+          </div>
         )}
+
+        {session && !isOwner && <ComplaintButton authorId={session.user.id} targetId={id} targetType="User" />}
 
         {userData.pinnedUserAchievements.length > 0 && (
           <UserAchievements achivements={userData.pinnedUserAchievements} />
