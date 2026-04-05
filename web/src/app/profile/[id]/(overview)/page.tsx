@@ -37,7 +37,7 @@ export default async function Profile({ searchParams, params }: ProfileProps) {
       )}
       {currentTab === 'playlist' && (
         <Suspense fallback={<UserPlaylistsSkeleton />}>
-          <UserPlaylists userId={id}/>
+          <UserPlaylists userId={id} username={userData.user.username}/>
         </Suspense>
       )}
     </div>

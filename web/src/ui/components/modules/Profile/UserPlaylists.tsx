@@ -7,9 +7,10 @@ import PlaylistItem, { PlaylistItemSkeleton } from '../Playlists/PlaylistItem'
 
 type Props = {
   userId: string
+  username: string
 }
 
-export default function UserPlaylists({ userId }: Props) {
+export default function UserPlaylists({ userId, username }: Props) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchUserPlaylistsQuery(userId, '')
 
   const playlists = data?.pages.flatMap(page => page?.data?.items || []) || []
@@ -45,7 +46,7 @@ export default function UserPlaylists({ userId }: Props) {
               id={playlist.playlistId}
               src={playlist.playlistCover}
               name={playlist.name}
-              creator={'creator'}
+              creator={username}
               videoCount={playlist.countOfVideos}
             />
           )

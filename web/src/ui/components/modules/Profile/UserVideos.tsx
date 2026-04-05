@@ -3,9 +3,10 @@
 import Link from 'next/link'
 
 import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
-import { useGetUserVideosQuery } from '@/lib/hooks/api/video/useGetUserVideosQuery' // Перевір правильність шляху до хука
+import { useGetUserVideosQuery } from '@/lib/hooks/api/video/useGetUserVideosQuery'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import { formatTimeAgo } from '@/lib/utils/date.utils'
+import { formatViews } from '@/lib/utils/video.utils'
 
 import ImageBackground from './ImageBackground'
 
@@ -53,8 +54,7 @@ export default function UserVideos({ userId }: Props) {
               <ImageBackground src={video.previewUrl || DEFAULT_VIDEO_THUMBNAIL} />
               <p className="text-sm font-medium wrap-break-word line-clamp-1">{video.name}</p>
               <div className="flex gap-2 text-[12px] text-neutral-500">
-                <p>{video.views} views</p>
-                <p>{formatTimeAgo(video.createdAt)}</p>
+                {formatViews(video.views)} • {formatTimeAgo(video.createdAt)}
               </div>
             </Link>
           )
