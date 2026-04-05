@@ -1,9 +1,0 @@
-env: "local"
-connectionString: "postgres://postgres.beixuhwayyogudlsimri:Vo%237m8k%2Bw861@aws-1-eu-west-1.pooler.supabase.com:6543/webby?sslmode=disable"
-jwtSecret: "MyExtraMegaSuperKeyThatYouCanUnderstand"
-http:
-  host: "localhost"
-  port: 8081
-  timeout: 10s
-grpc:
-  port: 50051
