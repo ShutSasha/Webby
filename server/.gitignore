@@ -435,6 +435,7 @@ test-results/
 # Icon must end with two \r
 Icon
 
+*.exe
 
 # Thumbnails
 ._*
@@ -485,3 +486,4 @@ $RECYCLE.BIN/
 
 appsettings.Development.json
 Migrations/
+ocelot.json

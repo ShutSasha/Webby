@@ -1,6 +1,8 @@
 import subprocess
 import json
 import re
+import sys
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -12,59 +14,71 @@ configs = [
     PROJECT_ROOT / "server/Webby.ApiGetaway/appsettings.Development.json.temp",
     PROJECT_ROOT / "web/.env.temp",
     PROJECT_ROOT / "server/Webby.VideoService/appsettings.Development.json.temp",
-    PROJECT_ROOT / "server/Webby.RoomService/config/config.yaml.temp"
+    PROJECT_ROOT / "server/Webby.NotificationService/appsettings.Development.json.temp",
+    PROJECT_ROOT / "server/Webby.RoomService/config/config.yaml.temp",
+    PROJECT_ROOT / "server/Webby.ChatService/config/config.yaml.temp",
+    PROJECT_ROOT / "server/Webby.NotificationService/appsettings.Development.json.temp"
 ]
 
-print("Fetching secrets")
 
-result = subprocess.run(
-    ["infisical", "secrets", "--env", "dev", "--output", "json"],
-    capture_output=True,
-    text=True
-)
+def fetch_infisical_secrets():
+    print("Fetching secrets ...")
 
-if result.returncode != 0:
-    print("Error fetching secrets")
-    print(result.stderr)
-    exit(1)
+    cmd = ["infisical", "secrets", "--env",
+           "dev", "--output", "json", "--silent"]
 
-secrets_raw = json.loads(result.stdout)
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding='utf-8'
+    )
 
-secrets_dict = {}
-for s in secrets_raw:
-    key = s.get("secretKey")
-    value = s.get("secretValue")
-    if key:
-        secrets_dict[key] = value
+    try:
+        stdout, stderr = process.communicate(timeout=4)
 
-print(f"Loaded {len(secrets_dict)} secrets")
+        if process.returncode != 0:
+            print(
+                f"ERROR: Session expired or invalid. Run 'infisical login'. {stderr.strip()}")
+            sys.exit(1)
 
-pattern = r"\{\{(.+?)\}\}"
+        return {s.get("secretKey"): s.get("secretValue") for s in json.loads(stdout) if s.get("secretKey")}
 
-def replace_secret(match):
+    except subprocess.TimeoutExpired:
+        process.kill()
+        print("ERROR: Infisical timed out. You are not logged in. Run 'infisical login' to fix.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"ERROR: {str(e)}")
+        sys.exit(1)
+
+
+secrets_dict = fetch_infisical_secrets()
+print(f"Success: {len(secrets_dict)} secrets retrieved.")
+
+SECRET_PATTERN = r"\{\{(.+?)\}\}"
+
+
+def secret_replacer(match):
     key = match.group(1)
-
     if key in secrets_dict:
         return str(secrets_dict[key])
-
-    print(f"Secret '{key}' not found")
+    print(f"Warning: Key '{key}' missing in Vault.")
     return match.group(0)
 
-for temp_path in configs:
-    temp_file = Path(temp_path)
 
-    if not temp_file.exists():
-        print(f"Template not found: {temp_file}")
+for temp_path in configs:
+    if not temp_path.exists():
         continue
 
-    with open(temp_file, "r", encoding="utf-8") as f:
+    with open(temp_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    new_content = re.sub(pattern, replace_secret, content)
+    final_content = re.sub(SECRET_PATTERN, secret_replacer, content)
+    output_path = str(temp_path).replace(".temp", "")
 
-    output_file = str(temp_file).replace(".temp", "")
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(final_content)
 
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(new_content)
-
-    print(f"Generated: {output_file}")
+    print(f"Generated: {output_path}")

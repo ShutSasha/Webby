@@ -120,4 +120,18 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
             .SetProperty(v => v.Duration, duration)
          );
    }
+
+
+   public async Task<bool> FindUserView(Guid userId, Guid videoId) 
+      => await _context.UserViews.AnyAsync(uv => uv.UserId == userId && uv.VideoId == videoId);
+   
+
+   public async Task AddUserView(UserView userView)
+   {
+      await _context.UserViews.AddAsync(userView);
+      await _context.SaveChangesAsync();
+   }
+
+   public async Task<int> CountUserView(Guid videoId) 
+      => await _context.UserViews.CountAsync(uv => uv.VideoId == videoId);
 }

@@ -1,6 +1,7 @@
 package listMembers
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -14,7 +15,7 @@ import (
 )
 
 type MemberLister interface {
-	ListMembers(roomId uuid.UUID, page int, limit int, search string) ([]models.RoomMemberInfo, int64, error)
+	ListMembers(ctx context.Context, roomId uuid.UUID, page int, limit int, search string) ([]models.RoomMemberInfo, int64, error)
 }
 
 func New(logger *slog.Logger, memberLister MemberLister) http.Handler {
@@ -44,6 +45,7 @@ func listMembers(logger *slog.Logger, memberLister MemberLister) errorWrapper.AP
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		ctx := r.Context()
 		roomIdStr := r.PathValue("id")
 		roomId, err := uuid.Parse(roomIdStr)
 		if err != nil {
@@ -79,7 +81,7 @@ func listMembers(logger *slog.Logger, memberLister MemberLister) errorWrapper.AP
 
 		search := params.Get("search")
 
-		members, total, err := memberLister.ListMembers(roomId, page, limit, search)
+		members, total, err := memberLister.ListMembers(ctx, roomId, page, limit, search)
 		if err != nil {
 			log.Error("List room members error", slog.String("err", err.Error()))
 			return responses.NewApiError("List room members error", err)

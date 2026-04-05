@@ -12,3 +12,4 @@ aws:
   bucket: "{{AwsBucketName}}"
 grpc:
   mediaServiceAddress: "localhost:5005"
+  chatServiceAddress: "localhost:50051"

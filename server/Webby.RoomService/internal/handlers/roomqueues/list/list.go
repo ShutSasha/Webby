@@ -53,6 +53,7 @@ func listQueue(logger *slog.Logger, lister QueueLister) errorWrapper.APIFunc {
 		VideoUrl      string       `json:"videoUrl"`
 		IsActive      bool         `json:"isActive"`
 		IsFolder      bool         `json:"isFolder"`
+		Position      int          `json:"position"`
 		TotalChildren int          `json:"totalChildren"`
 		Children      []videoChild `json:"children,omitempty"`
 	}
@@ -111,6 +112,7 @@ func listQueue(logger *slog.Logger, lister QueueLister) errorWrapper.APIFunc {
 				VideoUrl:      item.VideoUrl,
 				IsActive:      item.IsActive,
 				IsFolder:      item.IsFolder,
+				Position:      item.Position,
 				TotalChildren: item.TotalChildren,
 			}
 			if len(item.Children) > 0 {

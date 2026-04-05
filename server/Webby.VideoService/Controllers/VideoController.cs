@@ -96,6 +96,15 @@ public class VideoController: ControllerBase
       return Ok(ApiResponse<UploadVideoResponse>.Ok("Successfully prepared for uploading video file",uploadResponse));
    }
    
+   [HttpPost("increment-view")]
+   [SwaggerOperation("Added view on specified video", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> IncrementVideoView([FromBody] Guid videoId)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _videoService.IncrementVideoView(requestUserId.Value, videoId);
+      return Ok(ApiResponse.Ok("Successfully increment video view"));
+   }
+   
    [HttpPost]
    [SwaggerOperation("Add information to video", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> CreateVideo([FromForm] CreateVideoRequest request)

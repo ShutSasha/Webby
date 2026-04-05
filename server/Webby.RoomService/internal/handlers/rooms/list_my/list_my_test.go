@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"webby/internal/handlers/responses"
@@ -25,11 +26,11 @@ func TestListMyRooms_Success(t *testing.T) {
 	userId := uuid.New()
 
 	baseRoom := models.Room{
-		Id:         uuid.New(),
-		HostId:     userId,
-		CategoryId: uuid.New(),
-		Name:       "Test Room",
-		IsPrivate:  false,
+		Id:           uuid.New(),
+		HostId:       userId,
+		CategoryName: "Gaming",
+		Name:         "Test Room",
+		IsPrivate:    false,
 	}
 
 	tests := []struct {
@@ -125,31 +126,31 @@ func TestListMyRooms_ValidationErrors(t *testing.T) {
 		mutate func(map[string]string)
 	}{
 		{
-			name: "Boundary Value Analysis - Page Below Minimum",
+			name:   "Boundary Value Analysis - Page Below Minimum",
 			mutate: func(m map[string]string) { m["page"] = "0" },
 		},
 		{
-			name: "Equivalence Partitioning - Page Negative",
+			name:   "Equivalence Partitioning - Page Negative",
 			mutate: func(m map[string]string) { m["page"] = "-1" },
 		},
 		{
-			name: "Error Guessing - Page Non-Numeric",
+			name:   "Error Guessing - Page Non-Numeric",
 			mutate: func(m map[string]string) { m["page"] = "abc" },
 		},
 		{
-			name: "Boundary Value Analysis - Limit Below Minimum",
+			name:   "Boundary Value Analysis - Limit Below Minimum",
 			mutate: func(m map[string]string) { m["limit"] = "0" },
 		},
 		{
-			name: "Equivalence Partitioning - Limit Negative",
+			name:   "Equivalence Partitioning - Limit Negative",
 			mutate: func(m map[string]string) { m["limit"] = "-1" },
 		},
 		{
-			name: "Boundary Value Analysis - Limit Above Maximum",
+			name:   "Boundary Value Analysis - Limit Above Maximum",
 			mutate: func(m map[string]string) { m["limit"] = "101" },
 		},
 		{
-			name: "Error Guessing - Limit Non-Numeric",
+			name:   "Error Guessing - Limit Non-Numeric",
 			mutate: func(m map[string]string) { m["limit"] = "xyz" },
 		},
 	}
@@ -201,7 +202,7 @@ func TestListMyRooms_InternalErrors(t *testing.T) {
 }
 
 func expectListMy(mml *mocks.MockMyLister, userId uuid.UUID, page, limit int, rooms []models.Room, total int64, err error) {
-	mml.EXPECT().ListMy(userId, page, limit).Return(rooms, total, err).Once()
+	mml.EXPECT().ListMy(mock.Anything, userId, page, limit).Return(rooms, total, err).Once()
 }
 
 func buildRequest(userId uuid.UUID, queryParams map[string]string) *http.Request {

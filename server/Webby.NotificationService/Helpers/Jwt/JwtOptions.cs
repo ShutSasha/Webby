@@ -1,0 +1,7 @@
+﻿namespace Webby.NotificationService.Helpers.Jwt;
+
+public class JwtOptions  
+{  
+   public string AccessSecretKey { get; set; } = string.Empty;  
+   public int AccessExpiresDuration { get; set; }
+}

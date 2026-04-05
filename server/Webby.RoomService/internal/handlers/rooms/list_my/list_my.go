@@ -1,6 +1,7 @@
 package listMy
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -14,7 +15,7 @@ import (
 )
 
 type MyLister interface {
-	ListMy(id uuid.UUID, page int, limit int) ([]models.Room, int64, error)
+	ListMy(ctx context.Context, id uuid.UUID, page int, limit int) ([]models.Room, int64, error)
 }
 
 func New(logger *slog.Logger, myLister MyLister) http.Handler {
@@ -35,16 +36,16 @@ func listMyRooms(logger *slog.Logger, myLister MyLister) errorWrapper.APIFunc {
 	log := logger.With(slog.String("operation", "httpserver.rooms.listMyRooms"))
 
 	type roomListItem struct {
-		Id         uuid.UUID `json:"id"`
-		Name       string    `json:"name"`
-		CategoryId uuid.UUID `json:"categoryId"`
-		IsPrivate  bool      `json:"isPrivate"`
-		HostId     uuid.UUID `json:"hostId"`
-		Thumbnail  string    `json:"thumbnail"`
-		Token      string    `json:"token"`
+		Id           uuid.UUID `json:"id"`
+		Name         string    `json:"name"`
+		CategoryName string    `json:"categoryName"`
+		IsPrivate    bool      `json:"isPrivate"`
+		HostId       uuid.UUID `json:"hostId"`
+		Thumbnail    string    `json:"thumbnail"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		ctx := r.Context()
 		params := r.URL.Query()
 
 		page := 1
@@ -72,7 +73,7 @@ func listMyRooms(logger *slog.Logger, myLister MyLister) errorWrapper.APIFunc {
 		userIdStr := r.Context().Value("userID").(string)
 		userId, _ := uuid.Parse(userIdStr)
 
-		rooms, total, err := myLister.ListMy(userId, page, limit)
+		rooms, total, err := myLister.ListMy(ctx, userId, page, limit)
 		if err != nil {
 			log.Error("List my rooms error", slog.String("err", err.Error()))
 			return err
@@ -81,13 +82,12 @@ func listMyRooms(logger *slog.Logger, myLister MyLister) errorWrapper.APIFunc {
 		items := make([]roomListItem, len(rooms))
 		for i, room := range rooms {
 			items[i] = roomListItem{
-				Id:         room.Id,
-				Name:       room.Name,
-				CategoryId: room.CategoryId,
-				IsPrivate:  room.IsPrivate,
-				HostId:     room.HostId,
-				Thumbnail:  room.Thumbnail,
-				Token:      room.Token,
+				Id:           room.Id,
+				Name:         room.Name,
+				CategoryName: room.CategoryName,
+				IsPrivate:    room.IsPrivate,
+				HostId:       room.HostId,
+				Thumbnail:    room.Thumbnail,
 			}
 		}
 

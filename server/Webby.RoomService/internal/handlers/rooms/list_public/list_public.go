@@ -1,6 +1,7 @@
 package listPublic
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -14,7 +15,7 @@ import (
 )
 
 type PublicLister interface {
-	ListPublic(page int, limit int, search string, categoryId *uuid.UUID) ([]models.Room, int64, error)
+	ListPublic(ctx context.Context, page int, limit int, search string, categoryName *string) ([]models.PublicRoom, int64, error)
 }
 
 func New(logger *slog.Logger, publicLister PublicLister) http.Handler {
@@ -26,7 +27,7 @@ func New(logger *slog.Logger, publicLister PublicLister) http.Handler {
 // @Param  page      query  int     false  "Page number (default: 1)"
 // @Param  limit     query  int     false  "Items per page (default: 10, max: 100)"
 // @Param  search    query  string  false  "Search rooms by name (case-insensitive)"
-// @Param  category  query  string  false  "Filter by category ID (UUID v4 format)"
+// @Param  category  query  string  false  "Filter by category name"
 // @Success  200  object docs.RoomListApiResponse  "Public rooms successfully retrieved"
 // @Failure  400  object docs.ErrorResponse  "Invalid query parameters"
 // @Failure  500  object docs.ErrorResponse  "Internal server error"
@@ -36,16 +37,18 @@ func listPublicRooms(logger *slog.Logger, publicLister PublicLister) errorWrappe
 	log := logger.With(slog.String("operation", "httpserver.rooms.listPublicRooms"))
 
 	type roomListItem struct {
-		Id         uuid.UUID `json:"id"`
-		Name       string    `json:"name"`
-		CategoryId uuid.UUID `json:"categoryId"`
-		IsPrivate  bool      `json:"isPrivate"`
-		HostId     uuid.UUID `json:"hostId"`
-		Thumbnail  string    `json:"thumbnail"`
-		Token      string    `json:"token"`
+		Id            uuid.UUID `json:"id"`
+		Name          string    `json:"name"`
+		CategoryName  string    `json:"categoryName"`
+		IsPrivate     bool      `json:"isPrivate"`
+		HostId        uuid.UUID `json:"hostId"`
+		HostUsername  string    `json:"hostUsername"`
+		HostAvatarUrl string    `json:"hostAvatarUrl"`
+		Thumbnail     string    `json:"thumbnail"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		ctx := r.Context()
 		params := r.URL.Query()
 
 		page := 1
@@ -72,19 +75,12 @@ func listPublicRooms(logger *slog.Logger, publicLister PublicLister) errorWrappe
 
 		search := params.Get("search")
 
-		var categoryId *uuid.UUID
+		var categoryName *string
 		if categoryStr := params.Get("category"); categoryStr != "" {
-			parsed, err := uuid.Parse(categoryStr)
-			if err != nil {
-				log.Warn("Invalid category id", slog.String("category", categoryStr))
-				return responses.NewValidationError("Validation failed", map[string]string{
-					"category": "must be a valid UUID v4 format",
-				})
-			}
-			categoryId = &parsed
+			categoryName = &categoryStr
 		}
 
-		rooms, total, err := publicLister.ListPublic(page, limit, search, categoryId)
+		rooms, total, err := publicLister.ListPublic(ctx, page, limit, search, categoryName)
 		if err != nil {
 			log.Error("List public rooms error", slog.String("err", err.Error()))
 			return err
@@ -93,13 +89,14 @@ func listPublicRooms(logger *slog.Logger, publicLister PublicLister) errorWrappe
 		items := make([]roomListItem, len(rooms))
 		for i, room := range rooms {
 			items[i] = roomListItem{
-				Id:         room.Id,
-				Name:       room.Name,
-				CategoryId: room.CategoryId,
-				IsPrivate:  room.IsPrivate,
-				HostId:     room.HostId,
-				Thumbnail:  room.Thumbnail,
-				Token:      room.Token,
+				Id:            room.Id,
+				Name:          room.Name,
+				CategoryName:  room.CategoryName,
+				IsPrivate:     room.IsPrivate,
+				HostId:        room.HostId,
+				HostUsername:  room.HostUsername,
+				HostAvatarUrl: room.HostAvatarUrl,
+				Thumbnail:     room.Thumbnail,
 			}
 		}
 

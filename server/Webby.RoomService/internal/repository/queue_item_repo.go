@@ -1,24 +1,26 @@
 package repository
 
 import (
-	"database/sql"
+	"context"
 	"errors"
 	"fmt"
 	"webby/internal/apperrors"
 	"webby/internal/models"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type QueueItemRepository struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewQueueItemRepository(db *sql.DB) *QueueItemRepository {
+func NewQueueItemRepository(db *pgxpool.Pool) *QueueItemRepository {
 	return &QueueItemRepository{db: db}
 }
 
-func (r *QueueItemRepository) Create(item *models.QueueItem) (uuid.UUID, error) {
+func (r *QueueItemRepository) Create(ctx context.Context, item *models.QueueItem) (uuid.UUID, error) {
 	const op = "repository.QueueItemRepository.Create"
 
 	if item == nil {
@@ -28,11 +30,12 @@ func (r *QueueItemRepository) Create(item *models.QueueItem) (uuid.UUID, error) 
 	item.Id = uuid.New()
 
 	query := `
-		INSERT INTO queue_items (id, room_id, entity_id, entity_type, is_active, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO queue_items (id, room_id, entity_id, entity_type, is_active, position)
+		VALUES ($1, $2, $3, $4, $5, (SELECT COALESCE(MAX(position), 0) + 1 FROM queue_items WHERE room_id = $2))
+		RETURNING created_at, position
 	`
 
-	_, err := r.db.Exec(query, item.Id, item.RoomId, item.EntityId, item.EntityType, item.IsActive, item.CreatedAt)
+	err := r.db.QueryRow(ctx, query, item.Id, item.RoomId, item.EntityId, item.EntityType, item.IsActive).Scan(&item.CreatedAt, &item.Position)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -40,7 +43,7 @@ func (r *QueueItemRepository) Create(item *models.QueueItem) (uuid.UUID, error) 
 	return item.Id, nil
 }
 
-func (r *QueueItemRepository) Delete(id uuid.UUID) error {
+func (r *QueueItemRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	const op = "repository.QueueItemRepository.Delete"
 
 	if id == uuid.Nil {
@@ -49,24 +52,19 @@ func (r *QueueItemRepository) Delete(id uuid.UUID) error {
 
 	query := `DELETE FROM queue_items WHERE id = $1`
 
-	result, err := r.db.Exec(query, id)
+	tag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("%s: getting rows affected failed: %w", op, err)
-	}
-
-	if rowsAffected == 0 {
+	if tag.RowsAffected() == 0 {
 		return fmt.Errorf("%s: queue item %s: %w", op, id.String(), apperrors.ErrNotFound)
 	}
 
 	return nil
 }
 
-func (r *QueueItemRepository) GetById(id uuid.UUID) (*models.QueueItem, error) {
+func (r *QueueItemRepository) GetById(ctx context.Context, id uuid.UUID) (*models.QueueItem, error) {
 	const op = "repository.QueueItemRepository.GetById"
 
 	if id == uuid.Nil {
@@ -74,23 +72,24 @@ func (r *QueueItemRepository) GetById(id uuid.UUID) (*models.QueueItem, error) {
 	}
 
 	query := `
-		SELECT id, room_id, entity_id, entity_type, is_active, created_at
+		SELECT id, room_id, entity_id, entity_type, is_active, position, created_at
 		FROM queue_items
 		WHERE id = $1
 	`
 
 	var item models.QueueItem
-	err := r.db.QueryRow(query, id).Scan(
+	err := r.db.QueryRow(ctx, query, id).Scan(
 		&item.Id,
 		&item.RoomId,
 		&item.EntityId,
 		&item.EntityType,
 		&item.IsActive,
+		&item.Position,
 		&item.CreatedAt,
 	)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("%s: queue item %s: %w", op, id.String(), apperrors.ErrNotFound)
 		}
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
@@ -99,7 +98,7 @@ func (r *QueueItemRepository) GetById(id uuid.UUID) (*models.QueueItem, error) {
 	return &item, nil
 }
 
-func (r *QueueItemRepository) ListByRoom(roomId uuid.UUID) ([]models.QueueItem, error) {
+func (r *QueueItemRepository) ListByRoom(ctx context.Context, roomId uuid.UUID) ([]models.QueueItem, error) {
 	const op = "repository.QueueItemRepository.ListByRoom"
 
 	if roomId == uuid.Nil {
@@ -107,13 +106,13 @@ func (r *QueueItemRepository) ListByRoom(roomId uuid.UUID) ([]models.QueueItem, 
 	}
 
 	query := `
-		SELECT id, room_id, entity_id, entity_type, is_active, created_at
+		SELECT id, room_id, entity_id, entity_type, is_active, position, created_at
 		FROM queue_items
 		WHERE room_id = $1
-		ORDER BY created_at ASC
+		ORDER BY position ASC
 	`
 
-	rows, err := r.db.Query(query, roomId)
+	rows, err := r.db.Query(ctx, query, roomId)
 	if err != nil {
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -128,6 +127,7 @@ func (r *QueueItemRepository) ListByRoom(roomId uuid.UUID) ([]models.QueueItem, 
 			&item.EntityId,
 			&item.EntityType,
 			&item.IsActive,
+			&item.Position,
 			&item.CreatedAt,
 		)
 		if err != nil {
@@ -141,4 +141,45 @@ func (r *QueueItemRepository) ListByRoom(roomId uuid.UUID) ([]models.QueueItem, 
 	}
 
 	return items, nil
+}
+
+func (r *QueueItemRepository) MoveToTop(ctx context.Context, id uuid.UUID) error {
+	const op = "repository.QueueItemRepository.MoveToTop"
+
+	if id == uuid.Nil {
+		return fmt.Errorf("%s: %w: invalid queue item id", op, apperrors.ErrInvalidInput)
+	}
+
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("%s: begin transaction: %w", op, err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	var roomId uuid.UUID
+	err = tx.QueryRow(ctx, `SELECT room_id FROM queue_items WHERE id = $1`, id).Scan(&roomId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("%s: queue item %s: %w", op, id.String(), apperrors.ErrNotFound)
+		}
+		return fmt.Errorf("%s: get room_id: %w", op, err)
+	}
+
+	var minPos int
+	err = tx.QueryRow(ctx, `SELECT COALESCE(MIN(position), 1) FROM queue_items WHERE room_id = $1`, roomId).Scan(&minPos)
+	if err != nil {
+		return fmt.Errorf("%s: get min position: %w", op, err)
+	}
+
+	newPos := minPos - 1
+	_, err = tx.Exec(ctx, `UPDATE queue_items SET position = $1 WHERE id = $2`, newPos, id)
+	if err != nil {
+		return fmt.Errorf("%s: update position: %w", op, err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("%s: commit: %w", op, err)
+	}
+
+	return nil
 }
