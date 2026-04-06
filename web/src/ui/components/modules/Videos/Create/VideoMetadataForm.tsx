@@ -144,7 +144,7 @@ export default function VideoMetadataForm({
           isLoading={isSaving}
           disabled={!previewBase64 || !name || !description}
         >
-          {isEditingMode ? 'Save Changes' : 'Publish'}
+          {isEditingMode ? 'Save and publish' : 'Publish'}
         </CoreButton>
       </div>
     </form>
