@@ -388,7 +388,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       {/* Overlay */}
       {isReady && !isPlatformMode && (
         <div
-          className={`absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent transition-opacity
+          className={`absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent transition-opacity
           duration-400 ease-in-out ${showCustomControls ? 'opacity-100' : 'opacity-0'}`}
           onClick={handlePlayPause}
         >
@@ -468,7 +468,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
               {/* Played Circle */}
               <div
-                className="absolute h-2.5 w-2.5 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
+                className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
                   pointer-events-none"
                 style={{ left: `${played * 100}%` }}
               />
@@ -543,9 +543,8 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
 
                     {/* Thumb */}
                     <div
-                      className="absolute h-2.5 w-2.5 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2
-                        -translate-y-1/2 shadow-[0_0_10px_rgba(16,185,129,0.4)] pointer-events-none transition-transform
-                        group-hover/slider:scale-125"
+                      className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
+                        pointer-events-none transition-transform"
                       style={{ left: `calc(${baseUserVolume * 100}% + (${(0.5 - baseUserVolume) * 10}px))` }}
                     />
 

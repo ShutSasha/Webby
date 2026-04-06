@@ -1,4 +1,5 @@
 import StudioVideosContainer from '@/ui/components/modules/Studio/StudioVideosContainer'
+import CreateVideoButton from '@/ui/components/modules/Videos/CreateVideoButton'
 import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
@@ -18,7 +19,10 @@ export default async function StudioPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-neutral-100 tracking-tight">Webby studio</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-2xl font-bold text-neutral-100 tracking-tight">Webby studio</h1>
+        <CreateVideoButton />
+      </div>
 
       <div className="flex flex-col flex-1 overflow-y-auto -mx-2 px-2">
         <div
