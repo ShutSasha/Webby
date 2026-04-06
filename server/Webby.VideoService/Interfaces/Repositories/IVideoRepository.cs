@@ -5,7 +5,7 @@ namespace Webby.VideoService.Interfaces.Repositories;
 public interface IVideoRepository : IRepository<Video>
 {
    Task<Video> GetVideoInformationById(Guid videoId);
-   Task<(List<Video>, int)> GetPaginatedUserVideos(Guid userId,bool isOwner,int page,int pageSize);
+   Task<(List<Video>, int)> GetPaginatedUserVideos(Guid userId,bool isOwner, int page, int pageSize, bool shouldShowDrafts);
    Task<bool> CheckVideosCount(List<Guid> videoIds);
    Task<bool> CheckForbiddenVideos(List<Guid> playlistVideosIds, Guid requestUserId);
    Task<(List<Video> Items, int Total)> SearchVideosInPlaylistAsync(

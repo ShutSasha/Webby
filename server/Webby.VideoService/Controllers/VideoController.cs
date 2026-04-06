@@ -74,12 +74,10 @@ public class VideoController: ControllerBase
    [HttpGet("users/{userId:guid}")]
    [SwaggerOperation("Get user videos")]
    public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> GetUserVideos(
-      [FromRoute] Guid userId,
-      [FromQuery] int page = 1,
-      [FromQuery] int pageSize = 10)
+      [FromRoute] Guid userId, [FromQuery] GetUserVideosRequest request)
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
-      var result = await _videoService.GetUserVideos(userId, requestUserId, page, pageSize);
+      var result = await _videoService.GetUserVideos(userId, requestUserId, request);
       return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved user videos", result));
    }
    

@@ -23,7 +23,7 @@ public class PlaylistController : ControllerBase
    [SwaggerOperation("Get user playlists")]
    public async Task<ActionResult<ApiResponse<PagedResponse<PlaylistPreviewDto>>>> GetUserPlaylists(
       [FromRoute] Guid userId,
-      [FromQuery] SearchOptions searchOptions,
+      [FromQuery] GetUserPlaylistsRequest request,
       [FromQuery] string? videoId)
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
@@ -40,7 +40,7 @@ public class PlaylistController : ControllerBase
             requestUserId,
             videoIdGuid,
             userId,
-            searchOptions);
+            request);
 
       return Ok(ApiResponse<PagedResponse<PlaylistPreviewDto>>.Ok(
          "Successfully retrieved user playlists",

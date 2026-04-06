@@ -13,7 +13,7 @@ public interface IVideoService
    Task CreateVideo(Guid userId, CreateVideoRequest request);
    Task DeleteVideo(Guid userId, Guid videoId);
    Task<VideoDto> GetVideoInformation(string videoId, Guid? userId, SearchPlatforms platform);
-   Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId,Guid? requestUserId,int page,int pageSize);
+   Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId, Guid? requestedUserId, GetUserVideosRequest request);
    Task UpdateVideoInformation(Guid userId, UpdateVideoRequest request);
    Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchVideoOptions options);
    Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId, Guid playlistId, SearchOptions searchOptions);
