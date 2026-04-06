@@ -94,8 +94,8 @@ export const useCreateVideoLogic = () => {
     const response = await createMetadata(formData)
 
     if (response.success) {
-      clearDraft()
       router.push('/studio')
+      clearDraft()
     }
   }
 
