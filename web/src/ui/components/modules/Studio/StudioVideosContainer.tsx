@@ -9,7 +9,7 @@ type Props = {
 }
 
 export default function StudioVideosContainer({ currentUserId }: Props) {
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useGetUserVideosQuery(currentUserId)
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useGetUserVideosQuery(currentUserId, true)
 
   const videos = data?.pages.flatMap(page => page?.data?.items || []) || []
 

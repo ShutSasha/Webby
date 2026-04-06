@@ -9,13 +9,14 @@ export const useSearchUserPlaylistsQuery = (
   searchQuery: string,
   videoId?: string,
   enabled: boolean = true,
+  shouldShowEmptyPlaylists: boolean = false,
 ) => {
   return useInfiniteQuery({
-    queryKey: ['search-user-playlists', userId, searchQuery, videoId],
+    queryKey: ['search-user-playlists', userId, searchQuery, videoId, shouldShowEmptyPlaylists],
 
     queryFn: async ({ pageParam = 1 }) => {
       if (!userId) throw new Error('User ID is required')
-      return await searchUserPlaylists(userId, searchQuery, pageParam, PAGE_SIZE, videoId)
+      return await searchUserPlaylists(userId, searchQuery, pageParam, PAGE_SIZE, videoId, shouldShowEmptyPlaylists)
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {

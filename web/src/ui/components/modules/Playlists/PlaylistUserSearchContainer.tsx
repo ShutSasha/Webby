@@ -13,7 +13,13 @@ type Props = {
 }
 
 export default function PlaylistUserSearchContainer({ userId, query }: Props) {
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchUserPlaylistsQuery(userId, query)
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchUserPlaylistsQuery(
+    userId,
+    query,
+    undefined,
+    undefined,
+    true,
+  )
 
   const playlists = data?.pages.flatMap(page => page?.data?.items || []) || []
 
