@@ -4,11 +4,19 @@ import Link from 'next/link'
 
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import { cn } from '@/lib/utils/general.utils'
+import { useVideoDraftStore } from '@/stores/video-draft.store'
 
 export default function CreateVideoButton() {
+  const clearDraft = useVideoDraftStore(state => state.clearDraft)
+
+  const handleClick = () => {
+    clearDraft()
+  }
+
   return (
     <Link
       href={'/videos/create'}
+      onClick={handleClick}
       className={cn(
         'flex items-center gap-2 shrink-0 cursor-pointer order-3',
         'bg-neutral-800 text-neutral-200',

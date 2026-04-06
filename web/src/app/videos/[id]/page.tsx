@@ -19,7 +19,7 @@ export default async function VideoPage({ params }: Props) {
         <VideoDetails v={id} currentUserId={session?.user.id} />
       </Suspense>
 
-      <div className="w-[418px] flex flex-col gap-3">
+      <div className="w-[360px] xl:w-[400px] 2xl:w-[458px] flex flex-col gap-3">
         {[...new Array(20)].map((_, index) => (
           <AsideVideoCard
             key={index}

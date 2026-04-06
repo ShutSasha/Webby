@@ -22,13 +22,19 @@ export type NavItem = {
 }
 
 export const navDesktopElements: NavItem[] = [
-  { key: 'search', action: 'search', icon: SearchIcon, text: 'Search', iconSize: 'size-6' },
-  { key: 'videos', href: '/videos', icon: VideosIcon, text: 'Videos', iconSize: 'size-6' },
-  { key: 'rooms', href: '/rooms', icon: RoomsIcon, text: 'Rooms', iconSize: 'size-6' },
-  { key: 'playlists', href: '/playlists', icon: PlaylistIcon, text: 'Playlists', iconSize: 'size-6' },
-  { key: 'studio', href: '/studio', icon: StudioIcon, text: 'Webby Studio', iconSize: 'size-6' },
-  { key: 'chats', href: '/chats', icon: ChatsIcon, text: 'Chats', iconSize: 'size-6' },
-  { key: 'notifications', href: '/notifications', icon: BellIcon, text: 'Notifications', iconSize: 'size-6' },
+  { key: 'search', action: 'search', icon: SearchIcon, text: 'Search', iconSize: 'size-5 2xl:size-6' },
+  { key: 'videos', href: '/videos', icon: VideosIcon, text: 'Videos', iconSize: 'size-5 2xl:size-6' },
+  { key: 'rooms', href: '/rooms', icon: RoomsIcon, text: 'Rooms', iconSize: 'size-5 2xl:size-6' },
+  { key: 'playlists', href: '/playlists', icon: PlaylistIcon, text: 'Playlists', iconSize: 'size-5 2xl:size-6' },
+  { key: 'studio', href: '/studio', icon: StudioIcon, text: 'Webby Studio', iconSize: 'size-5 2xl:size-6' },
+  { key: 'chats', href: '/chats', icon: ChatsIcon, text: 'Chats', iconSize: 'size-5 2xl:size-6' },
+  {
+    key: 'notifications',
+    href: '/notifications',
+    icon: BellIcon,
+    text: 'Notifications',
+    iconSize: 'size-5 2xl:size-6',
+  },
 ]
 
 export const navMobileElements: NavItem[] = [

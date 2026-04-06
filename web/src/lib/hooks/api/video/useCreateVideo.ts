@@ -8,6 +8,7 @@ import { BaseServerResponse } from '@/types/general.types'
 import { UploadVideoResponse } from '@/types/video.types'
 
 export const useUploadVideoFile = () => {
+  const queryClient = useQueryClient()
   const addToast = useToastStore(state => state.addToast)
 
   return useMutation({
@@ -34,6 +35,13 @@ export const useUploadVideoFile = () => {
 
         throw error
       }
+    },
+    onSuccess: () => {
+      addToast('User video has been uploaded successfully', 'success')
+
+      queryClient.invalidateQueries({
+        predicate: query => query.queryKey[0] === 'user-videos' && query.queryKey[2] === true,
+      })
     },
     onError: error => {
       addToast(error.message, 'error')

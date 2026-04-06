@@ -35,7 +35,7 @@ export function DesktopNavElement({
 
   const elementClasses = cn(
     'relative group flex items-center rounded-xl transition-colors duration-300 ease-out cursor-pointer',
-    isExpanded ? 'px-3 py-2.5' : 'p-2.5 justify-center',
+    isExpanded ? 'px-3 py-2.5' : '2xl:p-2.5 xl:p-2 p-1.5 py-2 justify-center',
     isActive ? 'text-emerald-500 font-semibold' : 'text-neutral-400 hover:bg-neutral-800/60 hover:text-neutral-100',
     className,
   )
