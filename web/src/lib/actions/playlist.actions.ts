@@ -228,3 +228,28 @@ export async function deletePlaylist(playlistId: string): Promise<BaseServerResp
     }
   }
 }
+
+export async function updatePlaylistAction(
+  playlistId: string,
+  name: string,
+  isPrivate: boolean,
+): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.patch<BaseServerResponse<null>>(`${endpoint}`, {
+      playlistId,
+      name,
+      isPrivate,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('UPDATE_PLAYLIST_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to update playlist "${name}".`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
