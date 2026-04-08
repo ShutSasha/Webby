@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils/general.utils'
 
 import Button from '../../shared/Button'
 import Input from '../../shared/Input'
-import MediaButton from '../../shared/MediaButton'
+import Modal from '../../shared/Modal'
 import Switch from '../../shared/Switch'
 import ImageBackground from '../Profile/ImageBackground'
 
@@ -146,7 +146,7 @@ export default function UserPlaylistItem(props: Props) {
           </div>
         </div>
       </Link>
-      <MediaButton isOpen={isEditModalOpen} setIsOpen={setIsEditModalOpen}>
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         <form className="flex flex-col" onSubmit={handleUpdateSubmit}>
           <h3 className="text-neutral-300 text-center mb-4 font-semibold text-xl">Edit playlist</h3>
 
@@ -181,7 +181,7 @@ export default function UserPlaylistItem(props: Props) {
             </Button>
           </div>
         </form>
-      </MediaButton>
+      </Modal>
     </>
   )
 }
