@@ -58,8 +58,9 @@ export default function RoomsContainer({ query, category }: Props) {
               id={room.id}
               name={room.name}
               thumbnail={room.thumbnail}
-              category={room.categoryId}
-              hostId={room.hostId}
+              category={room.categoryName}
+              hostUsername={room.hostUsername}
+              hostAvatarUrl={room.hostAvatarUrl}
             />
           )
 
