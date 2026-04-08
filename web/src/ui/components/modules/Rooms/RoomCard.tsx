@@ -8,10 +8,11 @@ type Props = {
   name: string
   thumbnail: string
   category: string
-  hostId: string
+  hostUsername: string
+  hostAvatarUrl: string
 }
 
-export default function RoomCard({ id, name, thumbnail, category, hostId }: Props) {
+export default function RoomCard({ id, name, thumbnail, category, hostUsername, hostAvatarUrl }: Props) {
   return (
     <Link href={`/rooms/${id}`} className="flex flex-col gap-3 group cursor-pointer">
       <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-800">
@@ -33,9 +34,8 @@ export default function RoomCard({ id, name, thumbnail, category, hostId }: Prop
       </div>
 
       <div className="flex gap-3 items-start px-1">
-        {/* TODO: change to real host avatar */}
         <Image
-          src="https://static.wikia.nocookie.net/madagascar/images/3/30/37455825.jpg/revision/latest?cb=20150512133950&path-prefix=ru"
+          src={hostAvatarUrl}
           alt="User avatar"
           width={36}
           height={36}
@@ -52,8 +52,9 @@ export default function RoomCard({ id, name, thumbnail, category, hostId }: Prop
             {name}
           </h3>
 
-          {/* TODO: change hostId to hots's username */}
-          <p className="text-neutral-400 text-xs mt-1 truncate hover:text-neutral-300 transition-colors">{hostId}</p>
+          <p className="text-neutral-400 text-xs mt-1 truncate hover:text-neutral-300 transition-colors">
+            {hostUsername}
+          </p>
         </div>
       </div>
     </Link>
