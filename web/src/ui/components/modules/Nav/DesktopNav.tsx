@@ -30,8 +30,8 @@ export default function DesktopNav() {
       <aside className="hidden lg:block h-screen sticky top-0 shrink-0 z-50">
         <nav
           className={cn(
-            `flex flex-col h-full bg-[#0A0A0A] border-r border-neutral-800/50 py-4 px-3 transition-all duration-300
-            ease-in-out`,
+            `flex flex-col h-full bg-[#0A0A0A] border-r border-neutral-800/50 py-3 px-3 xl:py-3 xl:px-3 2xl:py-4
+            2xl:px-3 transition-all duration-300 ease-in-out`,
             isExpanded ? 'w-64 items-stretch' : 'w-20 items-center',
           )}
         >

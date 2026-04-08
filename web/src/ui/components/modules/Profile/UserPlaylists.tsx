@@ -1,34 +1,74 @@
-import { playlists } from '@/lib/placeholder-data/profile'
+'use client'
 
-import PlaylistItem from '../Playlists/PlaylistItem'
+import { useSearchUserPlaylistsQuery } from '@/lib/hooks/api/playlist/useSearchUserPlaylists'
+import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 
-export default async function UserPlaylists() {
-  // await, sync Public playlists
-  await new Promise(r => setTimeout(r, 300))
+import PlaylistItem, { PlaylistItemSkeleton } from '../Playlists/PlaylistItem'
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
-      {playlists.map(playlist => (
-        <PlaylistItem key={playlist.id} {...playlist} />
-      ))}
-    </div>
-  )
+type Props = {
+  userId: string
+  username: string
 }
 
-export function PlaylistItemSkeleton() {
+export default function UserPlaylists({ userId, username }: Props) {
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchUserPlaylistsQuery(userId, '')
+
+  const playlists = data?.pages.flatMap(page => page?.data?.items || []) || []
+
+  const lastElementRef = useInfiniteScroll({
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  })
+
+  if (isLoading && playlists.length === 0) {
+    return <UserPlaylistsSkeleton />
+  }
+
+  if (!isLoading && playlists.length === 0) {
+    return (
+      <div className="flex flex-1 items-center justify-center py-20">
+        <p className="text-neutral-500 text-center">No playlists found</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="relative">
-      {/* Thumbnail */}
-      <div className="w-full aspect-video rounded-2xl mb-1 bg-neutral-800 animate-pulse" />
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
+        {playlists.map((playlist, index) => {
+          const isLast = playlists.length === index + 1
 
-      {/* Playlist name */}
-      <div className="h-4 w-3/4 bg-neutral-800 rounded-md mb-1 animate-pulse" />
+          const item = (
+            <PlaylistItem
+              key={playlist.playlistId}
+              id={playlist.playlistId}
+              src={playlist.playlistCover}
+              name={playlist.name}
+              creator={username}
+              videoCount={playlist.countOfVideos}
+            />
+          )
 
-      {/* Creator */}
-      <div className="h-3 w-1/3 bg-neutral-800 rounded-md animate-pulse" />
+          if (isLast) {
+            return (
+              <div ref={lastElementRef} key={`last-${playlist.playlistId}`}>
+                {item}
+              </div>
+            )
+          }
 
-      <div className="absolute top-2 right-2 h-[26px] w-[58px] rounded-lg bg-neutral-800 animate-pulse" />
-    </div>
+          return item
+        })}
+      </div>
+
+      {isFetchingNextPage && (
+        <div className="w-full flex justify-center py-8">
+          <div className="size-6 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+        </div>
+      )}
+    </>
   )
 }
 

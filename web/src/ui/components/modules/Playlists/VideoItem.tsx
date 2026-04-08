@@ -141,12 +141,12 @@ export default function VideoItem({
               <div className="size-4 border-2 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
             ) : playing && isActuallyActive ? (
               <PauseIcon
-                className={`size-4 ${isActive ? 'text-neutral-300' : 'text-neutral-500'}
+                className={`size-4 stroke-[1.5px] ${isActive ? 'text-neutral-300' : 'text-neutral-500'}
                   group-hover/play:text-neutral-300`}
               />
             ) : (
               <PlayIcon
-                className={`size-4 ${isActive ? 'text-neutral-300' : 'text-neutral-500'}
+                className={`size-4 stroke-[1.5px] ${isActive ? 'text-neutral-300' : 'text-neutral-500'}
                   group-hover/play:text-neutral-300`}
               />
             )}
@@ -161,8 +161,8 @@ export default function VideoItem({
                 <div className="size-4 border-2 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
               ) : (
                 <TrashIcon
-                  className={`size-4 transition-colors ${isActive ? 'text-neutral-300' : 'text-neutral-500'}
-                    group-hover/trash:text-red-500`}
+                  className={`size-4 stroke-[1.5px] transition-colors
+                    ${isActive ? 'text-neutral-300' : 'text-neutral-500'} group-hover/trash:text-red-500`}
                 />
               )}
             </button>

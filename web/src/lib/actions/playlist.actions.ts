@@ -141,10 +141,11 @@ export async function searchUserPlaylists(
   page: number,
   pageSize: number,
   targetVideoId?: string | undefined,
+  shouldShowEmptyPlaylists: boolean = false,
 ): Promise<BaseServerResponse<UserPlaylistsSearchData>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<UserPlaylistsSearchData>>(
-      `${endpoint}/${userId}?searchText=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}&videoId=${targetVideoId ?? ''}`,
+      `${endpoint}/${userId}?searchText=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}&videoId=${targetVideoId ?? ''}&shouldShowEmptyPlaylists=${shouldShowEmptyPlaylists}`,
     )
 
     return response
@@ -223,6 +224,31 @@ export async function deletePlaylist(playlistId: string): Promise<BaseServerResp
       data: null,
       success: false,
       message: `Failed to delete the playlist`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function updatePlaylistAction(
+  playlistId: string,
+  name: string,
+  isPrivate: boolean,
+): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.patch<BaseServerResponse<null>>(`${endpoint}`, {
+      playlistId,
+      name,
+      isPrivate,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('UPDATE_PLAYLIST_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to update playlist "${name}".`,
       errors: parseAxiosError(error),
     }
   }

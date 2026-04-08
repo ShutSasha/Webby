@@ -2,7 +2,6 @@ import { MouseEvent, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { cancelVideoUploadAction } from '@/lib/actions/video.actions'
 import { useCreateVideoMetadata, useUploadVideoFile } from '@/lib/hooks/api/video/useCreateVideo'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { base64ToFile, fileToBase64 } from '@/lib/utils/file.utils'
@@ -95,16 +94,14 @@ export const useCreateVideoLogic = () => {
     const response = await createMetadata(formData)
 
     if (response.success) {
-      clearDraft()
       router.push('/studio')
+      clearDraft()
     }
   }
 
   const cancelUploadVideo = async () => {
     try {
-      if (!uploadedVideoData) return clearDraft()
-      const response = await cancelVideoUploadAction(uploadedVideoData.videoId)
-      if (response.success) return clearDraft()
+      return clearDraft()
     } catch (error) {
       serverLog('FAILED_CANCEL_UPLOAD_VIDEO', error, true)
     }

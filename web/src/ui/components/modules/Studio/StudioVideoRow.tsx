@@ -9,10 +9,13 @@ import { useRouter } from 'next/navigation'
 
 import MoreVertical from '@/assets/icons/shared/more-vertical.svg'
 import { checkVideoUploadStatusAction } from '@/lib/actions/video.actions'
+import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { useCancelUploadVideo } from '@/lib/hooks/api/video/useCancelUploadVideo'
 import { useDeleteVideo } from '@/lib/hooks/api/video/useDeleteVideo'
 import { formatDate, formatVideoTime } from '@/lib/utils/date.utils'
-import { cn } from '@/lib/utils/general.utils'
+import { cn, serverLog } from '@/lib/utils/general.utils'
 import { formatViews } from '@/lib/utils/video.utils'
+import { useVideoDraftStore } from '@/stores/video-draft.store'
 import { Video } from '@/types/video.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
@@ -23,9 +26,11 @@ type Props = {
 export function StudioVideoRow({ video }: Props) {
   const queryClient = useQueryClient()
   const { mutate, isPending } = useDeleteVideo()
+  const { mutate: cancelUploadVideo, isPending: cancelUploadPending } = useCancelUploadVideo()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const clearDraft = useVideoDraftStore(state => state.clearDraft)
 
   const isReady = video.videoUploadStatus === 'Ready'
   const isUploading = video.videoUploadStatus === 'Uploading'
@@ -73,6 +78,7 @@ export function StudioVideoRow({ video }: Props) {
       { videoId: video.videoId },
       {
         onSuccess: () => {
+          clearDraft()
           setIsMenuOpen(false)
         },
       },
@@ -86,6 +92,15 @@ export function StudioVideoRow({ video }: Props) {
     router.push(`/videos/edit/${video.videoId}`)
   }
 
+  const handleCancelUploadVideo = async () => {
+    try {
+      cancelUploadVideo(video.videoId)
+      setIsMenuOpen(false)
+    } catch (error) {
+      serverLog('FAILED_CANCEL_UPLOAD_VIDEO', error, true)
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -96,10 +111,7 @@ export function StudioVideoRow({ video }: Props) {
       <div className="flex-1 flex gap-4 min-w-[300px]">
         <div className="relative w-32 aspect-video bg-neutral-800 rounded-lg overflow-hidden shrink-0">
           <Image
-            src={
-              video.previewUrl ||
-              'https://webby-watch-platform-bucket.s3.eu-north-1.amazonaws.com/videos/default_video_thumbnail.png'
-            }
+            src={video.previewUrl || DEFAULT_VIDEO_THUMBNAIL}
             alt="Video thumbnail"
             fill
             className={cn('object-cover transition-all', !isReady && 'opacity-40 grayscale-50')}
@@ -209,6 +221,15 @@ export function StudioVideoRow({ video }: Props) {
               shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
             onClick={e => e.preventDefault()}
           >
+            {isUploading && (
+              <button
+                className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors
+                  flex items-center gap-3 cursor-pointer"
+                onClick={handleCancelUploadVideo}
+              >
+                <span>{cancelUploadPending ? 'Canceling upload...' : 'Cancel upload'}</span>
+              </button>
+            )}
             <button
               className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors
                 flex items-center gap-3 cursor-pointer"

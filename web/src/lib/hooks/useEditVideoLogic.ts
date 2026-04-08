@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useUpdateVideoMetadata } from '@/lib/hooks/api/video/useEditVideo'
 import { fileToBase64 } from '@/lib/utils/file.utils'
 import { useToastStore } from '@/stores/toast-store'
+import { useVideoDraftStore } from '@/stores/video-draft.store'
 import { Video } from '@/types/video.types'
 
 export const MAX_TAGS = 10
@@ -12,6 +13,7 @@ export const MAX_TAGS = 10
 export const useEditVideoLogic = (initialVideo: Video) => {
   const router = useRouter()
   const addToast = useToastStore(state => state.addToast)
+  const clearDraft = useVideoDraftStore(state => state.clearDraft)
 
   const [name, setName] = useState(initialVideo.name || '')
   const [description, setDescription] = useState(initialVideo.description || '')
@@ -69,6 +71,7 @@ export const useEditVideoLogic = (initialVideo: Video) => {
     const response = await updateMetadata(formData)
 
     if (response.success) {
+      clearDraft()
       router.push('/studio')
     }
   }

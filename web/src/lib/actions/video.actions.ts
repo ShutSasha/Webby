@@ -68,10 +68,11 @@ export async function getUserVideos(
   userId: string,
   page: number = 1,
   pageSize: number = 10,
+  shouldShowDrafts: boolean = false,
 ): Promise<BaseServerResponse<GetUserVideosResponse>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<GetUserVideosResponse>>(
-      `${endpoint}/users/${userId}?page=${page}&pageSize=${pageSize}`,
+      `${endpoint}/users/${userId}?page=${page}&pageSize=${pageSize}&shouldShowDrafts=${shouldShowDrafts}`,
     )
 
     return response

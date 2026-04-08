@@ -1,15 +1,9 @@
 import StudioVideosContainer from '@/ui/components/modules/Studio/StudioVideosContainer'
-import AnimatedTabs from '@/ui/components/shared/AnimatedTabs'
+import CreateVideoButton from '@/ui/components/modules/Videos/CreateVideoButton'
 import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
-type Props = {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}
-
-export default async function StudioPage({ searchParams }: Props) {
-  const { tab } = await searchParams
-  const currentTab = tab === 'playlists' ? 'playlists' : 'videos'
+export default async function StudioPage() {
   const session = await auth()
 
   if (!session) {
@@ -23,17 +17,11 @@ export default async function StudioPage({ searchParams }: Props) {
     )
   }
 
-  const studioTabs = [
-    { label: 'Videos', href: '?tab=videos', isActive: currentTab === 'videos' },
-    { label: 'Playlists', href: '?tab=playlists', isActive: currentTab === 'playlists' },
-  ]
-
   return (
     <>
-      <h1 className="text-2xl font-bold text-neutral-100 tracking-tight">{`User's`} content</h1>
-
-      <div className="border-b border-neutral-800/60 pb-4">
-        <AnimatedTabs tabs={studioTabs} layoutId="studio-tabs" className="gap-4" />
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-2xl font-bold text-neutral-100 tracking-tight">Webby studio</h1>
+        <CreateVideoButton />
       </div>
 
       <div className="flex flex-col flex-1 overflow-y-auto -mx-2 px-2">
@@ -49,8 +37,7 @@ export default async function StudioPage({ searchParams }: Props) {
           <div className="w-12 shrink-0"></div>
         </div>
 
-        {currentTab === 'videos' && <StudioVideosContainer currentUserId={session.user.id} />}
-        {currentTab === 'playlists' && <div className="p-8 text-center text-neutral-500">Playlists coming soon...</div>}
+        <StudioVideosContainer currentUserId={session.user.id} />
       </div>
     </>
   )
