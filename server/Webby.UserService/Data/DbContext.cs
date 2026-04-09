@@ -9,7 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
    public DbSet<User> Users { get; set; }
    public DbSet<Complaint> Complaints { get; set; }
    public DbSet<UserFollower> UserFollowers { get; set; }
-   public DbSet<UserPremium> UserPremiums { get; set; }
+   public DbSet<UserPremium?> UserPremiums { get; set; }
    public DbSet<Achievement> Achievements { get; set; }
    public DbSet<UserAchievement> UserAchievements { get; set; }
    public DbSet<Payment> Payments { get; set; }
