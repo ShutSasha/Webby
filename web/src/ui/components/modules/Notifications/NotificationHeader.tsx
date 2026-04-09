@@ -1,16 +1,20 @@
+import { useUnreadNotificationsCountQuery } from '@/lib/hooks/api/notifications/useUnreadNotificationsCount'
 import { cn } from '@/lib/utils/general.utils'
-
-const unreadCount = 2
 
 type Props = {
   activeTab: 'All' | 'Unread'
   setActiveTab: (v: 'All' | 'Unread') => void
+  onMarkAllAsRead: () => void
+  hasUnreadToMark: boolean
 }
 
-export default function NotificationHeader({ activeTab, setActiveTab }: Props) {
+export default function NotificationHeader({ activeTab, setActiveTab, onMarkAllAsRead, hasUnreadToMark }: Props) {
+  const { data: unreadCount = 0 } = useUnreadNotificationsCountQuery()
+
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-6
-      mb-2">
+    <div
+      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-6 mb-2"
+    >
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold text-neutral-100">Notifications</h1>
         {unreadCount > 0 && (
@@ -25,7 +29,7 @@ export default function NotificationHeader({ activeTab, setActiveTab }: Props) {
           <button
             onClick={() => setActiveTab('All')}
             className={cn(
-              'px-4 py-1.5 text-sm font-medium rounded-lg transition-all',
+              'px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer',
               activeTab === 'All'
                 ? 'bg-neutral-700 text-neutral-100 shadow-sm'
                 : 'text-neutral-400 hover:text-neutral-200',
@@ -36,7 +40,7 @@ export default function NotificationHeader({ activeTab, setActiveTab }: Props) {
           <button
             onClick={() => setActiveTab('Unread')}
             className={cn(
-              'px-4 py-1.5 text-sm font-medium rounded-lg transition-all',
+              'px-4 py-1.5 text-sm font-medium rounded-lg transition-all cursor-pointer',
               activeTab === 'Unread'
                 ? 'bg-neutral-700 text-neutral-100 shadow-sm'
                 : 'text-neutral-400 hover:text-neutral-200',
@@ -46,7 +50,16 @@ export default function NotificationHeader({ activeTab, setActiveTab }: Props) {
           </button>
         </div>
 
-        <button className="text-sm font-medium text-neutral-400 hover:text-emerald-500 transition-colors cursor-pointer">
+        <button
+          onClick={onMarkAllAsRead}
+          disabled={!hasUnreadToMark}
+          className={cn(
+            'text-sm font-medium transition-colors',
+            hasUnreadToMark
+              ? 'text-neutral-400 hover:text-emerald-500 cursor-pointer'
+              : 'text-neutral-600 cursor-not-allowed',
+          )}
+        >
           Mark all as read
         </button>
       </div>
