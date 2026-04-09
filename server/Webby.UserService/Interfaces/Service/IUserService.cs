@@ -17,5 +17,6 @@ public interface IUserService
    Task<List<UserFollowersDto>> GetUserFollows(Guid userId);
    Task<User?> GetById(Guid userId);
    Task<UserFollowingResponse> IsUserFollowing(Guid userId, Guid targetId);
+   Task<GetUserSubscriptionResponse?> GetUserSubscription(Guid userId, bool isOwner);
 
 }

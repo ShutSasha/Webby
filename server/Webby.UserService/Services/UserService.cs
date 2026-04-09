@@ -13,13 +13,16 @@ public class UserService : IUserService
    private readonly IUserRepository _userRepository;
    private readonly IStorageService _storageService;
    private readonly IAchievementService _achievementService;
+   private readonly IUserPremiumRepository _userPremiumRepository;
    private readonly IMapper _mapper;
-   public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService, IAchievementService achievementService)
+   public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService,
+      IAchievementService achievementService, IUserPremiumRepository userPremiumRepository)
    {
       _userRepository = userRepository;
       _mapper = mapper;
       _storageService = storageService;
       _achievementService = achievementService;
+      _userPremiumRepository = userPremiumRepository;
    }
    
    public async Task<UserProfileResponse> GetUserInformation(Guid userId)
@@ -220,5 +223,27 @@ public class UserService : IUserService
 
       response.isFollowing = await _userRepository.HasUserFollow(targetId, userId);
       return response;
+   }
+
+   public async Task<GetUserSubscriptionResponse?> GetUserSubscription(Guid userId, bool isOwner)
+   {
+      if (!isOwner)
+      {
+         throw new ApiException("Get user subscription error", 403,
+            "You don't have permission to see subscription of this user");
+      }
+
+      var userPremiumInformation = await _userPremiumRepository.GetUserPremiumInformation(userId);
+
+      if (userPremiumInformation == null)
+      {
+         return null;
+      }
+
+      return new GetUserSubscriptionResponse()
+      {
+         ExpiresAt = userPremiumInformation.ExpiresAt
+      };
+      
    }
 }

@@ -54,6 +54,16 @@ public class UserController : ControllerBase
       var userFollowers = await _userService.GetUserFollowers(userId);
       return Ok(ApiResponse<List<UserFollowersDto>>.Ok("Successfully retrieved user followers", userFollowers));
    }
+
+   [HttpGet("subscription/{userId:guid}")]
+   [SwaggerOperation("Get user subscription status", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<GetUserSubscriptionResponse?>>> GetUserSubscriptionInformation(Guid userId)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      var isOwnerOfSubscription = requestUserId.Value == userId;
+      var userPremiumInformationResult = await _userService.GetUserSubscription(userId, isOwnerOfSubscription);
+      return Ok(ApiResponse<GetUserSubscriptionResponse?>.Ok("Successfully retrieved subscription information",userPremiumInformationResult));
+   }
    
    [HttpPost("{followId:guid}/follow")]
    [SwaggerOperation("Follow or unfollow user","AUTH REQUIRED")]

@@ -1,4 +1,5 @@
-﻿using Webby.UserService.Models.Enums;
+﻿using System.ComponentModel.DataAnnotations;
+using Webby.UserService.Models.Enums;
 
 namespace Webby.UserService.Models;
 

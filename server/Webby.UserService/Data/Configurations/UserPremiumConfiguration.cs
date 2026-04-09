@@ -15,7 +15,7 @@ public class UserPremiumConfiguration : IEntityTypeConfiguration<UserPremium>
       builder.Property(up => up.ExpiresAt)
          .IsRequired();
 
-      builder.HasOne<User>()
+      builder.HasOne<User>(up => up.User)
          .WithOne()
          .HasForeignKey<UserPremium>(up => up.UserId)
          .OnDelete(DeleteBehavior.Cascade);
