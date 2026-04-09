@@ -73,3 +73,13 @@ export function formatVideoTime(seconds: number) {
 function pad(string: string | number) {
   return `0${string}`.slice(-2)
 }
+
+export function formatRelativeTime(dateString: string) {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
