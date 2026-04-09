@@ -2,6 +2,7 @@
 using Stripe;
 using Stripe.Terminal;
 using Swashbuckle.AspNetCore.Annotations;
+using Webby.UserService.Dtos.User;
 using Webby.UserService.Helpers.Jwt;
 using Webby.UserService.Helpers.Response;
 using Webby.UserService.Interfaces.Service;
@@ -17,6 +18,16 @@ public class PaymentController : ControllerBase
    public PaymentController(IPaymentService paymentService)
    {
       _paymentService = paymentService;
+   }
+
+   [HttpGet("subscriptions/{paymentId:guid}")]
+   [SwaggerOperation("Get user premium details after redirecting on success payment url","AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<GetUserPremiumInformationResponse>>> GetPaymentDetails(Guid paymentId)
+   {
+      var requestedUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      var userPremiumInformation = await _paymentService.GetUserPremiumInformation(paymentId, requestedUserId.Value);
+      return Ok(ApiResponse<GetUserPremiumInformationResponse>.Ok("Successfully retrieve premium information",
+         userPremiumInformation));
    }
 
    [HttpPost]

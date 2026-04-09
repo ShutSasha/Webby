@@ -68,14 +68,27 @@ public class GenericRepository<T> : IRepository<T> where T : class
       await _context.SaveChangesAsync();
       return id;
    }
-   public async Task<IEnumerable<T>> GetByPredicate(Expression<Func<T, bool>> predicate)
+   public async Task<IEnumerable<T>> GetByPredicate(Expression<Func<T, bool>> predicate, 
+      Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+      int? skip = null,
+      int? take = null)
    {
-      if (predicate == null)
-      {
-         throw new ArgumentNullException(nameof(predicate), "Predicate cannot be null.");
-      }
+      if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
-      return await _dbSet.Where(predicate).ToListAsync();
+      IQueryable<T> query = _dbSet.Where(predicate);
+
+      if (orderBy != null) query = orderBy(query);
+      if (skip.HasValue) query = query.Skip(skip.Value);
+      if (take.HasValue) query = query.Take(take.Value);
+
+      return await query.ToListAsync();
+   }
+
+   public async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
+   {
+      if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+    
+      return await _dbSet.CountAsync(predicate);
    }
    
    public async Task<int> CountAsync()

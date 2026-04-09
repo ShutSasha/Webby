@@ -2,6 +2,8 @@
 using Stripe;
 using Stripe.Checkout;
 using Webby.UserService.Consts;
+using Webby.UserService.Dtos.User;
+using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Helpers.Payment;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
@@ -40,7 +42,7 @@ public class PaymentService : IPaymentService
 
         var options = new SessionCreateOptions
         {
-            SuccessUrl = _settings.SuccessUrl,
+            SuccessUrl = _settings.SuccessUrl + $"/{payment.PaymentId}",
             CancelUrl = _settings.CancelUrl,
             PaymentMethodTypes = ["card"],
             LineItems =
@@ -105,6 +107,30 @@ public class PaymentService : IPaymentService
             Console.WriteLine(ex.Message);
         }
        
+    }
+
+    public async Task<GetUserPremiumInformationResponse> GetUserPremiumInformation(Guid paymentId, Guid requestUserId)
+    {
+        var payment = await _paymentRepository.FindById(paymentId)
+                      ?? throw new ApiException("Get payment information error",404,"Payment wasn't found");
+
+        if (payment.UserId != requestUserId)
+        {
+            throw new ApiException("Get user information error", 403, "You can't get information of another user");
+        }
+
+        var userPremiumInformation = await _userPremiumRepository.GetUserPremiumInformation(payment.UserId);
+
+        if (userPremiumInformation == null)
+        {
+            throw new ApiException("Get information error",404,"User premium wasn't found");
+        }
+
+        return new GetUserPremiumInformationResponse
+        {
+            ExpirationDate = userPremiumInformation.ExpiresAt,
+            Username = userPremiumInformation.User.Username
+        };
     }
 
     private async Task HandleSuccess(Session session)

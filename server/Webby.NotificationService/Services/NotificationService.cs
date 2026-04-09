@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Webby.NotificationService.Dtos.Notification;
+using Webby.NotificationService.Dtos.Pagination;
 using Webby.NotificationService.Helpers.Exception;
+using Webby.NotificationService.Helpers.Response;
 using Webby.NotificationService.Hubs;
 using Webby.NotificationService.Interfaces.Repositories;
 using Webby.NotificationService.Interfaces.Services;
@@ -54,16 +56,50 @@ public class NotificationService : INotificationService
       return notification;
    }
 
-   public async Task<List<Notification>> GetUnreadNotifications(Guid userId)
+   public async Task<PagedResponse<Notification>> GetUnreadNotifications(Guid userId, PaginationRequest request)
    {
-      return (await _notificationRepository
-         .GetByPredicate(n => n.UserId == userId && n.NotificationStatus == NotificationStatus.Unread)).ToList();
+      var skip = (request.Page - 1) * request.PageSize;
+
+      var totalCount = await _notificationRepository.CountAsync(
+         n => n.UserId == userId && n.NotificationStatus == NotificationStatus.Unread);
+
+      var notifications = await _notificationRepository.GetByPredicate(
+         predicate: n => n.UserId == userId && n.NotificationStatus == NotificationStatus.Unread,
+         orderBy: q => q.OrderByDescending(n => n.CreatedAt),
+         skip: skip,
+         take: request.PageSize
+      );
+
+      return new PagedResponse<Notification>
+      {
+         Items = notifications.ToList(),
+         TotalCount = totalCount,
+         Page = request.Page,
+         PageSize = request.PageSize
+      };
    }
 
-   public async Task<List<Notification>> GetReadNotifications(Guid userId)
+   public async Task<PagedResponse<Notification>> GetReadNotifications(Guid userId, PaginationRequest request)
    {
-      return (await _notificationRepository
-         .GetByPredicate(n => n.UserId == userId && n.NotificationStatus == NotificationStatus.Read)).ToList();
+      var skip = (request.Page - 1) * request.PageSize;
+
+      var totalCount = await _notificationRepository.CountAsync(
+         n => n.UserId == userId && n.NotificationStatus == NotificationStatus.Read);
+
+      var notifications = await _notificationRepository.GetByPredicate(
+         predicate: n => n.UserId == userId && n.NotificationStatus == NotificationStatus.Read,
+         orderBy: q => q.OrderByDescending(n => n.CreatedAt),
+         skip: skip,
+         take: request.PageSize
+      );
+
+      return new PagedResponse<Notification>
+      {
+         Items = notifications.ToList(),
+         TotalCount = totalCount,
+         Page = request.Page,
+         PageSize = request.PageSize
+      };
    }
 
    public async Task<int> GetNotificationsCount(Guid? userId)
@@ -94,6 +130,28 @@ public class NotificationService : INotificationService
       {
          CountOfUnreadMessages = await _notificationRepository.CountNotifications(userId, NotificationStatus.Unread),
          CountOfReadMessages = await _notificationRepository.CountNotifications(userId, NotificationStatus.Read),
+      };
+   }
+
+   public async Task<PagedResponse<Notification>> GetUserNotifications(Guid userId, PaginationRequest request)
+   {
+      var skip = (request.Page - 1) * request.PageSize;
+
+      var totalCount = await _notificationRepository.CountAsync(n => n.UserId == userId);
+
+      var notifications = await _notificationRepository.GetByPredicate(
+         predicate: n => n.UserId == userId,
+         orderBy: q => q.OrderByDescending(n => n.CreatedAt),
+         skip: skip,
+         take: request.PageSize
+      );
+
+      return new PagedResponse<Notification>
+      {
+         Items =notifications.ToList(),
+         TotalCount = totalCount,
+         Page = request.Page,
+         PageSize = request.PageSize
       };
    }
 }
