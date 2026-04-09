@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.NotificationService.Dtos.Notification;
+using Webby.NotificationService.Dtos.Pagination;
 using Webby.NotificationService.Helpers.Jwt;
 using Webby.NotificationService.Helpers.Response;
 using Webby.NotificationService.Interfaces.Services;
@@ -20,22 +21,31 @@ public class NotificationController : ControllerBase
       _notificationService = notificationService;
    }
 
-   [HttpGet("unread")]
-   [SwaggerOperation("Get users unread notification","AUTH REQUIRED")]
-   public async Task<ActionResult<ApiResponse<List<Notification>>>> GetUserUnreadNotification()
+   [HttpGet]
+   [SwaggerOperation("Get all user notifications", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<Notification>>>> GetUserNotifications([FromQuery] PaginationRequest request)
    {
       var userId = JwtHelper.ExtractUserId(HttpContext)!;
-      var notifications = await _notificationService.GetUnreadNotifications(userId.Value);
-      return Ok(ApiResponse<List<Notification>>.Ok("Successfully retrieved user notifications", notifications));
+      var userNotifications = await _notificationService.GetUserNotifications(userId.Value, request);
+      return Ok(ApiResponse<PagedResponse<Notification>>.Ok("Successfully retrieved user notifications",userNotifications));
+   }
+   
+   [HttpGet("unread")]
+   [SwaggerOperation("Get users unread notification","AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<Notification>>>> GetUserUnreadNotification([FromQuery] PaginationRequest request)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      var notifications = await _notificationService.GetUnreadNotifications(userId.Value, request);
+      return Ok(ApiResponse<PagedResponse<Notification>>.Ok("Successfully retrieved user notifications", notifications));
    } 
    
    [HttpGet("read")]
    [SwaggerOperation("Get users read notification","AUTH REQUIRED")]
-   public async Task<ActionResult<ApiResponse<List<Notification>>>> GetUserReadNotification()
+   public async Task<ActionResult<ApiResponse<PagedResponse<Notification>>>> GetUserReadNotification([FromQuery] PaginationRequest request)
    {
       var userId = JwtHelper.ExtractUserId(HttpContext)!;
-      var notifications = await _notificationService.GetReadNotifications(userId.Value);
-      return Ok(ApiResponse<List<Notification>>.Ok("Successfully retrieved user notifications", notifications));
+      var notifications = await _notificationService.GetReadNotifications(userId.Value,request);
+      return Ok(ApiResponse<PagedResponse<Notification>>.Ok("Successfully retrieved user notifications", notifications));
    }
 
    [HttpGet("count-unread-messages")]
