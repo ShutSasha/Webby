@@ -3,20 +3,16 @@ import { useEffect, useRef, useState } from 'react'
 
 import ReactPlayer from 'react-player'
 
-import FilledPlay from '@/assets/icons/Player/filled-play.svg'
-import FullscreenIcon from '@/assets/icons/Player/fullscreen.svg'
-import PauseIcon from '@/assets/icons/Player/pause.svg'
-import PlayIcon from '@/assets/icons/Player/play.svg'
-import SettingsIcon from '@/assets/icons/Player/settings.svg'
-import MaxVolume from '@/assets/icons/Player/volume-max.svg'
-import MinVolume from '@/assets/icons/Player/volume-min.svg'
-import MutedVolume from '@/assets/icons/Player/volume-muted.svg'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { usePlayerControls } from '@/lib/hooks/usePlayerControls'
 import { usePlayerHotkeys } from '@/lib/hooks/usePlayerHotkeys'
 import { usePlayerPlayStore, usePlayerStore } from '@/stores/player.store'
 
-import Duration from './Duration'
+import PlayerBottomControls from './PlayerBottomControls'
+import PlayerCenterButton from './PlayerCenterButton'
+import PlayerLoader from './PlayerLoader'
+import PlayerProgressBar from './PlayerProgressBar'
+import PlayerSettingsMenu from './PlayerSettingsMenu'
 
 type PlayerProps = {
   videoUrl: string
@@ -34,9 +30,6 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
   const toggleThrottleRef = useRef<NodeJS.Timeout | null>(null)
   const [showCustomControls, setShowCustomControls] = useState(true)
   const isPlatformMode = usePlayerControls(videoUrl)
-
-  const [hoverTime, setHoverTime] = useState<number | null>(null)
-  const [hoverX, setHoverX] = useState<number>(0)
 
   const baseUserVolume = usePlayerStore(state => state.baseVolume)
   const setBaseUserVolume = usePlayerStore(state => state.setBaseVolume)
@@ -115,16 +108,8 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     }, 300)
   }
 
-  const handleSetPlaybackRate = (event: React.SyntheticEvent<HTMLButtonElement>) => {
-    const buttonTarget = event.currentTarget as HTMLButtonElement
-    const btnData = Number.parseFloat(`${buttonTarget.dataset.value}`)
-
-    if (isNaN(btnData)) return
-
-    setState(prevState => ({
-      ...prevState,
-      playbackRate: btnData,
-    }))
+  const handleSetPlaybackRate = (rate: number) => {
+    setState(prevState => ({ ...prevState, playbackRate: rate }))
   }
 
   const handleRateChange = () => {
@@ -167,21 +152,17 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
     setState(prevState => ({ ...prevState, played: Number.parseFloat(inputTarget.value) }))
   }
 
-  const handleSeekMouseUp = (event: React.SyntheticEvent<HTMLInputElement>) => {
-    const inputTarget = event.target as HTMLInputElement
+  const handleSeekMouseUp = (newTimeFraction: number) => {
     const player = playerRef.current
-
     if (!player) return
-
-    const newTime = hoverTime !== null ? hoverTime : Number.parseFloat(inputTarget.value) * duration
+    const newTime = newTimeFraction * duration
 
     setState(prevState => ({
       ...prevState,
       seeking: false,
-      played: newTime / duration,
+      played: newTimeFraction,
       playedSeconds: newTime,
     }))
-
     player.currentTime = newTime
   }
 
@@ -265,19 +246,6 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
     }
   }, [playing])
-
-  const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const percentage = Math.max(0, Math.min(1, x / rect.width))
-
-    setHoverTime(percentage * duration)
-    setHoverX(x)
-  }
-
-  const handleProgressMouseLeave = () => {
-    setHoverTime(null)
-  }
 
   if (!isMounted)
     return (
@@ -379,11 +347,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
         }}
       />
 
-      {(!isReady || buffering) && (
-        <div className="absolute inset-0 z-1 flex items-center justify-center pointer-events-none bg-black/40">
-          <div className="w-16 h-16 border-6 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
-        </div>
-      )}
+      <PlayerLoader isReady={isReady} buffering={buffering} />
 
       {/* Overlay */}
       {isReady && !isPlatformMode && (
@@ -393,44 +357,15 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
           onClick={handlePlayPause}
         >
           {/* Play button on the overlay */}
-          {!buffering && (
-            <div
-              className={`${playing === false ? 'opacity-100' : 'opacity-0'} absolute w-12 h-12 md:w-18 md:h-18
-              bg-black/40 rounded-full top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center
-              justify-center pl-1 transition-opacity duration-400 ease-in-out`}
-            >
-              <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-white/90" />
-            </div>
-          )}
+          <PlayerCenterButton playing={playing} buffering={buffering} />
 
           {/* Settings Menu Popup */}
-          {showSettings && (
-            <div
-              ref={settingsContainerRef}
-              className="absolute bottom-14 right-3 w-48 bg-black/30 backdrop-blur-md rounded-xl overflow-hidden z-20"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="p-2 border-b border-white/5">
-                <p className="text-neutral-400 text-xs font-bold px-3 py-1 uppercase tracking-wider">Speed</p>
-              </div>
-              <div className="py-1">
-                {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map(rate => (
-                  <button
-                    key={rate}
-                    onClick={handleSetPlaybackRate}
-                    className={`w-full flex items-center justify-between px-4 py-2 text-sm transition-colors
-                    hover:bg-white/10 ${playbackRate === rate ? 'text-emerald-500 font-bold' : 'text-neutral-300'}`}
-                    data-value={rate}
-                  >
-                    <span>{rate === 1 ? 'Normal' : `${rate}x`}</span>
-                    {playbackRate === rate && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <PlayerSettingsMenu
+            showSettings={showSettings}
+            playbackRate={playbackRate}
+            onSetPlaybackRate={handleSetPlaybackRate}
+            menuRef={settingsContainerRef}
+          />
 
           {/* Controls */}
           <div
@@ -439,144 +374,28 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
             ${showCustomControls ? 'translate-y-0' : 'translate-y-10 pointer-events-none'}`}
           >
             {/* Progress Bar Container */}
-            <div
-              className="relative h-1.5 w-full bg-white/20 rounded-full group/bar cursor-pointer"
-              onMouseMove={handleProgressMouseMove}
-              onMouseLeave={handleProgressMouseLeave}
-            >
-              {/* Hint (Tooltip) */}
-              {hoverTime !== null && (
-                <div
-                  className="absolute bottom-4 -translate-x-1/2 bg-white text-black px-1.5 py-0.5 rounded-md text-[12px]
-                    font-bold shadow-lg pointer-events-none transition-opacity"
-                  style={{ left: `${hoverX}px` }}
-                >
-                  <Duration seconds={hoverTime} />
-
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45" />
-                </div>
-              )}
-
-              {/* Pre-Loaded line */}
-              <div
-                className="absolute h-full bg-white/30 rounded-full transition-all"
-                style={{ width: `${loaded * 100}%` }}
-              />
-
-              {/* Played line */}
-              <div className="absolute h-full bg-emerald-500 rounded-full" style={{ width: `${played * 100}%` }} />
-
-              {/* Played Circle */}
-              <div
-                className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
-                  pointer-events-none"
-                style={{ left: `${played * 100}%` }}
-              />
-
-              {/* Invisible Input for control */}
-              <input
-                type="range"
-                min={0}
-                max={0.999999}
-                step="any"
-                value={played}
-                onMouseDown={handleSeekMouseDown}
-                onChange={handleSeekChange}
-                onMouseUp={handleSeekMouseUp}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-              />
-            </div>
+            <PlayerProgressBar
+              played={played}
+              loaded={loaded}
+              duration={duration}
+              onSeekMouseDown={handleSeekMouseDown}
+              onSeekChange={handleSeekChange}
+              onSeekMouseUp={handleSeekMouseUp}
+            />
 
             {/* Buttons etc */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button onClick={handlePlayPause} className="cursor-pointer">
-                  {playing ? (
-                    <PauseIcon
-                      className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors
-                        stroke-[1.5px]"
-                    />
-                  ) : (
-                    <PlayIcon
-                      className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors
-                        stroke-[1.5px]"
-                    />
-                  )}
-                </button>
-
-                {/* Duration */}
-                <div className="flex items-center gap-0.5">
-                  <Duration seconds={duration * played} className="text-neutral-300 text-sm font-medium leading-5" />
-                  <span className="text-neutral-300 text-sm font-medium leading-5">/</span>
-                  <Duration seconds={duration} className="text-neutral-300 text-sm font-medium leading-5" />
-                </div>
-                {/* Volume */}
-                <div className="flex items-center gap-2 group/volume">
-                  <button onClick={toggleMute} className="cursor-pointer">
-                    {baseUserVolume >= 0.5 && (
-                      <MaxVolume
-                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
-                          stroke-[1.5px]"
-                      />
-                    )}
-                    {baseUserVolume < 0.5 && baseUserVolume > 0 && (
-                      <MinVolume
-                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
-                          stroke-[1.5px]"
-                      />
-                    )}
-                    {baseUserVolume === 0 && (
-                      <MutedVolume
-                        className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
-                          stroke-[1.5px]"
-                      />
-                    )}
-                  </button>
-
-                  {/* Volume Slider */}
-                  <div className="relative w-22 h-1.5 bg-white/20 rounded-full group/slider">
-                    {/* Progress Bar */}
-                    <div
-                      className="absolute h-full bg-emerald-500 rounded-full"
-                      style={{ width: `${baseUserVolume * 100}%` }}
-                    />
-
-                    {/* Thumb */}
-                    <div
-                      className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
-                        pointer-events-none transition-transform"
-                      style={{ left: `calc(${baseUserVolume * 100}% + (${(0.5 - baseUserVolume) * 10}px))` }}
-                    />
-
-                    {/* Invisible Input for control */}
-                    <input
-                      id="volume"
-                      type="range"
-                      min={0}
-                      max={1}
-                      step="any"
-                      value={baseUserVolume}
-                      onChange={handleVolumeChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={toggleSettings} className={'cursor-pointer group/settings'}>
-                  <SettingsIcon
-                    className={`w-6 h-6 transition-colors duration-300 stroke-[1.5px]
-                    ${showSettings ? 'text-emerald-500 rotate-45' : 'text-neutral-300 group-hover/settings:text-emerald-500'}`}
-                  />
-                </button>
-                <button type="button" onClick={toggleFullScreen} className="cursor-pointer group/fullscreen">
-                  <FullscreenIcon
-                    className="text-neutral-300 w-6 h-6 group-hover/fullscreen:text-emerald-500 transition-colors
-                      stroke-[1.5px]"
-                  />
-                </button>
-              </div>
-            </div>
+            <PlayerBottomControls
+              playing={playing}
+              duration={duration}
+              playedFraction={played}
+              baseUserVolume={baseUserVolume}
+              showSettings={showSettings}
+              onPlayPause={handlePlayPause}
+              onVolumeChange={handleVolumeChange}
+              onToggleMute={toggleMute}
+              onToggleSettings={toggleSettings}
+              onToggleFullScreen={toggleFullScreen}
+            />
           </div>
         </div>
       )}
