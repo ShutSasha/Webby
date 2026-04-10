@@ -10,14 +10,14 @@ type Props = {
 
 export default function AsideVideoCard({ video }: Props) {
   return (
-    <Link href={`/videos/${video.videoId}`} className="group flex gap-3">
-      <div className="overflow-hidden rounded-lg relative w-[168px] h-fit shrink-0">
+    <Link href={`/videos/${video.videoId}`} className="group flex flex-col xl:flex-row gap-3">
+      <div className="overflow-hidden rounded-lg relative xl:w-[168px] h-fit shrink-0">
         <Image
           src={video.previewUrl}
           width={400}
           height={400}
           alt=""
-          className="aspect-video rounded-lg group-hover:scale-115 transition-transform duration-600"
+          className="aspect-video rounded-lg group-hover:scale-110 transition-transform duration-600 w-full"
           placeholder="blur"
           blurDataURL={BLUR_DATA_URLS['neutral900']}
         />

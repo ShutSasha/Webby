@@ -43,7 +43,7 @@ export default function PlayerProgressBar({
 
   return (
     <div
-      className="relative h-1.5 w-full bg-white/20 rounded-full group/bar cursor-pointer"
+      className="relative h-1 md:h-1.5 w-full bg-white/20 rounded-full group/bar cursor-pointer"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -67,8 +67,8 @@ export default function PlayerProgressBar({
 
       {/* Played Circle */}
       <div
-        className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
-          pointer-events-none"
+        className="absolute w-2.5 h-2.5 md:h-3 md:w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2
+          -translate-y-1/2 pointer-events-none"
         style={{ left: `${played * 100}%` }}
       />
 

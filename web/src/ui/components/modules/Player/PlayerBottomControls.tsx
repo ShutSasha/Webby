@@ -41,13 +41,13 @@ export default function PlayerBottomControls({
         <button onClick={onPlayPause} className="cursor-pointer">
           {playing ? (
             <PauseIcon
-              className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors
-                stroke-[1.5px]"
+              className="w-5 h-5 md:w-6 md:h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out
+                transition-colors stroke-[1.5px]"
             />
           ) : (
             <PlayIcon
-              className="w-6 h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out transition-colors
-                stroke-[1.5px]"
+              className="w-5 h-5 md:w-6 md:h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out
+                transition-colors stroke-[1.5px]"
             />
           )}
         </button>
@@ -64,33 +64,33 @@ export default function PlayerBottomControls({
           <button onClick={onToggleMute} className="cursor-pointer">
             {baseUserVolume >= 0.5 && (
               <MaxVolume
-                className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
+                className="text-neutral-300 w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500 transition-colors
                   stroke-[1.5px]"
               />
             )}
             {baseUserVolume < 0.5 && baseUserVolume > 0 && (
               <MinVolume
-                className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
+                className="text-neutral-300 w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500 transition-colors
                   stroke-[1.5px]"
               />
             )}
             {baseUserVolume === 0 && (
               <MutedVolume
-                className="text-neutral-300 w-6 h-6 group-hover/volume:text-emerald-500 transition-colors
+                className="text-neutral-300 w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500 transition-colors
                   stroke-[1.5px]"
               />
             )}
           </button>
 
           {/* Volume Slider */}
-          <div className="relative w-22 h-1.5 bg-white/20 rounded-full group/slider">
+          <div className="relative w-22 h-1 md:h-1.5 bg-white/20 rounded-full group/slider">
             <div
               className="absolute h-full bg-emerald-500 rounded-full"
               style={{ width: `${baseUserVolume * 100}%` }}
             />
             <div
-              className="absolute h-3 w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2
-                pointer-events-none transition-transform"
+              className="absolute w-2.5 h-2.5 md:h-3 md:w-3 bg-emerald-500 rounded-full top-1/2 -translate-x-1/2
+                -translate-y-1/2 pointer-events-none transition-transform"
               style={{ left: `calc(${baseUserVolume * 100}% + (${(0.5 - baseUserVolume) * 10}px))` }}
             />
             <input
@@ -109,14 +109,14 @@ export default function PlayerBottomControls({
       <div className="flex items-center gap-3">
         <button type="button" onClick={onToggleSettings} className="cursor-pointer group/settings">
           <SettingsIcon
-            className={`w-6 h-6 transition-colors duration-300 stroke-[1.5px] ${
+            className={`w-5 h-5 md:w-6 md:h-6 transition-colors duration-300 stroke-[1.5px] ${
               showSettings ? 'text-emerald-500 rotate-45' : 'text-neutral-300 group-hover/settings:text-emerald-500'
             }`}
           />
         </button>
         <button type="button" onClick={onToggleFullScreen} className="cursor-pointer group/fullscreen">
           <FullscreenIcon
-            className="text-neutral-300 w-6 h-6 group-hover/fullscreen:text-emerald-500 transition-colors
+            className="text-neutral-300 w-5 h-5 md:w-6 md:h-6 group-hover/fullscreen:text-emerald-500 transition-colors
               stroke-[1.5px]"
           />
         </button>

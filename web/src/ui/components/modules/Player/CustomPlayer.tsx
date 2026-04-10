@@ -97,7 +97,8 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
           {/* Controls */}
           <div
             onClick={e => e.stopPropagation()}
-            className={`absolute z-2 bottom-3 left-3 right-3 flex flex-col gap-2 transition-transform duration-500
+            className={`absolute z-2 bottom-2 left-2 right-2 md:bottom-3 md:left-3 md:right-3 flex flex-col gap-2
+            transition-transform duration-500
             ${uiState.showCustomControls ? 'translate-y-0' : 'translate-y-10 pointer-events-none'}`}
           >
             {/* Progress Bar Container */}

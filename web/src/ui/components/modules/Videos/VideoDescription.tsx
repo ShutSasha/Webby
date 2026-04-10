@@ -35,7 +35,7 @@ export default function VideoDescription(props: Props) {
         <p
           ref={textRef}
           className={cn(
-            'text-sm text-neutral-300 wrap-break-word whitespace-pre-wrap leading-relaxed transition-all',
+            'text-sm text-neutral-300 wrap-break-word whitespace-pre-wrap leading-relaxed transition-all min-h-[69px]',
             !isExpanded && 'line-clamp-3',
           )}
         >

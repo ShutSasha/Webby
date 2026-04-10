@@ -172,3 +172,15 @@ export default function VideoItem({
     </motion.div>
   )
 }
+
+export function VideoItemSkeleton() {
+  return (
+    <div className="flex items-center justify-between p-2 rounded-xl bg-neutral-800/30 border-b-2 border-transparent">
+      <div className="flex items-center gap-3 overflow-hidden w-full">
+        <div className="size-10 bg-neutral-700/50 rounded-lg shrink-0 animate-pulse" />
+
+        <div className="h-4 bg-neutral-700/50 rounded-md w-3/4 animate-pulse" />
+      </div>
+    </div>
+  )
+}
