@@ -9,6 +9,7 @@ import MinVolume from '@/assets/icons/Player/volume-min.svg'
 import MutedVolume from '@/assets/icons/Player/volume-muted.svg'
 
 import Duration from './Duration'
+import PlayerSyncButton from './PlayerSyncButton'
 
 type Props = {
   playing: boolean
@@ -16,6 +17,7 @@ type Props = {
   playedFraction: number
   baseUserVolume: number
   showSettings: boolean
+  isRoom?: boolean
   onPlayPause: (e: React.MouseEvent) => void
   onVolumeChange: (e: React.SyntheticEvent<HTMLInputElement>) => void
   onToggleMute: () => void
@@ -29,6 +31,7 @@ export default function PlayerBottomControls({
   playedFraction,
   baseUserVolume,
   showSettings,
+  isRoom,
   onPlayPause,
   onVolumeChange,
   onToggleMute,
@@ -106,7 +109,9 @@ export default function PlayerBottomControls({
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3">
+        {isRoom && <PlayerSyncButton />}
+
         <button type="button" onClick={onToggleSettings} className="cursor-pointer group/settings">
           <SettingsIcon
             className={`w-5 h-5 md:w-6 md:h-6 transition-colors duration-300 stroke-[1.5px] ${

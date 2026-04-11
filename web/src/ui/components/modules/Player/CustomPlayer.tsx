@@ -15,9 +15,10 @@ import PlayerSettingsMenu from './PlayerSettingsMenu'
 
 type PlayerProps = {
   videoUrl: string
+  isRoom?: boolean
 }
 
-export default function CustomPlayer({ videoUrl }: PlayerProps) {
+export default function CustomPlayer({ videoUrl, isRoom = false }: PlayerProps) {
   const isMounted = useIsClient()
   const isPlatformMode = usePlayerControls(videoUrl)
 
@@ -118,6 +119,7 @@ export default function CustomPlayer({ videoUrl }: PlayerProps) {
               playedFraction={state.played}
               baseUserVolume={uiState.baseUserVolume}
               showSettings={state.showSettings}
+              isRoom={isRoom}
               onPlayPause={actions.handlePlayPause}
               onVolumeChange={actions.handleVolumeChange}
               onToggleMute={actions.toggleMute}
