@@ -4,6 +4,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.Video;
+using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.Jwt;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Services;
@@ -96,8 +97,13 @@ public class VideoController: ControllerBase
    
    [HttpPost("increment-view")]
    [SwaggerOperation("Added view on specified video", "AUTH REQUIRED")]
-   public async Task<ActionResult<ApiResponse>> IncrementVideoView([FromBody] Guid videoId)
+   public async Task<ActionResult<ApiResponse>> IncrementVideoView([FromBody] IncrementViewRequest request)
    {
+      if (!Guid.TryParse(request.VideoId, out Guid videoId))
+      {
+         throw new ApiException("Increment video error", 400, "Incorrect video id format");
+      }
+      
       var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
       await _videoService.IncrementVideoView(requestUserId.Value, videoId);
       return Ok(ApiResponse.Ok("Successfully increment video view"));

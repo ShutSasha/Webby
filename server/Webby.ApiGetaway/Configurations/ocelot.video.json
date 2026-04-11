@@ -256,6 +256,20 @@
          "UpstreamHttpMethod": [
             "GET"
          ]
+      },
+      {
+         "DownstreamPathTemplate": "/api/videos/increment-view",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/increment-view",
+         "UpstreamHttpMethod": [
+            "POST"
+         ]
       }
    ]
 }
