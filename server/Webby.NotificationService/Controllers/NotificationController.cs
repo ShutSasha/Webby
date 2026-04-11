@@ -79,7 +79,8 @@ public class NotificationController : ControllerBase
    [SwaggerOperation("Change notification read-status", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> ChangeNotificationReadStatus([FromBody] List<Guid> notificationIds)
    {
-      await _notificationService.ChangeReadStatus(notificationIds);
+      var requestedUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _notificationService.ChangeReadStatus(requestedUserId.Value,notificationIds);
       return Ok(ApiResponse.Ok("Successfully change notifications read status"));
    }
    
