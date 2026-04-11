@@ -19,7 +19,11 @@ type PlayerState = {
   isReady: boolean
 }
 
-export const useCustomPlayerLogic = (videoUrl: string, isPlatformMode: boolean) => {
+export const useCustomPlayerLogic = (
+  videoUrl: string,
+  isPlatformMode: boolean,
+  trackViewProgress?: (playedSeconds: number, duration: number) => void,
+) => {
   const playerRef = useRef<HTMLVideoElement>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
   const settingsContainerRef = useRef<HTMLDivElement>(null)
@@ -175,11 +179,18 @@ export const useCustomPlayerLogic = (videoUrl: string, isPlatformMode: boolean) 
     if (!player || state.seeking) return
     if (!player.duration) return
 
+    const currentSeconds = player.currentTime
+    const currentDuration = player.duration
+
     setState(prevState => ({
       ...prevState,
-      playedSeconds: player.currentTime,
-      played: player.currentTime / player.duration,
+      playedSeconds: currentSeconds,
+      played: currentSeconds / currentDuration,
     }))
+
+    if (trackViewProgress) {
+      trackViewProgress(currentSeconds, currentDuration)
+    }
   }
 
   const handleDurationChange = () => {

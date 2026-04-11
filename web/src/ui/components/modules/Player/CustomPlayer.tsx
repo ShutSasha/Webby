@@ -6,6 +6,7 @@ import { useCustomPlayerLogic } from '@/lib/hooks/useCustomPlayerLogic'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { usePlayerControls } from '@/lib/hooks/usePlayerControls'
 import { usePlayerHotkeys } from '@/lib/hooks/usePlayerHotkeys'
+import { useVideoViewTracker } from '@/lib/hooks/useVideoViewTracker'
 
 import PlayerBottomControls from './PlayerBottomControls'
 import PlayerCenterButton from './PlayerCenterButton'
@@ -15,14 +16,17 @@ import PlayerSettingsMenu from './PlayerSettingsMenu'
 
 type PlayerProps = {
   videoUrl: string
+  videoId?: string
   isRoom?: boolean
 }
 
-export default function CustomPlayer({ videoUrl, isRoom = false }: PlayerProps) {
+export default function CustomPlayer({ videoUrl, videoId, isRoom = false }: PlayerProps) {
   const isMounted = useIsClient()
   const isPlatformMode = usePlayerControls(videoUrl)
 
-  const { refs, state, setState, uiState, actions } = useCustomPlayerLogic(videoUrl, isPlatformMode)
+  const trackViewProgress = useVideoViewTracker(videoId)
+
+  const { refs, state, setState, uiState, actions } = useCustomPlayerLogic(videoUrl, isPlatformMode, trackViewProgress)
 
   usePlayerHotkeys({
     playerRef: refs.playerRef,

@@ -46,7 +46,7 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
 
   return (
     <div className="h-fit min-w-0 w-full">
-      <CustomPlayer videoUrl={videoUrl} />
+      <CustomPlayer videoUrl={videoUrl} videoId={v} />
       <div className="flex items-start justify-between mt-3 mb-2">
         <div className="flex flex-col gap-0.5">
           <p className="text-neutral-300 text-[20px] font-bold">{name}</p>

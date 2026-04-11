@@ -155,3 +155,22 @@ export async function updateVideoMetadataAction(formData: FormData): Promise<Bas
     }
   }
 }
+
+export async function incrementVideoView(videoId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/increment-view`, {
+      videoId,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('INCREMENT_VIDEO_VIEW_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to increment view count',
+      errors: parseAxiosError(error),
+    }
+  }
+}
