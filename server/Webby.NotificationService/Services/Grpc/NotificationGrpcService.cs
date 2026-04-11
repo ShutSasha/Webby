@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using Microsoft.AspNetCore.SignalR;
+using Webby.NotificationService.Constants;
 using Webby.NotificationService.GrpcService;
 using Webby.NotificationService.Helpers.Exception;
 using Webby.NotificationService.Hubs;
@@ -57,10 +58,10 @@ public class NotificationGrpcService: GrpcService.NotificationGrpcService.Notifi
       try
       {
          await _notificationRepository.Add(notification);
-         await _hubContext.Clients.User(request.UserId).SendAsync("ReceiveNotification", notification);
+         await _hubContext.Clients.User(request.UserId).SendAsync(WebSocketMethodNames.ReceiveNotificationMethod, notification);
 
          var unreadNotificationsCount = await _notificationRepository.CountNotifications(userId, NotificationStatus.Unread);
-         await _hubContext.Clients.User(request.UserId).SendAsync("UpdateUnreadCount", unreadNotificationsCount);
+         await _hubContext.Clients.User(request.UserId).SendAsync(WebSocketMethodNames.UpdateUnreadMessagesMethod, unreadNotificationsCount);
       }
       catch (Exception)
       {

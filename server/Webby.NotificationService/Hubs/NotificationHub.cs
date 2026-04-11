@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Webby.NotificationService.Constants;
 using Webby.NotificationService.Interfaces.Repositories;
 using Webby.NotificationService.Models.Enums;
 
@@ -18,7 +19,7 @@ public class NotificationHub : Hub
    {
       if (Context.User?.Identity?.IsAuthenticated != true)
       {
-         await Clients.Caller.SendAsync("AuthError", "Unauthorized: Token is missing or expired");
+         await Clients.Caller.SendAsync(WebSocketMethodNames.AuthErrorMethod, "Unauthorized: Token is missing or expired");
          Context.Abort();
          return;
       }
@@ -28,7 +29,7 @@ public class NotificationHub : Hub
       if (Guid.TryParse(userIdString, out Guid userId))
       {
          var unreadNotificationCount = await _notificationRepository.CountNotifications(userId, NotificationStatus.Unread);
-         await Clients.Caller.SendAsync("UpdateUnreadCount", unreadNotificationCount);
+         await Clients.Caller.SendAsync(WebSocketMethodNames.UpdateUnreadMessagesMethod, unreadNotificationCount);
       }
       
       await base.OnConnectedAsync();
