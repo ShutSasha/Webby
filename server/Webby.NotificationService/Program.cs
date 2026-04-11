@@ -3,8 +3,11 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Webby.NotificationService.Extensions;
+using Webby.NotificationService.GrpcService;
 using Webby.NotificationService.Hubs;
 using Webby.NotificationService.Middlewares;
+using Webby.NotificationService.Services;
+using NotificationGrpcService = Webby.NotificationService.Services.Grpc.NotificationGrpcService;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -22,6 +25,11 @@ builder.Services.AddSignalR(options =>
 {
     options.KeepAliveInterval = TimeSpan.FromSeconds(10);
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+});
+
+services.AddGrpc(options =>
+{
+    options.Interceptors.Add<GrpcExceptionInterceptor>();
 });
 
 services.AddRepositories();
@@ -59,7 +67,8 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/docs/notification-service/v1/swagger.json", "Notification Service API");
     });
 }
-
+app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+app.MapGrpcService<NotificationGrpcService>().EnableGrpcWeb();
 app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 

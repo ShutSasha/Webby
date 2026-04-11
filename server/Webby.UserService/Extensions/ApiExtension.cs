@@ -6,7 +6,9 @@ using Microsoft.OpenApi.Models;
 using Webby.UserService.Clients;
 using Webby.UserService.Data;
 using Webby.UserService.Dtos.Storage;
+using Webby.UserService.Helpers.Notification;
 using Webby.UserService.Helpers.Payment;
+using Webby.UserService.Interfaces.Helpers;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
 using Webby.UserService.Models;
@@ -92,6 +94,11 @@ public static class ApiExtension
       serviceCollection.AddScoped<IComplaintService, ComplaintService>();
       serviceCollection.AddScoped<IPaymentService, PaymentService>();
    }
+   
+   public static void AddHelpers(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddScoped<INotificationFactory,NotificationFactory>();
+   }
 
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)
    {
@@ -104,6 +111,10 @@ public static class ApiExtension
       serviceCollection.AddGrpcClient<VideoGrpcService.VideoGrpcServiceClient>(o =>
       {
          o.Address = new Uri("http://localhost:5005");
+      });
+      serviceCollection.AddGrpcClient<NotificationService.GrpcClient.NotificationGrpcService.NotificationGrpcServiceClient>(o =>
+      {
+         o.Address = new Uri("http://localhost:5007");
       });
    }
 }

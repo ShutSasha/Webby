@@ -7,4 +7,5 @@ public interface INotificationRepository : IRepository<Notification>
 {
    Task<int> CountNotifications (Guid userId,NotificationStatus status);
    Task ChangeReadStatus(List<Guid> ids);
+   Task<bool> IsRecentDuplicateAsync(Guid userId, NotificationTargetType targetType, string targetIdentifier, TimeSpan timeWindow);
 }
