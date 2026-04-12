@@ -6,7 +6,7 @@ export default function VideoDetailsSkeleton() {
 
       {/* Title Area */}
       <div className="flex items-start justify-between mt-3 mb-2">
-        <div className="h-7 bg-neutral-800 rounded-lg w-3/4 md:w-1/2" />
+        <div className="h-7.5 bg-neutral-800 rounded-lg w-3/4 md:w-1/2" />
       </div>
 
       {/* User & Actions Area */}
@@ -17,7 +17,7 @@ export default function VideoDetailsSkeleton() {
             <div className="h-5 w-24 sm:w-32 bg-neutral-800 rounded-md" />
           </div>
           {/* Follow Button */}
-          <div className="h-9 w-24 bg-neutral-800 rounded-full" />
+          <div className="h-8 w-24 bg-neutral-800 rounded-full" />
         </div>
 
         <div className="flex gap-3 items-center">
