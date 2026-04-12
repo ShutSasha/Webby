@@ -65,9 +65,10 @@ export default function VideoCard({
           <Image
             src={previewUrl}
             alt="Video thumbnail"
-            fill
+            width={640}
+            height={480}
             loading="lazy"
-            className="object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-105"
+            className="object-cover w-full h-full z-0 transition-transform duration-500 ease-out group-hover:scale-105"
             placeholder="blur"
             blurDataURL={BLUR_DATA_URLS['neutral900']}
           />
@@ -84,9 +85,9 @@ export default function VideoCard({
           <Image
             src={userAvatar}
             alt="Creator avatar"
-            width={36}
-            height={36}
-            className="size-9 rounded-full object-cover shrink-0 mt-0.5"
+            width={40}
+            height={40}
+            className="size-10 rounded-full object-cover shrink-0 mt-0.5"
             placeholder="blur"
             blurDataURL={BLUR_DATA_URLS['neutral900']}
           />
@@ -184,7 +185,7 @@ export function VideoCardSkeleton() {
       {/* Info Section Skeleton */}
       <div className="flex gap-3 items-start px-1">
         {/* Avatar Skeleton */}
-        <div className="size-9 rounded-full bg-neutral-800/80 shrink-0 mt-0.5 animate-pulse" />
+        <div className="size-10 rounded-full bg-neutral-800/80 shrink-0 mt-0.5 animate-pulse" />
 
         {/* Text Content Skeleton */}
         <div className="flex flex-1 flex-col justify-start gap-3 mt-0.5">
