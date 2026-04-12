@@ -34,13 +34,19 @@ public static class ApiExtension
    {
       services.AddSwaggerGen(options =>
       {
+         var descriptionPath = Path.Combine(AppContext.BaseDirectory, "Helpers", "Swagger", "WebsocketDoc.md");
+
+         var descriptionText = File.Exists(descriptionPath)
+            ? File.ReadAllText(descriptionPath)
+            : "";
          
          options.EnableAnnotations();
          
          options.SwaggerDoc("v1", new OpenApiInfo
          {
             Title = "Notification Service API",
-            Version = "v1"
+            Version = "v1",
+            Description = descriptionText
          });
          
          options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
