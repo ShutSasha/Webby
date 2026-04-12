@@ -529,21 +529,21 @@
       },
       "RoomListItem": {
         "properties": {
-          "categoryName": {
-            "example": "Gaming",
-            "type": "string"
-          },
           "hostId": {
             "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "hostUsername": {
+            "example": "JohnDoe",
+            "type": "string"
+          },
+          "hostAvatarUrl": {
+            "example": "https://example.com/avatar.jpg",
             "type": "string"
           },
           "id": {
             "example": "550e8400-e29b-41d4-a716-446655440000",
             "type": "string"
-          },
-          "isPrivate": {
-            "example": false,
-            "type": "boolean"
           },
           "name": {
             "example": "Room Name",
@@ -551,10 +551,6 @@
           },
           "thumbnail": {
             "example": "https://example.com/thumbnail.jpg",
-            "type": "string"
-          },
-          "token": {
-            "example": "abc123def456ghij",
             "type": "string"
           }
         },
@@ -564,33 +560,7 @@
         "properties": {
           "items": {
             "items": {
-              "properties": {
-                "categoryName": {
-                  "example": "Gaming",
-                  "type": "string"
-                },
-                "id": {
-                  "example": "550e8400-e29b-41d4-a716-446655440000",
-                  "type": "string"
-                },
-                "isPrivate": {
-                  "example": false,
-                  "type": "boolean"
-                },
-                "name": {
-                  "example": "Room Name",
-                  "type": "string"
-                },
-                "thumbnail": {
-                  "example": "https://example.com/thumbnail.jpg",
-                  "type": "string"
-                },
-                "token": {
-                  "example": "abc123def456ghij",
-                  "type": "string"
-                }
-              },
-              "type": "object"
+              "$ref": "#/components/schemas/RoomListItem"
             },
             "type": "array"
           },

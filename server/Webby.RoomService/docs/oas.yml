@@ -404,32 +404,7 @@ components:
       properties:
         items:
           items:
-            properties:
-              categoryName:
-                example: Gaming
-                type: string
-              hostId:
-                example: 550e8400-e29b-41d4-a716-446655440000
-                type: string
-              hostUsername:
-                example: JohnDoe
-                type: string
-              hostAvatarUrl:
-                example: https://example.com/avatar.jpg
-                type: string
-              id:
-                example: 550e8400-e29b-41d4-a716-446655440000
-                type: string
-              isPrivate:
-                example: false
-                type: boolean
-              name:
-                example: Room Name
-                type: string
-              thumbnail:
-                example: https://example.com/thumbnail.jpg
-                type: string
-            type: object
+            $ref: '#/components/schemas/RoomListItem'
           type: array
         page:
           example: 1
@@ -440,6 +415,27 @@ components:
         totalCount:
           example: 100
           type: integer
+      type: object
+    RoomListItem:
+      properties:
+        hostId:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        hostUsername:
+          example: JohnDoe
+          type: string
+        hostAvatarUrl:
+          example: https://example.com/avatar.jpg
+          type: string
+        id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        name:
+          example: Room Name
+          type: string
+        thumbnail:
+          example: https://example.com/thumbnail.jpg
+          type: string
       type: object
     MyRoomListItem:
       properties:

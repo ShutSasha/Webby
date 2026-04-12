@@ -35,8 +35,7 @@ type RoomApiResponse struct {
 type RoomListItem struct {
 	Id            string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
 	Name          string `json:"name" example:"Room Name"`
-	CategoryName  string `json:"categoryName" example:"Gaming"`
-	IsPrivate     bool   `json:"isPrivate" example:"false"`
+	HostId        string `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
 	HostUsername  string `json:"hostUsername" example:"JohnDoe"`
 	HostAvatarUrl string `json:"hostAvatarUrl" example:"https://example.com/avatar.jpg"`
 	Thumbnail     string `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`

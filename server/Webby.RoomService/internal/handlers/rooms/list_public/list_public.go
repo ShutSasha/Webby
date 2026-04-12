@@ -40,8 +40,6 @@ func listPublicRooms(logger *slog.Logger, publicLister PublicLister) errorWrappe
 	type roomListItem struct {
 		Id            uuid.UUID `json:"id"`
 		Name          string    `json:"name"`
-		CategoryName  string    `json:"categoryName"`
-		IsPrivate     bool      `json:"isPrivate"`
 		HostId        uuid.UUID `json:"hostId"`
 		HostUsername  string    `json:"hostUsername"`
 		HostAvatarUrl string    `json:"hostAvatarUrl"`
@@ -96,8 +94,6 @@ func listPublicRooms(logger *slog.Logger, publicLister PublicLister) errorWrappe
 			items[i] = roomListItem{
 				Id:            room.Id,
 				Name:          room.Name,
-				CategoryName:  room.CategoryName,
-				IsPrivate:     room.IsPrivate,
 				HostId:        room.HostId,
 				HostUsername:  room.HostUsername,
 				HostAvatarUrl: room.HostAvatarUrl,
