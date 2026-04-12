@@ -37,7 +37,6 @@ type RoomListItem struct {
 	Name          string `json:"name" example:"Room Name"`
 	CategoryName  string `json:"categoryName" example:"Gaming"`
 	IsPrivate     bool   `json:"isPrivate" example:"false"`
-	HostId        string `json:"hostId" example:"550e8400-e29b-41d4-a716-446655440000"`
 	HostUsername  string `json:"hostUsername" example:"JohnDoe"`
 	HostAvatarUrl string `json:"hostAvatarUrl" example:"https://example.com/avatar.jpg"`
 	Thumbnail     string `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
@@ -54,6 +53,27 @@ type RoomListPagData struct {
 	Page  int            `json:"page" example:"1"`
 	Limit int            `json:"pageSize" example:"10"`
 	Total int            `json:"totalCount" example:"100"`
+}
+
+type MyRoomListItem struct {
+	Id           string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name         string `json:"name" example:"My Room"`
+	CategoryName string `json:"categoryName" example:"Gaming"`
+	IsPrivate    bool   `json:"isPrivate" example:"true"`
+	Thumbnail    string `json:"thumbnail" example:"https://example.com/thumbnail.jpg"`
+}
+
+type MyRoomListApiResponse struct {
+	Success bool               `json:"success" example:"true"`
+	Message string             `json:"message" example:"User rooms retrieved"`
+	Data    *MyRoomListPagData `json:"data,omitempty"`
+}
+
+type MyRoomListPagData struct {
+	Items []MyRoomListItem `json:"items"`
+	Page  int              `json:"page" example:"1"`
+	Limit int              `json:"pageSize" example:"10"`
+	Total int              `json:"totalCount" example:"100"`
 }
 
 // --- Category ---

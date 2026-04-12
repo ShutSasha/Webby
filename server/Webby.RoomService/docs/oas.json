@@ -569,10 +569,6 @@
                   "example": "Gaming",
                   "type": "string"
                 },
-                "hostId": {
-                  "example": "550e8400-e29b-41d4-a716-446655440000",
-                  "type": "string"
-                },
                 "id": {
                   "example": "550e8400-e29b-41d4-a716-446655440000",
                   "type": "string"
@@ -609,6 +605,71 @@
           "totalCount": {
             "example": 100,
             "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "MyRoomListItem": {
+        "properties": {
+          "categoryName": {
+            "example": "Gaming",
+            "type": "string"
+          },
+          "id": {
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "string"
+          },
+          "isPrivate": {
+            "example": true,
+            "type": "boolean"
+          },
+          "name": {
+            "example": "My Room",
+            "type": "string"
+          },
+          "thumbnail": {
+            "example": "https://example.com/thumbnail.jpg",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MyRoomListPagData": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MyRoomListItem"
+            },
+            "type": "array"
+          },
+          "page": {
+            "example": 1,
+            "type": "integer"
+          },
+          "pageSize": {
+            "example": 10,
+            "type": "integer"
+          },
+          "totalCount": {
+            "example": 100,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "MyRoomListApiResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MyRoomListPagData",
+            "type": "object"
+          },
+          "message": {
+            "example": "User rooms retrieved",
+            "type": "string"
+          },
+          "success": {
+            "example": true,
+            "type": "boolean"
           }
         },
         "type": "object"
@@ -2321,7 +2382,7 @@
     },
     "/api/rooms/my": {
       "get": {
-        "description": "Retrieve a **paginated** list of all rooms created by the authenticated user. Supports optional search and category filter.\n\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be >= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n* `search`: **optional**, filters rooms by name (case-insensitive partial match)\n* `category`: **optional**, filters rooms by category name\n\n**Security Note:**\n* This action **requires authentication**\n* Returns **only** the authenticated user's rooms\n* List includes both public and private rooms owned by the user\n",
+        "description": "Retrieve a **paginated** list of all rooms created by the authenticated user. Supports optional search and category filter. Returns rooms without host information since you are the owner.\n\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be >= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n* `search`: **optional**, filters rooms by name (case-insensitive partial match)\n* `category`: **optional**, filters rooms by category name\n\n**Security Note:**\n* This action **requires authentication**\n* Returns **only** the authenticated user's rooms\n* List includes both public and private rooms owned by the user\n* Response fields: `id`, `name`, `categoryName`, `isPrivate`, `thumbnail` (no host information)\n",
         "parameters": [
           {
             "description": "Page number (default: 1)",
@@ -2367,7 +2428,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RoomListApiResponse"
+                  "$ref": "#/components/schemas/MyRoomListApiResponse"
                 }
               }
             },

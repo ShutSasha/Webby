@@ -24,12 +24,12 @@ func New(logger *slog.Logger, myLister MyLister) http.Handler {
 }
 
 // @Title List authenticated user's rooms
-// @Description Retrieve a paginated list of all rooms created by the authenticated user. Supports optional search and category filter.
+// @Description Retrieve a paginated list of all rooms created by the authenticated user. Supports optional search and category filter. Returns rooms without host information since you are the owner.
 // @Param  page      query  int     false  "Page number (default: 1)"
 // @Param  limit     query  int     false  "Items per page (default: 10, max: 100)"
 // @Param  search    query  string  false  "Search rooms by name (case-insensitive)"
 // @Param  category  query  string  false  "Filter by category name"
-// @Success  200  object docs.RoomListApiResponse  "User's rooms successfully retrieved"
+// @Success  200  object docs.MyRoomListApiResponse  "User's rooms successfully retrieved"
 // @Failure  400  object docs.ErrorResponse  "Invalid query parameters"
 // @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
 // @Failure  500  object docs.ErrorResponse  "Internal server error"
@@ -43,7 +43,6 @@ func listMyRooms(logger *slog.Logger, myLister MyLister) errorWrapper.APIFunc {
 		Name         string    `json:"name"`
 		CategoryName string    `json:"categoryName"`
 		IsPrivate    bool      `json:"isPrivate"`
-		HostId       uuid.UUID `json:"hostId"`
 		Thumbnail    string    `json:"thumbnail"`
 	}
 
@@ -100,7 +99,6 @@ func listMyRooms(logger *slog.Logger, myLister MyLister) errorWrapper.APIFunc {
 				Name:         room.Name,
 				CategoryName: room.CategoryName,
 				IsPrivate:    room.IsPrivate,
-				HostId:       room.HostId,
 				Thumbnail:    room.Thumbnail,
 			}
 		}
