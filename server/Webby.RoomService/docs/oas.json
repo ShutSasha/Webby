@@ -86,10 +86,6 @@
       },
       "CategoryResponse": {
         "properties": {
-          "id": {
-            "example": "123e4567-e89b-12d3-a456-426614174000",
-            "type": "string"
-          },
           "name": {
             "example": "Gaming",
             "type": "string"
@@ -1167,17 +1163,17 @@
         ]
       }
     },
-    "/api/categories/{id}": {
+    "/api/categories/{name}": {
       "delete": {
-        "description": "Delete a room category by ID. **Permanent action — cannot be undone.**\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n\n**Security Note:**\n* This action **requires authentication**\n",
+        "description": "Delete a room category by name. **Permanent action — cannot be undone.**\n\n**Path Parameter Validation:**\n* `name`: must be a valid category name\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
-            "description": "Category ID (UUID v4 format)",
+            "description": "Category name",
             "in": "path",
-            "name": "id",
+            "name": "name",
             "required": true,
             "schema": {
-              "description": "Category ID (UUID v4 format)",
+              "description": "Category name",
               "type": "string"
             }
           }
@@ -1194,7 +1190,7 @@
                 }
               }
             },
-            "description": "Invalid UUID format in path"
+            "description": "Invalid category name in path"
           },
           "401": {
             "content": {
@@ -1243,15 +1239,15 @@
         ]
       },
       "put": {
-        "description": "Update an existing room category by ID. Only the **name** field is updateable.\n\n**Validation Rules:**\n* Name is **required** (cannot be null, empty, or whitespace-only)\n* Name length must be **2-50 characters**\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format\n\n**Security Note:**\n* This action **requires authentication**\n",
+        "description": "Update an existing room category by name. Only the **name** field is updateable.\n\n**Validation Rules:**\n* Name is **required** (cannot be null, empty, or whitespace-only)\n* Name length must be **2-50 characters**\n\n**Path Parameter Validation:**\n* `name`: must be a valid category name\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
-            "description": "Category ID (UUID v4 format)",
+            "description": "Category name",
             "in": "path",
-            "name": "id",
+            "name": "name",
             "required": true,
             "schema": {
-              "description": "Category ID (UUID v4 format)",
+              "description": "Category name",
               "type": "string"
             }
           }
@@ -1285,7 +1281,7 @@
                 }
               }
             },
-            "description": "Invalid input: name missing, empty, too short (<2), too long (>50), whitespace-only, invalid UUID in path, or malformed JSON"
+            "description": "Invalid input: name missing, empty, too short (<2), too long (>50), whitespace-only, or malformed JSON"
           },
           "401": {
             "content": {
@@ -2325,7 +2321,7 @@
     },
     "/api/rooms/my": {
       "get": {
-        "description": "Retrieve a **paginated** list of all rooms created by the authenticated user.\n\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be >= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n\n**Security Note:**\n* This action **requires authentication**\n* Returns **only** the authenticated user's rooms\n* List includes both public and private rooms owned by the user\n",
+        "description": "Retrieve a **paginated** list of all rooms created by the authenticated user. Supports optional search and category filter.\n\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be >= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n* `search`: **optional**, filters rooms by name (case-insensitive partial match)\n* `category`: **optional**, filters rooms by category name\n\n**Security Note:**\n* This action **requires authentication**\n* Returns **only** the authenticated user's rooms\n* List includes both public and private rooms owned by the user\n",
         "parameters": [
           {
             "description": "Page number (default: 1)",
@@ -2345,6 +2341,24 @@
               "description": "Items per page (default: 10, max: 100)",
               "format": "int64",
               "type": "integer"
+            }
+          },
+          {
+            "description": "Search rooms by name (case-insensitive)",
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "description": "Search rooms by name (case-insensitive)",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by category name",
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "description": "Filter by category name",
+              "type": "string"
             }
           }
         ],
@@ -2398,7 +2412,7 @@
     },
     "/api/rooms/public": {
       "get": {
-        "description": "Retrieve a **paginated** list of all publicly visible rooms in the system.\n\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be >= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n* `search`: **optional**, filters rooms by name (case-insensitive partial match)\n* `category`: **optional**, filters rooms by category ID (UUID v4 format)\n\n**Security Note:**\n* Returns **only** public rooms (private rooms are excluded)\n* Pagination prevents excessive data retrieval\n",
+        "description": "Retrieve a **paginated** list of all publicly visible rooms in the system.\n\n**Query Parameter Validation:**\n* `page`: **optional** (default: 1), must be >= 1, must be numeric\n* `limit`: **optional** (default: 10), must be 1-100, must be numeric\n* `search`: **optional**, filters rooms by name (case-insensitive partial match)\n* `category`: **optional**, filters rooms by category name\n\n**Security Note:**\n* Returns **only** public rooms (private rooms are excluded)\n* Pagination prevents excessive data retrieval\n",
         "parameters": [
           {
             "description": "Page number (default: 1)",
@@ -2430,11 +2444,11 @@
             }
           },
           {
-            "description": "Filter by category ID (UUID v4 format)",
+            "description": "Filter by category name",
             "in": "query",
             "name": "category",
             "schema": {
-              "description": "Filter by category ID (UUID v4 format)",
+              "description": "Filter by category name",
               "type": "string"
             }
           }

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	_ "webby/internal/handlers/docs"
 	errorWrapper "webby/internal/handlers/errors"
 	"webby/internal/handlers/responses"
@@ -77,7 +78,11 @@ func listPublicRooms(logger *slog.Logger, publicLister PublicLister) errorWrappe
 
 		var categoryName *string
 		if categoryStr := params.Get("category"); categoryStr != "" {
-			categoryName = &categoryStr
+			if strings.ToLower(categoryStr) == "all" {
+				categoryName = nil
+			} else {
+				categoryName = &categoryStr
+			}
 		}
 
 		rooms, total, err := publicLister.ListPublic(ctx, page, limit, search, categoryName)

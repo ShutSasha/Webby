@@ -311,9 +311,9 @@ func (_c *MockRoomService_ListMembers_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
-// ListMy provides a mock function with given fields: ctx, id, page, limit
-func (_m *MockRoomService) ListMy(ctx context.Context, id uuid.UUID, page int, limit int) ([]models.Room, int64, error) {
-	ret := _m.Called(ctx, id, page, limit)
+// ListMy provides a mock function with given fields: ctx, id, page, limit, search, categoryName
+func (_m *MockRoomService) ListMy(ctx context.Context, id uuid.UUID, page int, limit int, search string, categoryName *string) ([]models.Room, int64, error) {
+	ret := _m.Called(ctx, id, page, limit, search, categoryName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListMy")
@@ -322,25 +322,25 @@ func (_m *MockRoomService) ListMy(ctx context.Context, id uuid.UUID, page int, l
 	var r0 []models.Room
 	var r1 int64
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int) ([]models.Room, int64, error)); ok {
-		return rf(ctx, id, page, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int, string, *string) ([]models.Room, int64, error)); ok {
+		return rf(ctx, id, page, limit, search, categoryName)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int) []models.Room); ok {
-		r0 = rf(ctx, id, page, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int, string, *string) []models.Room); ok {
+		r0 = rf(ctx, id, page, limit, search, categoryName)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Room)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, int, int) int64); ok {
-		r1 = rf(ctx, id, page, limit)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, int, int, string, *string) int64); ok {
+		r1 = rf(ctx, id, page, limit, search, categoryName)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, uuid.UUID, int, int) error); ok {
-		r2 = rf(ctx, id, page, limit)
+	if rf, ok := ret.Get(2).(func(context.Context, uuid.UUID, int, int, string, *string) error); ok {
+		r2 = rf(ctx, id, page, limit, search, categoryName)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -358,13 +358,15 @@ type MockRoomService_ListMy_Call struct {
 //   - id uuid.UUID
 //   - page int
 //   - limit int
-func (_e *MockRoomService_Expecter) ListMy(ctx interface{}, id interface{}, page interface{}, limit interface{}) *MockRoomService_ListMy_Call {
-	return &MockRoomService_ListMy_Call{Call: _e.mock.On("ListMy", ctx, id, page, limit)}
+//   - search string
+//   - categoryName *string
+func (_e *MockRoomService_Expecter) ListMy(ctx interface{}, id interface{}, page interface{}, limit interface{}, search interface{}, categoryName interface{}) *MockRoomService_ListMy_Call {
+	return &MockRoomService_ListMy_Call{Call: _e.mock.On("ListMy", ctx, id, page, limit, search, categoryName)}
 }
 
-func (_c *MockRoomService_ListMy_Call) Run(run func(ctx context.Context, id uuid.UUID, page int, limit int)) *MockRoomService_ListMy_Call {
+func (_c *MockRoomService_ListMy_Call) Run(run func(ctx context.Context, id uuid.UUID, page int, limit int, search string, categoryName *string)) *MockRoomService_ListMy_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(int), args[3].(int))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(int), args[3].(int), args[4].(string), args[5].(*string))
 	})
 	return _c
 }
@@ -374,7 +376,7 @@ func (_c *MockRoomService_ListMy_Call) Return(_a0 []models.Room, _a1 int64, _a2 
 	return _c
 }
 
-func (_c *MockRoomService_ListMy_Call) RunAndReturn(run func(context.Context, uuid.UUID, int, int) ([]models.Room, int64, error)) *MockRoomService_ListMy_Call {
+func (_c *MockRoomService_ListMy_Call) RunAndReturn(run func(context.Context, uuid.UUID, int, int, string, *string) ([]models.Room, int64, error)) *MockRoomService_ListMy_Call {
 	_c.Call.Return(run)
 	return _c
 }

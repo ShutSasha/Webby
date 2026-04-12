@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	_ "webby/internal/handlers/docs"
 	errorWrapper "webby/internal/handlers/errors"
 	"webby/internal/handlers/responses"
@@ -15,7 +16,7 @@ import (
 )
 
 type MyLister interface {
-	ListMy(ctx context.Context, id uuid.UUID, page int, limit int) ([]models.Room, int64, error)
+	ListMy(ctx context.Context, id uuid.UUID, page int, limit int, search string, categoryName *string) ([]models.Room, int64, error)
 }
 
 func New(logger *slog.Logger, myLister MyLister) http.Handler {
@@ -23,9 +24,11 @@ func New(logger *slog.Logger, myLister MyLister) http.Handler {
 }
 
 // @Title List authenticated user's rooms
-// @Description Retrieve a paginated list of all rooms created by the authenticated user. Returns both public and private rooms.
-// @Param  page   query  int  false  "Page number (default: 1)"
-// @Param  limit  query  int  false  "Items per page (default: 10, max: 100)"
+// @Description Retrieve a paginated list of all rooms created by the authenticated user. Supports optional search and category filter.
+// @Param  page      query  int     false  "Page number (default: 1)"
+// @Param  limit     query  int     false  "Items per page (default: 10, max: 100)"
+// @Param  search    query  string  false  "Search rooms by name (case-insensitive)"
+// @Param  category  query  string  false  "Filter by category name"
 // @Success  200  object docs.RoomListApiResponse  "User's rooms successfully retrieved"
 // @Failure  400  object docs.ErrorResponse  "Invalid query parameters"
 // @Failure  401  object docs.ErrorResponse  "Missing or invalid authentication token"
@@ -70,10 +73,21 @@ func listMyRooms(logger *slog.Logger, myLister MyLister) errorWrapper.APIFunc {
 			limit = l
 		}
 
+		search := params.Get("search")
+
+		var categoryName *string
+		if categoryStr := params.Get("category"); categoryStr != "" {
+			if strings.ToLower(categoryStr) == "all" {
+				categoryName = nil
+			} else {
+				categoryName = &categoryStr
+			}
+		}
+
 		userIdStr := r.Context().Value("userID").(string)
 		userId, _ := uuid.Parse(userIdStr)
 
-		rooms, total, err := myLister.ListMy(ctx, userId, page, limit)
+		rooms, total, err := myLister.ListMy(ctx, userId, page, limit, search, categoryName)
 		if err != nil {
 			log.Error("List my rooms error", slog.String("err", err.Error()))
 			return err

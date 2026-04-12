@@ -49,46 +49,46 @@ func (r *CategoryRepository) List(ctx context.Context, search string, offset int
 
 	query := `
         WITH filtered_cats AS (
-            SELECT name 
+            SELECT id, name 
             FROM categories 
             WHERE ($1 = '' OR name ILIKE $1)
         ),
         total_count AS (
             SELECT count(*) AS total FROM filtered_cats
         )
-        SELECT f.name, t.total
+        SELECT f.id, f.name, t.total
         FROM filtered_cats f, total_count t
         ORDER BY f.name ASC
         LIMIT $2 OFFSET $3
     `
 
-    searchParam := ""
-    if search != "" {
-        searchParam = "%" + search + "%"
-    }
+	searchParam := ""
+	if search != "" {
+		searchParam = "%" + search + "%"
+	}
 
-    rows, err := r.db.Query(ctx, query, searchParam, limit, offset)
-    if err != nil {
-        return nil, 0, fmt.Errorf("%s: query failed: %w", op, err)
-    }
-    defer rows.Close()
+	rows, err := r.db.Query(ctx, query, searchParam, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: query failed: %w", op, err)
+	}
+	defer rows.Close()
 
-    var total int64
-    categories := make([]models.Category, 0, limit)
+	var total int64
+	categories := make([]models.Category, 0, limit)
 
-    for rows.Next() {
-        var category models.Category
-        if err := rows.Scan(&category.Name, &total); err != nil {
-            return nil, 0, fmt.Errorf("%s: row scan failed: %w", op, err)
-        }
-        categories = append(categories, category)
-    }
+	for rows.Next() {
+		var category models.Category
+		if err := rows.Scan(&category.Id, &category.Name, &total); err != nil {
+			return nil, 0, fmt.Errorf("%s: row scan failed: %w", op, err)
+		}
+		categories = append(categories, category)
+	}
 
-    if err := rows.Err(); err != nil {
-        return nil, 0, fmt.Errorf("%s: rows iteration error: %w", op, err)
-    }
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("%s: rows iteration error: %w", op, err)
+	}
 
-    return categories, total, nil
+	return categories, total, nil
 }
 
 func (r *CategoryRepository) Update(ctx context.Context, oldName string, newName string) error {
@@ -145,4 +145,18 @@ func (r *CategoryRepository) Delete(ctx context.Context, name string) error {
 	}
 
 	return nil
+}
+
+func (r *CategoryRepository) Exists(ctx context.Context, name string) (bool, error) {
+	const op = "repository.CategoryRepository.Exists"
+
+	query := `SELECT EXISTS(SELECT 1 FROM categories WHERE name = $1)`
+
+	var exists bool
+	err := r.db.QueryRow(ctx, query, name).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return exists, nil
 }

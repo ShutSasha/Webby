@@ -1666,11 +1666,13 @@ paths:
   /api/rooms/my:
     get:
       description: |
-        Retrieve a **paginated** list of all rooms created by the authenticated user.
+        Retrieve a **paginated** list of all rooms created by the authenticated user. Supports optional search and category filter.
 
         **Query Parameter Validation:**
         * `page`: **optional** (default: 1), must be >= 1, must be numeric
         * `limit`: **optional** (default: 10), must be 1-100, must be numeric
+        * `search`: **optional**, filters rooms by name (case-insensitive partial match)
+        * `category`: **optional**, filters rooms by category name
 
         **Security Note:**
         * This action **requires authentication**
@@ -1691,6 +1693,18 @@ paths:
           description: 'Items per page (default: 10, max: 100)'
           format: int64
           type: integer
+      - description: Search rooms by name (case-insensitive)
+        in: query
+        name: search
+        schema:
+          description: Search rooms by name (case-insensitive)
+          type: string
+      - description: Filter by category name
+        in: query
+        name: category
+        schema:
+          description: Filter by category name
+          type: string
       responses:
         "200":
           content:

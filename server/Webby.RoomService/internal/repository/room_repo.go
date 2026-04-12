@@ -30,8 +30,8 @@ func (r *RoomRepository) Create(ctx context.Context, room *models.Room) (uuid.UU
 	room.Id = uuid.New()
 
 	query := `
-		INSERT INTO rooms (id, host_id, category_name, name, thumbnail, is_private)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO rooms (id, host_id, category_id, name, thumbnail, is_private)
+		VALUES ($1, $2, (SELECT id FROM categories WHERE name = $3), $4, $5, $6)
 		RETURNING created_at
 	`
 
@@ -82,9 +82,10 @@ func (r *RoomRepository) GetById(ctx context.Context, id uuid.UUID) (*models.Roo
 	}
 
 	query := `
-		SELECT id, host_id, category_name, name, thumbnail, is_private, created_at
-		FROM rooms
-		WHERE id = $1
+		SELECT r.id, r.host_id, c.name, r.name, r.thumbnail, r.is_private, r.created_at
+		FROM rooms r
+		JOIN categories c ON c.id = r.category_id
+		WHERE r.id = $1
 	`
 
 	var room models.Room
@@ -108,7 +109,7 @@ func (r *RoomRepository) GetById(ctx context.Context, id uuid.UUID) (*models.Roo
 	return &room, nil
 }
 
-func (r *RoomRepository) ListMy(ctx context.Context, userId uuid.UUID, page int, limit int) ([]models.Room, int64, error) {
+func (r *RoomRepository) ListMy(ctx context.Context, userId uuid.UUID, page int, limit int, search string, categoryName *string) ([]models.Room, int64, error) {
 	const op = "repository.RoomRepository.ListMy"
 
 	if userId == uuid.Nil {
@@ -127,22 +128,41 @@ func (r *RoomRepository) ListMy(ctx context.Context, userId uuid.UUID, page int,
 
 	offset := (page - 1) * limit
 
-	countQuery := `SELECT COUNT(*) FROM rooms WHERE host_id = $1`
+	whereClause := "WHERE r.host_id = $1"
+	countArgs := []any{userId}
+	paramN := 2
+
+	if search != "" {
+		whereClause += fmt.Sprintf(" AND r.name ILIKE $%d", paramN)
+		countArgs = append(countArgs, "%"+search+"%")
+		paramN++
+	}
+
+	if categoryName != nil {
+		whereClause += fmt.Sprintf(" AND c.name = $%d", paramN)
+		countArgs = append(countArgs, *categoryName)
+		paramN++
+	}
+
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM rooms r JOIN categories c ON c.id = r.category_id %s`, whereClause)
 	var total int64
-	err := r.db.QueryRow(ctx, countQuery, userId).Scan(&total)
+	err := r.db.QueryRow(ctx, countQuery, countArgs...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
 
-	query := `
-		SELECT id, host_id, category_name, name, thumbnail, is_private, created_at
-		FROM rooms
-		WHERE host_id = $1
-		ORDER BY created_at DESC
-		LIMIT $2 OFFSET $3
-	`
+	query := fmt.Sprintf(`
+		SELECT r.id, r.host_id, c.name, r.name, r.thumbnail, r.is_private, r.created_at
+		FROM rooms r
+		JOIN categories c ON c.id = r.category_id
+		%s
+		ORDER BY r.created_at DESC
+		LIMIT $%d OFFSET $%d
+	`, whereClause, paramN, paramN+1)
 
-	rows, err := r.db.Query(ctx, query, userId, limit, offset)
+	dataArgs := append(countArgs, limit, offset)
+
+	rows, err := r.db.Query(ctx, query, dataArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
@@ -199,12 +219,12 @@ func (r *RoomRepository) ListPublic(ctx context.Context, page int, limit int, se
 	}
 
 	if categoryName != nil {
-		whereClause += fmt.Sprintf(" AND r.category_name = $%d", paramN)
+		whereClause += fmt.Sprintf(" AND c.name = $%d", paramN)
 		countArgs = append(countArgs, *categoryName)
 		paramN++
 	}
 
-	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM rooms r %s`, whereClause)
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM rooms r JOIN categories c ON c.id = r.category_id %s`, whereClause)
 	var total int64
 	err := r.db.QueryRow(ctx, countQuery, countArgs...).Scan(&total)
 	if err != nil {
@@ -212,9 +232,10 @@ func (r *RoomRepository) ListPublic(ctx context.Context, page int, limit int, se
 	}
 
 	query := fmt.Sprintf(`
-		SELECT r.id, r.host_id, u."Username", u."AvatarUrl", r.category_name, r.name, r.thumbnail, r.is_private, r.created_at
+		SELECT r.id, r.host_id, u."Username", u."AvatarUrl", c.name, r.name, r.thumbnail, r.is_private, r.created_at
 		FROM rooms r
 		JOIN "Users" u ON u."UserId" = r.host_id
+		JOIN categories c ON c.id = r.category_id
 		%s
 		ORDER BY r.created_at DESC
 		LIMIT $%d OFFSET $%d
@@ -264,7 +285,7 @@ func (r *RoomRepository) Update(ctx context.Context, room *models.Room) (uuid.UU
 
 	query := `
 		UPDATE rooms
-		SET category_name = $1, name = $2, thumbnail = $3, is_private = $4
+		SET category_id = (SELECT id FROM categories WHERE name = $1), name = $2, thumbnail = $3, is_private = $4
 		WHERE id = $5
 	`
 

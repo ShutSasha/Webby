@@ -1,7 +1,6 @@
 package listMy_test
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/google/uuid"
@@ -24,77 +24,148 @@ import (
 func TestListMyRooms_Success(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	userId := uuid.New()
-
-	baseRoom := models.Room{
-		Id:           uuid.New(),
-		HostId:       userId,
-		CategoryName: "Gaming",
-		Name:         "Test Room",
-		IsPrivate:    false,
+	categoryName := "Gaming"
+	baseRooms := []models.Room{
+		{
+			Id:           uuid.New(),
+			HostId:       userId,
+			CategoryName: categoryName,
+			Name:         "My Room 1",
+			IsPrivate:    false,
+		},
+		{
+			Id:           uuid.New(),
+			HostId:       userId,
+			CategoryName: categoryName,
+			Name:         "My Room 2",
+			IsPrivate:    true,
+		},
 	}
 
 	tests := []struct {
-		name          string
-		queryParams   map[string]string
-		expectedPage  int
-		expectedLimit int
-		mockSetup     func(*mocks.MockMyLister)
+		name         string
+		query        url.Values
+		mockSetup    func(*mocks.MockMyLister)
+		validateResp func(t *testing.T, w *httptest.ResponseRecorder)
 	}{
 		{
-			name:          "Default Pagination Parameters",
-			queryParams:   map[string]string{},
-			expectedPage:  1,
-			expectedLimit: 10,
+			name:  "Explicit Default Pagination",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}},
 			mockSetup: func(mml *mocks.MockMyLister) {
-				expectListMy(mml, userId, 1, 10, []models.Room{baseRoom}, 1, nil)
+				expectListMy(mml, userId, 1, 10, "", nil, baseRooms, 2, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 1, 10, 2, 2)
 			},
 		},
 		{
-			name: "Custom Pagination Within Valid Ranges",
-			queryParams: map[string]string{
-				"page":  "2",
-				"limit": "5",
-			},
-			expectedPage:  2,
-			expectedLimit: 5,
+			name:  "Implicit Default Pagination",
+			query: url.Values{},
 			mockSetup: func(mml *mocks.MockMyLister) {
-				expectListMy(mml, userId, 2, 5, []models.Room{baseRoom}, 6, nil)
+				expectListMy(mml, userId, 1, 10, "", nil, baseRooms, 2, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 1, 10, 2, 2)
 			},
 		},
 		{
-			name: "Boundary Value Analysis - Minimum Limit",
-			queryParams: map[string]string{
-				"page":  "1",
-				"limit": "1",
-			},
-			expectedPage:  1,
-			expectedLimit: 1,
+			name:  "Boundary Minimum Limit",
+			query: url.Values{"page": []string{"2"}, "limit": []string{"1"}},
 			mockSetup: func(mml *mocks.MockMyLister) {
-				expectListMy(mml, userId, 1, 1, []models.Room{baseRoom}, 1, nil)
+				expectListMy(mml, userId, 2, 1, "", nil, baseRooms[:1], 15, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 2, 1, 15, 1)
 			},
 		},
 		{
-			name: "Boundary Value Analysis - Maximum Limit",
-			queryParams: map[string]string{
-				"page":  "1",
-				"limit": "100",
-			},
-			expectedPage:  1,
-			expectedLimit: 100,
+			name:  "Boundary Maximum Limit",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"100"}},
 			mockSetup: func(mml *mocks.MockMyLister) {
-				expectListMy(mml, userId, 1, 100, []models.Room{baseRoom}, 1, nil)
+				expectListMy(mml, userId, 1, 100, "", nil, baseRooms, 2, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 1, 100, 2, 2)
 			},
 		},
 		{
-			name: "Equivalence Partitioning - Empty Results",
-			queryParams: map[string]string{
-				"page":  "1",
-				"limit": "10",
-			},
-			expectedPage:  1,
-			expectedLimit: 10,
+			name:  "Empty Result Set",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}},
 			mockSetup: func(mml *mocks.MockMyLister) {
-				expectListMy(mml, userId, 1, 10, []models.Room{}, 0, nil)
+				expectListMy(mml, userId, 1, 10, "", nil, []models.Room{}, 0, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 1, 10, 0, 0)
+			},
+		},
+		{
+			name:  "Search By Name",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "search": []string{"My Room 1"}},
+			mockSetup: func(mml *mocks.MockMyLister) {
+				expectListMy(mml, userId, 1, 10, "My Room 1", nil, baseRooms[:1], 1, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 1, 10, 1, 1)
+			},
+		},
+		{
+			name:  "Search With No Results",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "search": []string{"nonexistent"}},
+			mockSetup: func(mml *mocks.MockMyLister) {
+				expectListMy(mml, userId, 1, 10, "nonexistent", nil, []models.Room{}, 0, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 1, 10, 0, 0)
+			},
+		},
+		{
+			name:  "Search With Empty String Uses Default",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "search": []string{""}},
+			mockSetup: func(mml *mocks.MockMyLister) {
+				expectListMy(mml, userId, 1, 10, "", nil, baseRooms, 2, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 1, 10, 2, 2)
+			},
+		},
+		{
+			name:  "Filter By Category",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{categoryName}},
+			mockSetup: func(mml *mocks.MockMyLister) {
+				expectListMy(mml, userId, 1, 10, "", &categoryName, baseRooms, 2, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 1, 10, 2, 2)
+			},
+		},
+		{
+			name:  "Filter By Category With No Results",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{"Nonexistent"}},
+			mockSetup: func(mml *mocks.MockMyLister) {
+				mml.EXPECT().ListMy(mock.Anything, userId, 1, 10, "", mock.AnythingOfType("*string")).Return([]models.Room{}, int64(0), nil).Once()
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 1, 10, 0, 0)
+			},
+		},
+		{
+			name:  "Search And Category Combined",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "search": []string{"My"}, "category": []string{categoryName}},
+			mockSetup: func(mml *mocks.MockMyLister) {
+				expectListMy(mml, userId, 1, 10, "My", &categoryName, baseRooms, 2, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 1, 10, 2, 2)
+			},
+		},
+		{
+			name:  "Search And Category Combined With Pagination",
+			query: url.Values{"page": []string{"2"}, "limit": []string{"5"}, "search": []string{"Room"}, "category": []string{categoryName}},
+			mockSetup: func(mml *mocks.MockMyLister) {
+				expectListMy(mml, userId, 2, 5, "Room", &categoryName, baseRooms[:1], 6, nil)
+			},
+			validateResp: func(t *testing.T, w *httptest.ResponseRecorder) {
+				assertSuccessResponse(t, w, 2, 5, 6, 1)
 			},
 		},
 	}
@@ -104,15 +175,10 @@ func TestListMyRooms_Success(t *testing.T) {
 			mockLister := mocks.NewMockMyLister(t)
 			tt.mockSetup(mockLister)
 
-			handler := listMy.New(logger, mockLister)
-			req := buildRequest(userId, tt.queryParams)
-			w := httptest.NewRecorder()
-
-			handler.ServeHTTP(w, req)
+			w := executeRequest(logger, mockLister, tt.query, userId)
 
 			require.Equal(t, http.StatusOK, w.Code)
-			requireSuccessResponse(t, w.Body, tt.expectedPage, tt.expectedLimit)
-			mockLister.AssertExpectations(t)
+			tt.validateResp(t, w)
 		})
 	}
 }
@@ -122,58 +188,46 @@ func TestListMyRooms_ValidationErrors(t *testing.T) {
 	userId := uuid.New()
 
 	tests := []struct {
-		name   string
-		mutate func(map[string]string)
+		name  string
+		query url.Values
 	}{
 		{
-			name:   "Boundary Value Analysis - Page Below Minimum",
-			mutate: func(m map[string]string) { m["page"] = "0" },
+			name:  "Boundary Invalid Page Zero",
+			query: url.Values{"page": []string{"0"}, "limit": []string{"10"}},
 		},
 		{
-			name:   "Equivalence Partitioning - Page Negative",
-			mutate: func(m map[string]string) { m["page"] = "-1" },
+			name:  "Equivalence Partition Invalid Page Negative",
+			query: url.Values{"page": []string{"-5"}, "limit": []string{"10"}},
 		},
 		{
-			name:   "Error Guessing - Page Non-Numeric",
-			mutate: func(m map[string]string) { m["page"] = "abc" },
+			name:  "Error Guessing Malformed Page Type",
+			query: url.Values{"page": []string{"abc"}, "limit": []string{"10"}},
 		},
 		{
-			name:   "Boundary Value Analysis - Limit Below Minimum",
-			mutate: func(m map[string]string) { m["limit"] = "0" },
+			name:  "Boundary Invalid Limit Zero",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"0"}},
 		},
 		{
-			name:   "Equivalence Partitioning - Limit Negative",
-			mutate: func(m map[string]string) { m["limit"] = "-1" },
+			name:  "Boundary Invalid Limit Over Max",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"101"}},
 		},
 		{
-			name:   "Boundary Value Analysis - Limit Above Maximum",
-			mutate: func(m map[string]string) { m["limit"] = "101" },
+			name:  "Equivalence Partition Invalid Limit Negative",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"-10"}},
 		},
 		{
-			name:   "Error Guessing - Limit Non-Numeric",
-			mutate: func(m map[string]string) { m["limit"] = "xyz" },
+			name:  "Error Guessing Malformed Limit Type",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"xyz"}},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockLister := mocks.NewMockMyLister(t)
-			handler := listMy.New(logger, mockLister)
-
-			params := map[string]string{
-				"page":  "1",
-				"limit": "10",
-			}
-			tt.mutate(params)
-
-			req := buildRequest(userId, params)
-			w := httptest.NewRecorder()
-
-			handler.ServeHTTP(w, req)
+			w := executeRequest(logger, mockLister, tt.query, userId)
 
 			require.Equal(t, http.StatusBadRequest, w.Code)
-			requireErrorResponse(t, w.Body)
-			mockLister.AssertExpectations(t)
+			assertErrorResponse(t, w)
 		})
 	}
 }
@@ -182,50 +236,86 @@ func TestListMyRooms_InternalErrors(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	userId := uuid.New()
 
-	mockLister := mocks.NewMockMyLister(t)
-	expectListMy(mockLister, userId, 1, 10, []models.Room{}, 0, errors.New("database failure"))
-
-	handler := listMy.New(logger, mockLister)
-	req := buildRequest(userId, map[string]string{"page": "1", "limit": "10"})
-	w := httptest.NewRecorder()
-
-	handler.ServeHTTP(w, req)
-
-	require.Equal(t, http.StatusInternalServerError, w.Code)
-
-	var resp responses.ApiResponse[struct{}]
-	require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
-	require.False(t, resp.Success)
-	require.Equal(t, "Internal server error", resp.Message)
-
-	mockLister.AssertExpectations(t)
-}
-
-func expectListMy(mml *mocks.MockMyLister, userId uuid.UUID, page, limit int, rooms []models.Room, total int64, err error) {
-	mml.EXPECT().ListMy(mock.Anything, userId, page, limit).Return(rooms, total, err).Once()
-}
-
-func buildRequest(userId uuid.UUID, queryParams map[string]string) *http.Request {
-	req := httptest.NewRequest(http.MethodGet, "/rooms/my", nil)
-	q := req.URL.Query()
-	for k, v := range queryParams {
-		q.Add(k, v)
+	tests := []struct {
+		name      string
+		query     url.Values
+		mockSetup func(*mocks.MockMyLister)
+	}{
+		{
+			name:  "Database Error Default Params",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}},
+			mockSetup: func(mml *mocks.MockMyLister) {
+				expectListMy(mml, userId, 1, 10, "", nil, []models.Room{}, 0, errors.New("database error"))
+			},
+		},
+		{
+			name:  "Database Error With Search",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "search": []string{"test"}},
+			mockSetup: func(mml *mocks.MockMyLister) {
+				expectListMy(mml, userId, 1, 10, "test", nil, []models.Room{}, 0, errors.New("database error"))
+			},
+		},
+		{
+			name:  "Database Error With Category",
+			query: url.Values{"page": []string{"1"}, "limit": []string{"10"}, "category": []string{"Gaming"}},
+			mockSetup: func(mml *mocks.MockMyLister) {
+				mml.EXPECT().ListMy(mock.Anything, userId, 1, 10, "", mock.AnythingOfType("*string")).Return([]models.Room{}, int64(0), errors.New("database error")).Once()
+			},
+		},
 	}
-	req.URL.RawQuery = q.Encode()
-	ctx := context.WithValue(req.Context(), "userID", userId.String())
-	return req.WithContext(ctx)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockLister := mocks.NewMockMyLister(t)
+			tt.mockSetup(mockLister)
+
+			w := executeRequest(logger, mockLister, tt.query, userId)
+
+			require.Equal(t, http.StatusInternalServerError, w.Code)
+			assertErrorMessage(t, w, "Internal server error")
+		})
+	}
 }
 
-func requireSuccessResponse(t *testing.T, body *bytes.Buffer, expectedPage, expectedLimit int) {
-	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]interface{}]]
-	require.NoError(t, json.NewDecoder(body).Decode(&resp))
+func expectListMy(mml *mocks.MockMyLister, userId uuid.UUID, page, limit int, search string, categoryName *string, rooms []models.Room, total int64, err error) {
+	mml.EXPECT().ListMy(mock.Anything, userId, page, limit, search, categoryName).Return(rooms, total, err).Once()
+}
+
+func executeRequest(logger *slog.Logger, lister *mocks.MockMyLister, query url.Values, userId uuid.UUID) *httptest.ResponseRecorder {
+	handler := listMy.New(logger, lister)
+	req := httptest.NewRequest(http.MethodGet, "/api/rooms/my", nil)
+	req.URL.RawQuery = query.Encode()
+	// Add userID to context
+	ctx := req.Context()
+	ctx = context.WithValue(ctx, "userID", userId.String())
+	req = req.WithContext(ctx)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+	return w
+}
+
+func assertSuccessResponse(t *testing.T, w *httptest.ResponseRecorder, page int, limit int, total int64, items int) {
+	var resp responses.ApiResponse[responses.PaginatedResponse[map[string]any]]
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
 	require.True(t, resp.Success)
-	require.Equal(t, expectedPage, resp.Data.Page)
-	require.Equal(t, expectedLimit, resp.Data.Limit)
+	require.Equal(t, page, resp.Data.Page)
+	require.Equal(t, limit, resp.Data.Limit)
+	require.Equal(t, total, int64(resp.Data.Total))
+	require.Len(t, resp.Data.Items, items)
 }
 
-func requireErrorResponse(t *testing.T, body *bytes.Buffer) {
+func assertErrorResponse(t *testing.T, w *httptest.ResponseRecorder) {
 	var resp responses.ApiResponse[struct{}]
-	require.NoError(t, json.NewDecoder(body).Decode(&resp))
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
 	require.False(t, resp.Success)
+}
+
+func assertErrorMessage(t *testing.T, w *httptest.ResponseRecorder, expectedMessage string) {
+	var resp responses.ApiResponse[struct{}]
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+	require.False(t, resp.Success)
+	require.Equal(t, expectedMessage, resp.Message)
 }
