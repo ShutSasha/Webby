@@ -8,6 +8,7 @@ import (
 type CategoryRepository interface {
 	Create(ctx context.Context, name string) error
 	Delete(ctx context.Context, name string) error
+	Exists(ctx context.Context, name string) (bool, error)
 	List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int64, error)
 	Update(ctx context.Context, oldName string, newName string) error
 }

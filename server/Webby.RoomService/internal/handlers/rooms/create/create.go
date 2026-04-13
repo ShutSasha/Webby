@@ -25,7 +25,7 @@ func New(logger *slog.Logger, creator Creator) http.Handler {
 }
 
 // @Title Create a new room
-// @Description Create a new room with a name, category ID, privacy setting, and optional thumbnail.
+// @Description Create a new room with a name, category name, privacy setting, and optional thumbnail.
 // @Param  name           form  string  true   "Room name (2-50 chars, required, non-whitespace)"
 // @Param  categoryName   form  string  true   "Category name (required)"
 // @Param  isPrivate  form  string  true   "Visibility flag: 'true' or 'false'"

@@ -404,32 +404,7 @@ components:
       properties:
         items:
           items:
-            properties:
-              categoryName:
-                example: Gaming
-                type: string
-              hostId:
-                example: 550e8400-e29b-41d4-a716-446655440000
-                type: string
-              hostUsername:
-                example: JohnDoe
-                type: string
-              hostAvatarUrl:
-                example: https://example.com/avatar.jpg
-                type: string
-              id:
-                example: 550e8400-e29b-41d4-a716-446655440000
-                type: string
-              isPrivate:
-                example: false
-                type: boolean
-              name:
-                example: Room Name
-                type: string
-              thumbnail:
-                example: https://example.com/thumbnail.jpg
-                type: string
-            type: object
+            $ref: '#/components/schemas/RoomListItem'
           type: array
         page:
           example: 1
@@ -440,6 +415,73 @@ components:
         totalCount:
           example: 100
           type: integer
+      type: object
+    RoomListItem:
+      properties:
+        hostId:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        hostUsername:
+          example: JohnDoe
+          type: string
+        hostAvatarUrl:
+          example: https://example.com/avatar.jpg
+          type: string
+        id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        name:
+          example: Room Name
+          type: string
+        thumbnail:
+          example: https://example.com/thumbnail.jpg
+          type: string
+      type: object
+    MyRoomListItem:
+      properties:
+        categoryName:
+          example: Gaming
+          type: string
+        id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        isPrivate:
+          example: true
+          type: boolean
+        name:
+          example: My Room
+          type: string
+        thumbnail:
+          example: https://example.com/thumbnail.jpg
+          type: string
+      type: object
+    MyRoomListPagData:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/MyRoomListItem'
+          type: array
+        page:
+          example: 1
+          type: integer
+        pageSize:
+          example: 10
+          type: integer
+        totalCount:
+          example: 100
+          type: integer
+      type: object
+    MyRoomListApiResponse:
+      properties:
+        data:
+          $ref: '#/components/schemas/MyRoomListPagData'
+          type: object
+        message:
+          example: User rooms retrieved
+          type: string
+        success:
+          example: true
+          type: boolean
       type: object
     RoomMemberItem:
       properties:
@@ -1666,16 +1708,19 @@ paths:
   /api/rooms/my:
     get:
       description: |
-        Retrieve a **paginated** list of all rooms created by the authenticated user.
+        Retrieve a **paginated** list of all rooms created by the authenticated user. Supports optional search and category filter. Returns rooms without host information since you are the owner.
 
         **Query Parameter Validation:**
         * `page`: **optional** (default: 1), must be >= 1, must be numeric
         * `limit`: **optional** (default: 10), must be 1-100, must be numeric
+        * `search`: **optional**, filters rooms by name (case-insensitive partial match)
+        * `category`: **optional**, filters rooms by category name
 
         **Security Note:**
         * This action **requires authentication**
         * Returns **only** the authenticated user's rooms
         * List includes both public and private rooms owned by the user
+        * Response fields: `id`, `name`, `categoryName`, `isPrivate`, `thumbnail` (no host information)
       parameters:
       - description: 'Page number (default: 1)'
         in: query
@@ -1691,12 +1736,24 @@ paths:
           description: 'Items per page (default: 10, max: 100)'
           format: int64
           type: integer
+      - description: Search rooms by name (case-insensitive)
+        in: query
+        name: search
+        schema:
+          description: Search rooms by name (case-insensitive)
+          type: string
+      - description: Filter by category name
+        in: query
+        name: category
+        schema:
+          description: Filter by category name
+          type: string
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoomListApiResponse'
+                $ref: '#/components/schemas/MyRoomListApiResponse'
           description: "User's rooms successfully retrieved"
         "400":
           content:

@@ -17,7 +17,7 @@ type RoomRepository interface {
 	Create(ctx context.Context, room *models.Room) (uuid.UUID, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetById(ctx context.Context, id uuid.UUID) (*models.Room, error)
-	ListMy(ctx context.Context, userId uuid.UUID, page int, limit int) ([]models.Room, int64, error)
+	ListMy(ctx context.Context, userId uuid.UUID, page int, limit int, search string, categoryName *string) ([]models.Room, int64, error)
 	ListPublic(ctx context.Context, page int, limit int, search string, categoryName *string) ([]models.PublicRoom, int64, error)
 	Update(ctx context.Context, room *models.Room) (uuid.UUID, error)
 }
@@ -42,19 +42,25 @@ type ChatClientInterface interface {
 	AddChatMember(ctx context.Context, chatId, userId uuid.UUID) error
 }
 
-type RoomService struct {
-	roomRepo       RoomRepository
-	roomMemberRepo RoomMemberRepository
-	fileRepo       FileRepository
-	chatClient     ChatClientInterface
+type CategoryChecker interface {
+	Exists(ctx context.Context, name string) (bool, error)
 }
 
-func NewRoomService(repo RoomRepository, roomMemberRepo RoomMemberRepository, fileRepo FileRepository, chatClient ChatClientInterface) *RoomService {
+type RoomService struct {
+	roomRepo        RoomRepository
+	roomMemberRepo  RoomMemberRepository
+	fileRepo        FileRepository
+	chatClient      ChatClientInterface
+	categoryChecker CategoryChecker
+}
+
+func NewRoomService(repo RoomRepository, roomMemberRepo RoomMemberRepository, fileRepo FileRepository, chatClient ChatClientInterface, categoryChecker CategoryChecker) *RoomService {
 	return &RoomService{
-		roomRepo:       repo,
-		roomMemberRepo: roomMemberRepo,
-		fileRepo:       fileRepo,
-		chatClient:     chatClient,
+		roomRepo:        repo,
+		roomMemberRepo:  roomMemberRepo,
+		fileRepo:        fileRepo,
+		chatClient:      chatClient,
+		categoryChecker: categoryChecker,
 	}
 }
 
@@ -64,6 +70,14 @@ func generateFileKey(roomID uuid.UUID, filename string) string {
 }
 
 func (r *RoomService) Create(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string) (*models.Room, error) {
+	exists, err := r.categoryChecker.Exists(ctx, room.CategoryName)
+	if err != nil {
+		return nil, fmt.Errorf("category check failed: %w", err)
+	}
+	if !exists {
+		return nil, fmt.Errorf("category '%s': %w", room.CategoryName, apperrors.ErrInvalidInput)
+	}
+
 	id, err := r.roomRepo.Create(ctx, room)
 	if err != nil {
 		return nil, err
@@ -190,8 +204,8 @@ func (r *RoomService) GetById(ctx context.Context, roomId uuid.UUID, userId uuid
 	return room, nil
 }
 
-func (r *RoomService) ListMy(ctx context.Context, userId uuid.UUID, page int, limit int) ([]models.Room, int64, error) {
-	rooms, total, err := r.roomRepo.ListMy(ctx, userId, page, limit)
+func (r *RoomService) ListMy(ctx context.Context, userId uuid.UUID, page int, limit int, search string, categoryName *string) ([]models.Room, int64, error) {
+	rooms, total, err := r.roomRepo.ListMy(ctx, userId, page, limit, search, categoryName)
 	if err != nil {
 		return nil, 0, err
 	}

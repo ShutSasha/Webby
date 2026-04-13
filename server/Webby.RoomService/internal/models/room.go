@@ -14,7 +14,7 @@ type Room struct {
 	Thumbnail    string
 	IsPrivate    bool
 	CreatedAt    time.Time
-	ChatId       *uuid.UUID // populated from ChatService, not stored in DB
+	ChatId       *uuid.UUID
 }
 
 type PublicRoom struct {

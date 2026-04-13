@@ -81,7 +81,7 @@ func run(ctx context.Context, w io.Writer) error {
 		defer chatClient.Close()
 	}
 
-	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, chatClient)
+	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, chatClient, categoryRepository)
 	categoryService := services.NewCategoryService(categoryRepository)
 	queueItemService := services.NewQueueItemService(queueItemRepository, mediaClient, roomMemberRepository)
 	voteRepository := repository.NewVoteRepository(db)
