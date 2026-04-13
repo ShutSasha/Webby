@@ -14,7 +14,7 @@ public interface INotificationService
    Task<PagedResponse<Notification>> GetReadNotifications(Guid userId, PaginationRequest request);
    Task<int> GetNotificationsCount(Guid? userId);
    Task DeleteNotification(Guid requestUserId, Guid notificationId);
-   Task ChangeReadStatus(List<Guid> notificationIds);
+   Task ChangeReadStatus(Guid userId, List<Guid> notificationIds);
    Task<GetNotificationsCountResponse> GetUsersNotificationsCount(Guid userId);
    Task<PagedResponse<Notification>> GetUserNotifications(Guid userId, PaginationRequest request);
 }

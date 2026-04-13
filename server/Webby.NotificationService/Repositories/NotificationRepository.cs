@@ -30,4 +30,15 @@ public class NotificationRepository : GenericRepository<Notification>, INotifica
          .Where(n => ids.Contains(n.NotificationId) && n.NotificationStatus == NotificationStatus.Unread)
          .ExecuteUpdateAsync(s => s.SetProperty(n => n.NotificationStatus, NotificationStatus.Read));
    }
+
+   public async Task<bool> IsRecentDuplicateAsync(Guid userId, NotificationTargetType targetType, string targetIdentifier, TimeSpan timeWindow)
+   {
+      var thresholdTime = DateTime.UtcNow.Subtract(timeWindow);
+
+      return await _context.Notifications.AnyAsync(n => 
+         n.UserId == userId && 
+         n.TargetType == targetType && 
+         n.TargetIdentifier == targetIdentifier && 
+         n.CreatedAt >= thresholdTime);
+   }
 }

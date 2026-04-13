@@ -24,7 +24,9 @@ services.ConfigureGrpcConnections();
 
 services.AddRepositories();
 services.AddServices();
+services.AddHelpers();
 services.AddGrpc();
+
 
 services.AddControllers().AddJsonOptions(options =>
 {

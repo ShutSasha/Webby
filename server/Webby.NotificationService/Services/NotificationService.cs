@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Webby.NotificationService.Constants;
 using Webby.NotificationService.Dtos.Notification;
 using Webby.NotificationService.Dtos.Pagination;
 using Webby.NotificationService.Helpers.Exception;
@@ -121,8 +122,14 @@ public class NotificationService : INotificationService
       await _notificationRepository.DeleteAsync(notificationId);
    }
 
-   public async Task ChangeReadStatus(List<Guid> notificationIds)
-      => await _notificationRepository.ChangeReadStatus(notificationIds);
+   public async Task ChangeReadStatus(Guid userId, List<Guid> notificationIds)
+   {
+      await _notificationRepository.ChangeReadStatus(notificationIds);
+      
+      var unreadMessagesCount = await _notificationRepository.CountNotifications(userId,NotificationStatus.Unread);
+      await _hubContext.Clients.User(userId.ToString()).SendAsync(WebSocketMethodNames.UpdateUnreadMessagesMethod, unreadMessagesCount);
+   }
+      
 
    public async Task<GetNotificationsCountResponse> GetUsersNotificationsCount(Guid userId)
    {

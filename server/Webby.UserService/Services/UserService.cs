@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using Webby.NotificationService.GrpcClient;
 using Webby.UserService.Dtos;
+using Webby.UserService.Dtos.Notification;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Helpers.Exception;
+using Webby.UserService.Interfaces.Helpers;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
 using Webby.UserService.Models;
@@ -14,15 +17,24 @@ public class UserService : IUserService
    private readonly IStorageService _storageService;
    private readonly IAchievementService _achievementService;
    private readonly IUserPremiumRepository _userPremiumRepository;
+   private readonly NotificationService.GrpcClient.NotificationGrpcService.NotificationGrpcServiceClient
+      _notificationGrpcServiceClient;
+
+   private readonly INotificationFactory _notificationFactory;
+   
+   
    private readonly IMapper _mapper;
    public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService,
-      IAchievementService achievementService, IUserPremiumRepository userPremiumRepository)
+      IAchievementService achievementService, IUserPremiumRepository userPremiumRepository,
+      NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient, INotificationFactory notificationFactory)
    {
       _userRepository = userRepository;
       _mapper = mapper;
       _storageService = storageService;
       _achievementService = achievementService;
       _userPremiumRepository = userPremiumRepository;
+      _notificationGrpcServiceClient = notificationGrpcServiceClient;
+      _notificationFactory = notificationFactory;
    }
    
    public async Task<UserProfileResponse> GetUserInformation(Guid userId)
@@ -107,6 +119,7 @@ public class UserService : IUserService
 
          case false:
             await _userRepository.AddUserFollowing(request.UserId, request.FollowerId);
+            await SendNotification(await _notificationFactory.CreateNewFollowerNotification(request.UserId,request.FollowerId));
             return "Successfully followed user";
       }
       
@@ -180,7 +193,6 @@ public class UserService : IUserService
       userAchievement.IsPinned = false;
       await _achievementService.UpdateUserAchievement(userAchievement);
       
-
    }
 
    public async Task<List<UserFollowersDto>> GetUserFollowers(Guid userId)
@@ -246,4 +258,14 @@ public class UserService : IUserService
       };
       
    }
+
+   private async Task SendNotification(SendNotificationDto notificationDto) 
+      => await _notificationGrpcServiceClient.SendNotificationToUserAsync(new CreateNotificationRequest
+      {
+         Message = notificationDto.Message,
+         TargetType = GrpcNotificationTargetType.User,
+         TargetIdentifier = notificationDto.TargetIdentifier,
+         Title = notificationDto.Title,
+         UserId = notificationDto.UserId
+      });
 }
