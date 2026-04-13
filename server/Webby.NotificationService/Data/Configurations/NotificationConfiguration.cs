@@ -16,6 +16,10 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
       builder.Property(n => n.NotificationStatus)
          .HasConversion<string>()
          .IsRequired();
+
+      builder.Property(n => n.TargetType)
+         .HasConversion<string>()
+         .IsRequired();
       
       builder.HasKey(n => n.NotificationId);
 
