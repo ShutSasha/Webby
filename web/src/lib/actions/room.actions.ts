@@ -92,3 +92,37 @@ export async function createRoomAction(formData: FormData): Promise<BaseServerRe
     }
   }
 }
+
+export async function deleteRoomAction(roomId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(`${endpoint}/${roomId}`)
+    return response
+  } catch (error: unknown) {
+    serverLog('DELETE_ROOM_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: `Failed to delete room`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function updateRoomAction(roomId: string, formData: FormData): Promise<BaseServerResponse<Room>> {
+  try {
+    const { data: response } = await $api.put<BaseServerResponse<Room>>(`${endpoint}/${roomId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return response
+  } catch (error: unknown) {
+    serverLog('UPDATE_ROOM_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: `Failed to update room`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
