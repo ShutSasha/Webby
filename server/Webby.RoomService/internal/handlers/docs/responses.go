@@ -138,7 +138,7 @@ type AddMembersRequest struct {
 
 type AddQueueItemRequest struct {
 	EntityId   string `json:"entityId" validate:"required,uuid" example:"550e8400-e29b-41d4-a716-446655440000"`
-	EntityType string `json:"entityType" validate:"required,oneof=video playlist" example:"video"`
+	EntityType string `json:"entityType" validate:"required,oneof=video playlist youtube twitch" example:"video"`
 }
 
 type QueueItemResponse struct {

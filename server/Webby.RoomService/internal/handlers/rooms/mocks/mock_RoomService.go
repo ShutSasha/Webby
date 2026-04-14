@@ -500,7 +500,7 @@ func (_c *MockRoomService_RemoveMember_Call) RunAndReturn(run func(context.Conte
 }
 
 // Update provides a mock function with given fields: ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId
-func (_m *MockRoomService) Update(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (*models.Room, error) {
+func (_m *MockRoomService) Update(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData *[]byte, thumbnailFilename *string, userId uuid.UUID) (*models.Room, error) {
 	ret := _m.Called(ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)
 
 	if len(ret) == 0 {
@@ -509,10 +509,10 @@ func (_m *MockRoomService) Update(ctx context.Context, roomId uuid.UUID, name *s
 
 	var r0 *models.Room
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *string, *string, *bool, []byte, string, uuid.UUID) (*models.Room, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *string, *string, *bool, *[]byte, *string, uuid.UUID) (*models.Room, error)); ok {
 		return rf(ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *string, *string, *bool, []byte, string, uuid.UUID) *models.Room); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *string, *string, *bool, *[]byte, *string, uuid.UUID) *models.Room); ok {
 		r0 = rf(ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)
 	} else {
 		if ret.Get(0) != nil {
@@ -520,7 +520,7 @@ func (_m *MockRoomService) Update(ctx context.Context, roomId uuid.UUID, name *s
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *string, *string, *bool, []byte, string, uuid.UUID) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *string, *string, *bool, *[]byte, *string, uuid.UUID) error); ok {
 		r1 = rf(ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)
 	} else {
 		r1 = ret.Error(1)
@@ -540,16 +540,16 @@ type MockRoomService_Update_Call struct {
 //   - name *string
 //   - categoryName *string
 //   - isPrivate *bool
-//   - thumbnailData []byte
-//   - thumbnailFilename string
+//   - thumbnailData *[]byte
+//   - thumbnailFilename *string
 //   - userId uuid.UUID
 func (_e *MockRoomService_Expecter) Update(ctx interface{}, roomId interface{}, name interface{}, categoryName interface{}, isPrivate interface{}, thumbnailData interface{}, thumbnailFilename interface{}, userId interface{}) *MockRoomService_Update_Call {
 	return &MockRoomService_Update_Call{Call: _e.mock.On("Update", ctx, roomId, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)}
 }
 
-func (_c *MockRoomService_Update_Call) Run(run func(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID)) *MockRoomService_Update_Call {
+func (_c *MockRoomService_Update_Call) Run(run func(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData *[]byte, thumbnailFilename *string, userId uuid.UUID)) *MockRoomService_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(*string), args[3].(*string), args[4].(*bool), args[5].([]byte), args[6].(string), args[7].(uuid.UUID))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(*string), args[3].(*string), args[4].(*bool), args[5].(*[]byte), args[6].(*string), args[7].(uuid.UUID))
 	})
 	return _c
 }
@@ -559,7 +559,7 @@ func (_c *MockRoomService_Update_Call) Return(_a0 *models.Room, _a1 error) *Mock
 	return _c
 }
 
-func (_c *MockRoomService_Update_Call) RunAndReturn(run func(context.Context, uuid.UUID, *string, *string, *bool, []byte, string, uuid.UUID) (*models.Room, error)) *MockRoomService_Update_Call {
+func (_c *MockRoomService_Update_Call) RunAndReturn(run func(context.Context, uuid.UUID, *string, *string, *bool, *[]byte, *string, uuid.UUID) (*models.Room, error)) *MockRoomService_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

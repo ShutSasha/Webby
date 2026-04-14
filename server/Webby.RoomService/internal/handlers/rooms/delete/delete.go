@@ -8,6 +8,7 @@ import (
 	_ "webby/internal/handlers/docs"
 	errorWrapper "webby/internal/handlers/errors"
 	"webby/internal/handlers/responses"
+	"webby/pkg/http/render"
 
 	"github.com/google/uuid"
 )
@@ -50,7 +51,10 @@ func deleteRoom(logger *slog.Logger, deleter Deleter) errorWrapper.APIFunc {
 			return responses.NewApiError("Delete room error", err)
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		render.Encode(w, r, http.StatusOK, &responses.ApiResponse[any]{
+			Success: true,
+			Message: "Room successfully deleted",
+		})
 		return nil
 	}
 }

@@ -301,7 +301,7 @@ func (r *RoomService) UpdateMemberPoints(ctx context.Context, roomId uuid.UUID, 
 	return r.roomMemberRepo.UpdatePoints(ctx, roomId, memberId, delta)
 }
 
-func (r *RoomService) Update(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (*models.Room, error) {
+func (r *RoomService) Update(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData *[]byte, thumbnailFilename *string, userId uuid.UUID) (*models.Room, error) {
 	existingRoom, err := r.roomRepo.GetById(ctx, roomId)
 	if err != nil {
 		return nil, err
@@ -311,7 +311,6 @@ func (r *RoomService) Update(ctx context.Context, roomId uuid.UUID, name *string
 		return nil, apperrors.ErrForbidden
 	}
 
-	// Update only provided fields
 	if name != nil {
 		existingRoom.Name = *name
 	}
@@ -322,24 +321,18 @@ func (r *RoomService) Update(ctx context.Context, roomId uuid.UUID, name *string
 		existingRoom.IsPrivate = *isPrivate
 	}
 
-	// Handle thumbnail update if provided
-	if len(thumbnailData) > 0 && thumbnailFilename != "" {
+	if thumbnailData != nil && thumbnailFilename != nil {
 		if existingRoom.Thumbnail != "" && existingRoom.Thumbnail != defaultThumbnail {
 			oldKey := fmt.Sprintf("rooms/%s/thumbnail", roomId.String())
 			_ = r.fileRepo.Remove(ctx, oldKey)
 		}
 
-		key := generateFileKey(roomId, thumbnailFilename)
-		thumbnailURL, err := r.fileRepo.Save(ctx, key, thumbnailData)
+		key := generateFileKey(roomId, *thumbnailFilename)
+		thumbnailURL, err := r.fileRepo.Save(ctx, key, *thumbnailData)
 		if err != nil {
 			return nil, fmt.Errorf("thumbnail upload failed: %w", err)
 		}
 		existingRoom.Thumbnail = thumbnailURL
-	} else if len(thumbnailData) == 0 && thumbnailFilename == "" && existingRoom.Thumbnail != defaultThumbnail {
-		// Only reset to default if thumbnail was explicitly cleared
-		oldKey := fmt.Sprintf("rooms/%s/thumbnail", roomId.String())
-		_ = r.fileRepo.Remove(ctx, oldKey)
-		existingRoom.Thumbnail = defaultThumbnail
 	}
 
 	id, err := r.roomRepo.Update(ctx, existingRoom)
@@ -347,7 +340,6 @@ func (r *RoomService) Update(ctx context.Context, roomId uuid.UUID, name *string
 		return nil, err
 	}
 
-	// Fetch and return the updated room
 	updatedRoom, err := r.roomRepo.GetById(ctx, id)
 	if err != nil {
 		return nil, err
