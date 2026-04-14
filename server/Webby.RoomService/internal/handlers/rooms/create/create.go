@@ -2,6 +2,7 @@ package create
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -126,6 +127,13 @@ func createRoom(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 			IsPrivate:    isPrivate,
 		}, thumbnailData, thumbnailFilename)
 		if err != nil {
+			if errors.Is(err, apperrors.ErrInvalidInput) {
+				problems := map[string]string{
+					"categoryName": "category does not exist",
+				}
+				log.Debug("wrong categoryName")
+				return responses.NewValidationError("Validation error", problems)
+			}
 			return responses.NewApiError("Create room error", err)
 		}
 

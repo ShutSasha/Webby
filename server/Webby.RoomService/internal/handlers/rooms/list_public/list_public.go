@@ -43,6 +43,7 @@ func listPublicRooms(logger *slog.Logger, publicLister PublicLister) errorWrappe
 		HostId        uuid.UUID `json:"hostId"`
 		HostUsername  string    `json:"hostUsername"`
 		HostAvatarUrl string    `json:"hostAvatarUrl"`
+		CategoryName  string    `json:"categoryName"`
 		Thumbnail     string    `json:"thumbnail"`
 	}
 
@@ -97,6 +98,7 @@ func listPublicRooms(logger *slog.Logger, publicLister PublicLister) errorWrappe
 				HostId:        room.HostId,
 				HostUsername:  room.HostUsername,
 				HostAvatarUrl: room.HostAvatarUrl,
+				CategoryName:  room.CategoryName,
 				Thumbnail:     room.Thumbnail,
 			}
 		}
