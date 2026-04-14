@@ -2166,7 +2166,7 @@
         ]
       },
       "post": {
-        "description": "Add a video or playlist to the room's playback queue.\n\n**Request Body Validation:**\n* `entityId`: **required**, must be a valid UUID v4 format\n* `entityType`: **required**, must be either \"video\" or \"playlist\"\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n\n**Access Rules:**\n* Only **room members** can add items to the queue\n\n**Security Note:**\n* This action **requires authentication**\n",
+        "description": "Add a video or playlist to the room's playback queue.\n\n**Request Body Validation:**\n* `entityId`: **required**, must be a valid UUID v4 format\n* `entityType`: **required**, must be either \"video\", \"playlist\", \"youtube\", or  \"twitch\"\n\n**Path Parameter Validation:**\n* `id`: must be a valid UUID v4 format (room ID)\n\n**Access Rules:**\n* Only **room members** can add items to the queue\n\n**Security Note:**\n* This action **requires authentication**\n",
         "parameters": [
           {
             "description": "Room ID (UUID v4 format)",

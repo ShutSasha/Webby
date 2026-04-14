@@ -1569,7 +1569,7 @@ paths:
 
         **Request Body Validation:**
         * `entityId`: **required**, must be a valid UUID v4 format
-        * `entityType`: **required**, must be either "video" or "playlist"
+        * `entityType`: **required**, must be either "video", "playlist", "youtube" or "twitch"
 
         **Path Parameter Validation:**
         * `id`: must be a valid UUID v4 format (room ID)

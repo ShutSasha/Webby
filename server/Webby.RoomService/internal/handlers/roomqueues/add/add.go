@@ -38,7 +38,7 @@ func addToQueue(logger *slog.Logger, adder Adder) errorWrapper.APIFunc {
 
 	type request struct {
 		EntityId   string `json:"entityId" validate:"required,uuid"`
-		EntityType string `json:"entityType" validate:"required,oneof=video playlist"`
+		EntityType string `json:"entityType" validate:"required,oneof=video playlist youtube twitch"`
 	}
 
 	type queueItemResponse struct {
