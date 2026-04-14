@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"path/filepath"
+	"time"
 	"webby/internal/apperrors"
 	"webby/internal/models"
 
@@ -64,9 +65,9 @@ func NewRoomService(repo RoomRepository, roomMemberRepo RoomMemberRepository, fi
 	}
 }
 
-func generateFileKey(roomID uuid.UUID, filename string) string {
+func generateFileKey(filename string) string {
 	ext := filepath.Ext(filename)
-	return fmt.Sprintf("rooms/%s/thumbnail%s", roomID.String(), ext)
+	return fmt.Sprintf("rooms/%d/thumbnail%s", time.Now().UnixMilli(), ext)
 }
 
 func (r *RoomService) Create(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string) (*models.Room, error) {
@@ -85,7 +86,7 @@ func (r *RoomService) Create(ctx context.Context, room *models.Room, thumbnailDa
 
 	var thumbnailURL string
 	if len(thumbnailData) > 0 && thumbnailFilename != "" {
-		key := generateFileKey(id, thumbnailFilename)
+		key := generateFileKey(thumbnailFilename)
 		thumbnailURL, err = r.fileRepo.Save(ctx, key, thumbnailData)
 		if err != nil {
 			return nil, fmt.Errorf("thumbnail upload failed: %w", err)
@@ -327,7 +328,7 @@ func (r *RoomService) Update(ctx context.Context, roomId uuid.UUID, name *string
 			_ = r.fileRepo.Remove(ctx, oldKey)
 		}
 
-		key := generateFileKey(roomId, *thumbnailFilename)
+		key := generateFileKey(*thumbnailFilename)
 		thumbnailURL, err := r.fileRepo.Save(ctx, key, *thumbnailData)
 		if err != nil {
 			return nil, fmt.Errorf("thumbnail upload failed: %w", err)
