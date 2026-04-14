@@ -3,7 +3,7 @@
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse } from '@/types/general.types'
-import { GetPublicRooms, GetUserRoomsResponse } from '@/types/room.types'
+import { GetPublicRooms, GetUserRoomsResponse, Room } from '@/types/room.types'
 
 const endpoint = '/rooms'
 
@@ -67,6 +67,27 @@ export async function getUserRooms(
       data: null,
       success: false,
       message: `Failed to retrieve user rooms`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function createRoomAction(formData: FormData): Promise<BaseServerResponse<Room>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<Room>>(`${endpoint}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('CREATE_ROOM_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to create room. Please try again later.`,
       errors: parseAxiosError(error),
     }
   }
