@@ -1126,13 +1126,13 @@ paths:
       - Rooms
     put:
       description: |
-        Update a room's name, **category name**, privacy setting, and **thumbnail** by ID.
+        Update a room's name, **category name**, privacy setting, and **thumbnail** by ID. Only provided fields will be updated; omitted fields remain unchanged.
 
         **Validation Rules:**
-        * `name`: **required**, 2-50 characters, cannot be null/empty/whitespace-only
-        * `categoryName`: **required**, must be an existing category name
-        * `isPrivate`: **required**, must be valid boolean ("true" or "false")
-        * `thumbnail`: optional file upload, max 2MB
+        * `name`: **optional**, 2-50 characters, cannot be null/empty/whitespace-only
+        * `categoryName`: **optional**, must be an existing category name
+        * `isPrivate`: **optional**, must be valid boolean ("true" or "false")
+        * `thumbnail`: **optional** file upload, max 2MB. If not provided, the existing thumbnail is preserved
 
         **Path Parameter Validation:**
         * `id`: must be a valid UUID v4 format
@@ -1154,16 +1154,16 @@ paths:
             schema:
               properties:
                 categoryName:
-                  description: Category name (required)
+                  description: Category name (optional)
                   type: string
                 isPrivate:
-                  description: Visibility flag ('true' or 'false', required)
+                  description: Visibility flag ('true' or 'false', optional)
                   type: string
                 name:
-                  description: Room name (2-50 chars, required)
+                  description: Room name (2-50 chars, optional)
                   type: string
                 thumbnail:
-                  description: New thumbnail image (optional, max 2MB)
+                  description: New thumbnail image (optional, max 2MB). If not provided, the existing thumbnail is preserved
                   format: binary
                   type: string
               type: object

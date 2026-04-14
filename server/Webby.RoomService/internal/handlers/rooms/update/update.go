@@ -17,7 +17,7 @@ import (
 )
 
 type Updater interface {
-	Update(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData []byte, thumbnailFilename string, userId uuid.UUID) (*models.Room, error)
+	Update(ctx context.Context, roomId uuid.UUID, name *string, categoryName *string, isPrivate *bool, thumbnailData *[]byte, thumbnailFilename *string, userId uuid.UUID) (*models.Room, error)
 }
 
 func New(logger *slog.Logger, updater Updater) http.Handler {
@@ -99,8 +99,8 @@ func updateRoom(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 			return responses.NewValidationError("Validation error", problems)
 		}
 
-		var thumbnailData []byte
-		var thumbnailFilename string
+		var thumbnailData *[]byte
+		var thumbnailFilename *string
 
 		file, fileHeader, err := r.FormFile("thumbnail")
 		if err == nil {
@@ -113,12 +113,14 @@ func updateRoom(logger *slog.Logger, updater Updater) errorWrapper.APIFunc {
 				return responses.NewValidationError("Validation error", probs)
 			}
 
-			thumbnailData = make([]byte, fileHeader.Size)
-			if _, err := file.Read(thumbnailData); err != nil {
+			data := make([]byte, fileHeader.Size)
+			if _, err := file.Read(data); err != nil {
 				log.Error("failed to read thumbnail file", slog.String("error", err.Error()))
 				return responses.NewApiError("File upload error", err)
 			}
-			thumbnailFilename = fileHeader.Filename
+			thumbnailData = &data
+			filename := fileHeader.Filename
+			thumbnailFilename = &filename
 		} else if err != http.ErrMissingFile {
 			log.Debug("unexpected file error", slog.String("error", err.Error()))
 			return responses.NewApiError("File upload error", apperrors.ErrInvalidInput)
