@@ -7,6 +7,7 @@ import LogoIcon from '@/assets/icons/ic_logo.svg'
 import ExpandIcon from '@/assets/icons/Nav/arrow-right-from-line.svg'
 import { navDesktopElements } from '@/lib/placeholder-data/nav-side'
 import { cn } from '@/lib/utils/general.utils'
+import { useNotificationPopupStore } from '@/stores/notification-popup.store'
 
 import { DesktopNavElement } from './DesktopNavElement'
 import { UserProfile } from './UserProfile'
@@ -16,6 +17,7 @@ import Search from '../../shared/Search'
 export default function DesktopNav() {
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false)
+  const unreadCount = useNotificationPopupStore(state => state.unreadCount)
 
   const toggleSideNav = () => setIsExpanded(prev => !prev)
 
@@ -83,6 +85,7 @@ export default function DesktopNav() {
                   isExpanded={isExpanded}
                   Icon={item.icon}
                   iconSize={item.iconSize || 'size-6'}
+                  badgeCount={item.key === 'notifications' ? unreadCount : undefined}
                 />
               </li>
             ))}
