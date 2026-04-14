@@ -326,32 +326,6 @@ public class PlaylistService : IPlaylistService
    public async Task<bool> CheckIfVideoExistInPlaylist(Guid playlistId, Guid videoId)
       => await _playlistRepository.CheckIsVideoAdded(videoId,playlistId);
 
-   //TODO: fix reusing search
-   public async Task<GlobalSearchPlaylistResponse> GlobalPlaylistsSearch(Guid? requestUserId, GlobalSearchOptions searchOptions)
-   {
-      if (searchOptions.SectionType != SearchSections.Playlists)
-      {
-         throw new ApiException("Global playlists search", 400, "Incorrect search section type");
-      }
-      
-      var playlistsResult = await SearchPlaylists(requestUserId, new SearchOptions()
-      {
-         Page = searchOptions.Page,
-         PageSize = 5,
-         SearchText = searchOptions.SearchText
-      });
-      
-      return new GlobalSearchPlaylistResponse()
-      {
-         WebbyPlaylists = new SearchSection<SearchPlaylistDto>()
-         {
-            Items = playlistsResult.Items,
-            Page =  playlistsResult.Page,
-            TotalCount = playlistsResult.TotalCount
-         }
-      };
-   }
-
    private PlaylistDto MapToPlaylistDto(Playlist playlist,Guid? requestUserId)
    {
       var lastVideo = playlist.PlaylistVideos?
