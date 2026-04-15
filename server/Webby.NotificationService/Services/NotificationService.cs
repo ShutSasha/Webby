@@ -115,19 +115,21 @@ public class NotificationService : INotificationService
    {
       var notification = await _notificationRepository.FindById(notificationId)
                          ?? throw new ApiException("Delete notification error", 404, "Notification wasn't found");
+      
       if (notification.UserId != requestUserId)
       {
          throw new ApiException("Delete notification error", 403, "You can't delete this notification");
       }
+      
       await _notificationRepository.DeleteAsync(notificationId);
+      await UpdateNotificationsCount(requestUserId);
    }
 
    public async Task ChangeReadStatus(Guid userId, List<Guid> notificationIds)
    {
       await _notificationRepository.ChangeReadStatus(notificationIds);
-      
-      var unreadMessagesCount = await _notificationRepository.CountNotifications(userId,NotificationStatus.Unread);
-      await _hubContext.Clients.User(userId.ToString()).SendAsync(WebSocketMethodNames.UpdateUnreadMessagesMethod, unreadMessagesCount);
+
+      await UpdateNotificationsCount(userId);
    }
       
 
@@ -160,6 +162,13 @@ public class NotificationService : INotificationService
          Page = request.Page,
          PageSize = request.PageSize
       };
+   }
+
+   private async Task UpdateNotificationsCount(Guid userId)
+   {
+      var unreadMessagesCount = await _notificationRepository.CountNotifications(userId,NotificationStatus.Unread);
+      await _hubContext.Clients.User(userId.ToString())
+         .SendAsync(WebSocketMethodNames.UpdateUnreadMessagesMethod, unreadMessagesCount);
    }
 }
    
