@@ -3,9 +3,9 @@ using Webby.VideoService.Helpers.Response;
 
 namespace Webby.VideoService.Interfaces.Services;
 
-public interface IExternalVideoSearchService
+public interface IExternalVideoSearchService<TSource> where TSource : class
 {
-   Task<PagedResponse<VideoDto>> SearchAsync(SearchVideoOptions options);
-   Task<VideoDto> FindById(string videoId);
+   Task<PagedResponse<TSource>> SearchAsync(string? searchText, int pageSize, int page, string? nextPageToken);
+   Task<TSource> FindById(string sourceId);
 }
 

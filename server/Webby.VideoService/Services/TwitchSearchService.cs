@@ -1,20 +1,19 @@
 ﻿using System.Net.Http.Headers;
-using System.Text.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.External;
+using Webby.VideoService.Dtos.Stream;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.External;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Services;
-using Webby.VideoService.Models.Enums;
 
 namespace Webby.VideoService.Services;
 
-public class TwitchSearchService : IExternalVideoSearchService
+public class TwitchSearchService : IExternalVideoSearchService<StreamDto>
 {
     private readonly HttpClient _httpClient;
     private readonly TwitchOptions _options;
@@ -26,143 +25,138 @@ public class TwitchSearchService : IExternalVideoSearchService
         _options = options.Value.TwitchOptions;
     }
     
-    public async Task<PagedResponse<VideoDto>> SearchAsync(SearchVideoOptions options)
-{
-    await AuthenticateAsync();
-
-    bool isSearch = !string.IsNullOrWhiteSpace(options.SearchText);
-    string? nextPageToken = null;
-    List<TwitchItem> streamData = new();
-
-    if (isSearch)
+    public async Task<PagedResponse<StreamDto>> SearchAsync(string? searchText, int pageSize, int page, string? nextPageToken)
     {
-        var searchUrl = DefaultLinks.BaseTwitchUserLink;
-        var searchParams = new Dictionary<string, string?>
+        await AuthenticateAsync();
+
+        bool isSearch = !string.IsNullOrWhiteSpace(searchText);
+        string? NewNextPageToken = null;
+        List<TwitchItem> streamData = new();
+
+        if (isSearch)
         {
-            ["query"] = options.SearchText,
-            ["live_only"] = "true",
-            ["first"] = options.PageSize.ToString()
-        };
+            var searchUrl = DefaultLinks.BaseTwitchUserLink;
+            var searchParams = new Dictionary<string, string?>
+            {
+                ["query"] = searchText,
+                ["live_only"] = "true",
+                ["first"] = pageSize.ToString()
+            };
+
+            if (!string.IsNullOrEmpty(nextPageToken))
+                searchParams["after"] = nextPageToken;
+
+            var searchResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(
+                QueryHelpers.AddQueryString(searchUrl, searchParams));
+
+            if (searchResponse == null)
+            {
+                return new PagedResponse<StreamDto>();
+            }
+
+            NewNextPageToken = searchResponse.Pagination?.Cursor;
+
+            if (searchResponse.Data.Any())
+            {
+                var ids = searchResponse.Data.Select(i => i.Id);
+                var streamsUrl = DefaultLinks.BaseTwitchStreamLink + $"?user_id={string.Join("&user_id=", ids)}";
+                
+                var streamsResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(streamsUrl);
+                streamData = streamsResponse.Data;
+            }
+        }
+        else
+        {
+            var topUrl = DefaultLinks.BaseTwitchStreamLink;
+            var topParams = new Dictionary<string, string?>
+            {
+                ["first"] = pageSize.ToString()
+            };
+
+            if (!string.IsNullOrEmpty(nextPageToken))
+                topParams["after"] = nextPageToken;
+
+            var topResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(
+                QueryHelpers.AddQueryString(topUrl, topParams));
+
+            streamData = topResponse.Data;
+            NewNextPageToken = topResponse.Pagination?.Cursor;
+        }
+
+        if (!streamData.Any()) 
+            return new PagedResponse<StreamDto> { Items = [] };
         
-        if (!string.IsNullOrEmpty(options.NextPageToken))
-            searchParams["after"] = options.NextPageToken;
-
-        var searchResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(
-            QueryHelpers.AddQueryString(searchUrl, searchParams));
-
-        if (searchResponse == null)
+        var userIds = streamData.Select(i => i.UserId ?? i.Id).Distinct();
+        var avatars = await GetUsersAvatarsAsync(userIds);
+        
+        var resultItems = streamData.Select(item => new StreamDto
         {
-            return new PagedResponse<VideoDto>();
-        }
+            StreamId = item.Id,
+            Name = item.Title,
+            StartedAt = item.StartedAt,
+            PreviewUrl = item.ThumbnailUrl.Replace("{width}", "640").Replace("{height}", "360"),
+            StreamUrl = DefaultLinks.DefaultTwitchPlayerWatchLink + item.UserName ?? item.BroadcasterLogin!,
+            Viewers = item.ViewerCount,
+            Source = "Twitch",
+            User = new UserVideoDto
+            {
+                UserId = item.UserId,
+                Username = item.UserName ?? item.DisplayName ?? "Unknown",
+                AvatarUrl = avatars.GetValueOrDefault(item.UserId ?? item.Id) ?? "",
+                IsFollowed = false
+            }
+        }).ToList();
 
-        nextPageToken = searchResponse.Pagination?.Cursor;
-
-        if (searchResponse.Data.Any())
+        return new PagedResponse<StreamDto>
         {
-            var ids = searchResponse.Data.Select(i => i.Id);
-            var streamsUrl = DefaultLinks.BaseTwitchStreamLink + $"?user_id={string.Join("&user_id=", ids)}";
-            
-            var streamsResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(streamsUrl);
-            streamData = streamsResponse.Data;
-        }
-    }
-    else
-    {
-        var topUrl = DefaultLinks.BaseTwitchStreamLink;
-        var topParams = new Dictionary<string, string?>
-        {
-            ["first"] = options.PageSize.ToString()
+            Items = resultItems,
+            NextPageToken = NewNextPageToken,
+            PageSize = pageSize,
+            Page = page
         };
-
-        if (!string.IsNullOrEmpty(options.NextPageToken))
-            topParams["after"] = options.NextPageToken;
-
-        var topResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(
-            QueryHelpers.AddQueryString(topUrl, topParams));
-
-        streamData = topResponse.Data;
-        nextPageToken = topResponse.Pagination?.Cursor;
     }
 
-    if (!streamData.Any()) 
-        return new PagedResponse<VideoDto> { Items = new List<VideoDto>() };
-    
-    var userIds = streamData.Select(i => i.UserId ?? i.Id).Distinct();
-    var avatars = await GetUsersAvatarsAsync(userIds);
-    
-    var resultItems = streamData.Select(item => new VideoDto
+    public async Task<StreamDto> FindById(string streamId)
     {
-        VideoId = item.Id,
-        Name = item.Title,
-        Description = $"Streaming: {item.GameName}",
-        Source = "Twitch",
-        PreviewUrl = item.ThumbnailUrl.Replace("{width}", "640").Replace("{height}", "360"),
-        VideoUrl = $"https://www.twitch.tv/{item.UserName ?? item.BroadcasterLogin}",
-        CreatedAt = item.StartedAt,
-        IsPrivate = false,
-        VideoUploadStatus = VideoStatus.Ready,
-        Duration = 0L,
-        Views = item.ViewerCount,
-        User = new UserVideoDto
-        {
-            UserId = item.UserId,
-            Username = item.UserName ?? item.DisplayName ?? "Unknown",
-            AvatarUrl = avatars.GetValueOrDefault(item.UserId ?? item.Id) ?? "",
-            IsFollowed = false
-        }
-    }).ToList();
-
-    return new PagedResponse<VideoDto>
-    {
-        Items = resultItems,
-        NextPageToken = nextPageToken,
-        PageSize = options.PageSize
-    };
-}
-
-    public async Task<VideoDto> FindById(string videoId)
-    {
-        if (string.IsNullOrEmpty(videoId)) return null;
+        if (string.IsNullOrEmpty(streamId)) 
+            return null;
 
         await AuthenticateAsync();
         
-        var streamUrl = $"{DefaultLinks.BaseTwitchStreamLink}?user_id={videoId}";
+        var streamUrl = $"{DefaultLinks.BaseTwitchStreamLink}?user_id={streamId}";
         var streamResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(streamUrl);
         var streamItem = streamResponse.Data?.FirstOrDefault();
 
         if (streamItem != null)
         {
-            var avatars = await GetUsersAvatarsAsync(new[] { streamItem.UserId });
-            return MapToVideoDto(streamItem, avatars.GetValueOrDefault(streamItem.UserId));
+            var avatars = await GetUsersAvatarsAsync([streamItem.UserId]);
+            return MapToStreamDto(streamItem, avatars.GetValueOrDefault(streamItem.UserId));
         }
         
-        var videoUrl = $"https://api.twitch.tv/helix/videos?id={videoId}";
+        var videoUrl = $"https://api.twitch.tv/helix/videos?id={streamId}";
         var vResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(videoUrl);
-        var videoItem = vResponse.Data?.FirstOrDefault();
+        var videoItem = vResponse != null ? vResponse.Data?.FirstOrDefault() : null;
 
         if (videoItem != null)
         {
-            var avatars = await GetUsersAvatarsAsync(new[] { videoItem.UserId });
-            return MapToVideoDto(videoItem, avatars.GetValueOrDefault(videoItem.UserId));
+            var avatars = await GetUsersAvatarsAsync([videoItem.UserId]);
+            return MapToStreamDto(videoItem, avatars.GetValueOrDefault(videoItem.UserId));
         }
 
         throw new ApiException("Get twitch stream error", 404, "Stream wasn't found");
     }
     
-    private VideoDto MapToVideoDto(TwitchItem item, string? avatarUrl)
+    private StreamDto MapToStreamDto(TwitchItem? item, string? avatarUrl)
     {
-        return new VideoDto
+        return new StreamDto
         {
-            VideoId = item.Id,
+            StreamId = item.Id,
             Name = item.Title,
-            Description = $"Streaming: {item.GameName}",
+            StartedAt = item.StartedAt,
+            PreviewUrl = item.ThumbnailUrl.Replace("{width}", "640").Replace("{height}", "360"),
+            StreamUrl = DefaultLinks.DefaultTwitchPlayerWatchLink + item.UserName ?? item.BroadcasterLogin!,
+            Viewers = item.ViewerCount,
             Source = "Twitch",
-            PreviewUrl = item.ThumbnailUrl?.Replace("{width}", "1280").Replace("{height}", "720") ?? "",
-            VideoUrl = item.ThumbnailUrl.Replace("{width}", "640").Replace("{height}", "360"),
-            CreatedAt = item.StartedAt,
-            IsPrivate = false,
-            VideoUploadStatus = VideoStatus.Ready,
-            Views = item.ViewerCount > 0 ? item.ViewerCount : 0,
             User = new UserVideoDto
             {
                 UserId = item.UserId,
@@ -213,6 +207,4 @@ public class TwitchSearchService : IExternalVideoSearchService
         var tokenData = await response.Content.ReadFromJsonAsync<TwitchTokenResponse>();
         _accessToken = tokenData?.AccessToken;
     }
-
-    
 }

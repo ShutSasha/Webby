@@ -270,6 +270,36 @@
          "UpstreamHttpMethod": [
             "POST"
          ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/streams/search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/streams/search",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/streams/{streamerId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/streams/{streamerId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
       }
    ]
 }
