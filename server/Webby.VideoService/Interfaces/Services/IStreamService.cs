@@ -7,5 +7,5 @@ namespace Webby.VideoService.Interfaces.Services;
 public interface IStreamService
 {
    Task<PagedResponse<StreamDto>> SearchStream(SearchStreamOptions searchOptions);
-   Task<StreamDto> GetStreamById(string streamerId, SearchStreamPlatforms? platforms);
+   Task<StreamDto> GetStreamById(string streamerId, SearchStreamPlatforms? platform);
 }

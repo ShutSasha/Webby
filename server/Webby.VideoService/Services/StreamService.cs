@@ -29,11 +29,11 @@ public class StreamService : IStreamService
       };
    }
 
-   public async Task<StreamDto> GetStreamById(string streamerId, SearchStreamPlatforms? platforms)
+   public async Task<StreamDto> GetStreamById(string streamerId, SearchStreamPlatforms? platform)
    {
-      platforms ??= SearchStreamPlatforms.Twitch;
+      platform ??= SearchStreamPlatforms.Twitch;
       
-      return platforms switch
+      return platform switch
       {
          SearchStreamPlatforms.Twitch =>
             await _twitchSearchService.FindById(streamerId),
