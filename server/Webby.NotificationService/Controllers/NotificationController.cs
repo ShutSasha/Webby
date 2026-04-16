@@ -1,5 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.NotificationService.Dtos.Notification;
 using Webby.NotificationService.Dtos.Pagination;
@@ -15,10 +17,12 @@ namespace Webby.NotificationService.Controllers;
 public class NotificationController : ControllerBase
 {
    private readonly INotificationService _notificationService;
+   private readonly IMemoryCache _memoryCache;
 
-   public NotificationController(INotificationService notificationService)
+   public NotificationController(INotificationService notificationService, IMemoryCache memoryCache)
    {
       _notificationService = notificationService;
+      _memoryCache = memoryCache;
    }
 
    [HttpGet]
@@ -65,6 +69,27 @@ public class NotificationController : ControllerBase
       var getNotificationsCountResponse = await _notificationService.GetUsersNotificationsCount(requestUserId.Value);
       return Ok(ApiResponse<GetNotificationsCountResponse>.Ok("Successfully retrieved user notifications",
          getNotificationsCountResponse));
+   }
+
+   [HttpGet("one-time-ticket")]
+   [SwaggerOperation("Get one time ticket for websocket connection", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<string>>> GetOneTimeTicket()
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext).ToString();
+      var userMappingKey = $"user_ticket_map_{userId}";
+
+      if (_memoryCache.TryGetValue(userMappingKey, out string oldTicket))
+      {
+         _memoryCache.Remove($"ws_ticket_{oldTicket}");
+      }
+
+      var ticket = Guid.NewGuid().ToString("N");
+      var expiration = TimeSpan.FromSeconds(30);
+
+      _memoryCache.Set($"ws_ticket_{ticket}", userId, expiration);
+      _memoryCache.Set(userMappingKey, ticket, expiration);
+
+      return Ok(ApiResponse.Ok("Successfully generate one-time ticket", ticket));
    }
    
    [HttpPost]

@@ -16,7 +16,7 @@ var configuration = builder.Configuration;
 services.AddEndpointsApiExplorer();
 
 services.AddAuthorization();
-
+services.AddMemoryCache();
 services.AddCorsPolicy("AllowApiGateway");
 services.AddSwaggerConfig();
 services.AddDbConnection(configuration);
