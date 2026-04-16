@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Webby.VideoService.Dtos.User;
+using Webby.VideoService.Dtos.Video.Enums;
 using Webby.VideoService.Helpers.Converters;
 using Webby.VideoService.Models.Enums;
 using Webby.VideoService.Services.Background;
@@ -12,7 +13,7 @@ public class VideoDto
    public required string Name { get; set; }
    public string? Description { get; set; }
    
-   public string Source { get; set; } = SearchPlatforms.Webby.ToString();
+   public string Source { get; set; } = SearchVideoPlatforms.Webby.ToString();
    public int Views { get; set; }
    public required string PreviewUrl { get; set; }
    public required bool IsPrivate { get; set; }
