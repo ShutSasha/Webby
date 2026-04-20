@@ -63,14 +63,6 @@ public class PlaylistController : ControllerBase
       return Ok(ApiResponse<GetPlaylistResponse>.Ok("Successfully retrieved playlist information", playlistInformation));
    }
    
-   [HttpGet("global-search")]
-   public async Task<ActionResult<ApiResponse<GlobalSearchPlaylistResponse>>> SearchGlobalPlaylists([FromQuery] GlobalSearchOptions options)
-   {
-      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
-      var playlistGlobalSearchResult = await _playlistService.GlobalPlaylistsSearch(requestUserId, options);
-      return Ok(ApiResponse<GlobalSearchPlaylistResponse>.Ok("Successfully retrieved global playlists",playlistGlobalSearchResult));
-   } 
-   
    [HttpGet("search")]
    [SwaggerOperation("Search playlists route")]
    public async Task<ActionResult<ApiResponse<PagedResponse<SearchPlaylistDto>>>> SearchPlaylists(
@@ -90,7 +82,6 @@ public class PlaylistController : ControllerBase
       return Ok(ApiResponse<PlaylistDto>.Ok("Successfully created playlist",playlistCreationResult));
    }
    
-   //TODO: Measure response time in stress testing
    [HttpPost("videos")]
    [SwaggerOperation("Add or delete videos in playlist", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> AddVideoToPlaylist([FromBody] AddVideoToPlaylistRequest request)
@@ -118,6 +109,5 @@ public class PlaylistController : ControllerBase
       await _playlistService.DeletePlaylist(userId.Value, playlistId);
       return Ok(ApiResponse.Ok("Successfully delete playlist"));
    }
-   
    
 }

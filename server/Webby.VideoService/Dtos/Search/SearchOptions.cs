@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Webby.VideoService.Dtos.Playlist;
+namespace Webby.VideoService.Dtos.Search;
 
 public class SearchOptions
 {

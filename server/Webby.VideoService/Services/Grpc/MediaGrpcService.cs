@@ -1,10 +1,9 @@
 ﻿using Grpc.Core;
 using Webby.MediaService.GrpcServer;
 using Webby.VideoService.Constants;
-using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Interfaces.Services;
-using static System.Int32;
 
 namespace Webby.VideoService.Services.Grpc;
 

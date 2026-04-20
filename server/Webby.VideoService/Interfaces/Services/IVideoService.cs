@@ -1,6 +1,7 @@
 ﻿using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.Video;
+using Webby.VideoService.Dtos.Video.Enums;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Models;
 
@@ -12,7 +13,7 @@ public interface IVideoService
    Task<UploadVideoResponse> UploadVideoFile(Guid userId, UploadVideoRequest request);
    Task CreateVideo(Guid userId, CreateVideoRequest request);
    Task DeleteVideo(Guid userId, Guid videoId);
-   Task<VideoDto> GetVideoInformation(string videoId, Guid? userId, SearchPlatforms platform);
+   Task<VideoDto> GetVideoInformation(string videoId, Guid? userId, SearchVideoPlatforms? platform);
    Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId, Guid? requestedUserId, GetUserVideosRequest request);
    Task UpdateVideoInformation(Guid userId, UpdateVideoRequest request);
    Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchVideoOptions options);
@@ -20,6 +21,5 @@ public interface IVideoService
    Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId);
    Task CancelVideoUploading(Guid requestUserId, Guid videoId);
    Task<bool> CheckUploadStatus(Guid videoId);
-   Task<GlobalSearchVideoResponse> GlobalSearchVideos(Guid? requestUserId, GlobalSearchOptions searchOptions);
    Task IncrementVideoView(Guid requestUserId, Guid videoId);
 }
