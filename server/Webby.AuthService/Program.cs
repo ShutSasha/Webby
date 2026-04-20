@@ -25,7 +25,11 @@ services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
 services.AddRepositories();
 services.AddHelpers();
 services.AddServices();
-services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+services.AddAutoMapper(cfg =>
+{
+    cfg.LicenseKey = configuration["AutoMapper:LicenseKey"];
+}, typeof(Program));
+
 services.AddOpenApi();
 
 var app = builder.Build();

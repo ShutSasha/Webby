@@ -15,7 +15,11 @@ services.AddCorsPolicy("AllowApiGetaway");
 services.AddSwaggerConfig();
 services.AddDbConnection(configuration);
 
-services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+services.AddAutoMapper(cfg =>
+{
+    cfg.LicenseKey = configuration["AutoMapper:LicenseKey"];
+}, typeof(Program));
+
 services.AddSingleton<IAmazonS3>(AwsS3ClientFactory.CreateS3Client(configuration));
 
 services.ConfigureOptionDependencies(configuration);
