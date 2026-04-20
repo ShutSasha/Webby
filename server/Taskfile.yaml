@@ -6,28 +6,28 @@ tasks:
     cmds:
       - |
         cd ./Webby.AuthService
-        dotnet run
+        dotnet run -p:WarningLevel=0
 
   run_user_service:
     desc: "Run the C# UserService"
     cmds:
       - |
         cd ./Webby.UserService
-        dotnet run
+        dotnet run -p:WarningLevel=0
 
   run_video_service:
     desc: "Run the C# VideoService"
     cmds:
       - |
         cd ./Webby.VideoService
-        dotnet run
+        dotnet run -p:WarningLevel=0
 
   run_api_getaway:
     desc: "Run the api getaway"
     cmds:
       - |
         cd ./Webby.ApiGetaway
-        dotnet run
+        dotnet run -p:WarningLevel=0
 
   run_room_service:
     desc: "Run the Go RoomService"
@@ -50,7 +50,7 @@ tasks:
     cmds:
       - |
         cd ./Webby.NotificationService
-        dotnet run
+        dotnet run -p:WarningLevel=0
   
   run_all:
     desc: "Run all services"
