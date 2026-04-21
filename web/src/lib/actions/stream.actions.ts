@@ -9,13 +9,15 @@ const endpoint = '/streams'
 
 export async function searchStreams(
   query: string,
-  page: number = 1,
+  nextPageToken?: string | null,
   pageSize: number = 20,
 ): Promise<BaseServerResponse<SearchStreamsResponse>> {
   try {
     const params = new URLSearchParams()
     if (query) params.append('searchText', query)
-    params.append('page', page.toString())
+
+    if (nextPageToken) params.append('nextPageToken', nextPageToken)
+
     params.append('pageSize', pageSize.toString())
 
     const { data: response } = await $api.get<BaseServerResponse<SearchStreamsResponse>>(

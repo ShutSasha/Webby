@@ -7,12 +7,15 @@ const PAGE_SIZE = 20
 export const useSearchStreamsQuery = (searchQuery: string) => {
   return useInfiniteQuery({
     queryKey: ['search-streams', searchQuery],
-    queryFn: async ({ pageParam = 1 }) => await searchStreams(searchQuery, pageParam, PAGE_SIZE),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      const items = lastPage?.data?.items || []
-      if (items.length === PAGE_SIZE) return allPages.length + 1
-      return undefined
+
+    queryFn: async ({ pageParam }) => await searchStreams(searchQuery, pageParam as string | undefined, PAGE_SIZE),
+
+    initialPageParam: undefined as string | undefined,
+
+    getNextPageParam: lastPage => {
+      const token = lastPage?.data?.nextPageToken
+
+      return token ? token : undefined
     },
 
     staleTime: 5 * 60 * 1000,

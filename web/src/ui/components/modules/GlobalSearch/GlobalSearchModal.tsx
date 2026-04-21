@@ -67,7 +67,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
         </div>
 
         <div
-          className="flex-1 min-h-0 overflow-y-auto px-2 pb-6 relative [&::-webkit-scrollbar]:w-1.5
+          className="flex-1 min-h-0 overflow-y-auto pb-6 relative [&::-webkit-scrollbar]:w-1.5
             [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-800
             [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-neutral-700"
         >
@@ -100,13 +100,16 @@ function VideosTab({ query }: { query: string }) {
   const { data: webbyData, isLoading: webbyLoading } = useSearchVideosQuery(query, 'Webby')
   const { data: ytData, isLoading: ytLoading } = useSearchVideosQuery(query, 'YouTube')
 
-  const webbyVideos = webbyData?.pages.flatMap(p => p.data?.items || []) || []
-  const ytVideos = ytData?.pages.flatMap(p => p.data?.items || []) || []
+  const rawWebby = webbyData?.pages.flatMap(p => p.data?.items || []) || []
+  const webbyVideos = Array.from(new Map(rawWebby.map(v => [v.videoId, v])).values())
+
+  const rawYT = ytData?.pages.flatMap(p => p.data?.items || []) || []
+  const ytVideos = Array.from(new Map(rawYT.map(v => [v.videoId, v])).values())
 
   const displayWebby = showAllWebby ? webbyVideos.slice(0, 20) : webbyVideos.slice(0, 3)
   const displayYT = showAllYT ? ytVideos.slice(0, 20) : ytVideos.slice(0, 3)
 
-  if (webbyLoading || ytLoading) return <Skeletons count={6} />
+  if (webbyLoading || ytLoading) return <Skeletons count={12} />
   if (webbyVideos.length === 0 && ytVideos.length === 0) return <EmptyState title="No videos found" />
 
   return (
@@ -170,11 +173,11 @@ function VideosTab({ query }: { query: string }) {
 
 function RoomsTab({ query }: { query: string }) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = usePublicRoomsQuery(query)
-  const rooms = data?.pages.flatMap(p => p.data?.items || []) || []
-
+  const rawRooms = data?.pages.flatMap(p => p.data?.items || []) || []
+  const rooms = Array.from(new Map(rawRooms.map(r => [r.id, r])).values())
   const lastElementRef = useInfiniteScroll({ isLoading, isFetchingNextPage, hasNextPage, fetchNextPage })
 
-  if (isLoading && rooms.length === 0) return <Skeletons count={6} />
+  if (isLoading && rooms.length === 0) return <Skeletons count={12} />
   if (rooms.length === 0) return <EmptyState title="No rooms found" />
 
   return (
@@ -206,11 +209,12 @@ function RoomsTab({ query }: { query: string }) {
 
 function PlaylistsTab({ query }: { query: string }) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchPlaylistsQuery(query)
-  const playlists = data?.pages.flatMap(p => p.data?.items || []) || []
+  const rawPlaylists = data?.pages.flatMap(p => p.data?.items || []) || []
+  const playlists = Array.from(new Map(rawPlaylists.map(pl => [pl.playlistId, pl])).values())
 
   const lastElementRef = useInfiniteScroll({ isLoading, isFetchingNextPage, hasNextPage, fetchNextPage })
 
-  if (isLoading && playlists.length === 0) return <Skeletons count={6} />
+  if (isLoading && playlists.length === 0) return <Skeletons count={12} />
   if (playlists.length === 0) return <EmptyState title="No playlists found" />
 
   return (
@@ -242,11 +246,11 @@ function PlaylistsTab({ query }: { query: string }) {
 
 function StreamsTab({ query }: { query: string }) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchStreamsQuery(query)
-  const streams = data?.pages.flatMap(p => p.data?.items || []) || []
-
+  const rawStreams = data?.pages.flatMap(p => p.data?.items || []) || []
+  const streams = Array.from(new Map(rawStreams.map(s => [s.streamId, s])).values())
   const lastElementRef = useInfiniteScroll({ isLoading, isFetchingNextPage, hasNextPage, fetchNextPage })
 
-  if (isLoading && streams.length === 0) return <Skeletons count={6} />
+  if (isLoading && streams.length === 0) return <Skeletons count={12} />
   if (streams.length === 0) return <EmptyState title="No streams found" />
 
   return (
