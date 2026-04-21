@@ -1,50 +1,58 @@
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using Serilog;
 using Webby.ApiGetaway.Extensions;
 using Webby.ApiGetaway.Helpers.Jwt;
 
-var builder = WebApplication.CreateBuilder(args);
-var services = builder.Services;
-var configuration = builder.Configuration;
-
-builder.WebHost.ConfigureKestrel(options =>
+try
 {
-    options.Limits.MaxRequestBodySize = 5L * 1024 * 1024 * 1024;
-});
+    var builder = WebApplication.CreateBuilder(args);
+    var services = builder.Services;
+    var configuration = builder.Configuration;
+    builder.AddCustomSerilog();
 
-services.AddOpenApi();
-services.AddCorsPolicy("AllowWebOrigin");
-services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
+    builder.WebHost.ConfigureKestrel(options => { options.Limits.MaxRequestBodySize = 5L * 1024 * 1024 * 1024; });
 
-services.AddJwtAuthentication(builder.Configuration);
-configuration.RegisterApiConfig(builder.Environment);
+    services.AddOpenApi();
+    services.AddCorsPolicy("AllowWebOrigin");
+    services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
 
-services.AddOcelot(configuration);
-services.AddEndpointsApiExplorer();
-services.AddSwaggerInfo();
+    services.AddJwtAuthentication(builder.Configuration);
+    configuration.RegisterApiConfig(builder.Environment);
 
-var app = builder.Build();
+    services.AddOcelot(configuration);
+    services.AddEndpointsApiExplorer();
+    services.AddSwaggerInfo();
 
-app.UseCors("AllowWebOrigin");
-app.UseAuthentication();
-app.UseAuthorization();
+    var app = builder.Build();
+    app.UseCustomSerilogRequestLogging();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    app.UseCors("AllowWebOrigin");
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    if (app.Environment.IsDevelopment())
     {
-        c.SwaggerEndpoint("/auth/swagger/v1/swagger.json", "AuthService");
-        c.SwaggerEndpoint("/user/swagger/v1/swagger.json", "UserService");
-        c.SwaggerEndpoint("/video/swagger/v1/swagger.json", "VideoService");
-        c.SwaggerEndpoint("/room/swagger/v1/swagger.json", "RoomService");
-        c.SwaggerEndpoint("/chat/swagger/v1/swagger.json", "ChatService");
-        c.SwaggerEndpoint("/notification/swagger/v1/swagger.json", "NotificationService");
-        c.RoutePrefix = "";
-    });
-}
-app.UseApiExceptionHandling();
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/auth/swagger/v1/swagger.json", "AuthService");
+            c.SwaggerEndpoint("/user/swagger/v1/swagger.json", "UserService");
+            c.SwaggerEndpoint("/video/swagger/v1/swagger.json", "VideoService");
+            c.SwaggerEndpoint("/room/swagger/v1/swagger.json", "RoomService");
+            c.SwaggerEndpoint("/chat/swagger/v1/swagger.json", "ChatService");
+            c.SwaggerEndpoint("/notification/swagger/v1/swagger.json", "NotificationService");
+            c.RoutePrefix = "";
+        });
+    }
 
-app.UseWebSockets();
-await app.UseOcelot();
-app.Run();
+    app.UseApiExceptionHandling();
+
+    app.UseWebSockets();
+    await app.UseOcelot();
+    app.Run();
+}
+finally
+{
+    Log.CloseAndFlush();
+}
