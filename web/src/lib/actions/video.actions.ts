@@ -28,22 +28,22 @@ export async function searchVideos(
   query: string,
   page: number,
   pageSize: number,
+  searchPlatform?: 'Webby' | 'YouTube',
 ): Promise<BaseServerResponse<SearchVideosResponse>> {
   try {
-    const { data: response } = await $api.get<BaseServerResponse<SearchVideosResponse>>(
-      `${endpoint}/search?searchText=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`,
-    )
+    const params = new URLSearchParams()
+    if (query) params.append('searchText', query)
+    params.append('page', page.toString())
+    params.append('pageSize', pageSize.toString())
+    if (searchPlatform) params.append('searchPlatform', searchPlatform)
 
+    const { data: response } = await $api.get<BaseServerResponse<SearchVideosResponse>>(
+      `${endpoint}/search?${params.toString()}`,
+    )
     return response
   } catch (error: unknown) {
     serverLog('GET_PUBLIC_VIDEOS_WHILE_SEARCH_ERROR', error, true)
-
-    return {
-      data: null,
-      success: false,
-      message: `Failed to retrieve public videos from search`,
-      errors: parseAxiosError(error),
-    }
+    return { data: null, success: false, message: `Failed to retrieve videos`, errors: parseAxiosError(error) }
   }
 }
 

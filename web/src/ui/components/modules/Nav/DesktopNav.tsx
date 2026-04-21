@@ -11,8 +11,7 @@ import { useNotificationPopupStore } from '@/stores/notification-popup.store'
 
 import { DesktopNavElement } from './DesktopNavElement'
 import { UserProfile } from './UserProfile'
-import Modal from '../../shared/Modal'
-import Search from '../../shared/Search'
+import GlobalSearchModal from '../GlobalSearch/GlobalSearchModal'
 
 export default function DesktopNav() {
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
@@ -96,21 +95,7 @@ export default function DesktopNav() {
           </div>
         </nav>
       </aside>
-      <Modal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        modalClasses="max-w-[600px] bg-neutral-900 border-neutral-800"
-      >
-        <div className="flex flex-col gap-4">
-          <h2 className="text-xl font-bold text-neutral-100">Global Search</h2>
-
-          <Search placeholder="Search users, rooms, or videos..." containerClassName="w-full" />
-
-          <div className="mt-4 min-h-[200px] flex items-center justify-center text-neutral-500">
-            Start typing to search...
-          </div>
-        </div>
-      </Modal>
+      <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   )
 }
