@@ -70,7 +70,7 @@ export default function VideoCard({
             loading="lazy"
             className="object-cover w-full h-full z-0 transition-transform duration-500 ease-out group-hover:scale-105"
             placeholder="blur"
-            blurDataURL={BLUR_DATA_URLS['neutral900']}
+            blurDataURL={BLUR_DATA_URLS['neutral800']}
           />
 
           <div
