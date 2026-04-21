@@ -29,13 +29,17 @@ export async function searchVideos(
   page: number,
   pageSize: number,
   searchPlatform?: 'Webby' | 'YouTube',
+  nextPageToken?: string | null,
 ): Promise<BaseServerResponse<SearchVideosResponse>> {
   try {
     const params = new URLSearchParams()
     if (query) params.append('searchText', query)
+
     params.append('page', page.toString())
     params.append('pageSize', pageSize.toString())
     if (searchPlatform) params.append('searchPlatform', searchPlatform)
+
+    if (nextPageToken) params.append('nextPageToken', nextPageToken)
 
     const { data: response } = await $api.get<BaseServerResponse<SearchVideosResponse>>(
       `${endpoint}/search?${params.toString()}`,

@@ -94,11 +94,24 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
 }
 
 function VideosTab({ query }: { query: string }) {
-  const [showAllWebby, setShowAllWebby] = useState(false)
-  const [showAllYT, setShowAllYT] = useState(false)
+  const [webbyExpanded, setWebbyExpanded] = useState(false)
+  const [ytExpanded, setYtExpanded] = useState(false)
 
-  const { data: webbyData, isLoading: webbyLoading } = useSearchVideosQuery(query, 'Webby')
-  const { data: ytData, isLoading: ytLoading } = useSearchVideosQuery(query, 'YouTube')
+  const {
+    data: webbyData,
+    isLoading: webbyLoading,
+    hasNextPage: hasWebbyNext,
+    fetchNextPage: fetchWebby,
+    isFetchingNextPage: isFetchingWebby,
+  } = useSearchVideosQuery(query, 'Webby')
+
+  const {
+    data: ytData,
+    isLoading: ytLoading,
+    hasNextPage: hasYTNext,
+    fetchNextPage: fetchYT,
+    isFetchingNextPage: isFetchingYT,
+  } = useSearchVideosQuery(query, 'YouTube')
 
   const rawWebby = webbyData?.pages.flatMap(p => p.data?.items || []) || []
   const webbyVideos = Array.from(new Map(rawWebby.map(v => [v.videoId, v])).values())
@@ -106,10 +119,10 @@ function VideosTab({ query }: { query: string }) {
   const rawYT = ytData?.pages.flatMap(p => p.data?.items || []) || []
   const ytVideos = Array.from(new Map(rawYT.map(v => [v.videoId, v])).values())
 
-  const displayWebby = showAllWebby ? webbyVideos.slice(0, 20) : webbyVideos.slice(0, 3)
-  const displayYT = showAllYT ? ytVideos.slice(0, 20) : ytVideos.slice(0, 3)
+  const displayWebby = webbyExpanded ? webbyVideos : webbyVideos.slice(0, 3)
+  const displayYT = ytExpanded ? ytVideos : ytVideos.slice(0, 3)
 
-  if (webbyLoading || ytLoading) return <Skeletons count={12} />
+  if (webbyLoading || ytLoading) return <Skeletons count={6} />
   if (webbyVideos.length === 0 && ytVideos.length === 0) return <EmptyState title="No videos found" />
 
   return (
@@ -123,21 +136,31 @@ function VideosTab({ query }: { query: string }) {
                 key={video.videoId}
                 id={video.videoId}
                 title={video.name}
-                subtitle={`Webby • ${video.views} views • by ${video.user.username}`}
+                subtitle={`Webby • ${video.views.toLocaleString()} views • by ${video.user.username}`}
                 thumbnail={video.previewUrl}
                 type="Video"
               />
             ))}
           </div>
-          {webbyVideos.length > 3 && !showAllWebby && (
+
+          {!webbyExpanded && webbyVideos.length > 3 ? (
             <button
-              onClick={() => setShowAllWebby(true)}
+              onClick={() => setWebbyExpanded(true)}
               className="text-sm text-emerald-500 hover:text-emerald-400 font-medium py-2.5 mt-2 text-center w-full
                 hover:bg-emerald-500/10 rounded-xl transition-colors"
             >
-              Show more
+              Show all ({webbyVideos.length})
             </button>
-          )}
+          ) : webbyExpanded && hasWebbyNext ? (
+            <button
+              onClick={() => fetchWebby()}
+              disabled={isFetchingWebby}
+              className="text-sm text-emerald-500 hover:text-emerald-400 font-medium py-2.5 mt-2 text-center w-full
+                hover:bg-emerald-500/10 rounded-xl transition-colors disabled:opacity-50"
+            >
+              {isFetchingWebby ? 'Loading...' : 'Show more'}
+            </button>
+          ) : null}
         </div>
       )}
 
@@ -150,21 +173,31 @@ function VideosTab({ query }: { query: string }) {
                 key={video.videoId}
                 id={video.videoId}
                 title={video.name}
-                subtitle={`YouTube • ${video.views} views • by ${video.user.username}`}
+                subtitle={`YouTube • ${video.views.toLocaleString()} views • by ${video.user.username}`}
                 thumbnail={video.previewUrl}
                 type="Video"
               />
             ))}
           </div>
-          {ytVideos.length > 3 && !showAllYT && (
+
+          {!ytExpanded && ytVideos.length > 3 ? (
             <button
-              onClick={() => setShowAllYT(true)}
+              onClick={() => setYtExpanded(true)}
               className="text-sm text-emerald-500 hover:text-emerald-400 font-medium py-2.5 mt-2 text-center w-full
                 hover:bg-emerald-500/10 rounded-xl transition-colors"
             >
-              Show more
+              Show all ({ytVideos.length})
             </button>
-          )}
+          ) : ytExpanded && hasYTNext ? (
+            <button
+              onClick={() => fetchYT()}
+              disabled={isFetchingYT}
+              className="text-sm text-emerald-500 hover:text-emerald-400 font-medium py-2.5 mt-2 text-center w-full
+                hover:bg-emerald-500/10 rounded-xl transition-colors disabled:opacity-50"
+            >
+              {isFetchingYT ? 'Loading...' : 'Show more'}
+            </button>
+          ) : null}
         </div>
       )}
     </div>
