@@ -16,13 +16,14 @@ public class ExceptionMiddleware
    
    public async Task Invoke(HttpContext context)
    {
-      Dictionary<string, string> errorMsg = new Dictionary<string, string>();
       try
       {
          await _next(context);
       }
       catch (ApiException ex)
       {
+         _logger.LogWarning("API Exception: {Message} (StatusCode: {StatusCode})", ex.Message, ex.StatusCode);
+
          var errorResponse = ApiResponse.Fail(ex.Message, ex.Errors);
 
          context.Response.StatusCode = ex.StatusCode;
@@ -32,15 +33,15 @@ public class ExceptionMiddleware
       }
       catch (Exception ex)
       {
-         errorMsg["errorMsg"] = ex.Message;
+         _logger.LogError(ex, "Unhandled server error occurred");
          
+         var errorMsg = new Dictionary<string, string> { { "errorMsg", ex.Message } };
          var errorResponse = ApiResponse.Fail("Internal server error", errorMsg);
+         
          context.Response.StatusCode = 500;
          context.Response.ContentType = "application/json";
 
          await context.Response.WriteAsJsonAsync(errorResponse);
       }
    }
-
-
 }

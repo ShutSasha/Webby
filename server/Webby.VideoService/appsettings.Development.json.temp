@@ -26,6 +26,10 @@
         "ThumbnailWidth": "1280",
         "ThumbnailHeight": "720"
       }
-    }
+    },
+    
+   "AutoMapper":{
+      "LicenseKey": "{{AutoMapperLicenseKey}}"
+   }
   
 }

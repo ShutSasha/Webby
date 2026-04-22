@@ -28,6 +28,7 @@ public class ExceptionMiddleware
       }
       catch (ApiException ex)
       {
+         _logger.LogWarning("API Exception: {Message} (StatusCode: {StatusCode})", ex.Message, ex.StatusCode);
          var errorResponse = ApiResponse.Fail(ex.Message, ex.Errors);
 
          context.Response.StatusCode = ex.StatusCode;

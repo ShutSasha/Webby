@@ -22,6 +22,9 @@
     "PaymentWebhookKey": "{{StripeWebhookKey}}",
     "SuccessUrl": "http://localhost:3000/payment/success",
     "CancelUrl": "http://localhost:3000/payment/failed"
-  }
+  },
+ "AutoMapper":{
+    "LicenseKey": "{{AutoMapperLicenseKey}}"
+ }
   
 }
