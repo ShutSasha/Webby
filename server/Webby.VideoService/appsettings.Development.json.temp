@@ -22,8 +22,14 @@
       },
       "TwitchOptions": {
         "ClientId": "{{TwitchIdClient}}",
-        "ClientSecret": "{{TwitchSecretKey}}"
+        "ClientSecret": "{{TwitchSecretKey}}",
+        "ThumbnailWidth": "1280",
+        "ThumbnailHeight": "720"
       }
-    }
+    },
+    
+   "AutoMapper":{
+      "LicenseKey": "{{AutoMapperLicenseKey}}"
+   }
   
 }

@@ -12,7 +12,7 @@ using Webby.VideoService.Models.Enums;
 
 namespace Webby.VideoService.Services;
 
-public class YoutubeSearchService : IExternalVideoSearchService
+public class YoutubeSearchService : IExternalVideoSearchService<VideoDto>
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
@@ -25,9 +25,9 @@ public class YoutubeSearchService : IExternalVideoSearchService
         _apiKey = options.Value.YouTubeOptions.ApiKey;
     }
 
-    public async Task<PagedResponse<VideoDto>> SearchAsync(SearchVideoOptions options)
+    public async Task<PagedResponse<VideoDto>> SearchAsync(string? searchText, int pageSize, int page, string? nextPageToken)
     {
-        var url = BuildUrl(options);
+        var url = BuildUrl(searchText, pageSize, nextPageToken);
         var response = await _httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
@@ -114,7 +114,8 @@ public class YoutubeSearchService : IExternalVideoSearchService
             Items = videoDtos,
             NextPageToken = initialData.NextPageToken,
             PageSize = initialData.PageInfo.ResultsPerPage,
-            TotalCount = initialData.PageInfo.TotalResults
+            TotalCount = initialData.PageInfo.TotalResults,
+            Page = page
         };
     }   
 
@@ -194,21 +195,21 @@ public class YoutubeSearchService : IExternalVideoSearchService
         };
     }
 
-    private string BuildUrl(SearchVideoOptions options)
+    private string BuildUrl(string? searchText, int pageSize, string? nextPageToken)
     {
-        var hasSearch = !string.IsNullOrWhiteSpace(options.SearchText);
+        var hasSearch = !string.IsNullOrWhiteSpace(searchText);
         
         string part = "id"; 
         string url;
 
         if (hasSearch)
         {
-            var query = Uri.EscapeDataString(options.SearchText);
+            var query = Uri.EscapeDataString(searchText);
             url = DefaultLinks.BaseYouTubeSearchLink +
                   $"?part={part}" +
                   $"&type=video" +
                   $"&q={query}" +
-                  $"&maxResults={options.PageSize}" +
+                  $"&maxResults={pageSize}" +
                   $"&key={_apiKey}";
         }
         else
@@ -217,13 +218,13 @@ public class YoutubeSearchService : IExternalVideoSearchService
                   $"?part={part}" +
                   "&chart=mostPopular" +
                   "&regionCode=US" + 
-                  $"&maxResults={options.PageSize}" +
+                  $"&maxResults={pageSize}" +
                   $"&key={_apiKey}";
         }
 
-        if (!string.IsNullOrEmpty(options.NextPageToken))
+        if (!string.IsNullOrEmpty(nextPageToken))
         {
-            url += $"&pageToken={options.NextPageToken}";
+            url += $"&pageToken={nextPageToken}";
         }
 
         return url;

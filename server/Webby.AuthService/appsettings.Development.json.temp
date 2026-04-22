@@ -15,5 +15,8 @@
    "JwtOptions": {
       "AccessSecretKey": "{{JwtAccessSecretKey}}",
       "AccessExpiresDuration": "{{JwtAccessExpiresDuration}}"
+   },
+   "AutoMapper":{
+      "LicenseKey": "{{AutoMapperLicenseKey}}"
    }
 }

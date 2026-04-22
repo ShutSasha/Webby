@@ -98,6 +98,7 @@ public static class ApiExtension
       serviceCollection.AddScoped<ITagService, TagService>();
       serviceCollection.AddScoped<IVideoService,Services.VideoService>();
       serviceCollection.AddScoped<IStorageService, StorageService>();
+      serviceCollection.AddScoped<IStreamService, StreamService>();
    }
 
    public static void AddExternalServices(this IServiceCollection serviceCollection)

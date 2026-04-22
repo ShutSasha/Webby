@@ -1,63 +1,70 @@
 using System.Text.Json.Serialization;
 using Amazon.S3;
+using Serilog;
 using Webby.UserService.Extensions;
 using Webby.UserService.Middlewares;
 using UserGrpcService = Webby.UserService.Services.Grpc.UserGrpcService;
-    
-var builder = WebApplication.CreateBuilder(args);
-var services = builder.Services;
-var configuration = builder.Configuration;
 
-services.AddEndpointsApiExplorer();
-services.AddSwaggerGen();
-
-services.AddCorsPolicy("AllowApiGetaway");
-services.AddSwaggerConfig();
-services.AddDbConnection(configuration);
-
-services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-services.AddSingleton<IAmazonS3>(AwsS3ClientFactory.CreateS3Client(configuration));
-
-services.ConfigureOptionDependencies(configuration);
-
-services.ConfigureGrpcConnections();
-
-services.AddRepositories();
-services.AddServices();
-services.AddHelpers();
-services.AddGrpc();
-
-
-services.AddControllers().AddJsonOptions(options =>
+try
 {
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
+    var builder = WebApplication.CreateBuilder(args);
+    var services = builder.Services;
+    var configuration = builder.Configuration;
+    builder.AddCustomSerilog();
 
-var app = builder.Build();
-app.UseCors("AllowApiGetaway");
+    services.AddEndpointsApiExplorer();
+    services.AddSwaggerGen();
 
-app.UseMiddleware<ExceptionMiddleware>();
-app.UseMiddleware<ValidationExceptionMiddleware>();
+    services.AddCorsPolicy("AllowApiGetaway");
+    services.AddSwaggerConfig();
+    services.AddDbConnection(configuration);
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger(c =>
+    services.AddAutoMapper(cfg => { cfg.LicenseKey = configuration["AutoMapper:LicenseKey"]; }, typeof(Program));
+
+    services.AddSingleton<IAmazonS3>(AwsS3ClientFactory.CreateS3Client(configuration));
+
+    services.ConfigureOptionDependencies(configuration);
+
+    services.ConfigureGrpcConnections();
+
+    services.AddRepositories();
+    services.AddServices();
+    services.AddHelpers();
+    services.AddGrpc();
+
+
+    services.AddControllers().AddJsonOptions(options =>
     {
-        c.RouteTemplate = "docs/user-service/{documentName}/swagger.json";
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-    app.UseSwaggerUI(c =>
+    var app = builder.Build();
+
+    app.UseCustomSerilogRequestLogging();
+
+    app.UseCors("AllowApiGetaway");
+
+    app.UseMiddleware<ExceptionMiddleware>();
+    app.UseMiddleware<ValidationExceptionMiddleware>();
+
+    if (app.Environment.IsDevelopment())
     {
-        c.SwaggerEndpoint("/docs/user-service/v1/swagger.json", "User Service API");
-    });
+        app.UseSwagger(c => { c.RouteTemplate = "docs/user-service/{documentName}/swagger.json"; });
+
+        app.UseSwaggerUI(c => { c.SwaggerEndpoint("/docs/user-service/v1/swagger.json", "User Service API"); });
+    }
+
+    app.UseRouting();
+
+    app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+    app.MapGrpcService<UserGrpcService>().EnableGrpcWeb();
+
+
+    app.MapControllers();
+
+    app.Run();
 }
-
-app.UseRouting();
-
-app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
-app.MapGrpcService<UserGrpcService>().EnableGrpcWeb();
-
-
-app.MapControllers();
-
-app.Run();
+finally
+{
+    Log.CloseAndFlush();
+}
