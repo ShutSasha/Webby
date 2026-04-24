@@ -20,7 +20,7 @@ tags:
       Read access is public; write access requires a valid JWT.
 
 paths:
-  /api/categories/:
+  /api/categories:
     get:
       tags:
         - Categories

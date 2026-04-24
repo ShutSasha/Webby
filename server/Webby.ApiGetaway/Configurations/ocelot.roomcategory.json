@@ -16,7 +16,7 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/categories/",
+      "DownstreamPathTemplate": "/api/categories",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -24,11 +24,11 @@
           "Port": 8082
         }
       ],
-      "UpstreamPathTemplate": "/api/categories/",
+      "UpstreamPathTemplate": "/api/categories",
       "UpstreamHttpMethod": ["GET"]
     },
     {
-      "DownstreamPathTemplate": "/api/categories/",
+      "DownstreamPathTemplate": "/api/categories",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -36,7 +36,7 @@
           "Port": 8082
         }
       ],
-      "UpstreamPathTemplate": "/api/categories/",
+      "UpstreamPathTemplate": "/api/categories",
       "UpstreamHttpMethod": ["POST"],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
