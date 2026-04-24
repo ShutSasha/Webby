@@ -37,6 +37,14 @@ tasks:
         CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
         ./server.exe --config ./config/config.yaml
 
+  run_room_category_service:
+    desc: "Run the Go RoomCategoryService"
+    cmds:
+      - |
+        cd ./Webby.RoomCategoryService
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
+
   run_chat_service:
     desc: "Run the Go ChatService"
     cmds:
@@ -59,6 +67,7 @@ tasks:
       - run_api_getaway
       - run_user_service
       - run_video_service
+      - run_room_category_service
       - run_room_service
       - run_chat_service
       - run_notification_service
