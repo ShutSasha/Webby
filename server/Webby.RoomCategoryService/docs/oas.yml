@@ -1,0 +1,446 @@
+openapi: 3.0.3
+info:
+  title: Webby - Room Category Service
+  description: |
+    The Room Category Service manages the lifecycle of room categories on the Webby platform.
+    Categories are used to classify rooms and allow users to discover content by topic.
+
+    **Authentication**
+
+    Public endpoints are accessible without any credentials.
+    Write operations (create, update, delete) require a valid JWT Bearer token issued by the AuthService.
+  version: 1.0.0
+  contact:
+    name: Webby Platform Team
+
+tags:
+  - name: Categories
+    description: |
+      Endpoints for listing and managing room categories.
+      Read access is public; write access requires a valid JWT.
+
+paths:
+  /api/categories/:
+    get:
+      tags:
+        - Categories
+      summary: List categories
+      description: |
+        Returns a paginated list of all room categories.
+        Results can be filtered by a partial name match using the `search` query parameter.
+        Pagination is controlled via `page` and `limit`.
+      operationId: listCategories
+      parameters:
+        - name: search
+          in: query
+          description: Filter categories whose name contains this substring (case-insensitive).
+          required: false
+          schema:
+            type: string
+            example: gaming
+        - name: page
+          in: query
+          description: Page number to retrieve. Must be 1 or greater. Defaults to 1.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - name: limit
+          in: query
+          description: Number of items per page. Clamped to the range [1, 100]. Defaults to 10.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+            example: 10
+      responses:
+        "200":
+          description: Categories retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoriesListResponse"
+              example:
+                success: true
+                message: Categories retrieved successfully
+                data:
+                  items:
+                    - gaming
+                    - music
+                    - science
+                  page: 1
+                  pageSize: 10
+                  totalCount: 3
+                errors: null
+        "500":
+          description: An unexpected server-side error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: List categories error
+                data: null
+                errors:
+                  message: database connection lost
+
+    post:
+      tags:
+        - Categories
+      summary: Create a category
+      description: |
+        Creates a new room category with the given name.
+        The name must be between 2 and 50 characters long and cannot be blank or consist solely of whitespace.
+        Category names are unique - submitting a duplicate name returns a 400 error.
+
+        **Requires authentication.**
+      operationId: createCategory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+            example:
+              name: gaming
+      responses:
+        "201":
+          description: Category created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateCategoryResponse"
+              example:
+                success: true
+                message: Category created
+                data:
+                  name: gaming
+                errors: null
+        "400":
+          description: |
+            The request was rejected due to a validation failure or a business rule violation
+            (e.g. duplicate category name).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                validationError:
+                  summary: Field validation failed
+                  value:
+                    success: false
+                    message: Validation error
+                    data: null
+                    errors:
+                      Name: must be at least 2 characters long
+                duplicateName:
+                  summary: Category already exists
+                  value:
+                    success: false
+                    message: Create category error
+                    data: null
+                    errors:
+                      message: category already exists
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Unauthorized
+                data: null
+                errors:
+                  message: token is missing or invalid
+
+  /api/categories/{name}:
+    put:
+      tags:
+        - Categories
+      summary: Update a category
+      description: |
+        Renames an existing category identified by its current name.
+        The new name is subject to the same validation rules as creation (2-50 non-blank characters).
+        Returns 400 if the category does not exist or the new name is already taken.
+
+        **Requires authentication.**
+      operationId: updateCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: path
+          description: The current name of the category to rename.
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 50
+            example: gaming
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCategoryRequest"
+            example:
+              name: esports
+      responses:
+        "200":
+          description: Category renamed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateCategoryResponse"
+              example:
+                success: true
+                message: Category updated
+                data:
+                  name: esports
+                errors: null
+        "400":
+          description: |
+            The request was rejected due to a validation failure or because the target category
+            does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                validationError:
+                  summary: Field validation failed
+                  value:
+                    success: false
+                    message: Validation error
+                    data: null
+                    errors:
+                      Name: must be at least 2 characters long
+                notFound:
+                  summary: Category not found
+                  value:
+                    success: false
+                    message: Update category error
+                    data: null
+                    errors:
+                      message: category not found
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Unauthorized
+                data: null
+                errors:
+                  message: token is missing or invalid
+
+    delete:
+      tags:
+        - Categories
+      summary: Delete a category
+      description: |
+        Permanently removes the category with the given name.
+        If the category does not exist or cannot be deleted, a 400 error is returned.
+
+        **Requires authentication.**
+      operationId: deleteCategory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: name
+          in: path
+          description: The name of the category to delete.
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 50
+            example: gaming
+      responses:
+        "200":
+          description: Category deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+              example:
+                success: true
+                message: Category successfully deleted
+                data: null
+                errors: null
+        "400":
+          description: The category was not found or could not be deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Delete category error
+                data: null
+                errors:
+                  message: category not found
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Unauthorized
+                data: null
+                errors:
+                  message: token is missing or invalid
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token issued by the Webby AuthService. Pass it in the Authorization Bearer header.
+
+  schemas:
+    Category:
+      type: object
+      description: Represents a single room category.
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: The unique name of the category.
+          example: gaming
+
+    CreateCategoryRequest:
+      type: object
+      description: Payload for creating a new category.
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: |
+            Name of the category to create. Must be 2-50 characters long
+            and cannot be blank or consist solely of whitespace.
+          example: gaming
+
+    UpdateCategoryRequest:
+      type: object
+      description: Payload for renaming an existing category.
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: |
+            New name for the category. Must be 2-50 characters long
+            and cannot be blank or consist solely of whitespace.
+          example: esports
+
+    PaginatedCategories:
+      type: object
+      description: A paginated slice of category names.
+      properties:
+        items:
+          type: array
+          items:
+            type: string
+          description: Category names on the current page.
+          example:
+            - gaming
+            - music
+        page:
+          type: integer
+          description: The current page number (1-based).
+          example: 1
+        pageSize:
+          type: integer
+          description: Maximum number of items returned per page.
+          example: 10
+        totalCount:
+          type: integer
+          description: Total number of categories matching the query.
+          example: 42
+
+    ApiResponse:
+      type: object
+      description: Generic API envelope used by all endpoints.
+      properties:
+        success:
+          type: boolean
+          description: Indicates whether the operation completed successfully.
+        message:
+          type: string
+          description: Human-readable summary of the result.
+        data:
+          nullable: true
+          description: Response payload. Null on error responses.
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+          description: |
+            Map of field names to error messages. Populated only when
+            success is false. Null on success responses.
+
+    CategoriesListResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        data:
+          $ref: "#/components/schemas/PaginatedCategories"
+
+    CreateCategoryResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        data:
+          $ref: "#/components/schemas/Category"
+
+    UpdateCategoryResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        data:
+          $ref: "#/components/schemas/Category"
+
+    SuccessResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        data:
+          nullable: true
+          example: null
+
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        success:
+          example: false
+        data:
+          nullable: true
+          example: null
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            message: something went wrong

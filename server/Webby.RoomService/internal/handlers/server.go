@@ -12,8 +12,7 @@ import (
 func NewServer(
 	config *config.Config,
 	logger *slog.Logger,
-	roomRepo RoomService,
-	categoryRepo CategoryService,
+	roomService RoomService,
 	queueItemService QueueItemService,
 	voteService VoteService,
 ) http.Handler {
@@ -22,8 +21,7 @@ func NewServer(
 		mux,
 		config,
 		logger,
-		roomRepo,
-		categoryRepo,
+		roomService,
 		queueItemService,
 		voteService,
 	)

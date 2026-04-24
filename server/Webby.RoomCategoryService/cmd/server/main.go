@@ -14,11 +14,14 @@ import (
 	"time"
 	"webby/internal/config"
 	"webby/internal/database"
-	grpcClient "webby/internal/grpc"
+	grpcserver "webby/internal/grpc"
+	"webby/internal/grpc/categorypb"
 	httpserver "webby/internal/handlers"
 	"webby/internal/repository"
 	"webby/internal/services"
 	"webby/pkg/slogpretty"
+
+	"google.golang.org/grpc"
 )
 
 const (
@@ -27,11 +30,6 @@ const (
 	envProd  = "prod"
 )
 
-// @Version 1.0
-// @Title Webby.RoomService
-// @Description This API provides endpoints for managing rooms and categories.
-// @Security BearerAuth
-// @SecurityScheme BearerAuth http bearer Enter your JWT token
 func main() {
 	ctx := context.Background()
 
@@ -58,46 +56,13 @@ func run(ctx context.Context, w io.Writer) error {
 
 	logger.Info("database connected successfully")
 
-	roomRepository := repository.NewRoomRepository(db)
-	roomMemberRepository := repository.NewRoomMemberRepository(db)
-	queueItemRepository := repository.NewQueueItemRepository(db)
-	fileStorage := repository.NewFileStorage(config)
-
-	mediaClient, err := grpcClient.NewMediaClient(config.Grpc.MediaServiceAddress)
-	if err != nil {
-		logger.Error("media service gRPC connection failed", slog.String("error", err.Error()))
-		return err
-	}
-	defer mediaClient.Close()
-
-	chatClient, err := grpcClient.NewChatClient(config.Grpc.ChatServiceAddress)
-	if err != nil {
-		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
-		chatClient = nil
-	} else {
-		defer chatClient.Close()
-	}
-
-	categoryClient, err := grpcClient.NewCategoryClient(config.Grpc.CategoryServiceAddress)
-	if err != nil {
-		logger.Error("category service gRPC connection failed", slog.String("error", err.Error()))
-		return err
-	}
-	defer categoryClient.Close()
-
-	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, chatClient, categoryClient)
-	queueItemService := services.NewQueueItemService(queueItemRepository, mediaClient, roomMemberRepository)
-	voteRepository := repository.NewVoteRepository(db)
-	voteService := services.NewVoteService(voteRepository, roomRepository, roomMemberRepository, queueItemRepository)
-
-	logger.Info("repositories initialized")
+	categoryRepository := repository.New(db)
+	categoryService := services.New(categoryRepository)
 
 	server := httpserver.NewServer(
 		config,
 		logger,
-		roomService,
-		queueItemService,
-		voteService,
+		categoryService,
 	)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(config.Http.Host, strconv.Itoa(config.Http.Port)),
@@ -117,6 +82,26 @@ func run(ctx context.Context, w io.Writer) error {
 		}
 	}()
 
+	grpcListener, err := net.Listen("tcp", net.JoinHostPort(config.Grpc.Host, strconv.Itoa(config.Grpc.Port)))
+	if err != nil {
+		logger.Error("grpc listen failed", slog.Any("error", err))
+		return err
+	}
+
+	grpcSrv := grpc.NewServer()
+	categorypb.RegisterCategoryGrpcServiceServer(grpcSrv, grpcserver.NewCategoryServer(categoryService))
+
+	go func() {
+		logger.Info(
+			"gRPC server listening",
+			slog.String("host", config.Grpc.Host),
+			slog.Int("port", config.Grpc.Port),
+		)
+		if err := grpcSrv.Serve(grpcListener); err != nil {
+			logger.Error("error serving grpc", slog.Any("error", err))
+		}
+	}()
+
 	var wg sync.WaitGroup
 	wg.Go(func() {
 		<-ctx.Done()
@@ -126,6 +111,7 @@ func run(ctx context.Context, w io.Writer) error {
 		if err := httpServer.Shutdown(shutdownCtx); err != nil {
 			logger.Error("error shutting down http server", slog.Any("error", err))
 		}
+		grpcSrv.GracefulStop()
 		logger.Info("server stopped gracefully")
 	})
 	wg.Wait()

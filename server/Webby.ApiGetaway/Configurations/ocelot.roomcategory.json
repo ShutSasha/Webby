@@ -1,0 +1,67 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/swagger/doc.yaml",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8082
+        }
+      ],
+      "UpstreamPathTemplate": "/room-category/swagger/v1/swagger.json",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AllowAnonymous": true
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/categories/",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8082
+        }
+      ],
+      "UpstreamPathTemplate": "/api/categories/",
+      "UpstreamHttpMethod": ["GET"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/categories/",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8082
+        }
+      ],
+      "UpstreamPathTemplate": "/api/categories/",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/categories/{name}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8082
+        }
+      ],
+      "UpstreamPathTemplate": "/api/categories/{name}",
+      "UpstreamHttpMethod": ["PUT", "DELETE"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
+    }
+  ]
+}

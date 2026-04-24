@@ -4,11 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 	"webby/internal/config"
-	"webby/internal/handlers/categories"
-	catCreate "webby/internal/handlers/categories/create"
-	catDelete "webby/internal/handlers/categories/delete"
-	catList "webby/internal/handlers/categories/list"
-	catUpdate "webby/internal/handlers/categories/update"
 	"webby/internal/handlers/roomqueues"
 	"webby/internal/handlers/rooms"
 	addMember "webby/internal/handlers/rooms/add_member"
@@ -37,13 +32,6 @@ type RoomService interface {
 	updatePoints.PointsUpdater
 }
 
-type CategoryService interface {
-	catCreate.Creator
-	catList.Lister
-	catUpdate.Updater
-	catDelete.Deleter
-}
-
 type QueueItemService interface {
 	roomqueues.QueueItemService
 }
@@ -57,14 +45,12 @@ func addRoutes(
 	cfg *config.Config,
 	logger *slog.Logger,
 	roomService RoomService,
-	categoryService CategoryService,
 	queueItemService QueueItemService,
 	voteService VoteService,
 ) {
 	mux.Handle("/api/", http.NotFoundHandler())
 
 	rooms.RegisterRooms(mux, []byte(cfg.JwtSecret), logger, roomService)
-	categories.RegisterCategories(mux, []byte(cfg.JwtSecret), logger, categoryService)
 	roomqueues.RegisterRoomQueue(mux, []byte(cfg.JwtSecret), logger, queueItemService)
 	votes.RegisterVotes(mux, []byte(cfg.JwtSecret), logger, voteService)
 

@@ -43,7 +43,7 @@ type ChatClientInterface interface {
 	AddChatMember(ctx context.Context, chatId, userId uuid.UUID) error
 }
 
-type CategoryChecker interface {
+type CategoryClientInterface interface {
 	Exists(ctx context.Context, name string) (bool, error)
 }
 
@@ -52,16 +52,16 @@ type RoomService struct {
 	roomMemberRepo  RoomMemberRepository
 	fileRepo        FileRepository
 	chatClient      ChatClientInterface
-	categoryChecker CategoryChecker
+	categoryClient  CategoryClientInterface
 }
 
-func NewRoomService(repo RoomRepository, roomMemberRepo RoomMemberRepository, fileRepo FileRepository, chatClient ChatClientInterface, categoryChecker CategoryChecker) *RoomService {
+func NewRoomService(repo RoomRepository, roomMemberRepo RoomMemberRepository, fileRepo FileRepository, chatClient ChatClientInterface, categoryClient CategoryClientInterface) *RoomService {
 	return &RoomService{
-		roomRepo:        repo,
-		roomMemberRepo:  roomMemberRepo,
-		fileRepo:        fileRepo,
-		chatClient:      chatClient,
-		categoryChecker: categoryChecker,
+		roomRepo:       repo,
+		roomMemberRepo: roomMemberRepo,
+		fileRepo:       fileRepo,
+		chatClient:     chatClient,
+		categoryClient: categoryClient,
 	}
 }
 
@@ -71,7 +71,7 @@ func generateFileKey(filename string) string {
 }
 
 func (r *RoomService) Create(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string) (*models.Room, error) {
-	exists, err := r.categoryChecker.Exists(ctx, room.CategoryName)
+	exists, err := r.categoryClient.Exists(ctx, room.CategoryName)
 	if err != nil {
 		return nil, fmt.Errorf("category check failed: %w", err)
 	}

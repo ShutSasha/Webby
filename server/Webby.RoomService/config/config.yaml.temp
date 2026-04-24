@@ -13,3 +13,4 @@ aws:
 grpc:
   mediaServiceAddress: "localhost:5005"
   chatServiceAddress: "localhost:50051"
+  categoryServiceAddress: "localhost:50052"

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package category;
+
+option go_package = "webby/internal/grpc/categorypb";
+
+service CategoryGrpcService {
+  rpc CategoryExists(CategoryExistsRequest) returns (CategoryExistsResponse);
+}
+
+message CategoryExistsRequest {
+  string name = 1;
+}
+
+message CategoryExistsResponse {
+  bool exists = 1;
+}

@@ -16,54 +16,6 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/categories",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/categories",
-      "UpstreamHttpMethod": ["POST"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      },
-      "RoleClaimsRequirement": {
-        "Role": "Admin"
-      }
-    },
-    {
-      "DownstreamPathTemplate": "/api/categories/{id}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/categories/{id}",
-      "UpstreamHttpMethod": ["PUT", "DELETE"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      },
-      "RoleClaimsRequirement": {
-        "Role": "Admin"
-      }
-    },
-    {
-      "DownstreamPathTemplate": "/api/categories",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/categories",
-      "UpstreamHttpMethod": ["GET"]
-    },
-    {
       "DownstreamPathTemplate": "/api/rooms",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
