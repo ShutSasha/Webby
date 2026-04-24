@@ -1,5 +1,7 @@
 ﻿using Webby.UserService.Dtos;
+using Webby.UserService.Dtos.Search;
 using Webby.UserService.Dtos.User;
+using Webby.UserService.Helpers.Response;
 using Webby.UserService.Models;
 
 namespace Webby.UserService.Interfaces.Service;
@@ -18,5 +20,7 @@ public interface IUserService
    Task<User?> GetById(Guid userId);
    Task<UserFollowingResponse> IsUserFollowing(Guid userId, Guid targetId);
    Task<GetUserSubscriptionResponse?> GetUserSubscription(Guid userId, bool isOwner);
+   Task<PagedResponse<UserDto>> SearchUsers(SearchOptions searchOptions);
+   
 
 }

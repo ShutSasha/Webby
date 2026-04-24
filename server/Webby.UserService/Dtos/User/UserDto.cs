@@ -1,6 +1,6 @@
 ﻿using Webby.UserService.Models.Enums;
 
-namespace Webby.UserService.Dtos;
+namespace Webby.UserService.Dtos.User;
 
 public class UserDto
 {

@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http.Features;
 using Webby.NotificationService.GrpcClient;
-using Webby.UserService.Dtos;
-using Webby.UserService.Dtos.Notification;
 using Webby.UserService.Dtos.User;
+using Webby.UserService.Dtos.Notification;
+using Webby.UserService.Dtos.Search;
 using Webby.UserService.Helpers.Exception;
+using Webby.UserService.Helpers.Response;
 using Webby.UserService.Interfaces.Helpers;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
@@ -257,6 +259,26 @@ public class UserService : IUserService
          ExpiresAt = userPremiumInformation.ExpiresAt
       };
       
+   }
+
+   public async Task<PagedResponse<UserDto>> SearchUsers(SearchOptions searchOptions)
+   {
+      var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
+
+      var (users, total) = await _userRepository.SearchAsync(
+         "Users",
+         "Username",
+         searchOptions.SearchText,
+         skip,
+         searchOptions.PageSize);
+
+      return new PagedResponse<UserDto>()
+      {
+         Items = users.Count != 0 ? users.Select(u => _mapper.Map<UserDto>(u)).ToList() : [],
+         TotalCount = total,
+         Page = searchOptions.Page,
+         PageSize = searchOptions.PageSize
+      };
    }
 
    private async Task SendNotification(SendNotificationDto notificationDto) 

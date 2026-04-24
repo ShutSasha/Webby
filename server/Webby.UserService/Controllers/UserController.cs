@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.UserService.Dtos;
+using Webby.UserService.Dtos.Search;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Helpers.Jwt;
@@ -64,6 +65,15 @@ public class UserController : ControllerBase
       var userPremiumInformationResult = await _userService.GetUserSubscription(userId, isOwnerOfSubscription);
       return Ok(ApiResponse<GetUserSubscriptionResponse?>.Ok("Successfully retrieved subscription information",userPremiumInformationResult));
    }
+
+   [HttpGet("search")]
+   [SwaggerOperation("Search users")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<UserDto>>>> SearchUsers([FromQuery] SearchOptions searchOptions)
+   {
+      var userPagedResponse = await _userService.SearchUsers(searchOptions);
+      return Ok(ApiResponse<PagedResponse<UserDto>>.Ok("Successfully retrieved users", userPagedResponse));
+   }
+   
    
    [HttpPost("{followId:guid}/follow")]
    [SwaggerOperation("Follow or unfollow user","AUTH REQUIRED")]
@@ -87,8 +97,7 @@ public class UserController : ControllerBase
       await _userService.UnlockAchievement(request.UserId, request.AchievementId);
       return Ok(ApiResponse.Ok("Successfully unlock user achievement"));
    }
-
-   //TODO: Add check of pinned achievements
+   
    [HttpPost("achievements/{achievementId:guid}")]
    [SwaggerOperation("Pin user achievement","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> PinUserAchievement([FromRoute] Guid achievementId)
