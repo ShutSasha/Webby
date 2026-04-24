@@ -30,8 +30,9 @@ try
     app.UseCors("AllowWebOrigin");
     app.UseAuthentication();
     app.UseAuthorization();
-
-    if (app.Environment.IsDevelopment())
+    
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
         app.UseSwagger();
         app.UseSwaggerUI(c =>
