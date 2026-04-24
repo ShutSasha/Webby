@@ -121,11 +121,11 @@ public static class ApiExtension
       
    }
 
-   public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection)
+   public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection, IConfiguration configuration)
    {
       serviceCollection.AddGrpcClient<UserGrpcService.UserGrpcServiceClient>(o =>
       {
-         o.Address = new Uri("http://localhost:5004");
+         o.Address = new Uri(configuration["GrpcClients:UserServiceUrl"]);
       });
    }
 }

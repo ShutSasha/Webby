@@ -35,7 +35,7 @@ try
     services.AddServices();
     services.AddExternalServices();
 
-    services.ConfigureGrpcConnections();
+    services.ConfigureGrpcConnections(configuration);
 
     services.AddControllers().AddJsonOptions(options =>
     {

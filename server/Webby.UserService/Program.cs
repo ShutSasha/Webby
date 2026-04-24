@@ -25,7 +25,7 @@ try
 
     services.ConfigureOptionDependencies(configuration);
 
-    services.ConfigureGrpcConnections();
+    services.ConfigureGrpcConnections(configuration);
 
     services.AddRepositories();
     services.AddServices();
