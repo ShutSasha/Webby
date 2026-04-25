@@ -15,6 +15,7 @@ import (
 	"webby-room-queue/internal/handlers"
 	handlermocks "webby-room-queue/internal/handlers/mocks"
 	"webby-room-queue/internal/models"
+	"webby-room-queue/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -30,13 +31,14 @@ func init() {
 func setupAddRouter(
 	mockService *handlermocks.MockService,
 ) *gin.Engine {
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockService, logger)
+	h := handlers.New(mockService)
 	router.POST("/api/rooms/:id/queue", func(c *gin.Context) {
 		ctx := context.WithValue(
 			c.Request.Context(), "userID", c.GetHeader("X-User-ID"),
 		)
+		ctx = logger.ToContext(ctx, log)
 		c.Request = c.Request.WithContext(ctx)
 		h.Add(c)
 	})
@@ -118,11 +120,11 @@ func TestAddToQueue(t *testing.T) {
 			},
 		},
 		{
-			name:        "Failure - Invalid room id",
-			roomIdPath:  "not-a-uuid",
-			requestBody: map[string]string{"entityId": entityID.String(), "entityType": "video"},
-			userID:      userID.String(),
-			mockSetup:   func(ms *handlermocks.MockService) {},
+			name:           "Failure - Invalid room id",
+			roomIdPath:     "not-a-uuid",
+			requestBody:    map[string]string{"entityId": entityID.String(), "entityType": "video"},
+			userID:         userID.String(),
+			mockSetup:      func(ms *handlermocks.MockService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorResponse(t, body)

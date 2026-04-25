@@ -14,6 +14,7 @@ import (
 	"webby-chat/internal/handlers/chats/get/mocks"
 	"webby-chat/internal/handlers/responses"
 	"webby-chat/internal/models"
+	"webby-chat/pkg/logger"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -21,14 +22,15 @@ import (
 )
 
 func setupRequest(chatID string, userID uuid.UUID) *http.Request {
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	req := httptest.NewRequest(http.MethodGet, "/api/chats/"+chatID, nil)
 	req.SetPathValue("id", chatID)
 	ctx := context.WithValue(req.Context(), "userID", userID.String())
+	ctx = logger.ToContext(ctx, log)
 	return req.WithContext(ctx)
 }
 
 func TestGetChat_Success(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	chatID := uuid.New()
 	userID := uuid.New()
 	roomID := uuid.New()
@@ -42,7 +44,7 @@ func TestGetChat_Success(t *testing.T) {
 		}
 		mockGetter.On("GetById", mock.Anything, chatID).Return(chat, nil).Once()
 
-		handler := get.New(logger, mockGetter)
+		handler := get.New(mockGetter)
 		req := setupRequest(chatID.String(), userID)
 		w := httptest.NewRecorder()
 
@@ -68,7 +70,7 @@ func TestGetChat_Success(t *testing.T) {
 		}
 		mockGetter.On("GetById", mock.Anything, chatID).Return(chat, nil).Once()
 
-		handler := get.New(logger, mockGetter)
+		handler := get.New(mockGetter)
 		req := setupRequest(chatID.String(), userID)
 		w := httptest.NewRecorder()
 
@@ -84,7 +86,6 @@ func TestGetChat_Success(t *testing.T) {
 }
 
 func TestGetChat_ValidationErrors(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	userID := uuid.New()
 
 	tests := []struct {
@@ -99,7 +100,7 @@ func TestGetChat_ValidationErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGetter := mocks.NewMockGetter(t)
-			handler := get.New(logger, mockGetter)
+			handler := get.New(mockGetter)
 
 			req := setupRequest(tt.pathChatID, userID)
 			w := httptest.NewRecorder()
@@ -117,7 +118,6 @@ func TestGetChat_ValidationErrors(t *testing.T) {
 }
 
 func TestGetChat_ServiceErrors(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	chatID := uuid.New()
 	userID := uuid.New()
 
@@ -135,7 +135,7 @@ func TestGetChat_ServiceErrors(t *testing.T) {
 			mockGetter := mocks.NewMockGetter(t)
 			mockGetter.On("GetById", mock.Anything, chatID).Return((*models.Chat)(nil), tt.mockError).Once()
 
-			handler := get.New(logger, mockGetter)
+			handler := get.New(mockGetter)
 			req := setupRequest(chatID.String(), userID)
 			w := httptest.NewRecorder()
 

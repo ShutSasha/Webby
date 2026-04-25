@@ -16,7 +16,8 @@ import (
 	"webby/internal/database"
 	grpcClient "webby/internal/grpc"
 	"webby/internal/grpc/memberpb"
-	httpserver "webby/internal/handlers"
+	"webby/internal/grpc/roompb"
+	"webby/internal/handlers"
 	"webby/internal/repository"
 	"webby/internal/services"
 	"webby/pkg/slogpretty"
@@ -30,11 +31,6 @@ const (
 	envProd  = "prod"
 )
 
-// @Version 1.0
-// @Title Webby.RoomService
-// @Description This API provides endpoints for managing rooms and categories.
-// @Security BearerAuth
-// @SecurityScheme BearerAuth http bearer Enter your JWT token
 func main() {
 	ctx := context.Background()
 
@@ -87,25 +83,14 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer categoryClient.Close()
 
-	queueClient, err := grpcClient.NewQueueClient(config.Grpc.QueueServiceAddress)
-	if err != nil {
-		logger.Warn("queue service gRPC connection failed — vote queue features disabled", slog.String("error", err.Error()))
-		queueClient = nil
-	} else {
-		defer queueClient.Close()
-	}
-
 	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, chatClient, categoryClient)
-	voteRepository := repository.NewVoteRepository(db)
-	voteService := services.NewVoteService(voteRepository, roomRepository, roomMemberRepository, queueClient)
 
 	logger.Info("repositories initialized")
 
-	server := httpserver.NewServer(
+	server := handlers.NewServer(
 		config,
 		logger,
 		roomService,
-		voteService,
 	)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(config.Http.Host, strconv.Itoa(config.Http.Port)),
@@ -138,6 +123,10 @@ func run(ctx context.Context, w io.Writer) error {
 	memberpb.RegisterMemberGrpcServiceServer(
 		grpcSrv,
 		grpcClient.NewMemberServer(roomMemberRepository),
+	)
+	roompb.RegisterRoomGrpcServiceServer(
+		grpcSrv,
+		grpcClient.NewRoomServer(roomRepository),
 	)
 
 	go func() {

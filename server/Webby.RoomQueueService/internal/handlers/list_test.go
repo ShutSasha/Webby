@@ -13,6 +13,7 @@ import (
 	"webby-room-queue/internal/handlers"
 	handlermocks "webby-room-queue/internal/handlers/mocks"
 	"webby-room-queue/internal/services"
+	"webby-room-queue/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -24,13 +25,14 @@ import (
 func setupListRouter(
 	mockService *handlermocks.MockService,
 ) *gin.Engine {
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockService, logger)
+	h := handlers.New(mockService)
 	router.GET("/api/rooms/:id/queue", func(c *gin.Context) {
 		ctx := context.WithValue(
 			c.Request.Context(), "userID", c.GetHeader("X-User-ID"),
 		)
+		ctx = logger.ToContext(ctx, log)
 		c.Request = c.Request.WithContext(ctx)
 		h.List(c)
 	})

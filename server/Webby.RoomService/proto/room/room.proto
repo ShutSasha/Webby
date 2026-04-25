@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package room;
+
+option go_package = "webby/internal/grpc/roompb";
+
+service RoomGrpcService {
+  rpc GetRoomHost(GetRoomHostRequest) returns (GetRoomHostResponse);
+}
+
+message GetRoomHostRequest {
+  string roomId = 1;
+}
+
+message GetRoomHostResponse {
+  string hostId = 1;
+}

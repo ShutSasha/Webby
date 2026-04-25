@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"webby-room-queue/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -32,7 +33,7 @@ type queueItemResponse struct {
 
 func (h *handler) List(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := h.logger.With(
+	log := logger.FromContext(ctx).With(
 		slog.String("operation", "httpserver.queue.list"),
 	)
 

@@ -15,6 +15,7 @@ import (
 	"webby/internal/apperrors"
 	"webby/internal/handlers"
 	handlermocks "webby/internal/handlers/mocks"
+	"webby/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -42,7 +43,7 @@ type updateCategoryRequest struct {
 func TestUpdateCategory(t *testing.T) {
 	setupUpdateValidator()
 	oldCategoryName := "Gaming"
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	tests := []struct {
 		name           string
@@ -187,7 +188,7 @@ func TestUpdateCategory(t *testing.T) {
 			mockUpdater := handlermocks.NewMockService(t)
 			tt.mockSetup(mockUpdater)
 
-			h := handlers.New(mockUpdater, logger)
+			h := handlers.New(mockUpdater)
 
 			var body []byte
 			var err error
@@ -202,6 +203,9 @@ func TestUpdateCategory(t *testing.T) {
 
 			path := "/api/categories/"
 			req := httptest.NewRequest(http.MethodPut, path, bytes.NewReader(body))
+
+			ctx := logger.ToContext(req.Context(), log)
+			req = req.WithContext(ctx)
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)

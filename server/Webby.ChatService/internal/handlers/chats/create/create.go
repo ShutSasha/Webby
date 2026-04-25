@@ -9,6 +9,7 @@ import (
 	"webby-chat/internal/handlers/responses"
 	"webby-chat/internal/models"
 	"webby-chat/pkg/http/render"
+	"webby-chat/pkg/logger"
 
 	"github.com/google/uuid"
 )
@@ -17,8 +18,8 @@ type Creator interface {
 	Create(ctx context.Context, roomId *uuid.UUID) (*models.Chat, error)
 }
 
-func New(logger *slog.Logger, creator Creator) http.Handler {
-	return errorWrapper.MakeHandler(logger, createChat(logger, creator))
+func New(creator Creator) http.Handler {
+	return errorWrapper.MakeHandler(createChat(creator))
 }
 
 // @Title Create a new chat
@@ -30,9 +31,7 @@ func New(logger *slog.Logger, creator Creator) http.Handler {
 // @Failure  500  object docs.ErrorResponse  "Internal server error"
 // @Resource Chats
 // @Route /api/chats [post]
-func createChat(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
-	log := logger.With(slog.String("operation", "httpserver.chats.create"))
-
+func createChat(creator Creator) errorWrapper.APIFunc {
 	type createRequest struct {
 		RoomId *string `json:"roomId"`
 	}
@@ -44,6 +43,10 @@ func createChat(logger *slog.Logger, creator Creator) errorWrapper.APIFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		log := logger.FromContext(r.Context()).With(
+			slog.String("operation", "httpserver.chats.create"),
+		)
+
 		req, err := render.Decode[createRequest](r)
 		if err != nil {
 			log.Debug("failed to decode request", slog.String("error", err.Error()))

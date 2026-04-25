@@ -1,7 +1,6 @@
 package httpserver
 
 import (
-	"log/slog"
 	"net/http"
 	"webby-chat/internal/config"
 	"webby-chat/internal/handlers/chats"
@@ -19,13 +18,12 @@ type ChatService interface {
 func addRoutes(
 	mux *http.ServeMux,
 	cfg *config.Config,
-	logger *slog.Logger,
 	chatService ChatService,
 	socketServer *socketio.Server,
 ) {
 	mux.Handle("/api/", http.NotFoundHandler())
 
-	chats.RegisterChats(mux, []byte(cfg.JwtSecret), logger, chatService)
+	chats.RegisterChats(mux, []byte(cfg.JwtSecret), chatService)
 
 	mux.Handle("/socket.io/", socketServer)
 

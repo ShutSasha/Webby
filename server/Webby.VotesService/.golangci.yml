@@ -1,0 +1,31 @@
+version: 2
+
+run:
+  timeout: 5m
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - lll
+    - revive
+    - misspell
+
+linters-settings:
+  lll:
+    line-length: 110
+  goimports:
+    local-prefixes: webby-vote-service
+  revive:
+    enable-default-rules: true
+    ignore-generated-header: true
+    severity: warning
+    rules:
+      - name: package-comments
+        disabled: true
+      - name: exported
+        disabled: true

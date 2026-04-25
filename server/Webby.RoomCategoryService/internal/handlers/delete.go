@@ -3,13 +3,14 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
+	"webby/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := h.logger.With(slog.String("operation", "httpserver.categories.delete"))
+	log := logger.FromContext(ctx).With(slog.String("operation", "httpserver.categories.delete"))
 
 	name := c.Param("name")
 

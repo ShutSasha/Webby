@@ -21,7 +21,6 @@ func NewServer(
 	addRoutes(
 		mux,
 		config,
-		logger,
 		chatService,
 		socketServer,
 	)

@@ -3,6 +3,8 @@ package logger
 import (
 	"log/slog"
 	"net/http"
+
+	ctxlogger "webby-chat/pkg/logger"
 )
 
 func New(log *slog.Logger) func(h http.Handler) http.Handler {
@@ -17,7 +19,8 @@ func New(log *slog.Logger) func(h http.Handler) http.Handler {
 				slog.String("request_id", reqID),
 			)
 
-			next.ServeHTTP(w, r)
+			ctx := ctxlogger.ToContext(r.Context(), log)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }

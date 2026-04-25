@@ -9,6 +9,7 @@ import (
 	"webby-chat/internal/handlers/responses"
 	"webby-chat/internal/models"
 	"webby-chat/pkg/http/render"
+	"webby-chat/pkg/logger"
 
 	"github.com/google/uuid"
 )
@@ -17,8 +18,8 @@ type Getter interface {
 	GetById(ctx context.Context, chatId uuid.UUID) (*models.Chat, error)
 }
 
-func New(logger *slog.Logger, getter Getter) http.Handler {
-	return errorWrapper.MakeHandler(logger, getChat(logger, getter))
+func New(getter Getter) http.Handler {
+	return errorWrapper.MakeHandler(getChat(getter))
 }
 
 // @Title Get a chat by ID
@@ -31,9 +32,7 @@ func New(logger *slog.Logger, getter Getter) http.Handler {
 // @Failure  500  object docs.ErrorResponse  "Internal server error"
 // @Resource Chats
 // @Route /api/chats/{id} [get]
-func getChat(logger *slog.Logger, getter Getter) errorWrapper.APIFunc {
-	log := logger.With(slog.String("operation", "httpserver.chats.get"))
-
+func getChat(getter Getter) errorWrapper.APIFunc {
 	type chatResponse struct {
 		Id        uuid.UUID  `json:"id"`
 		RoomId    *uuid.UUID `json:"roomId,omitempty"`
@@ -41,6 +40,10 @@ func getChat(logger *slog.Logger, getter Getter) errorWrapper.APIFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
+		log := logger.FromContext(r.Context()).With(
+			slog.String("operation", "httpserver.chats.get"),
+		)
+
 		chatIdStr := r.PathValue("id")
 		chatId, err := uuid.Parse(chatIdStr)
 		if err != nil {

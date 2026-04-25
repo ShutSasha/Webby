@@ -4,13 +4,14 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"webby/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) List(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := h.logger.With(slog.String("operation", "httpserver.categories.list"))
+	log := logger.FromContext(ctx).With(slog.String("operation", "httpserver.categories.list"))
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if page < 1 {

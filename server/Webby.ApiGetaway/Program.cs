@@ -44,6 +44,7 @@ try
         c.SwaggerEndpoint("/room-queue/swagger/v1/swagger.json", "RoomQueueService");
         c.SwaggerEndpoint("/chat/swagger/v1/swagger.json", "ChatService");
         c.SwaggerEndpoint("/notification/swagger/v1/swagger.json", "NotificationService");
+        c.SwaggerEndpoint("/vote/swagger/v1/swagger.json", "VoteService");
         c.RoutePrefix = "";
         });
     }

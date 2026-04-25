@@ -36,7 +36,7 @@ func NewServer(config *config.Config, logger *slog.Logger, categoryRepo Service)
 	router.Use(gin.Recovery())
 	router.Use(cors.CORS())
 
-	handler := New(categoryRepo, logger)
+	handler := New(categoryRepo)
 	addRoutes(router, config, handler)
 
 	return router

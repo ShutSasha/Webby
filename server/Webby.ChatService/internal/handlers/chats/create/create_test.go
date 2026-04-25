@@ -15,6 +15,7 @@ import (
 	"webby-chat/internal/handlers/chats/create/mocks"
 	"webby-chat/internal/handlers/responses"
 	"webby-chat/internal/models"
+	"webby-chat/pkg/logger"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -22,15 +23,15 @@ import (
 )
 
 func setupRequest(body string) *http.Request {
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	req := httptest.NewRequest(http.MethodPost, "/api/chats", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
 	ctx := context.WithValue(req.Context(), "userID", uuid.New().String())
+	ctx = logger.ToContext(ctx, log)
 	return req.WithContext(ctx)
 }
 
 func TestCreateChat_Success(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-
 	t.Run("Create chat without roomId", func(t *testing.T) {
 		mockCreator := mocks.NewMockCreator(t)
 		chatId := uuid.New()
@@ -41,7 +42,7 @@ func TestCreateChat_Success(t *testing.T) {
 		}
 		mockCreator.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return(chat, nil).Once()
 
-		handler := create.New(logger, mockCreator)
+		handler := create.New(mockCreator)
 		req := setupRequest(`{}`)
 		w := httptest.NewRecorder()
 
@@ -68,7 +69,7 @@ func TestCreateChat_Success(t *testing.T) {
 		}
 		mockCreator.On("Create", mock.Anything, &roomId).Return(chat, nil).Once()
 
-		handler := create.New(logger, mockCreator)
+		handler := create.New(mockCreator)
 		body := `{"roomId":"` + roomId.String() + `"}`
 		req := setupRequest(body)
 		w := httptest.NewRecorder()
@@ -87,11 +88,9 @@ func TestCreateChat_Success(t *testing.T) {
 }
 
 func TestCreateChat_ValidationErrors(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-
 	t.Run("Invalid roomId format", func(t *testing.T) {
 		mockCreator := mocks.NewMockCreator(t)
-		handler := create.New(logger, mockCreator)
+		handler := create.New(mockCreator)
 
 		req := setupRequest(`{"roomId":"not-a-uuid"}`)
 		w := httptest.NewRecorder()
@@ -108,7 +107,7 @@ func TestCreateChat_ValidationErrors(t *testing.T) {
 
 	t.Run("Invalid JSON body", func(t *testing.T) {
 		mockCreator := mocks.NewMockCreator(t)
-		handler := create.New(logger, mockCreator)
+		handler := create.New(mockCreator)
 
 		req := setupRequest(`{invalid}`)
 		w := httptest.NewRecorder()
@@ -120,13 +119,11 @@ func TestCreateChat_ValidationErrors(t *testing.T) {
 }
 
 func TestCreateChat_ServiceErrors(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-
 	t.Run("Conflict error", func(t *testing.T) {
 		mockCreator := mocks.NewMockCreator(t)
 		mockCreator.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return((*models.Chat)(nil), apperrors.ErrConflict).Once()
 
-		handler := create.New(logger, mockCreator)
+		handler := create.New(mockCreator)
 		req := setupRequest(`{}`)
 		w := httptest.NewRecorder()
 
@@ -139,7 +136,7 @@ func TestCreateChat_ServiceErrors(t *testing.T) {
 		mockCreator := mocks.NewMockCreator(t)
 		mockCreator.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return((*models.Chat)(nil), apperrors.ErrInternal).Once()
 
-		handler := create.New(logger, mockCreator)
+		handler := create.New(mockCreator)
 		req := setupRequest(`{}`)
 		w := httptest.NewRecorder()
 

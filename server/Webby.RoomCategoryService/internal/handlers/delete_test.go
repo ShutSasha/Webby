@@ -12,6 +12,7 @@ import (
 	"webby/internal/apperrors"
 	"webby/internal/handlers"
 	handlermocks "webby/internal/handlers/mocks"
+	"webby/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
@@ -19,7 +20,7 @@ import (
 
 func TestDeleteCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	tests := []struct {
 		name           string
@@ -71,10 +72,13 @@ func TestDeleteCategory(t *testing.T) {
 			mockDeleter := handlermocks.NewMockService(t)
 			tt.mockSetup(mockDeleter)
 
-			h := handlers.New(mockDeleter, logger)
+			h := handlers.New(mockDeleter)
 
 			targetURL := "/api/categories/" + tt.pathName
 			req := httptest.NewRequest(http.MethodDelete, targetURL, nil)
+
+			ctx := logger.ToContext(req.Context(), log)
+			req = req.WithContext(ctx)
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)

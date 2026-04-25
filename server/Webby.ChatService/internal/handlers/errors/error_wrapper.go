@@ -6,13 +6,16 @@ import (
 	"net/http"
 	"webby-chat/internal/apperrors"
 	"webby-chat/internal/handlers/responses"
+	"webby-chat/pkg/logger"
 )
 
 type APIFunc func(w http.ResponseWriter, r *http.Request) error
 
-func MakeHandler(logger *slog.Logger, h APIFunc) http.HandlerFunc {
+func MakeHandler(h APIFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := h(w, r); err != nil {
+			log := logger.FromContext(r.Context())
+
 			var apiErr *responses.ApiError
 			displayTitle := "An error occurred"
 			if errors.As(err, &apiErr) {
@@ -26,7 +29,7 @@ func MakeHandler(logger *slog.Logger, h APIFunc) http.HandlerFunc {
 
 			var valErr *responses.ValidationError
 			if errors.As(err, &valErr) {
-				logger.Warn("validation failed", slog.Any("problems", valErr))
+				log.Warn("validation failed", slog.Any("problems", valErr))
 				responses.Error(w, r, http.StatusBadRequest, valErr.Title, valErr.Err)
 				return
 			}
@@ -43,7 +46,7 @@ func MakeHandler(logger *slog.Logger, h APIFunc) http.HandlerFunc {
 			case errors.Is(err, apperrors.ErrForbidden):
 				statusCode = http.StatusForbidden
 			default:
-				logger.Error("internal server error", slog.String("error", err.Error()))
+				log.Error("internal server error", slog.String("error", err.Error()))
 				responses.Error(w, r, statusCode, "Internal server error", map[string]string{
 					"message": "something went wrong",
 				})

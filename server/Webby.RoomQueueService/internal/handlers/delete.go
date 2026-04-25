@@ -3,6 +3,7 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
+	"webby-room-queue/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -10,7 +11,7 @@ import (
 
 func (h *handler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := h.logger.With(
+	log := logger.FromContext(ctx).With(
 		slog.String("operation", "httpserver.queue.delete"),
 	)
 

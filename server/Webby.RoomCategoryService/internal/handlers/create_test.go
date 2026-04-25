@@ -15,6 +15,7 @@ import (
 	"webby/internal/apperrors"
 	"webby/internal/handlers"
 	handlermocks "webby/internal/handlers/mocks"
+	"webby/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -43,7 +44,7 @@ type createCategoryRequest struct {
 
 func TestCreateCategory(t *testing.T) {
 	setupCreateValidator()
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	tests := []struct {
 		name           string
@@ -223,7 +224,7 @@ func TestCreateCategory(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockService := handlermocks.NewMockService(t)
 			tt.mockSetup(mockService)
-			h := handlers.New(mockService, logger)
+			h := handlers.New(mockService)
 
 			var body []byte
 			var err error
@@ -241,6 +242,9 @@ func TestCreateCategory(t *testing.T) {
 				reqContentType = tt.contentType
 			}
 			req.Header.Set("Content-Type", reqContentType)
+
+			ctx := logger.ToContext(req.Context(), log)
+			req = req.WithContext(ctx)
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)

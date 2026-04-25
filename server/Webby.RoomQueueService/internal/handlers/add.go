@@ -3,6 +3,7 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
+	"webby-room-queue/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ type addResponse struct {
 
 func (h *handler) Add(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := h.logger.With(
+	log := logger.FromContext(ctx).With(
 		slog.String("operation", "httpserver.queue.add"),
 	)
 

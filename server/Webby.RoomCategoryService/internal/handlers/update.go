@@ -3,6 +3,7 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
+	"webby/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,7 @@ type updateResponse struct {
 
 func (h *handler) Update(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := h.logger.With(slog.String("operation", "httpserver.categories.update"))
+	log := logger.FromContext(ctx).With(slog.String("operation", "httpserver.categories.update"))
 
 	oldName := c.Param("name")
 
