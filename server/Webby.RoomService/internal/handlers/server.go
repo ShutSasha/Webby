@@ -13,7 +13,6 @@ func NewServer(
 	config *config.Config,
 	logger *slog.Logger,
 	roomService RoomService,
-	queueItemService QueueItemService,
 	voteService VoteService,
 ) http.Handler {
 	mux := http.NewServeMux()
@@ -22,7 +21,6 @@ func NewServer(
 		config,
 		logger,
 		roomService,
-		queueItemService,
 		voteService,
 	)
 

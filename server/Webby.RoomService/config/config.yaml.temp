@@ -11,6 +11,9 @@ aws:
   region: "{{AwsRegion}}"
   bucket: "{{AwsBucketName}}"
 grpc:
+  host: "localhost"
+  port: 50054
   mediaServiceAddress: "localhost:5005"
   chatServiceAddress: "localhost:50051"
   categoryServiceAddress: "localhost:50052"
+  queueServiceAddress: "localhost:50053"

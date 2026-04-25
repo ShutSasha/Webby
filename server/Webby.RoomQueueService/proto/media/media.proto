@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package media;
+
+option go_package = "webby-room-queue/internal/grpc/mediapb";
+
+service MediaService {
+  rpc GetVideo(GetVideoRequest) returns (VideoResponse);
+  rpc GetPlaylist(GetPlaylistRequest) returns (PlaylistResponse);
+}
+
+enum VideoType {
+  VIDEO = 0;
+  YOUTUBE = 1;
+  TWITCH = 2;
+}
+
+message GetVideoRequest {
+  string id = 1;
+  VideoType videoType = 2;
+}
+
+message VideoResponse {
+  string id = 1;
+  string title = 2;
+  string thumbnail = 3;
+  string videoUrl = 4;
+}
+
+message GetPlaylistRequest {
+  string id = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
+}
+
+message PlaylistResponse {
+  string id = 1;
+  string title = 2;
+  string thumbnail = 3;
+  int32 totalCount = 4;
+  repeated VideoResponse videos = 5;
+}

@@ -73,36 +73,6 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/rooms/{id}/queue",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/queue",
-      "UpstreamHttpMethod": ["POST", "GET"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      }
-    },
-    {
-      "DownstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
-      "UpstreamHttpMethod": ["DELETE"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      }
-    },
-    {
       "DownstreamPathTemplate": "/api/rooms/{id}/members",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

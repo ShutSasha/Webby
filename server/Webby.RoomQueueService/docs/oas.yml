@@ -1,0 +1,559 @@
+openapi: 3.0.3
+info:
+  title: Webby - Room Queue Service
+  description: |
+    The Room Queue Service manages the playback queue for rooms on the Webby platform.
+    Each room has an ordered queue of videos and playlists that members can add to, view, and remove from.
+
+    Queue items support four video types and playlists:
+    - **video** — a single video from the Video Service
+    - **youtube** — a YouTube video
+    - **twitch** — a Twitch video
+    - **playlist** — a playlist containing multiple child videos
+
+    **Position Management**
+
+    Queue items are ordered by sequential positions starting from 1.
+    When an item is deleted, all items with a higher position have their position decremented by 1,
+    maintaining a continuous sequence.
+
+    Pagination in the list endpoint is based on individual video count
+    (a playlist with 10 videos counts as 10 entries for pagination purposes).
+
+    **Authentication**
+
+    All endpoints require a valid JWT Bearer token issued by the AuthService.
+    The authenticated user must be a member of the target room.
+  version: 1.0.0
+  contact:
+    name: Webby Platform Team
+
+tags:
+  - name: Queue
+    description: |
+      Endpoints for managing a room's playback queue.
+      All operations require authentication and room membership.
+
+paths:
+  /api/rooms/{id}/queue:
+    post:
+      tags:
+        - Queue
+      summary: Add item to queue
+      description: |
+        Add a video, YouTube video, Twitch video, or playlist to the room's playback queue.
+        The item is appended to the end of the queue with the next available position.
+
+        Only room members can add items. The entity must exist in the Video Service.
+        Video types include: video, youtube, twitch, and playlist.
+
+        **Requires authentication and room membership.**
+      operationId: addToQueue
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Room ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddQueueItemRequest"
+            example:
+              entityId: "550e8400-e29b-41d4-a716-446655440000"
+              entityType: video
+      responses:
+        "201":
+          description: Item successfully added to queue.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueItemCreatedResponse"
+              example:
+                success: true
+                message: Item added to queue
+                data:
+                  id: "660e8400-e29b-41d4-a716-446655440001"
+                  entityId: "550e8400-e29b-41d4-a716-446655440000"
+                  entityType: video
+                  isActive: false
+                  position: 3
+                errors: null
+        "400":
+          description: Validation error (invalid room ID, entity ID, or entity type).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidRoomId:
+                  summary: Invalid room ID
+                  value:
+                    success: false
+                    message: Validation error
+                    data: null
+                    errors:
+                      id: the room id format is not valid
+                validationFailed:
+                  summary: Missing or invalid fields
+                  value:
+                    success: false
+                    message: Validation error
+                    data: null
+                    errors:
+                      entityId: must be a valid UUID
+                      entityType: "must be one of: video playlist youtube twitch"
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Unauthorized
+                data: null
+                errors:
+                  message: token is missing or invalid
+        "403":
+          description: User is not a member of the room.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Add to queue error
+                data: null
+                errors:
+                  message: forbidden
+        "404":
+          description: Video or playlist not found in the Video Service.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Add to queue error
+                data: null
+                errors:
+                  message: "resource not found: video not found"
+        "500":
+          description: An unexpected server-side error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      tags:
+        - Queue
+      summary: Get room queue
+      description: |
+        Retrieve the playback queue for a room with enriched media data (titles, thumbnails, video URLs).
+
+        Pagination is based on individual video count: a playlist with 10 videos counts as
+        10 entries. Playlist items include a `children` array with the slice of child videos
+        that falls within the current page.
+
+        **Requires authentication and room membership.**
+      operationId: getQueue
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Room ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+        - name: page
+          in: query
+          description: Page number (1-based). Defaults to 1.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - name: limit
+          in: query
+          description: Items per page. Clamped to [1, 100]. Defaults to 10.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+            example: 10
+      responses:
+        "200":
+          description: Queue retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueListResponse"
+              example:
+                success: true
+                message: Queue retrieved successfully
+                data:
+                  items:
+                    - id: "660e8400-e29b-41d4-a716-446655440001"
+                      entityId: "550e8400-e29b-41d4-a716-446655440000"
+                      entityType: video
+                      title: "Fears to Fathom: Ironbark Lookout"
+                      thumbnail: "https://example.com/thumb.jpg"
+                      videoUrl: "https://example.com/video.mp4"
+                      isActive: true
+                      isFolder: false
+                      position: 1
+                      totalChildren: 0
+                    - id: "660e8400-e29b-41d4-a716-446655440002"
+                      entityId: "770e8400-e29b-41d4-a716-446655440000"
+                      entityType: playlist
+                      title: "Horror Marathon"
+                      thumbnail: "https://example.com/playlist.jpg"
+                      videoUrl: ""
+                      isActive: false
+                      isFolder: true
+                      position: 2
+                      totalChildren: 5
+                      children:
+                        - id: "880e8400-e29b-41d4-a716-446655440001"
+                          title: "Episode 1"
+                          thumbnail: "https://example.com/ep1.jpg"
+                          videoUrl: "https://example.com/ep1.mp4"
+                  page: 1
+                  pageSize: 10
+                  totalCount: 6
+                errors: null
+        "400":
+          description: Invalid room ID format.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Validation error
+                data: null
+                errors:
+                  id: the room id format is not valid
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a member of the room.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: An unexpected server-side error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/queue/{itemId}:
+    delete:
+      tags:
+        - Queue
+      summary: Remove item from queue
+      description: |
+        Remove a video, YouTube video, Twitch video, or playlist from the room's playback queue.
+        When an item is deleted, all items with a higher position have their position decremented by 1,
+        ensuring positions remain sequential.
+        
+        Only room members can remove items. Individual playlist children cannot be
+        removed — only the top-level queue item (the entire playlist).
+
+        **Requires authentication and room membership.**
+      operationId: deleteFromQueue
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Room ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+        - name: itemId
+          in: path
+          description: Queue Item ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "660e8400-e29b-41d4-a716-446655440001"
+      responses:
+        "200":
+          description: Item successfully removed from queue.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+              example:
+                success: true
+                message: Item removed from queue
+                data: null
+                errors: null
+        "400":
+          description: Invalid UUID format.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Validation error
+                data: null
+                errors:
+                  itemId: the item id format is not valid
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a member of the room.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Queue item not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Delete from queue error
+                data: null
+                errors:
+                  message: resource not found
+        "500":
+          description: An unexpected server-side error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        JWT access token issued by the Webby AuthService.
+        Pass it in the Authorization Bearer header.
+
+  schemas:
+    AddQueueItemRequest:
+      type: object
+      description: Payload for adding an item to the room queue.
+      required:
+        - entityId
+        - entityType
+      properties:
+        entityId:
+          type: string
+          format: uuid
+          description: UUID of the video, YouTube video, Twitch video, or playlist to add.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        entityType:
+          type: string
+          enum:
+            - video
+            - youtube
+            - twitch
+            - playlist
+          description: "Type of media entity: 'video', 'youtube', 'twitch', or 'playlist'."
+          example: video
+
+    QueueItemCreated:
+      type: object
+      description: A newly created queue item (before enrichment).
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique queue item ID.
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        entityId:
+          type: string
+          format: uuid
+          description: UUID of the associated video or playlist.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        entityType:
+          type: string
+          enum: [video, youtube, twitch, playlist]
+          example: video
+        isActive:
+          type: boolean
+          description: Whether the item is currently playing.
+          example: false
+        position:
+          type: integer
+          description: Ordinal position in the queue (always starts from 1).
+          example: 3
+
+    QueueItemDetail:
+      type: object
+      description: An enriched queue item with media metadata.
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        entityId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        entityType:
+          type: string
+          enum: [video, youtube, twitch, playlist]
+          example: video
+        title:
+          type: string
+          description: Title from the Video/Playlist service.
+          example: "Fears to Fathom: Ironbark Lookout"
+        thumbnail:
+          type: string
+          description: Thumbnail URL.
+          example: "https://example.com/thumb.jpg"
+        videoUrl:
+          type: string
+          description: Direct video URL (empty for playlists).
+          example: "https://example.com/video.mp4"
+        isActive:
+          type: boolean
+          example: true
+        isFolder:
+          type: boolean
+          description: True if the item is a playlist containing child videos.
+          example: false
+        position:
+          type: integer
+          example: 1
+        totalChildren:
+          type: integer
+          description: Total child videos (0 for single videos).
+          example: 0
+        children:
+          type: array
+          description: Child videos for playlist items (within current page).
+          items:
+            $ref: "#/components/schemas/QueueVideoChild"
+
+    QueueVideoChild:
+      type: object
+      description: A child video inside a playlist queue item.
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "880e8400-e29b-41d4-a716-446655440001"
+        title:
+          type: string
+          example: "Episode 1"
+        thumbnail:
+          type: string
+          example: "https://example.com/ep1.jpg"
+        videoUrl:
+          type: string
+          example: "https://example.com/ep1.mp4"
+
+    PaginatedQueue:
+      type: object
+      description: A paginated list of enriched queue items.
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/QueueItemDetail"
+        page:
+          type: integer
+          description: Current page number (1-based).
+          example: 1
+        pageSize:
+          type: integer
+          description: Maximum items per page.
+          example: 10
+        totalCount:
+          type: integer
+          description: Total video count across all queue items.
+          example: 6
+
+    ApiResponse:
+      type: object
+      description: Generic API envelope used by all endpoints.
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          nullable: true
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+
+    QueueItemCreatedResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        data:
+          $ref: "#/components/schemas/QueueItemCreated"
+
+    QueueListResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        data:
+          $ref: "#/components/schemas/PaginatedQueue"
+
+    SuccessResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        data:
+          nullable: true
+          example: null
+
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        success:
+          example: false
+        data:
+          nullable: true
+          example: null
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            message: something went wrong

@@ -15,10 +15,13 @@ import (
 	"webby/internal/config"
 	"webby/internal/database"
 	grpcClient "webby/internal/grpc"
+	"webby/internal/grpc/memberpb"
 	httpserver "webby/internal/handlers"
 	"webby/internal/repository"
 	"webby/internal/services"
 	"webby/pkg/slogpretty"
+
+	"google.golang.org/grpc"
 )
 
 const (
@@ -60,7 +63,6 @@ func run(ctx context.Context, w io.Writer) error {
 
 	roomRepository := repository.NewRoomRepository(db)
 	roomMemberRepository := repository.NewRoomMemberRepository(db)
-	queueItemRepository := repository.NewQueueItemRepository(db)
 	fileStorage := repository.NewFileStorage(config)
 
 	mediaClient, err := grpcClient.NewMediaClient(config.Grpc.MediaServiceAddress)
@@ -85,10 +87,17 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer categoryClient.Close()
 
+	queueClient, err := grpcClient.NewQueueClient(config.Grpc.QueueServiceAddress)
+	if err != nil {
+		logger.Warn("queue service gRPC connection failed — vote queue features disabled", slog.String("error", err.Error()))
+		queueClient = nil
+	} else {
+		defer queueClient.Close()
+	}
+
 	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, chatClient, categoryClient)
-	queueItemService := services.NewQueueItemService(queueItemRepository, mediaClient, roomMemberRepository)
 	voteRepository := repository.NewVoteRepository(db)
-	voteService := services.NewVoteService(voteRepository, roomRepository, roomMemberRepository, queueItemRepository)
+	voteService := services.NewVoteService(voteRepository, roomRepository, roomMemberRepository, queueClient)
 
 	logger.Info("repositories initialized")
 
@@ -96,7 +105,6 @@ func run(ctx context.Context, w io.Writer) error {
 		config,
 		logger,
 		roomService,
-		queueItemService,
 		voteService,
 	)
 	httpServer := &http.Server{
@@ -117,6 +125,32 @@ func run(ctx context.Context, w io.Writer) error {
 		}
 	}()
 
+	grpcListener, err := net.Listen(
+		"tcp",
+		net.JoinHostPort(config.Grpc.Host, strconv.Itoa(config.Grpc.Port)),
+	)
+	if err != nil {
+		logger.Error("grpc listen failed", slog.Any("error", err))
+		return err
+	}
+
+	grpcSrv := grpc.NewServer()
+	memberpb.RegisterMemberGrpcServiceServer(
+		grpcSrv,
+		grpcClient.NewMemberServer(roomMemberRepository),
+	)
+
+	go func() {
+		logger.Info(
+			"gRPC server listening",
+			slog.String("host", config.Grpc.Host),
+			slog.Int("port", config.Grpc.Port),
+		)
+		if err := grpcSrv.Serve(grpcListener); err != nil {
+			logger.Error("error serving grpc", slog.Any("error", err))
+		}
+	}()
+
 	var wg sync.WaitGroup
 	wg.Go(func() {
 		<-ctx.Done()
@@ -126,6 +160,7 @@ func run(ctx context.Context, w io.Writer) error {
 		if err := httpServer.Shutdown(shutdownCtx); err != nil {
 			logger.Error("error shutting down http server", slog.Any("error", err))
 		}
+		grpcSrv.GracefulStop()
 		logger.Info("server stopped gracefully")
 	})
 	wg.Wait()

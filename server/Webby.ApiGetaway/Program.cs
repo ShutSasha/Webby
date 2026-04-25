@@ -41,6 +41,7 @@ try
         c.SwaggerEndpoint("/user/swagger/v1/swagger.json", "UserService");
         c.SwaggerEndpoint("/video/swagger/v1/swagger.json", "VideoService");
         c.SwaggerEndpoint("/room/swagger/v1/swagger.json", "RoomService");
+        c.SwaggerEndpoint("/room-queue/swagger/v1/swagger.json", "RoomQueueService");
         c.SwaggerEndpoint("/chat/swagger/v1/swagger.json", "ChatService");
         c.SwaggerEndpoint("/notification/swagger/v1/swagger.json", "NotificationService");
         c.RoutePrefix = "";

@@ -1,0 +1,49 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/swagger/doc.yaml",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8083
+        }
+      ],
+      "UpstreamPathTemplate": "/room-queue/swagger/v1/swagger.json",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AllowAnonymous": true
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8083
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue",
+      "UpstreamHttpMethod": ["POST", "GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8083
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
+      "UpstreamHttpMethod": ["DELETE"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    }
+  ]
+}

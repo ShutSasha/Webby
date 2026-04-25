@@ -13,7 +13,6 @@ type Config struct {
 	ConnectionString string     `yaml:"connectionString"`
 	JwtSecret        string     `yaml:"jwtSecret"`
 	Http             HttpConfig `yaml:"http"`
-	Aws              AwsConfig  `yaml:"aws"`
 	Grpc             GrpcConfig `yaml:"grpc"`
 }
 
@@ -23,20 +22,11 @@ type HttpConfig struct {
 	Timeout time.Duration `yaml:"timeout"`
 }
 
-type AwsConfig struct {
-	AccessKey string `yaml:"accessKey"`
-	SecretKey string `yaml:"secretKey"`
-	Region    string `yaml:"region"`
-	Bucket    string `yaml:"bucket"`
-}
-
 type GrpcConfig struct {
-	Host                   string `yaml:"host"`
-	Port                   int    `yaml:"port"`
-	MediaServiceAddress    string `yaml:"mediaServiceAddress"`
-	ChatServiceAddress     string `yaml:"chatServiceAddress"`
-	CategoryServiceAddress string `yaml:"categoryServiceAddress"`
-	QueueServiceAddress    string `yaml:"queueServiceAddress"`
+	Host                string `yaml:"host"`
+	Port                int    `yaml:"port"`
+	MediaServiceAddress string `yaml:"mediaServiceAddress"`
+	RoomServiceAddress  string `yaml:"roomServiceAddress"`
 }
 
 func MustLoad() *Config {

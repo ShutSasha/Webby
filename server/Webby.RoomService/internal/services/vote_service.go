@@ -28,6 +28,10 @@ type RoomGetter interface {
 	GetById(ctx context.Context, id uuid.UUID) (*models.Room, error)
 }
 
+type MemberChecker interface {
+	Exists(ctx context.Context, roomId, userId uuid.UUID) (bool, error)
+}
+
 type QueueItemMover interface {
 	MoveToTop(ctx context.Context, id uuid.UUID) error
 }
