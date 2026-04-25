@@ -9,8 +9,15 @@ service MediaService {
   rpc GetPlaylist(GetPlaylistRequest) returns (PlaylistResponse);
 }
 
+enum VideoType {
+  VIDEO = 0;
+  YOUTUBE = 1;
+  TWITCH = 2;
+}
+
 message GetVideoRequest {
   string id = 1;
+  VideoType videoType = 2;
 }
 
 message VideoResponse {

@@ -11,31 +11,69 @@ public class MediaGrpcService : MediaService.GrpcServer.MediaService.MediaServic
 {
    private readonly IVideoService _videoService;
    private readonly IPlaylistService _playlistService;
+   private readonly YoutubeSearchService _youtubeSearchService;
+   private readonly TwitchSearchService _twitchSearchService;
 
-
-   public MediaGrpcService(IVideoService videoService, IPlaylistService playlistService)
+   public MediaGrpcService(IVideoService videoService, IPlaylistService playlistService, TwitchSearchService twitchSearchService, YoutubeSearchService youtubeSearchService)
    {
       _videoService = videoService;
       _playlistService = playlistService;
+      _twitchSearchService = twitchSearchService;
+      _youtubeSearchService = youtubeSearchService;
    }
 
    public override async Task<VideoResponse> GetVideo(GetVideoRequest request, ServerCallContext context)
-   {
-      if (!Guid.TryParse(request.Id, out var videoId))
-      {
-         throw new ApiException("Validation error", 400, "Invalid ID format");
-      }
+{
+    switch (request.VideoType)
+    {
+        case VideoType.Video:
+        {
+            if (!Guid.TryParse(request.Id, out var videoId))
+            {
+                throw new ApiException("Validation error", 400, "Invalid ID format");
+            }
 
-      var video = await _videoService.GetVideoById(videoId);
-
-      return new VideoResponse
-      {
-         Id = video.VideoId.ToString(),
-         Title = video.Name,
-         Thumbnail = video.PreviewUrl,
-         VideoUrl = video.VideoUrl
-      };
-   }
+            var video = await _videoService.GetVideoById(videoId);
+            
+            return new VideoResponse
+            {
+                Id = video.VideoId.ToString(),
+                Title = video.Name,
+                Thumbnail = video.PreviewUrl,
+                VideoUrl = video.VideoUrl
+            };
+        }
+        
+        case VideoType.Youtube:
+        {
+            var ytVideo = await _youtubeSearchService.FindById(request.Id);
+            
+            return new VideoResponse
+            {
+                Id = ytVideo.VideoId, 
+                Title = ytVideo.Name,
+                Thumbnail = ytVideo.PreviewUrl,
+                VideoUrl = ytVideo.VideoUrl 
+            };
+        }
+        
+        case VideoType.Twitch:
+        {
+            var stream = await _twitchSearchService.FindById(request.Id);
+            
+                return new VideoResponse
+                {
+                    Id = stream.StreamId,
+                    Title = stream.Name,
+                    Thumbnail = stream.PreviewUrl,
+                    VideoUrl = stream.StreamUrl
+                };
+                
+        }
+        default:
+            throw new ApiException("Validation error", 400, "Unsupported video type");
+    }
+}
 
    public override async Task<PlaylistResponse> GetPlaylist(GetPlaylistRequest request, ServerCallContext context)
    {
