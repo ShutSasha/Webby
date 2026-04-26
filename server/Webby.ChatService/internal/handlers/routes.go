@@ -26,14 +26,4 @@ func addRoutes(
 	chats.RegisterChats(mux, []byte(cfg.JwtSecret), chatService)
 
 	mux.Handle("/socket.io/", socketServer)
-
-	mux.HandleFunc("GET /swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		http.ServeFile(w, r, "./docs/oas.json")
-	})
-
-	mux.HandleFunc("GET /swagger/doc.yaml", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/x-yaml")
-		http.ServeFile(w, r, "./docs/oas.yml")
-	})
 }

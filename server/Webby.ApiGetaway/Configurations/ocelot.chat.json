@@ -1,21 +1,6 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/swagger/doc.json",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8081
-        }
-      ],
-      "UpstreamPathTemplate": "/chat/swagger/v1/swagger.json",
-      "UpstreamHttpMethod": ["GET"],
-      "AuthenticationOptions": {
-        "AllowAnonymous": true
-      }
-    },
-    {
       "DownstreamPathTemplate": "/api/chats",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
@@ -44,18 +29,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
-    },
-    {
-      "DownstreamPathTemplate": "/socket.io/{everything}",
-      "DownstreamScheme": "ws",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 8081
-        }
-      ],
-      "UpstreamPathTemplate": "/socket.io/{everything}",
-      "UpstreamHttpMethod": ["GET", "POST"]
     }
   ]
 }
