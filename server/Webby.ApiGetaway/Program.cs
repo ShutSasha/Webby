@@ -49,7 +49,7 @@ try
         c.SwaggerEndpoint("/vote/swagger/v1/swagger.json", "VoteService");
         c.RoutePrefix = "";
         });
-    }
+    });
     app.UseApiExceptionHandling();
 
     app.UseWebSockets();

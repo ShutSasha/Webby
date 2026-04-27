@@ -75,3 +75,80 @@ services:
       - ExternalServices__TwitchOptions__ThumbnailHeight=720
       - GrpcClients__UserServiceUrl=http://user-service:5004
     container_name: webby-video-service
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    container_name: webby-redis
+
+  chat-service:
+    build:
+      context: .
+      dockerfile: Webby.ChatService/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+    container_name: webby-chat-service
+
+  room-service:
+    build:
+      context: .
+      dockerfile: Webby.RoomService/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+      - AWS_ACCESS_KEY=${AwsAccessKey}
+      - AWS_SECRET_KEY=${AwsSecretKey}
+      - AWS_BUCKET=${AwsBucketName}
+      - AWS_REGION=${AwsRegion}
+    container_name: webby-room-service
+
+  room-category-service:
+    build:
+      context: .
+      dockerfile: Webby.RoomCategoryService/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+    container_name: webby-room-category-service
+
+  room-queue-service:
+    build:
+      context: .
+      dockerfile: Webby.RoomQueueService/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+    container_name: webby-room-queue-service
+
+  votes-service:
+    build:
+      context: .
+      dockerfile: Webby.VotesService/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+    container_name: webby-votes-service
+
+  ws-gateway:
+    build:
+      context: .
+      dockerfile: Webby.WsGateway/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - JWT_SECRET=${JwtAccessSecretKey}
+      - REDIS_ADDR=redis:6379
+    depends_on:
+      - redis
+    container_name: webby-ws-gateway
+
+volumes:
+  redis-data:

@@ -26,7 +26,7 @@ type Envelope struct {
 	Payload json.RawMessage `json:"payload"`
 }
 
-type Subscriber struct {
+type Subscrib2er struct {
 	logger *slog.Logger
 	rdb    *redis.Client
 	ws     *ws.Server
