@@ -195,6 +195,68 @@ public class YoutubeSearchService : IExternalVideoSearchService<VideoDto>
         };
     }
 
+    public async Task<List<VideoDto>> GetList(List<string> sourceIds)
+    {
+        var validIds = sourceIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToList();
+        
+        if (!validIds.Any())
+            return new List<VideoDto>();
+
+        var resultList = new List<VideoDto>();
+        const int chunkSize = 50;
+
+        for (int i = 0; i < validIds.Count; i += chunkSize)
+        {
+            var chunk = validIds.Skip(i).Take(chunkSize).ToList();
+            
+            var detailsUrl = DefaultLinks.BaseYouTubeVideosLink +
+                             $"?part=snippet,contentDetails,statistics" +
+                             $"&id={string.Join(",", chunk)}" +
+                             $"&key={_apiKey}";
+
+            var detailsResponse = await _httpClient.GetAsync(detailsUrl);
+            if (!detailsResponse.IsSuccessStatusCode)
+            {
+                continue; 
+            }
+
+            var fullData = await detailsResponse.Content.ReadFromJsonAsync<YouTubeVideoResponse>(
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (fullData?.Items == null || !fullData.Items.Any())
+                continue;
+            
+            var channelIds = fullData.Items.Select(item => item.Snippet.ChannelId).Distinct().ToList();
+            var channelAvatars = new Dictionary<string, string>();
+
+            if (channelIds.Any())
+            {
+                var channelsUrl = DefaultLinks.BaseYouTubeUserChannelsLinks +
+                                  $"?part=snippet" +
+                                  $"&id={string.Join(",", channelIds)}" +
+                                  $"&key={_apiKey}";
+
+                var channelsResponse = await _httpClient.GetAsync(channelsUrl);
+                if (channelsResponse.IsSuccessStatusCode)
+                {
+                    var channelData = await channelsResponse.Content.ReadFromJsonAsync<YouTubeChannelResponse>(
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    channelAvatars = channelData?.Items?.ToDictionary(
+                        k => k.Id, 
+                        v => v.Snippet.Thumbnails?.Medium?.Url ?? v.Snippet.Thumbnails?.Default?.Url ?? ""
+                    ) ?? new Dictionary<string, string>();
+                }
+            }
+
+            var videoDtos = fullData.Items.Select(item => MapToVideoDto(item,channelAvatars)).ToList();
+
+            resultList.AddRange(videoDtos);
+        }
+
+        return resultList;
+    }
+
     private string BuildUrl(string? searchText, int pageSize, string? nextPageToken)
     {
         var hasSearch = !string.IsNullOrWhiteSpace(searchText);
@@ -228,5 +290,39 @@ public class YoutubeSearchService : IExternalVideoSearchService<VideoDto>
         }
 
         return url;
+    }
+
+    private VideoDto MapToVideoDto(YouTubeVideoResponse.Item item, Dictionary<string, string> channelAvatars)
+    {
+        return new VideoDto()
+        {
+            VideoId = item.Id?.ToString(),
+            Name = item.Snippet.Title,
+            Description = item.Snippet.Description,
+            Source = "YouTube",
+            PreviewUrl = item.Snippet.Thumbnails?.Medium?.Url ?? item.Snippet.Thumbnails?.Default?.Url ?? "",
+            VideoUrl = DefaultLinks.BaseYouTubeVideosLink + item.Id,
+            CreatedAt = item.Snippet.PublishedAt,
+            IsPrivate = false,
+            VideoUploadStatus = VideoStatus.Ready,
+
+            Duration = !string.IsNullOrEmpty(item.ContentDetails?.Duration)
+                ? (long)Math.Round(System.Xml.XmlConvert.ToTimeSpan(item.ContentDetails.Duration).TotalSeconds)
+                : 0L,
+
+            Views = int.TryParse(item.Statistics?.ViewCount, out var v) ? v : 0,
+            VideoTags = item.Snippet.Tags,
+
+            User = new UserVideoDto
+            {
+                UserId = item.Snippet.ChannelId,
+                Username = item.Snippet.ChannelTitle,
+                AvatarUrl = channelAvatars.TryGetValue(item.Snippet.ChannelId, out var avatar) &&
+                            !string.IsNullOrEmpty(avatar)
+                    ? avatar
+                    : DefaultLinks.BaseYouTubeUserIcon,
+                IsFollowed = false
+            }
+        };
     }
 }

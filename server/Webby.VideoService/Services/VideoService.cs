@@ -259,13 +259,6 @@ public class VideoService : IVideoService
       video.Description = request.Description?.Trim();
       video.IsPrivate = request.IsPrivate;
       
-      if (request.PlaylistId != null)
-      {
-         await _playlistService.AttachVideoToPlaylist(
-            request.PlaylistId.Value,
-            [request.VideoId],
-            userId);
-      }
       
       if (request.PreviewFile != null)
       {
@@ -372,26 +365,78 @@ public class VideoService : IVideoService
       };
    }
 
-   public async Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId,Guid playlistId, SearchOptions searchOptions)
-   {
-      var skip = (searchOptions.Page - 1) * searchOptions.PageSize;
-      
-      var (items, total) = await _videoRepository.SearchVideosInPlaylistAsync(
-         playlistId,
-         requestUserId,
-         searchOptions.SearchText,
-         skip,
-         searchOptions.PageSize
-         );
+   public async Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId, Guid playlistId, SearchOptions searchOptions)
+{
+    var searchText = searchOptions.SearchText?.Trim();
+    bool hasSearch = !string.IsNullOrWhiteSpace(searchText);
+    
+    int dbSkip = hasSearch ? 0 : (searchOptions.Page - 1) * searchOptions.PageSize;
+    int dbTake = hasSearch ? int.MaxValue : searchOptions.PageSize;
+   
+    var (items, total) = await _videoRepository.SearchVideosInPlaylistAsync(
+        playlistId,
+        requestUserId,
+        searchText,
+        dbSkip,
+        dbTake
+    );
 
-      return new PagedResponse<VideoDto>()
-      {
-         Items = items.Select(v => _mapper.Map<VideoDto>(v)).ToList(),
-         Page = searchOptions.Page,
-         PageSize = searchOptions.PageSize,
-         TotalCount = total
-      };
-   }
+    var resultItems = new List<VideoDto>();
+    
+    var youtubeIds = items
+        .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
+        .Select(pv => pv.ExternalVideoId!)
+        .ToList();
+
+    var youtubeVideosDict = new Dictionary<string, VideoDto>();
+    if (youtubeIds.Count != 0)
+    {
+        var ytList = await _youtubeSearchService.GetList(youtubeIds);
+        youtubeVideosDict = ytList.ToDictionary(v => v.VideoId!);
+    }
+   
+    foreach (var pv in items)
+    {
+        if (pv.VideoPlatform == VideoPlatform.Webby && pv.Video != null)
+        {
+            resultItems.Add(_mapper.Map<VideoDto>(pv.Video));
+        }
+        else if (pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
+        {
+            if (youtubeVideosDict.TryGetValue(pv.ExternalVideoId, out var ytVideo))
+            {
+                if (hasSearch)
+                {
+                    if (ytVideo.Name != null && ytVideo.Name.Contains(searchText!, StringComparison.OrdinalIgnoreCase))
+                    {
+                        resultItems.Add(ytVideo);
+                    }
+                }
+                else
+                {
+                    resultItems.Add(ytVideo);
+                }
+            }
+        }
+    }
+    
+    if (hasSearch)
+    {
+        total = resultItems.Count;
+        resultItems = resultItems
+            .Skip((searchOptions.Page - 1) * searchOptions.PageSize)
+            .Take(searchOptions.PageSize)
+            .ToList();
+    }
+
+    return new PagedResponse<VideoDto>()
+    {
+        Items = resultItems,
+        Page = searchOptions.Page,
+        PageSize = searchOptions.PageSize,
+        TotalCount = total
+    };
+}
 
    public async Task<bool> CheckUploadStatus(Guid videoId)
    {

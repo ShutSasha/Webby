@@ -25,11 +25,11 @@ public static class PlaylistSearchFilter
             )
         )
         ",
-         new object[] { requestUserId },
-         context => p => 
-            (!p.IsPrivate || p.UserId == requestUserId) &&
-            context.PlaylistVideos.Any(pv => pv.PlaylistId == p.PlaylistId)
-      );
+         new object[] { requestUserId }, null);
+      //    context => p => 
+      //       (!p.IsPrivate || p.UserId == requestUserId) &&
+      //       context.PlaylistVideos.Any(pv => pv.PlaylistId == p.PlaylistId)
+      // );
    }
    
    public static (

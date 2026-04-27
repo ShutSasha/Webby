@@ -145,7 +145,12 @@ public class TwitchSearchService : IExternalVideoSearchService<StreamDto>
 
         throw new ApiException("Get twitch stream error", 404, "Stream wasn't found");
     }
-    
+
+    public Task<List<StreamDto>> GetList(List<string> sourceIds)
+    {
+        throw new NotImplementedException();
+    }
+
     private StreamDto MapToStreamDto(TwitchItem? item, string? avatarUrl)
     {
         return new StreamDto
