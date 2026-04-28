@@ -117,6 +117,11 @@ public class PlaylistService : IPlaylistService
       {
          throw new ApiException("Update playlist error", 404, "Playlist wasn't found");
       }
+
+      if (playlist.UserId != requestUserId)
+      {
+         throw new ApiException("Update playlist error", 403, "You can't update this playlist");
+      }
       
       playlist.Name = request.Name;
       playlist.IsPrivate = request.IsPrivate;
