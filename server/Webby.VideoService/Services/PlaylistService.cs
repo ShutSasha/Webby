@@ -93,7 +93,7 @@ public class PlaylistService : IPlaylistService
 
       var detailedPlaylists = await _playlistRepository.GetPlaylistsDetails(playlistIds);
 
-      var playlistsPreviews = MapToPreviewDtos(
+      var playlistsPreviews = await MapToPreviewDtos(
          detailedPlaylists,
          videoId,
          addedSet,
@@ -143,30 +143,30 @@ public class PlaylistService : IPlaylistService
       await _playlistRepository.DeleteAsync(playlistId);
    }
 
-      public async Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId, Guid? requestedUserId)
+   public async Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId, Guid? requestedUserId)
    {
       var playlist = await _playlistRepository.FindByIdWithVideos(playlistId)
                      ?? throw new ApiException("Get playlist information error", 404, "Playlist wasn't found");
 
       var playlistDto = await MapToPlaylistDto(playlist, requestedUserId);
 
-
       var visiblePlaylistVideos = playlist.PlaylistVideos
-         .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube || 
-                     (pv is { VideoPlatform: VideoPlatform.Webby, Video: not null } && (!pv.Video.IsPrivate || pv.Video.UserId == requestedUserId)))
+         .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube ||
+                      (pv is { VideoPlatform: VideoPlatform.Webby, Video: not null } &&
+                       (!pv.Video.IsPrivate || pv.Video.UserId == requestedUserId)))
          .ToList();
 
       playlistDto.CountOfVideos = visiblePlaylistVideos.Count;
-      
-      var latestPlaylistVideo = visiblePlaylistVideos.MaxBy(pv => pv.CreatedAt);
+
+      var sortedVideos = visiblePlaylistVideos.OrderByDescending(pv => pv.CreatedAt).ToList();
 
       VideoDto? videoDto = null;
 
-      if (latestPlaylistVideo != null)
+      foreach (var playlistVideo in sortedVideos)
       {
-         if (latestPlaylistVideo is { VideoPlatform: VideoPlatform.Webby, Video: not null })
+         if (playlistVideo is { VideoPlatform: VideoPlatform.Webby, Video: not null })
          {
-            var video = latestPlaylistVideo.Video;
+            var video = playlistVideo.Video;
             videoDto = new VideoDto
             {
                VideoId = video.VideoId.ToString(),
@@ -209,17 +209,31 @@ public class PlaylistService : IPlaylistService
                   throw new ApiException("Get playlist information error", 500, ex.Message);
                }
             }
+
+            break;
          }
-         else if (latestPlaylistVideo.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(latestPlaylistVideo.ExternalVideoId))
+         else if (playlistVideo.VideoPlatform == VideoPlatform.YouTube &&
+                  !string.IsNullOrEmpty(playlistVideo.ExternalVideoId))
          {
-            var youtubeVideos = await _youtubeSearchService.FindById(latestPlaylistVideo.ExternalVideoId);
-            videoDto = youtubeVideos;
+            try
+            {
+               videoDto = await _youtubeSearchService.FindById(playlistVideo.ExternalVideoId);
+               if (videoDto != null)
+               {
+                  break;
+               }
+            }
+            catch
+            {
+               continue;
+            }
          }
       }
-      
+
       var unavailableCount = playlist.PlaylistVideos
-         .Count(pv => pv is { VideoPlatform: VideoPlatform.Webby, Video.IsPrivate: true } && pv.Video.UserId != requestedUserId);
-      
+         .Count(pv => pv is { VideoPlatform: VideoPlatform.Webby, Video.IsPrivate: true } &&
+                      pv.Video.UserId != requestedUserId);
+
       return new GetPlaylistResponse
       {
          Playlist = playlistDto,
@@ -227,7 +241,7 @@ public class PlaylistService : IPlaylistService
          HiddenVideosCount = unavailableCount
       };
    }
-   
+
    public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<AddVideoToPlaylistItem> videoItems, Guid requestUserId)
    {
        if (videoItems == null || !videoItems.Any())
@@ -370,34 +384,8 @@ public class PlaylistService : IPlaylistService
 
    private async Task<PlaylistDto> MapToPlaylistDto(Playlist playlist, Guid? requestUserId)
    {
-      string coverUrl = DefaultLinks.PlaylistEmptyLink;
-      
-      var lastVideoEntry = playlist.PlaylistVideos?
-         .OrderByDescending(pv => pv.CreatedAt)
-         .FirstOrDefault(pv => 
-            pv.VideoPlatform == VideoPlatform.YouTube || 
-            (pv is { VideoPlatform: VideoPlatform.Webby, Video: not null } && (!pv.Video.IsPrivate || pv.Video.UserId == requestUserId))
-         );
-
-      if (lastVideoEntry != null)
-      {
-         if (lastVideoEntry.VideoPlatform == VideoPlatform.Webby)
-         {
-            coverUrl = lastVideoEntry.Video!.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink;
-         }
-         else if (lastVideoEntry.VideoPlatform == VideoPlatform.YouTube)
-         {
-            try 
-            {
-               var youtubeVideo = await _youtubeSearchService.FindById(lastVideoEntry.ExternalVideoId!);
-               coverUrl = youtubeVideo?.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink;
-            }
-            catch
-            {
-               coverUrl = DefaultLinks.PlaylistEmptyLink;
-            }
-         }
-      }
+      var covers = await GetPlaylistsCoversAsync(new[] { playlist }, requestUserId);
+      var coverUrl = covers.GetValueOrDefault(playlist.PlaylistId, DefaultLinks.PlaylistEmptyLink);
 
       return new PlaylistDto
       {
@@ -415,35 +403,8 @@ public class PlaylistService : IPlaylistService
       Guid? requestUserId,
       Dictionary<string, UserResponse> usersDict)
    {
-      string lastVideoCoverThumbnail = DefaultLinks.PlaylistEmptyLink;
-      
-      var lastVideoEntry = playlist.PlaylistVideos?
-         .OrderByDescending(pv => pv.CreatedAt)
-         .FirstOrDefault(pv =>
-            pv.VideoPlatform == VideoPlatform.YouTube ||
-            pv is {VideoPlatform: VideoPlatform.Webby, Video: not null, Video.IsPrivate: false }
-            );
-
-      if (lastVideoEntry != null)
-      {
-         if (lastVideoEntry.VideoPlatform == VideoPlatform.Webby)
-         {
-            lastVideoCoverThumbnail = lastVideoEntry.Video!.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink;
-         }
-         else if (lastVideoEntry.VideoPlatform == VideoPlatform.YouTube)
-         {
-            try
-            {
-               var youtubeVideo = await _youtubeSearchService.FindById(lastVideoEntry.ExternalVideoId!);
-               lastVideoCoverThumbnail = youtubeVideo.PreviewUrl;
-            }
-            catch
-            {
-               lastVideoCoverThumbnail = DefaultLinks.PlaylistEmptyLink;
-            }
-
-         }
-      }
+      var covers = await GetPlaylistsCoversAsync(new[] { playlist }, requestUserId);
+      var coverUrl = covers.GetValueOrDefault(playlist.PlaylistId, DefaultLinks.PlaylistEmptyLink);
 
       usersDict.TryGetValue(playlist.UserId.ToString(), out var user);
 
@@ -455,34 +416,98 @@ public class PlaylistService : IPlaylistService
          IsPrivate = playlist.IsPrivate,
          Username = user?.Username ?? "Deleted user",
          CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
-         PlaylistCover = lastVideoCoverThumbnail
+         PlaylistCover = coverUrl
       };
    }
    
-   private List<PlaylistPreviewDto> MapToPreviewDtos(
+   private async Task<List<PlaylistPreviewDto>> MapToPreviewDtos(
       IEnumerable<Playlist> playlists,
       string videoId,
       HashSet<Guid> addedSet,
       Guid? requestUserId)
    {
+      var covers = await GetPlaylistsCoversAsync(playlists, requestUserId);
+      
       return playlists
-         .Select(p => 
+         .Select(p => new PlaylistPreviewDto
          {
-            var lastVideo = p.PlaylistVideos
-               .OrderByDescending(pv => pv.CreatedAt)
-               .Select(pv => pv.Video!)
-               .FirstOrDefault(v => !v.IsPrivate || v.UserId == requestUserId);
-
-            return new PlaylistPreviewDto
-            {
-               PlaylistId = p.PlaylistId,
-               Name = p.Name,
-               CountOfVideos = p.PlaylistVideos.Count,
-               PlaylistCover = lastVideo?.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink,
-               IsVideoAdded = videoId != string.Empty && addedSet.Contains(p.PlaylistId),
-               IsPrivate = p.IsPrivate
-            };
+            PlaylistId = p.PlaylistId,
+            Name = p.Name,
+            CountOfVideos = p.PlaylistVideos?.Count ?? 0,
+            PlaylistCover = covers.GetValueOrDefault(p.PlaylistId, DefaultLinks.PlaylistEmptyLink),
+            IsVideoAdded = !string.IsNullOrEmpty(videoId) && addedSet.Contains(p.PlaylistId),
+            IsPrivate = p.IsPrivate
          })
          .ToList();
+   }
+   
+   private async Task<Dictionary<Guid, string>> GetPlaylistsCoversAsync(IEnumerable<Playlist> playlists, Guid? requestUserId)
+   {
+       var covers = new Dictionary<Guid, string>();
+       var youtubeIdsToFetch = new HashSet<string>();
+       
+       foreach (var playlist in playlists)
+       {
+           var youtubeVideos = playlist.PlaylistVideos?
+               .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
+               .Select(pv => pv.ExternalVideoId!);
+
+           if (youtubeVideos != null)
+           {
+               foreach (var id in youtubeVideos)
+               {
+                   youtubeIdsToFetch.Add(id);
+               }
+           }
+       }
+       
+       var youtubeVideosDict = new Dictionary<string, VideoDto>();
+       if (youtubeIdsToFetch.Count != 0)
+       {
+           var ytList = await _youtubeSearchService.GetList(youtubeIdsToFetch.ToList());
+           youtubeVideosDict = ytList.ToDictionary(v => v.VideoId!);
+       }
+       
+       foreach (var playlist in playlists)
+       {
+           string coverUrl = DefaultLinks.PlaylistEmptyLink;
+
+           var availableVideos = playlist.PlaylistVideos?
+               .Where(pv =>
+                   pv.VideoPlatform == VideoPlatform.YouTube ||
+                   (pv.VideoPlatform == VideoPlatform.Webby && pv.Video != null && (!pv.Video.IsPrivate || pv.Video.UserId == requestUserId))
+               )
+               .OrderByDescending(pv => pv.CreatedAt)
+               .ToList();
+
+           if (availableVideos != null && availableVideos.Any())
+           {
+               foreach (var pv in availableVideos)
+               {
+                   if (pv.VideoPlatform == VideoPlatform.Webby)
+                   {
+                       var localCover = pv.Video!.PreviewUrl;
+                       if (!string.IsNullOrEmpty(localCover))
+                       {
+                           coverUrl = localCover;
+                           break;
+                       }
+                   }
+                   else if (pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
+                   {
+                       if (youtubeVideosDict.TryGetValue(pv.ExternalVideoId, out var ytVideo) &&
+                           !string.IsNullOrEmpty(ytVideo.PreviewUrl))
+                       {
+                           coverUrl = ytVideo.PreviewUrl;
+                           break;
+                       }
+                   }
+               }
+           }
+
+           covers[playlist.PlaylistId] = coverUrl;
+       }
+
+       return covers;
    }
 }
