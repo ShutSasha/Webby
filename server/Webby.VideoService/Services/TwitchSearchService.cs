@@ -13,7 +13,7 @@ using Webby.VideoService.Interfaces.Services;
 
 namespace Webby.VideoService.Services;
 
-public class TwitchSearchService : IExternalVideoSearchService<StreamDto>
+public class TwitchSearchService : ITwitchSearchService
 {
     private readonly HttpClient _httpClient;
     private readonly TwitchOptions _options;

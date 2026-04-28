@@ -8,9 +8,9 @@ namespace Webby.VideoService.Services;
 
 public class StreamService : IStreamService
 {
-   private readonly TwitchSearchService _twitchSearchService;
+   private readonly ITwitchSearchService _twitchSearchService;
 
-   public StreamService(TwitchSearchService twitchSearchService)
+   public StreamService(ITwitchSearchService twitchSearchService)
    {
       _twitchSearchService = twitchSearchService;
    }

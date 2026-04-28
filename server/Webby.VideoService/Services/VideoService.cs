@@ -26,11 +26,11 @@ public class VideoService : IVideoService
    private readonly IMapper _mapper;
    private readonly IBackgroundTaskQueue _queue;
    private readonly IServiceScopeFactory _scopeFactory;
-   private readonly YoutubeSearchService _youtubeSearchService;
+   private readonly IYouTubeSearchService _youtubeSearchService;
    public VideoService(IVideoRepository videoRepository, IStorageService storageService,
       ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, 
       IMapper mapper, IBackgroundTaskQueue queue,
-      IServiceScopeFactory scopeFactory, YoutubeSearchService youtubeSearchService)
+      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;

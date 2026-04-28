@@ -23,9 +23,9 @@ public class PlaylistService : IPlaylistService
    private readonly IMapper _mapper;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
    private readonly IVideoRepository _videoRepository;
-   private readonly YoutubeSearchService _youtubeSearchService;
+   private readonly IYouTubeSearchService _youtubeSearchService;
    public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper,
-      UserGrpcService.UserGrpcServiceClient userClient, IVideoRepository videoRepository, YoutubeSearchService youtubeSearchService)
+      UserGrpcService.UserGrpcServiceClient userClient, IVideoRepository videoRepository, IYouTubeSearchService youtubeSearchService)
    {
       _playlistRepository = playlistRepository;
       _mapper = mapper;

@@ -12,7 +12,7 @@ using Webby.VideoService.Models.Enums;
 
 namespace Webby.VideoService.Services;
 
-public class YoutubeSearchService : IExternalVideoSearchService<VideoDto>
+public class YoutubeSearchService : IYouTubeSearchService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
