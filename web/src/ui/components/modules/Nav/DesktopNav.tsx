@@ -7,15 +7,16 @@ import LogoIcon from '@/assets/icons/ic_logo.svg'
 import ExpandIcon from '@/assets/icons/Nav/arrow-right-from-line.svg'
 import { navDesktopElements } from '@/lib/placeholder-data/nav-side'
 import { cn } from '@/lib/utils/general.utils'
+import { useNotificationPopupStore } from '@/stores/notification-popup.store'
 
 import { DesktopNavElement } from './DesktopNavElement'
 import { UserProfile } from './UserProfile'
-import Modal from '../../shared/Modal'
-import Search from '../../shared/Search'
+import GlobalSearchModal from '../GlobalSearch/GlobalSearchModal'
 
 export default function DesktopNav() {
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false)
+  const unreadCount = useNotificationPopupStore(state => state.unreadCount)
 
   const toggleSideNav = () => setIsExpanded(prev => !prev)
 
@@ -83,6 +84,7 @@ export default function DesktopNav() {
                   isExpanded={isExpanded}
                   Icon={item.icon}
                   iconSize={item.iconSize || 'size-6'}
+                  badgeCount={item.key === 'notifications' ? unreadCount : undefined}
                 />
               </li>
             ))}
@@ -93,21 +95,7 @@ export default function DesktopNav() {
           </div>
         </nav>
       </aside>
-      <Modal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        modalClasses="max-w-[600px] bg-neutral-900 border-neutral-800"
-      >
-        <div className="flex flex-col gap-4">
-          <h2 className="text-xl font-bold text-neutral-100">Global Search</h2>
-
-          <Search placeholder="Search users, rooms, or videos..." containerClassName="w-full" />
-
-          <div className="mt-4 min-h-[200px] flex items-center justify-center text-neutral-500">
-            Start typing to search...
-          </div>
-        </div>
-      </Modal>
+      <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   )
 }

@@ -19,11 +19,12 @@ export default function RoomCard({ id, name, thumbnail, category, hostUsername, 
         <Image
           src={thumbnail}
           alt="Room preview"
-          fill
+          width={640}
+          height={480}
           loading="lazy"
           className="object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-105"
           placeholder="blur"
-          blurDataURL={BLUR_DATA_URLS['neutral900']}
+          blurDataURL={BLUR_DATA_URLS['neutral800']}
         />
 
         <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md">
@@ -37,9 +38,9 @@ export default function RoomCard({ id, name, thumbnail, category, hostUsername, 
         <Image
           src={hostAvatarUrl}
           alt="User avatar"
-          width={36}
-          height={36}
-          className="size-9 rounded-full object-cover shrink-0 mt-0.5"
+          width={80}
+          height={80}
+          className="size-10 rounded-full object-cover shrink-0 mt-0.5"
           placeholder="blur"
           blurDataURL={BLUR_DATA_URLS['neutral700']}
         />
