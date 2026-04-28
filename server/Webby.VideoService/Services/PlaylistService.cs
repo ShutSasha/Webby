@@ -155,10 +155,25 @@ public class PlaylistService : IPlaylistService
 
       var playlistDto = await MapToPlaylistDto(playlist, requestedUserId);
 
+      var youtubeIds = playlist.PlaylistVideos
+         .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
+         .Select(pv => pv.ExternalVideoId!)
+         .ToList();
+
+      var youtubeVideosDict = new Dictionary<string, VideoDto>();
+      
+      if (youtubeIds.Count != 0)
+      {
+         var ytList = await _youtubeSearchService.GetList(youtubeIds);
+         youtubeVideosDict = ytList.ToDictionary(v => v.VideoId!);
+      }
+
+      var unavailableYoutubeCount = youtubeIds.Count - youtubeVideosDict.Count;
+
       var visiblePlaylistVideos = playlist.PlaylistVideos
-         .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube ||
-                      (pv is { VideoPlatform: VideoPlatform.Webby, Video: not null } &&
-                       (!pv.Video.IsPrivate || pv.Video.UserId == requestedUserId)))
+         .Where(pv => 
+            (pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId) && youtubeVideosDict.ContainsKey(pv.ExternalVideoId)) ||
+            (pv is { VideoPlatform: VideoPlatform.Webby, Video: not null } && (!pv.Video.IsPrivate || pv.Video.UserId == requestedUserId)))
          .ToList();
 
       playlistDto.CountOfVideos = visiblePlaylistVideos.Count;
@@ -220,22 +235,15 @@ public class PlaylistService : IPlaylistService
          else if (playlistVideo.VideoPlatform == VideoPlatform.YouTube &&
                   !string.IsNullOrEmpty(playlistVideo.ExternalVideoId))
          {
-            try
+            if (youtubeVideosDict.TryGetValue(playlistVideo.ExternalVideoId, out var ytVideo))
             {
-               videoDto = await _youtubeSearchService.FindById(playlistVideo.ExternalVideoId);
-               if (videoDto != null)
-               {
-                  break;
-               }
-            }
-            catch
-            {
-               continue;
+               videoDto = ytVideo;
+               break;
             }
          }
       }
 
-      var unavailableCount = playlist.PlaylistVideos
+      var unavailableWebbyCount = playlist.PlaylistVideos
          .Count(pv => pv is { VideoPlatform: VideoPlatform.Webby, Video.IsPrivate: true } &&
                       pv.Video.UserId != requestedUserId);
 
@@ -243,7 +251,7 @@ public class PlaylistService : IPlaylistService
       {
          Playlist = playlistDto,
          FirstVideo = videoDto,
-         HiddenVideosCount = unavailableCount
+         HiddenVideosCount = unavailableWebbyCount + unavailableYoutubeCount
       };
    }
 
