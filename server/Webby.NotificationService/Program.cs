@@ -10,10 +10,13 @@ using Webby.NotificationService.Middlewares;
 using Webby.NotificationService.Services;
 using NotificationGrpcService = Webby.NotificationService.Services.Grpc.NotificationGrpcService;
 
-
 try
 {
+    var builder = WebApplication.CreateBuilder(args);
+    var services = builder.Services;
+    var configuration = builder.Configuration;
 
+    builder.AddCustomSerilog();
     services.AddAuthorization();
     services.AddMemoryCache();
     services.AddCorsPolicy("AllowApiGateway");
