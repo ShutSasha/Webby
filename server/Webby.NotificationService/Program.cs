@@ -20,14 +20,8 @@ try
     services.AddAuthorization();
     services.AddMemoryCache();
     services.AddCorsPolicy("AllowApiGateway");
-    services.AddSwaggerConfig();
     services.AddDbConnection(configuration);
-
-    services.AddAuthorization();
-
-    services.AddCorsPolicy("AllowApiGateway");
     services.AddSwaggerConfig();
-    services.AddDbConnection(configuration);
 
     builder.Services.AddSignalR(options =>
     {
