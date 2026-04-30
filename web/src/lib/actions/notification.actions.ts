@@ -95,3 +95,18 @@ export async function setNotificationsReadStatusAction(notificationIds: string[]
     }
   }
 }
+
+export async function getOneTimeTicket(): Promise<BaseServerResponse<string>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<string>>(`${endpoint}/one-time-ticket`)
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_ONE_TIME_TICKET_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to get one time ticket',
+      errors: parseAxiosError(error),
+    }
+  }
+}

@@ -7,36 +7,50 @@ import { useSession } from 'next-auth/react'
 import { useNotificationPopupStore } from '@/stores/notification-popup.store'
 import { Notification } from '@/types/notification.types'
 
+import { getOneTimeTicket } from '../actions/notification.actions'
+
 export const useNotificationSocket = () => {
-  const { data: session } = useSession()
+  const { status } = useSession()
   const addPopup = useNotificationPopupStore(state => state.addPopup)
   const setUnreadCount = useNotificationPopupStore(state => state.setUnreadCount)
   const connectionRef = useRef<HubConnection | null>(null)
   const queryClient = useQueryClient()
-  const token = session?.user.accessToken
-  
+
   useEffect(() => {
-    if (!token) return
+    if (status !== 'authenticated') return
 
-    const baseUrl = process.env.NEXT_PUBLIC_SIGNALR_URL || 'http://localhost:5000/hubs/notifications'
+    let isMounted = true
 
-    const hubUrl = `${baseUrl}?accessToken=${token}`
+    const connectToHub = async () => {
+      try {
+        const ticketResponse = await getOneTimeTicket()
 
-    const connection = new HubConnectionBuilder()
-      .withUrl(hubUrl, {
-        skipNegotiation: true,
-        transport: HttpTransportType.WebSockets,
-      })
-      .withAutomaticReconnect()
-      .configureLogging(LogLevel.Information)
-      .build()
+        if (!ticketResponse.success || !ticketResponse.data) {
+          console.error('SignalR Ticket Error:', ticketResponse.message)
+          return
+        }
 
-    connectionRef.current = connection
+        const ticket = ticketResponse.data
 
-    connection
-      .start()
-      .then(() => {
-        console.log('SignalR Connected Successfully.')
+        if (!isMounted) return
+
+        const baseUrl = process.env.NEXT_PUBLIC_SIGNALR_URL || 'http://localhost:5000/hubs/notifications'
+
+        const hubUrl = `${baseUrl}?ticket=${ticket}`
+
+        const connection = new HubConnectionBuilder()
+          .withUrl(hubUrl, {
+            skipNegotiation: true,
+            transport: HttpTransportType.WebSockets,
+          })
+          .withAutomaticReconnect()
+          .configureLogging(LogLevel.Information)
+          .build()
+
+        connectionRef.current = connection
+
+        await connection.start()
+        console.log('SignalR Connected Successfully with One-Time Ticket.')
 
         connection.on('ReceiveNotification', (notification: Notification) => {
           addPopup(notification)
@@ -54,11 +68,18 @@ export const useNotificationSocket = () => {
           console.error('SignalR AuthError:', errorMsg)
           connection.stop()
         })
-      })
-      .catch(err => console.error('SignalR Connection Error: ', err))
+      } catch (err) {
+        console.error('SignalR Connection Error: ', err)
+      }
+    }
+
+    connectToHub()
 
     return () => {
-      connection.stop()
+      isMounted = false
+      if (connectionRef.current) {
+        connectionRef.current.stop()
+      }
     }
-  }, [token, addPopup, setUnreadCount, queryClient])
+  }, [status, addPopup, setUnreadCount, queryClient])
 }
