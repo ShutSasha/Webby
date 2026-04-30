@@ -9,4 +9,5 @@ public class PagedResponse<T> where T : class
    public int TotalCount { get; set; } = 0;
    
    public string? NextPageToken { get; set; }
+   public int? ContentSeed { get; set; }
 }

@@ -18,6 +18,7 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
    {
       return await _context.Videos
          .Include(v => v.VideoTags)
+         .ThenInclude(vt => vt.Tag)
          .FirstAsync(v => v.VideoId == videoId);
    }
    public async Task<(List<Video>, int)> GetPaginatedUserVideos(
@@ -136,8 +137,7 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
             .SetProperty(v => v.Duration, duration)
          );
    }
-
-
+   
    public async Task<bool> FindUserView(Guid userId, Guid videoId) 
       => await _context.UserViews.AnyAsync(uv => uv.UserId == userId && uv.VideoId == videoId);
    
@@ -170,13 +170,14 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
            .ToListAsync();
    }
 
-   public async Task<(List<Video> Items, int Total)> GetRecommendedVideosAsync(
+   public async Task<(List<Video> Items, int Total, int Seed)> GetRecommendedVideosAsync(
        Guid? currentVideoId,
        List<string> currentTags,
        List<Guid> subscribedIds,
        List<string> historyTags,
        int skip,
-       int pageSize)
+       int pageSize,
+       int contentSeed = 0)
    {
        var query = _context.Videos
            .Where(v => v.IsPublished 
@@ -210,17 +211,30 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
        var orderedQuery = scoredQuery
            .OrderByDescending(x => x.CurrentTagsScore + x.SubscriptionScore + x.HistoryTagsScore + x.PopularityScore)
            .ThenByDescending(x => x.Video.CreatedAt);
-
-       var total = await orderedQuery.CountAsync();
        
-       var items = await orderedQuery
-           .Skip(skip)
-           .Take(pageSize)
-           .Select(x => x.Video)
-           .Include(v => v.VideoTags)!
-               .ThenInclude(vt => vt.Tag)
-           .ToListAsync();
+       var candidatePool = await orderedQuery
+          .Take(100) 
+          .Select(x => x.Video)
+          .Include(v => v.VideoTags)!
+          .ThenInclude(vt => vt.Tag)
+          .ToListAsync();
 
-       return (items, total);
+       var seed = contentSeed;
+       
+       if (contentSeed == 0)
+       {
+          seed = Guid.NewGuid().GetHashCode(); 
+       }
+       
+       var random = new Random(seed);
+       
+       var items = candidatePool
+          .OrderBy(x => random.Next())
+          .Skip(skip)
+          .Take(pageSize)
+          .ToList();
+       
+       var total = await orderedQuery.CountAsync();
+       return (items, total, seed);
    }
 }

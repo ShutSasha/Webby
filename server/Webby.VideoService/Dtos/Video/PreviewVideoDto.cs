@@ -1,8 +1,9 @@
 ﻿using Webby.VideoService.Dtos.User;
+using Webby.VideoService.Interfaces.Dto;
 
 namespace Webby.VideoService.Dtos.Video;
 
-public class PreviewVideoDto
+public class PreviewVideoDto: IVideoDtoWithUser
 {
    public string VideoId { get; init; }
    public string Name { get; init; }

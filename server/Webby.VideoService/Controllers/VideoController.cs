@@ -79,7 +79,8 @@ public class VideoController: ControllerBase
    public async Task<ActionResult<ApiResponse<PagedResponse<PreviewVideoDto>>>> GetVideoRecommendation(string videoId, [FromQuery] RecommendationOptions options)
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
-      var getRecommendationVideoResult = await _videoService.GetRecommendationVideos(videoId, requestUserId, options.Page, options.PageSize);
+      var getRecommendationVideoResult = await _videoService
+         .GetRecommendationVideos(videoId, requestUserId, options.ContentSeed, options.Page, options.PageSize);
       return Ok(ApiResponse<PagedResponse<PreviewVideoDto>>.Ok("Successfully retrieved recommendation videos",getRecommendationVideoResult));
    }
 
