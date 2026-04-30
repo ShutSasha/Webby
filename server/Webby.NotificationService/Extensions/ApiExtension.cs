@@ -1,7 +1,9 @@
-﻿using System.Text;
+﻿using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Webby.NotificationService.Data;
@@ -78,39 +80,64 @@ public static class ApiExtension
       return services;
    }
 
-   public static void AddJwtAuthorization(this IServiceCollection serviceCollection, IConfiguration configuration)
-   {
-      serviceCollection.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-         .AddJwtBearer(options =>
+public static void AddJwtAuthorization(this IServiceCollection serviceCollection, IConfiguration configuration)
+{
+   serviceCollection.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+      .AddJwtBearer(options =>
+      {
+         options.TokenValidationParameters = new TokenValidationParameters
          {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-               ValidateIssuer = false,
-               ValidateAudience = false,
-               ValidateLifetime = true,
-               ValidateIssuerSigningKey = true,
-               IssuerSigningKey = new SymmetricSecurityKey(
-                  Encoding.UTF8.GetBytes(configuration["JwtOptions:AccessSecretKey"]!)),
-               ClockSkew = TimeSpan.Zero
-            };
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+               Encoding.UTF8.GetBytes(configuration["JwtOptions:AccessSecretKey"]!)),
+            ClockSkew = TimeSpan.Zero
+         };
 
-            options.Events = new JwtBearerEvents
+         options.Events = new JwtBearerEvents
+         {
+            OnMessageReceived = context =>
             {
-               OnMessageReceived = context =>
+               var path = context.HttpContext.Request.Path;
+
+               if (path.StartsWithSegments("/hubs/notifications"))
                {
-                  var accessToken = context.Request.Query["accessToken"];
-                  var path = context.HttpContext.Request.Path;
+                  var ticket = context.Request.Query["ticket"];
 
-                  if (!string.IsNullOrEmpty(accessToken) && 
-                      path.StartsWithSegments("/hubs/notifications"))
+                  if (!string.IsNullOrEmpty(ticket))
                   {
-                     context.Token = accessToken;
+                     var cache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+                            
+                     if (cache.TryGetValue($"ws_ticket_{ticket}", out string userId))
+                     {
+                        cache.Remove($"ws_ticket_{ticket}");
+                        cache.Remove($"user_ticket_map_{userId}");
+
+                        var claims = new[] 
+                        { 
+                            new Claim(ClaimTypes.NameIdentifier, userId),
+                            new Claim("Id", userId)
+                        };
+                        
+                        var identity = new ClaimsIdentity(claims, "TicketAuth");
+                                
+                        context.Principal = new ClaimsPrincipal(identity);
+                        context.Success(); 
+                     }
+                     else
+                     {
+                        context.Fail("Invalid or expired WS ticket.");
+                     }
                   }
-                  return Task.CompletedTask;
                }
-            };
-         });
-   }
+               
+               return Task.CompletedTask;
+            }
+         };
+      });
+}
    
    public static void AddDbConnection(this IServiceCollection serviceCollection, IConfiguration configuration)
    {

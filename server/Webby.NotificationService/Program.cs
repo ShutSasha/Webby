@@ -14,12 +14,11 @@ using NotificationGrpcService = Webby.NotificationService.Services.Grpc.Notifica
 try
 {
 
-    var builder = WebApplication.CreateBuilder(args);
-    var services = builder.Services;
-    var configuration = builder.Configuration;
-    builder.AddCustomSerilog();
-
-    services.AddEndpointsApiExplorer();
+    services.AddAuthorization();
+    services.AddMemoryCache();
+    services.AddCorsPolicy("AllowApiGateway");
+    services.AddSwaggerConfig();
+    services.AddDbConnection(configuration);
 
     services.AddAuthorization();
 
