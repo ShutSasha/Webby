@@ -1,9 +1,22 @@
-﻿using Webby.VideoService.Models.Enums;
+﻿using System.Diagnostics.CodeAnalysis;
+using Webby.VideoService.Models.Enums;
 
 namespace Webby.VideoService.Models;
 
 public class Video
 {
+   public Video()
+   {
+   }
+
+   [SetsRequiredMembers]
+   public Video(bool isPrivate, Guid userId, string name)
+   {
+      IsPrivate = isPrivate;
+      UserId = userId;
+      Name = name;
+   }
+
    public Guid VideoId { get; set; }
    public Guid UserId { get; set; }
    public required string Name { get; set; }

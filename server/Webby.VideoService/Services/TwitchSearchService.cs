@@ -13,7 +13,7 @@ using Webby.VideoService.Interfaces.Services;
 
 namespace Webby.VideoService.Services;
 
-public class TwitchSearchService : IExternalVideoSearchService<StreamDto>
+public class TwitchSearchService : ITwitchSearchService
 {
     private readonly HttpClient _httpClient;
     private readonly TwitchOptions _options;
@@ -145,7 +145,7 @@ public class TwitchSearchService : IExternalVideoSearchService<StreamDto>
 
         throw new ApiException("Get twitch stream error", 404, "Stream wasn't found");
     }
-    
+
     private StreamDto MapToStreamDto(TwitchItem? item, string? avatarUrl)
     {
         return new StreamDto
