@@ -19,5 +19,9 @@ public interface IVideoRepository : IRepository<Video>
    Task<bool> FindUserView(Guid userId, Guid videoId);
    Task AddUserView(UserView userView);
    Task<int> CountUserView(Guid videoId);
-   
+   Task<(List<Video> Items, int Total)> GetRecommendedVideosAsync(Guid? currentVideoId, List<string> currentTags,
+      List<Guid> subscribedIds, List<string> historyTags, int skip, int pageSize);
+
+   Task<List<string>> GetRecentUserViewTagsAsync(Guid userId, int limit = 30);
+
 }

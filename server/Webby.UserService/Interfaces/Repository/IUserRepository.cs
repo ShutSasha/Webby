@@ -12,4 +12,5 @@ public interface IUserRepository : IRepository<User>
    Task<List<UserFollower>> GetUserFollows(Guid userId);
    Task<List<UserFollower>> GetUserFollowers(Guid userId);
    Task<List<User>> GetByIds(List<Guid> ids);
+   Task<List<Guid>> GetSubscriptionIds(Guid requestUserId);
 }

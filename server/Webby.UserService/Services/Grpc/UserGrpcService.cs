@@ -56,4 +56,14 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       };
       
    }
+
+   public override async Task<GetUserSubscriptionsIdsResponse> GetUserSubscriptionIds(GetUserSubscriptionIdsRequest request, ServerCallContext context)
+   {
+      var userSubscriptionIds = await _userRepository.GetSubscriptionIds(Guid.Parse(request.RequestUserId));
+
+      return new GetUserSubscriptionsIdsResponse()
+      {
+         UserIds = { userSubscriptionIds.Select(u => u.ToString()) }
+      };
+   }
 }

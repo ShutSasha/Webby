@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using UserService;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.User;
@@ -393,6 +394,109 @@ public class VideoService : IVideoService
       };
    }
 
+   public async Task<PagedResponse<PreviewVideoDto>> GetRecommendationVideos(string videoId, Guid? requestUserId, int page = 1, int pageSize = 20)
+   {
+      VideoDto? watchingVideo = null;
+      Guid? currentVideoGuid = null;
+
+      if (!Guid.TryParse(videoId, out var videoIdGuid))
+      {
+         watchingVideo = await _youtubeSearchService.FindById(videoId);
+      }
+      else
+      {
+         currentVideoGuid = videoIdGuid;
+         watchingVideo = _mapper.Map<VideoDto>(await _videoRepository.FindById(videoIdGuid));
+      }
+
+      if (watchingVideo == null)
+      {
+         return new PagedResponse<PreviewVideoDto>
+         {
+            Items = [],
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = default
+         };
+      }
+
+      var watchingVideoTags = watchingVideo.VideoTags ?? new List<string>();
+
+      List<Guid> subscribedAuthorIds = new();
+      List<string> historyTags = new();
+
+      if (requestUserId.HasValue)
+      {
+         var subscriptionsResponse = await _userClient.GetUserSubscriptionIdsAsync(
+            new GetUserSubscriptionIdsRequest { RequestUserId = requestUserId.ToString() });
+            
+         subscribedAuthorIds = subscriptionsResponse.UserIds
+            .Select(Guid.Parse)
+            .ToList();
+         
+         historyTags = await _videoRepository.GetRecentUserViewTagsAsync(requestUserId.Value);
+      }
+
+      var skipVideos = (page - 1) * pageSize;
+      
+      var (recommendedVideos, totalCount) = await _videoRepository.GetRecommendedVideosAsync(
+         currentVideoGuid,
+         watchingVideoTags,
+         subscribedAuthorIds,
+         historyTags,
+         skipVideos,
+         pageSize);
+
+      if (recommendedVideos.Count == 0)
+      {
+          return new PagedResponse<PreviewVideoDto>
+          {
+              Items = [],
+              TotalCount = totalCount,
+              Page = page,
+              PageSize = pageSize
+          };
+      }
+      
+      var userIds = recommendedVideos
+         .Select(v => v.UserId.ToString())
+         .Distinct()
+         .ToList();
+      
+      var users = await _userClient.GetUsersByIdsAsync(new GetUsersRequest
+      { 
+          UserIds = { userIds } 
+      });
+
+      var usersDict = users.Users.ToDictionary(u => u.UserId, u => u);
+      
+      var items = recommendedVideos.Select(v => 
+      {
+          var dto = _mapper.Map<PreviewVideoDto>(v);
+          
+          var currentUserIdStr = v.UserId.ToString();
+          if (usersDict.TryGetValue(currentUserIdStr, out var userInfo))
+          {
+              dto.User = new UserVideoDto
+              {
+                  UserId = userInfo.UserId,
+                  Username = userInfo.Username,
+                  AvatarUrl = userInfo.AvatarUrl,
+              };
+          }
+
+          return dto;
+      }).ToList();
+
+      return new PagedResponse<PreviewVideoDto>
+      {
+         Items = items,
+         Page = page,
+         PageSize = pageSize,
+         TotalCount = totalCount
+      };
+   }
+
    public async Task<bool> CheckUploadStatus(Guid videoId)
    {
       var video = await _videoRepository.FindById(videoId);
@@ -473,5 +577,9 @@ public class VideoService : IVideoService
 
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>
       videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();
-   
+
+   private List<PreviewVideoDto> MapToPreviewDto(IEnumerable<Video> videos) =>
+      videos.Select(v => _mapper.Map<PreviewVideoDto>(v)).ToList();
+
+
 }
