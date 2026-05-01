@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http.Features;
 using Webby.NotificationService.GrpcClient;
+using Webby.UserService.Consts;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Dtos.Notification;
 using Webby.UserService.Dtos.Search;
@@ -84,7 +85,7 @@ public class UserService : IUserService
       var updatedUserIconPath = await _storageService
          .UploadFileAsync(id,"user_data",fileName,fileStream,contentType);
 
-      if (user.AvatarUrl.StartsWith("https://webby-watch-platform-bucket"))
+      if (user.AvatarUrl.StartsWith("https://webby-watch-platform-bucket") && user.AvatarUrl != DefaultLinks.DefaultUserIcon)
       {
          await _storageService.DeleteFileAsync(user.AvatarUrl);
       }
