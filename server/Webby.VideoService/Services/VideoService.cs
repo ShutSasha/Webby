@@ -440,11 +440,6 @@ public class VideoService : IVideoService
          .Distinct()
          .ToList();
       
-      var users = await _userClient.GetUsersByIdsAsync(new GetUsersRequest
-      { 
-          UserIds = { userIds } 
-      });
-
       var items = await MapAndEnrichWithUsersAsync<PreviewVideoDto>(recommendedVideos);
 
       return new PagedResponse<PreviewVideoDto>
