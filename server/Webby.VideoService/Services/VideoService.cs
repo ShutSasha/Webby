@@ -435,11 +435,6 @@ public class VideoService : IVideoService
           };
       }
       
-      var userIds = recommendedVideos
-         .Select(v => v.UserId.ToString())
-         .Distinct()
-         .ToList();
-      
       var items = await MapAndEnrichWithUsersAsync<PreviewVideoDto>(recommendedVideos);
 
       return new PagedResponse<PreviewVideoDto>
