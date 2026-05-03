@@ -7,12 +7,14 @@ namespace Webby.UserService.Services.Grpc;
 public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServiceBase
 {
    private readonly IUserRepository _userRepository;
+   private readonly IUserPremiumRepository _userPremiumRepository;
    private readonly ILogger<UserGrpcService> _logger;
 
-   public UserGrpcService(IUserRepository userRepository, ILogger<UserGrpcService> logger)
+   public UserGrpcService(IUserRepository userRepository, ILogger<UserGrpcService> logger, IUserPremiumRepository userPremiumRepository)
    {
       _userRepository = userRepository;
       _logger = logger;
+      _userPremiumRepository = userPremiumRepository;
    }
 
    public override async Task<UserResponse> GetUserById(GetUserRequest request, ServerCallContext context)
@@ -64,6 +66,23 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       return new GetUserSubscriptionsIdsResponse()
       {
          UserIds = { userSubscriptionIds.Select(u => u.ToString()) }
+      };
+   }
+
+   public override async Task<GetPremiumStatusResponse> GetPremiumStatus(GetPremiumStatusRequest request, ServerCallContext context)
+   {
+      var userPremium = await _userPremiumRepository.GetUserPremiumInformation(Guid.Parse(request.UserId));
+   
+      var status = userPremium switch
+      {
+         null => PremiumStatus.None,
+         _ when userPremium.ExpiresAt > DateTime.UtcNow => PremiumStatus.Active,
+         _ => PremiumStatus.Expired
+      };
+
+      return new GetPremiumStatusResponse
+      {
+         Status = status
       };
    }
 }

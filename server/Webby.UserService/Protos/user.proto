@@ -6,6 +6,7 @@ service UserGrpcService {
   rpc GetUserById (GetUserRequest) returns (UserResponse);
   rpc GetUsersByIds (GetUsersRequest) returns (GetUsersResponse);
   rpc GetUserSubscriptionIds (GetUserSubscriptionIdsRequest) returns (GetUserSubscriptionsIdsResponse);
+  rpc GetPremiumStatus(GetPremiumStatusRequest) returns (GetPremiumStatusResponse);
 }
 
 // REQUESTS
@@ -23,6 +24,10 @@ message GetUserSubscriptionIdsRequest{
   string requestUserId = 1;
 }
 
+message GetPremiumStatusRequest{
+  string userId = 1;
+}
+
 //RESPONSES
 
 message UserResponse {
@@ -38,4 +43,15 @@ message GetUsersResponse {
 
 message GetUserSubscriptionsIdsResponse{
   repeated string userIds = 1;
+}
+
+enum PremiumStatus {
+  NONE = 0;
+  ACTIVE = 1;
+  EXPIRED = 2;
+  TRIAL = 3;
+}
+
+message GetPremiumStatusResponse {
+  PremiumStatus status = 1;
 }
