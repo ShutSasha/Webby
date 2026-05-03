@@ -5,7 +5,10 @@ option csharp_namespace = "UserService";
 service UserGrpcService {
   rpc GetUserById (GetUserRequest) returns (UserResponse);
   rpc GetUsersByIds (GetUsersRequest) returns (GetUsersResponse);
+  rpc GetUserSubscriptionIds (GetUserSubscriptionIdsRequest) returns (GetUserSubscriptionsIdsResponse);
 }
+
+// REQUESTS
 
 message GetUserRequest {
   string userId = 1;
@@ -16,6 +19,12 @@ message GetUsersRequest {
   repeated string userIds = 1;
 }
 
+message GetUserSubscriptionIdsRequest{
+  string requestUserId = 1;
+}
+
+//RESPONSES
+
 message UserResponse {
   string userId = 1;
   string username = 2;
@@ -25,4 +34,8 @@ message UserResponse {
 
 message GetUsersResponse {
   repeated UserResponse users = 1;
+}
+
+message GetUserSubscriptionsIdsResponse{
+  repeated string userIds = 1;
 }

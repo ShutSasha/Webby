@@ -74,7 +74,16 @@ public class VideoController: ControllerBase
       return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved user videos", result));
    }
    
-   //TODO: add recommendation videos route
+   [HttpGet("recommendation/{videoId}")]
+   [SwaggerOperation("Get recommendations videos")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<PreviewVideoDto>>>> GetVideoRecommendation(string videoId, [FromQuery] RecommendationOptions options)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var getRecommendationVideoResult = await _videoService
+         .GetRecommendationVideos(videoId, requestUserId, options.ContentSeed, options.Page, options.PageSize);
+      return Ok(ApiResponse<PagedResponse<PreviewVideoDto>>.Ok("Successfully retrieved recommendation videos",getRecommendationVideoResult));
+   }
+
    
    [HttpPost("upload")]
    [SwaggerOperation("Upload video file route", "AUTH REQUIRED")]

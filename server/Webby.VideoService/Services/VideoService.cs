@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using UserService;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.User;
@@ -7,6 +8,7 @@ using Webby.VideoService.Dtos.Video.Enums;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Helpers.Video;
+using Webby.VideoService.Interfaces.Dto;
 using Webby.VideoService.Interfaces.Helpers;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
@@ -297,25 +299,46 @@ public class VideoService : IVideoService
       if (options.SearchPlatform == SearchVideoPlatforms.YouTube)
       {
          var youtubeResponse = await _youtubeSearchService
-            .SearchAsync(options.SearchText, options.PageSize, options.Page,options.NextPageToken);
+            .SearchAsync(options.SearchText, options.PageSize, options.Page, options.NextPageToken);
          return youtubeResponse;
       }
-   
+
       var skip = (options.Page - 1) * options.PageSize;
-      var (additionalConditional, parameters, predicate) = VideoQueryFilters.SearchVideoFilter(requestUserId);
       
-      var (videos, total) = await _videoRepository.SearchAsync(
-         "Videos",
-         "Name",
-         options.SearchText,
-         skip,
-         options.PageSize,
-         additionalConditional,
-         parameters,
-         predicateFactory: predicate
-      );
+      List<Video> videos = [];
+      var total = 0;
+      var seed = options.ContentSeed;
       
-      if (!videos.Any())
+      if (string.IsNullOrWhiteSpace(options.SearchText))
+      {
+         var (subscribedAuthorIds, historyTags) = await GetUserRecommendationContextAsync(requestUserId);
+          
+          (videos, total, seed) = await _videoRepository.GetRecommendedVideosAsync(
+              currentVideoId: null,
+              currentTags: [], 
+              subscribedIds: subscribedAuthorIds,
+              historyTags: historyTags,
+              skip: skip,
+              pageSize: options.PageSize,
+              contentSeed: options.ContentSeed);
+      }
+      else
+      {
+          var (additionalConditional, parameters, predicate) = VideoQueryFilters.SearchVideoFilter(requestUserId);
+          
+          (videos, total) = await _videoRepository.SearchAsync(
+             "Videos",
+             "Name",
+             options.SearchText,
+             skip,
+             options.PageSize,
+             additionalConditional,
+             parameters,
+             predicateFactory: predicate
+          );
+      }
+      
+      if (videos.Count == 0)
       {
           return new PagedResponse<VideoDto>
           {
@@ -326,42 +349,15 @@ public class VideoService : IVideoService
           };
       }
       
-      var userIds = videos
-         .Select(v => v.UserId.ToString())
-         .Distinct()
-         .ToList();
-      
-      var users = await _userClient.GetUsersByIdsAsync(new GetUsersRequest
-      { 
-          UserIds = { userIds } 
-      });
-
-      var usersDict = users.Users.ToDictionary(u => u.UserId, u => u);
-      
-      var items = videos.Select(v => 
-      {
-          var dto = _mapper.Map<VideoDto>(v);
-          
-          var currentUserIdStr = v.UserId.ToString();
-          if (usersDict.TryGetValue(currentUserIdStr, out var userInfo))
-          {
-              dto.User = new UserVideoDto
-              {
-                  UserId = userInfo.UserId,
-                  Username = userInfo.Username,
-                  AvatarUrl = userInfo.AvatarUrl,
-              };
-          }
-
-          return dto;
-      }).ToList();
+      var items = await MapAndEnrichWithUsersAsync<VideoDto>(videos);
       
       return new PagedResponse<VideoDto>
       {
          Items = items,
          TotalCount = total,
          Page = options.Page,
-         PageSize = options.PageSize
+         PageSize = options.PageSize,
+         ContentSeed = seed
       };
    }
 
@@ -437,6 +433,64 @@ public class VideoService : IVideoService
         TotalCount = total
     };
 }
+
+   public async Task<PagedResponse<PreviewVideoDto>> GetRecommendationVideos(string videoId, Guid? requestUserId,int contentSeed,
+      int page = 1, int pageSize = 20)
+   {
+      VideoDto? watchingVideo = null;
+      Guid? currentVideoGuid = null;
+
+      if (!Guid.TryParse(videoId, out var videoIdGuid))
+      {
+         watchingVideo = await _youtubeSearchService.FindById(videoId);
+      }
+      else
+      {
+         currentVideoGuid = videoIdGuid;
+         watchingVideo = _mapper.Map<VideoDto>(await _videoRepository.GetVideoInformationById(videoIdGuid));
+      }
+
+      if (watchingVideo == null)
+      {
+         return new PagedResponse<PreviewVideoDto> { Items = [], Page = page, PageSize = pageSize, TotalCount = 0 };
+      }
+
+      var watchingVideoTags = watchingVideo.VideoTags ?? [];
+      var skipVideos = (page - 1) * pageSize;
+      
+      var (subscribedAuthorIds, historyTags) = await GetUserRecommendationContextAsync(requestUserId);
+      
+      var (recommendedVideos, totalCount, seed) = await _videoRepository.GetRecommendedVideosAsync(
+         currentVideoGuid,
+         watchingVideoTags,
+         subscribedAuthorIds,
+         historyTags,
+         skipVideos,
+         pageSize,
+         contentSeed);
+
+      if (recommendedVideos.Count == 0)
+      {
+          return new PagedResponse<PreviewVideoDto>
+          {
+              Items = [],
+              TotalCount = totalCount,
+              Page = page,
+              PageSize = pageSize
+          };
+      }
+      
+      var items = await MapAndEnrichWithUsersAsync<PreviewVideoDto>(recommendedVideos);
+
+      return new PagedResponse<PreviewVideoDto>
+      {
+         Items = items,
+         Page = page,
+         PageSize = pageSize,
+         TotalCount = totalCount,
+         ContentSeed = seed
+      };
+   }
 
    public async Task<bool> CheckUploadStatus(Guid videoId)
    {
@@ -518,5 +572,53 @@ public class VideoService : IVideoService
 
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>
       videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();
+   
+   private async Task<(List<Guid> SubscribedIds, List<string> HistoryTags)> GetUserRecommendationContextAsync(Guid? requestUserId)
+   {
+      if (!requestUserId.HasValue)
+         return ([], []);
+
+      var subscriptionsResponse = await _userClient.GetUserSubscriptionIdsAsync(
+         new GetUserSubscriptionIdsRequest { RequestUserId = requestUserId.ToString() });
+            
+      var subscribedIds = subscriptionsResponse.UserIds.Select(Guid.Parse).ToList();
+      var historyTags = await _videoRepository.GetRecentUserViewTagsAsync(requestUserId.Value);
+
+      return (subscribedIds, historyTags);
+   }
+   
+   private async Task<List<TDto>> MapAndEnrichWithUsersAsync<TDto>(List<Video> videos) where TDto : IVideoDtoWithUser
+   {
+      if (videos.Count == 0) return [];
+
+      var userIds = videos
+         .Select(v => v.UserId.ToString())
+         .Distinct()
+         .ToList();
+
+      var usersResponse = await _userClient.GetUsersByIdsAsync(new GetUsersRequest
+      { 
+         UserIds = { userIds } 
+      });
+
+      var usersDict = usersResponse.Users.ToDictionary(u => u.UserId, u => u);
+
+      return videos.Select(v => 
+      {
+         var dto = _mapper.Map<TDto>(v);
+        
+         if (usersDict.TryGetValue(v.UserId.ToString(), out var userInfo))
+         {
+            dto.User = new UserVideoDto
+            {
+               UserId = userInfo.UserId,
+               Username = userInfo.Username,
+               AvatarUrl = userInfo.AvatarUrl,
+            };
+         }
+
+         return dto;
+      }).ToList();
+   }
    
 }

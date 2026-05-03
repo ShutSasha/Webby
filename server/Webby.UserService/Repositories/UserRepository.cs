@@ -77,4 +77,12 @@ public class UserRepository : GenericRepository<User>,IUserRepository
          .Where(u => ids.Contains(u.UserId))
          .ToListAsync();
    }
+
+   public async Task<List<Guid>> GetSubscriptionIds(Guid requestUserId)
+   {
+      return await _context.UserFollowers
+         .Where(uf => uf.FollowerId == requestUserId)
+         .Select(uf => uf.UserId)
+         .ToListAsync();
+   }
 }

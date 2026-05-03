@@ -17,5 +17,6 @@ public class MappingProfiles : Profile
                .ToList()));
       
       CreateMap<Models.Video, UploadVideoResponse>();
+      CreateMap<Models.Video, PreviewVideoDto>();
    }
 }
