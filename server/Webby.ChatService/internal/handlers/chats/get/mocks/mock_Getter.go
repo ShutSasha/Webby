@@ -29,3 +29,7 @@ func (m *MockGetter) GetById(ctx context.Context, chatId uuid.UUID) (*models.Cha
 	}
 	return r0, ret.Error(1)
 }
+
+func (m *MockGetter) Create(ctx context.Context, roomId *uuid.UUID) (*models.Chat, error) {
+	panic("unexpected Create call on MockGetter")
+}

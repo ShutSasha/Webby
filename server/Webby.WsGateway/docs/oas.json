@@ -2,18 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Webby.WsGateway",
-    "description": "WebSocket gateway for the Webby platform. Bridges real-time client connections to backend services via gRPC and Redis Pub/Sub.\n\n## Connection\n\n```\nws://localhost:8090/socket.io/?token=<JWT>&room_id=<UUID>\n```\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `token` | `string` | Yes | JWT (HMAC). Claims tried: `sub`, `user_id`, `userId`, `uid` |\n| `room_id` | `string (UUID)` | Yes | Room to join |\n\n### Connection Errors\n\n| Condition | Error |\n|-----------|-------|\n| Missing `token` or `room_id` | `token and room_id are required` |\n| Invalid JWT signature | `unauthorized` |\n| Malformed UUID | `invalid room_id` |\n| User ID claim not found | `user id claim not found` |\n\n---\n\n## Client → Server Events\n\n| Event | Payload | Success Response | Error Response | Description |\n|-------|---------|------------------|----------------|-------------|\n| `send_message` | `{\"content\": \"Hello!\"}` | `{\"ok\": true, \"message_id\": \"550e8400-...\"}` | `{\"error\": \"content is required\"}` | Send a chat message to the current room. Forwarded to ChatService via gRPC. |\n\n### `send_message` — full example\n\n**Request payload:**\n```json\n{\n  \"content\": \"Hello, world!\"\n}\n```\n\n**Success response (callback):**\n```json\n{\n  \"ok\": true,\n  \"message_id\": \"550e8400-e29b-41d4-a716-446655440000\"\n}\n```\n\n**Error response (callback):**\n```json\n{\n  \"error\": \"content is required\"\n}\n```\n\n---\n\n## Server → Client Events\n\nBusiness services publish JSON envelopes into Redis channel `room:<room_id>`. The gateway re-broadcasts the `payload` to all connected clients under an event name equal to `type`.\n\n### Redis envelope format\n```json\n{\n  \"type\": \"EVENT_NAME\",\n  \"payload\": { ... }\n}\n```\n\n| Event | Example Payload | Source Service | Description |\n|-------|-----------------|----------------|-------------|\n| `MESSAGE_CREATED` | `{\"id\": \"uuid\", \"senderId\": \"uuid\", \"chatId\": \"uuid\", \"content\": \"Hello!\", \"createdAt\": \"2026-04-04T12:00:00Z\"}` | ChatService | New message broadcast to room |\n| `VOTE_UPDATED` | `{\"voteId\": \"uuid\", \"choices\": [...], \"totalVotes\": 42}` | VotesService | Vote state changed |\n| `POINTS_AWARDED` | `{\"roomId\": \"uuid\", \"awards\": [{\"userId\": \"uuid\", \"points\": 10}]}` | RoomService | Points awarded to active users |\n\n### `MESSAGE_CREATED` — full example\n\nPublished by ChatService after saving a message:\n```json\n{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"senderId\": \"660e8400-e29b-41d4-a716-446655440001\",\n  \"chatId\": \"770e8400-e29b-41d4-a716-446655440002\",\n  \"content\": \"Hello, world!\",\n  \"createdAt\": \"2026-04-04T12:00:00Z\"\n}\n```\n\n### `VOTE_UPDATED` — full example\n\nPublished by VotesService when a user casts a vote:\n```json\n{\n  \"voteId\": \"880e8400-e29b-41d4-a716-446655440003\",\n  \"choices\": [\n    { \"id\": \"aaa...\", \"label\": \"Option A\", \"count\": 15 },\n    { \"id\": \"bbb...\", \"label\": \"Option B\", \"count\": 27 }\n  ],\n  \"totalVotes\": 42\n}\n```\n\n### `POINTS_AWARDED` — full example\n\nPublished by RoomService after the activity worker tick:\n```json\n{\n  \"roomId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"awards\": [\n    { \"userId\": \"aaa...\", \"points\": 10 },\n    { \"userId\": \"bbb...\", \"points\": 10 }\n  ]\n}\n```\n\n---\n\n## Background Workers\n\n| Worker | Interval | Description |\n|--------|----------|-------------|\n| Activity | 60 s (configurable) | Snapshots online `{room_id → [user_ids]}` and calls `RoomService.AwardActiveUsers` via gRPC. RoomService awards points and publishes `POINTS_AWARDED` back through Redis. |\n",
-    "version": "1.0",
-    "contact": {
-      "name": "Webby Team"
-    }
+    "version": "1.0"
   },
-  "servers": [
-    {
-      "url": "http://localhost:8090",
-      "description": "Local development"
-    }
-  ],
   "security": [
     {
       "BearerAuth": []
@@ -25,26 +15,73 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "JWT token passed as `?token=<JWT>` query parameter on WebSocket connect"
+        "description": "Authorization token (pass in the Header)"
+      }
+    },
+    "schemas": {
+      "Token": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "message": {
+            "type": "string",
+            "example": "Token generated successfully"
+          },
+          "data": {
+            "type": "string",
+            "example": "sdfnsdfj134",
+            "description": "One-time token for WebSocket connection"
+          },
+          "errors": {
+            "type": "object",
+            "nullable": true,
+            "example": null
+          }
+        }
+      },
+      "InternalServerError": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "message": { "type": "string", "example": "Error generating token" },
+          "data": {
+            "type": "object",
+            "nullable": true,
+            "example": null
+          },
+          "errors": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "example": "error generating token"
+              }
+            }
+          }
+        }
       }
     }
   },
   "paths": {
-    "/healthz": {
+    "/api/ws-token": {
       "get": {
-        "summary": "Health check",
-        "description": "Returns 200 OK if the gateway is running.",
-        "tags": ["Health"],
-        "security": [],
+        "summary": "Retrieve token to connect to WS",
+        "tags": ["WebSocket"],
+        "security": [{ "BearerAuth": [] }],
         "responses": {
           "200": {
-            "description": "Healthy",
+            "description": "Token generated successfully",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "ok"
-                }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Token" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InternalServerError" }
               }
             }
           }

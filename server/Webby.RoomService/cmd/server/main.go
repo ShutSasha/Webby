@@ -52,7 +52,6 @@ func run(ctx context.Context, w io.Writer) error {
 		logger.Error("database connection failed", slog.String("error", err.Error()))
 		return err
 	}
-
 	defer db.Close()
 
 	logger.Info("database connected successfully")

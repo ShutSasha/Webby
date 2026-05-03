@@ -16,6 +16,21 @@
       }
     },
     {
+      "DownstreamPathTemplate": "/api/ws-token",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8090
+        }
+      ],
+      "UpstreamPathTemplate": "/api/ws-token",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
       "DownstreamPathTemplate": "/socket.io/{everything}",
       "DownstreamScheme": "ws",
       "DownstreamHostAndPorts": [

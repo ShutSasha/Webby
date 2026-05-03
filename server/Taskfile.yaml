@@ -76,11 +76,20 @@ tasks:
         CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
         ./server.exe --config ./config/config.yaml
   
+  run_ws_gateway:
+    desc: "Run the Go WsGateway"
+    cmds:
+      - |
+        cd ./Webby.WsGateway
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
+
   run_all:
     desc: "Run all services"
     deps:
       - run_auth_service
       - run_api_getaway
+      - run_ws_gateway
       - run_user_service
       - run_video_service
       - run_room_category_service

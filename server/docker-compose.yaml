@@ -83,6 +83,7 @@ services:
     volumes:
       - redis-data:/data
     container_name: webby-redis
+    command: redis-server --requirepass your_super_password
 
   chat-service:
     build:

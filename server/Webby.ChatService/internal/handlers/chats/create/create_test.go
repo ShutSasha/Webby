@@ -11,24 +11,28 @@ import (
 	"testing"
 	"time"
 	"webby-chat/internal/apperrors"
-	"webby-chat/internal/handlers/chats/create"
+	"webby-chat/internal/handlers"
 	"webby-chat/internal/handlers/chats/create/mocks"
 	"webby-chat/internal/handlers/responses"
 	"webby-chat/internal/models"
 	"webby-chat/pkg/logger"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-func setupRequest(body string) *http.Request {
+func setupRequest(body string) (*gin.Context, *httptest.ResponseRecorder) {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
 	req := httptest.NewRequest(http.MethodPost, "/api/chats", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
 	ctx := context.WithValue(req.Context(), "userID", uuid.New().String())
 	ctx = logger.ToContext(ctx, log)
-	return req.WithContext(ctx)
+	c.Request = req.WithContext(ctx)
+	return c, w
 }
 
 func TestCreateChat_Success(t *testing.T) {
@@ -42,11 +46,10 @@ func TestCreateChat_Success(t *testing.T) {
 		}
 		mockCreator.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return(chat, nil).Once()
 
-		handler := create.New(mockCreator)
-		req := setupRequest(`{}`)
-		w := httptest.NewRecorder()
+		handler := handlers.New(mockCreator)
+		c, w := setupRequest(`{}`)
 
-		handler.ServeHTTP(w, req)
+		handler.Create(c)
 
 		require.Equal(t, http.StatusCreated, w.Code)
 
@@ -69,12 +72,11 @@ func TestCreateChat_Success(t *testing.T) {
 		}
 		mockCreator.On("Create", mock.Anything, &roomId).Return(chat, nil).Once()
 
-		handler := create.New(mockCreator)
+		handler := handlers.New(mockCreator)
 		body := `{"roomId":"` + roomId.String() + `"}`
-		req := setupRequest(body)
-		w := httptest.NewRecorder()
+		c, w := setupRequest(body)
 
-		handler.ServeHTTP(w, req)
+		handler.Create(c)
 
 		require.Equal(t, http.StatusCreated, w.Code)
 
@@ -90,12 +92,11 @@ func TestCreateChat_Success(t *testing.T) {
 func TestCreateChat_ValidationErrors(t *testing.T) {
 	t.Run("Invalid roomId format", func(t *testing.T) {
 		mockCreator := mocks.NewMockCreator(t)
-		handler := create.New(mockCreator)
+		handler := handlers.New(mockCreator)
 
-		req := setupRequest(`{"roomId":"not-a-uuid"}`)
-		w := httptest.NewRecorder()
+		c, w := setupRequest(`{"roomId":"not-a-uuid"}`)
 
-		handler.ServeHTTP(w, req)
+		handler.Create(c)
 
 		require.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -107,12 +108,11 @@ func TestCreateChat_ValidationErrors(t *testing.T) {
 
 	t.Run("Invalid JSON body", func(t *testing.T) {
 		mockCreator := mocks.NewMockCreator(t)
-		handler := create.New(mockCreator)
+		handler := handlers.New(mockCreator)
 
-		req := setupRequest(`{invalid}`)
-		w := httptest.NewRecorder()
+		c, w := setupRequest(`{invalid}`)
 
-		handler.ServeHTTP(w, req)
+		handler.Create(c)
 
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -123,11 +123,10 @@ func TestCreateChat_ServiceErrors(t *testing.T) {
 		mockCreator := mocks.NewMockCreator(t)
 		mockCreator.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return((*models.Chat)(nil), apperrors.ErrConflict).Once()
 
-		handler := create.New(mockCreator)
-		req := setupRequest(`{}`)
-		w := httptest.NewRecorder()
+		handler := handlers.New(mockCreator)
+		c, w := setupRequest(`{}`)
 
-		handler.ServeHTTP(w, req)
+		handler.Create(c)
 
 		require.Equal(t, http.StatusConflict, w.Code)
 	})
@@ -136,11 +135,10 @@ func TestCreateChat_ServiceErrors(t *testing.T) {
 		mockCreator := mocks.NewMockCreator(t)
 		mockCreator.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return((*models.Chat)(nil), apperrors.ErrInternal).Once()
 
-		handler := create.New(mockCreator)
-		req := setupRequest(`{}`)
-		w := httptest.NewRecorder()
+		handler := handlers.New(mockCreator)
+		c, w := setupRequest(`{}`)
 
-		handler.ServeHTTP(w, req)
+		handler.Create(c)
 
 		require.Equal(t, http.StatusInternalServerError, w.Code)
 	})

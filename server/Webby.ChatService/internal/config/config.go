@@ -9,11 +9,12 @@ import (
 )
 
 type Config struct {
-	Env              string     `yaml:"env" env-default:"local"`
-	ConnectionString string     `yaml:"connectionString"`
-	JwtSecret        string     `yaml:"jwtSecret"`
-	Http             HttpConfig `yaml:"http"`
-	Grpc             GrpcConfig `yaml:"grpc"`
+	Env              string      `yaml:"env" env-default:"local"`
+	ConnectionString string      `yaml:"connectionString"`
+	JwtSecret        string      `yaml:"jwtSecret"`
+	Http             HttpConfig  `yaml:"http"`
+	Grpc             GrpcConfig  `yaml:"grpc"`
+	Redis            RedisConfig `yaml:"redis"`
 }
 
 type HttpConfig struct {
@@ -24,6 +25,12 @@ type HttpConfig struct {
 
 type GrpcConfig struct {
 	Port int `yaml:"port"`
+}
+
+type RedisConfig struct {
+	Addr     string `yaml:"addr" env-default:"localhost:6379"`
+	Password string `yaml:"password" env-default:""`
+	DB       int    `yaml:"db" env-default:"0"`
 }
 
 func MustLoad() *Config {

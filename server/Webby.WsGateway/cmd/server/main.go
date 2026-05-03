@@ -16,8 +16,12 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"webby-wsgateway/internal/config"
+	"webby-wsgateway/internal/db"
 	clients "webby-wsgateway/internal/grpc"
+	handlers "webby-wsgateway/internal/handers"
 	redisbus "webby-wsgateway/internal/redis"
+	"webby-wsgateway/internal/repositories"
+	"webby-wsgateway/internal/services"
 	"webby-wsgateway/internal/worker"
 	"webby-wsgateway/internal/ws"
 )
@@ -66,20 +70,21 @@ func main() {
 	}()
 	defer wsSrv.Close()
 
-	mux := http.NewServeMux()
-	mux.Handle("/socket.io/", wsSrv.IO())
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("ok"))
-	})
-	mux.HandleFunc("GET /swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		http.ServeFile(w, r, "./docs/oas.json")
-	})
+	db, err := db.New(cfg.ConnectionString)
+	if err != nil {
+		logger.Error("database connection failed", slog.String("error", err.Error()))
+	}
+	defer db.Close()
+
+	logger.Info("database connected successfully")
+
+	repository := repositories.New(db)
+	service := services.New(repository)
+	server := handlers.NewServer(cfg, service, logger, wsSrv)
 
 	httpSrv := &http.Server{
 		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
-		Handler:      mux,
+		Handler:      server,
 		ReadTimeout:  cfg.Http.Timeout,
 		WriteTimeout: cfg.Http.Timeout,
 	}

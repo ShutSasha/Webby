@@ -22,6 +22,7 @@ const (
 	ChatGrpcService_CreateChat_FullMethodName      = "/chat.ChatGrpcService/CreateChat"
 	ChatGrpcService_GetChatByRoomId_FullMethodName = "/chat.ChatGrpcService/GetChatByRoomId"
 	ChatGrpcService_AddChatMember_FullMethodName   = "/chat.ChatGrpcService/AddChatMember"
+	ChatGrpcService_SaveMessage_FullMethodName     = "/chat.ChatGrpcService/SaveMessage"
 )
 
 // ChatGrpcServiceClient is the client API for ChatGrpcService service.
@@ -31,6 +32,7 @@ type ChatGrpcServiceClient interface {
 	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*ChatResponse, error)
 	GetChatByRoomId(ctx context.Context, in *GetChatByRoomIdRequest, opts ...grpc.CallOption) (*ChatResponse, error)
 	AddChatMember(ctx context.Context, in *AddChatMemberRequest, opts ...grpc.CallOption) (*AddChatMemberResponse, error)
+	SaveMessage(ctx context.Context, in *SaveMessageRequest, opts ...grpc.CallOption) (*SaveMessageResponse, error)
 }
 
 type chatGrpcServiceClient struct {
@@ -71,6 +73,16 @@ func (c *chatGrpcServiceClient) AddChatMember(ctx context.Context, in *AddChatMe
 	return out, nil
 }
 
+func (c *chatGrpcServiceClient) SaveMessage(ctx context.Context, in *SaveMessageRequest, opts ...grpc.CallOption) (*SaveMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveMessageResponse)
+	err := c.cc.Invoke(ctx, ChatGrpcService_SaveMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChatGrpcServiceServer is the server API for ChatGrpcService service.
 // All implementations must embed UnimplementedChatGrpcServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type ChatGrpcServiceServer interface {
 	CreateChat(context.Context, *CreateChatRequest) (*ChatResponse, error)
 	GetChatByRoomId(context.Context, *GetChatByRoomIdRequest) (*ChatResponse, error)
 	AddChatMember(context.Context, *AddChatMemberRequest) (*AddChatMemberResponse, error)
+	SaveMessage(context.Context, *SaveMessageRequest) (*SaveMessageResponse, error)
 	mustEmbedUnimplementedChatGrpcServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedChatGrpcServiceServer) GetChatByRoomId(context.Context, *GetC
 }
 func (UnimplementedChatGrpcServiceServer) AddChatMember(context.Context, *AddChatMemberRequest) (*AddChatMemberResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddChatMember not implemented")
+}
+func (UnimplementedChatGrpcServiceServer) SaveMessage(context.Context, *SaveMessageRequest) (*SaveMessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveMessage not implemented")
 }
 func (UnimplementedChatGrpcServiceServer) mustEmbedUnimplementedChatGrpcServiceServer() {}
 func (UnimplementedChatGrpcServiceServer) testEmbeddedByValue()                         {}
@@ -172,6 +188,24 @@ func _ChatGrpcService_AddChatMember_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChatGrpcService_SaveMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatGrpcServiceServer).SaveMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatGrpcService_SaveMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatGrpcServiceServer).SaveMessage(ctx, req.(*SaveMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChatGrpcService_ServiceDesc is the grpc.ServiceDesc for ChatGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var ChatGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddChatMember",
 			Handler:    _ChatGrpcService_AddChatMember_Handler,
+		},
+		{
+			MethodName: "SaveMessage",
+			Handler:    _ChatGrpcService_SaveMessage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

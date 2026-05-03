@@ -1,32 +1,48 @@
-package httpserver
+package handlers
 
 import (
 	"log/slog"
 	"net/http"
+	"reflect"
+	"strings"
 	"webby-chat/internal/config"
-	"webby-chat/pkg/http/middleware"
 	"webby-chat/pkg/http/middleware/cors"
 	loggerMw "webby-chat/pkg/http/middleware/logger"
 
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	socketio "github.com/googollee/go-socket.io"
 )
 
 func NewServer(
-	config *config.Config,
+	cfg *config.Config,
 	logger *slog.Logger,
-	chatService ChatService,
+	service Service,
 	socketServer *socketio.Server,
 ) http.Handler {
-	mux := http.NewServeMux()
-	addRoutes(
-		mux,
-		config,
-		chatService,
-		socketServer,
-	)
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
 
-	var handler http.Handler = mux
-	handler = middleware.Chain(handler, cors.CORS, loggerMw.New(logger))
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+		v.RegisterValidation("notblank", func(fl validator.FieldLevel) bool {
+			return strings.TrimSpace(fl.Field().String()) != ""
+		})
+	}
 
-	return handler
+	router.Use(loggerMw.Logger(logger))
+	router.Use(gin.Recovery())
+	router.Use(cors.CORS())
+
+	handler := New(service)
+	addRoutes(router, cfg, handler)
+
+	return router
 }

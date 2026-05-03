@@ -3,8 +3,9 @@ package logger
 import (
 	"log/slog"
 
+	ctxlogger "webby-wsgateway/pkg/logger"
+
 	"github.com/gin-gonic/gin"
-	ctxlogger "webby-chat/pkg/logger"
 )
 
 func Logger(log *slog.Logger) gin.HandlerFunc {
@@ -20,6 +21,7 @@ func Logger(log *slog.Logger) gin.HandlerFunc {
 
 		ctx := ctxlogger.ToContext(c.Request.Context(), log)
 		c.Request = c.Request.WithContext(ctx)
+
 		c.Next()
 	}
 }

@@ -10,24 +10,29 @@ import (
 	"testing"
 	"time"
 	"webby-chat/internal/apperrors"
-	"webby-chat/internal/handlers/chats/get"
+	"webby-chat/internal/handlers"
 	"webby-chat/internal/handlers/chats/get/mocks"
 	"webby-chat/internal/handlers/responses"
 	"webby-chat/internal/models"
 	"webby-chat/pkg/logger"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-func setupRequest(chatID string, userID uuid.UUID) *http.Request {
+func setupRequest(chatID string, userID uuid.UUID) (*gin.Context, *httptest.ResponseRecorder) {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
 	req := httptest.NewRequest(http.MethodGet, "/api/chats/"+chatID, nil)
-	req.SetPathValue("id", chatID)
 	ctx := context.WithValue(req.Context(), "userID", userID.String())
 	ctx = logger.ToContext(ctx, log)
-	return req.WithContext(ctx)
+	req = req.WithContext(ctx)
+	c.Request = req
+	c.Params = gin.Params{{Key: "id", Value: chatID}}
+	return c, w
 }
 
 func TestGetChat_Success(t *testing.T) {
@@ -44,11 +49,10 @@ func TestGetChat_Success(t *testing.T) {
 		}
 		mockGetter.On("GetById", mock.Anything, chatID).Return(chat, nil).Once()
 
-		handler := get.New(mockGetter)
-		req := setupRequest(chatID.String(), userID)
-		w := httptest.NewRecorder()
+		handler := handlers.New(mockGetter)
+		c, w := setupRequest(chatID.String(), userID)
 
-		handler.ServeHTTP(w, req)
+		handler.Get(c)
 
 		require.Equal(t, http.StatusOK, w.Code)
 
@@ -70,11 +74,10 @@ func TestGetChat_Success(t *testing.T) {
 		}
 		mockGetter.On("GetById", mock.Anything, chatID).Return(chat, nil).Once()
 
-		handler := get.New(mockGetter)
-		req := setupRequest(chatID.String(), userID)
-		w := httptest.NewRecorder()
+		handler := handlers.New(mockGetter)
+		c, w := setupRequest(chatID.String(), userID)
 
-		handler.ServeHTTP(w, req)
+		handler.Get(c)
 
 		require.Equal(t, http.StatusOK, w.Code)
 
@@ -100,13 +103,11 @@ func TestGetChat_ValidationErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGetter := mocks.NewMockGetter(t)
-			handler := get.New(mockGetter)
+			handler := handlers.New(mockGetter)
 
-			req := setupRequest(tt.pathChatID, userID)
-			w := httptest.NewRecorder()
+			c, w := setupRequest(tt.pathChatID, userID)
 
-			handler.ServeHTTP(w, req)
-
+			handler.Get(c)
 			require.Equal(t, http.StatusBadRequest, w.Code)
 
 			var resp responses.ApiResponse[struct{}]
@@ -135,11 +136,10 @@ func TestGetChat_ServiceErrors(t *testing.T) {
 			mockGetter := mocks.NewMockGetter(t)
 			mockGetter.On("GetById", mock.Anything, chatID).Return((*models.Chat)(nil), tt.mockError).Once()
 
-			handler := get.New(mockGetter)
-			req := setupRequest(chatID.String(), userID)
-			w := httptest.NewRecorder()
+			handler := handlers.New(mockGetter)
+			c, w := setupRequest(chatID.String(), userID)
 
-			handler.ServeHTTP(w, req)
+			handler.Get(c)
 
 			require.Equal(t, tt.expectedCode, w.Code)
 		})
