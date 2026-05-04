@@ -6,6 +6,7 @@ import { useDebouncedCallback } from 'use-debounce'
 
 import { useSearchUserPlaylistsQuery } from '@/lib/hooks/api/playlist/useSearchUserPlaylists'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
+import { VideoSource } from '@/types/video.types'
 
 import PlaylistItem from './SaveToPlaylistBtn/PlaylistItem'
 import Search from './SaveToPlaylistBtn/Search'
@@ -16,9 +17,10 @@ type ModalProps = {
   onClose: () => void
   videoId: string
   userId: string | undefined
+  videoSource: VideoSource | undefined
 }
 
-export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId }: ModalProps) {
+export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, videoSource }: ModalProps) {
   const [query, setQuery] = useState('')
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
@@ -30,6 +32,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId }
     query,
     videoId,
     isOpen,
+    true,
   )
 
   const playlists = data?.pages.flatMap(page => page?.data?.items || []) || []
@@ -68,6 +71,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId }
                   isVideoAdded={playlist.isVideoAdded}
                   videoId={videoId}
                   userId={userId as string}
+                  videoSource={videoSource}
                 />
               )
 

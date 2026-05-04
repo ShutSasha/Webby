@@ -2,12 +2,15 @@
 
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
-import { BaseServerResponse, Platform } from '@/types/general.types'
-import { GetUserVideosResponse, SearchVideosResponse, Video } from '@/types/video.types'
+import { BaseServerResponse } from '@/types/general.types'
+import { GetUserVideosResponse, SearchVideosResponse, Video, VideoSource } from '@/types/video.types'
 
 const endpoint = '/videos'
 
-export async function getVideoInfo(videoId: string, platform: Platform = 'Webby'): Promise<BaseServerResponse<Video>> {
+export async function getVideoInfo(
+  videoId: string,
+  platform: VideoSource = 'Webby',
+): Promise<BaseServerResponse<Video>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<Video>>(`${endpoint}/${videoId}?platform=${platform}`)
 

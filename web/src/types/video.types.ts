@@ -9,6 +9,8 @@ export type VideoUser = {
 
 export type UploadStatus = 'Ready' | 'Uploading' | 'Failed' | 'Canceled'
 
+export type VideoSource = 'YouTube' | 'Webby'
+
 export type Video = {
   videoId: string
   videoUrl: string
@@ -22,6 +24,7 @@ export type Video = {
   description: string | null
   duration: number
   videotags: string[]
+  source: VideoSource
   videoUploadStatus: UploadStatus
   user: VideoUser
 }

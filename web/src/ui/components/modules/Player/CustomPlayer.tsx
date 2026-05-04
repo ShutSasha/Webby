@@ -79,7 +79,7 @@ export default function CustomPlayer({ videoUrl, videoId, isRoom = false }: Play
         onError={actions.handleReactPlayerError}
       />
 
-      <PlayerLoader isReady={state.isReady} buffering={state.buffering} />
+      {!isPlatformMode && <PlayerLoader isReady={state.isReady} buffering={state.buffering} />}
 
       {/* Overlay */}
       {state.isReady && !isPlatformMode && (

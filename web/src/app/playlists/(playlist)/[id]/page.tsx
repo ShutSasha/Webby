@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 
 import { getPlaylistInfo } from '@/lib/actions/playlist.actions'
+import { VideoSource } from '@/types/video.types'
 import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer/PlaylistQueueContainer'
 import VideoDetails from '@/ui/components/modules/Playlists/VideoDetails'
 import VideoDetailsSkeleton from '@/ui/components/modules/Playlists/VideoDetailsSkeleton'
@@ -11,11 +12,11 @@ import { auth } from '@/workspace/auth'
 
 type Props = {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ v?: string }>
+  searchParams: Promise<{ v?: string; source?: VideoSource }>
 }
 
 export default async function PlaylistPage({ params, searchParams }: Props) {
-  const [{ id: playlistId }, { v }] = await Promise.all([params, searchParams])
+  const [{ id: playlistId }, { v, source }] = await Promise.all([params, searchParams])
   const sessionPromise = auth()
   const playlistInfoPromise = getPlaylistInfo(playlistId)
   const [session, playlistInfoResponse] = await Promise.all([sessionPromise, playlistInfoPromise])
@@ -34,13 +35,13 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
   const { firstVideo, hiddenVideosCount, playlist } = playlistInfoResponse.data
 
   if (!v && firstVideo) {
-    redirect(`/playlists/${playlistId}?v=${firstVideo.videoId}`)
+    redirect(`/playlists/${playlistId}?v=${firstVideo.videoId}&source=${firstVideo.source}`)
   }
 
   return (
     <div className="flex flex-col xl:flex-row gap-5">
       <Suspense key={v} fallback={<VideoDetailsSkeleton />}>
-        <VideoDetails currentUserId={session?.user.id} v={v} playlistId={playlistId} />
+        <VideoDetails currentUserId={session?.user.id} v={v} playlistId={playlistId} source={source} />
       </Suspense>
       <PlaylistQueueContainer
         playlistId={playlistId}

@@ -16,7 +16,7 @@ export default async function VideoPage({ params }: Props) {
   return (
     <div className="flex flex-col xl:flex-row gap-5">
       <Suspense key={id} fallback={<VideoDetailsSkeleton />}>
-        <VideoDetails v={id} currentUserId={session?.user.id} />
+        <VideoDetails v={id} currentUserId={session?.user.id} source={undefined} />
       </Suspense>
 
       <div

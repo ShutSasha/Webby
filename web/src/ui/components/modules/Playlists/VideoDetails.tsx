@@ -4,6 +4,7 @@ import Link from 'next/link'
 import LockIcon from '@/assets/icons/shared/lock.svg'
 import { checkVideoInPlaylist } from '@/lib/actions/playlist.actions'
 import { getVideoInfo } from '@/lib/actions/video.actions'
+import { VideoSource } from '@/types/video.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import SaveToPlaylistButton from './SaveToPlaylistBtn/SaveToPlaylistButton'
@@ -17,15 +18,16 @@ type Props = {
   v: string | undefined
   currentUserId: string | undefined
   playlistId?: string
+  source: VideoSource | undefined
 }
 
-export default async function VideoDetails({ v, currentUserId, playlistId }: Props) {
+export default async function VideoDetails({ v, currentUserId, playlistId, source }: Props) {
   if (!v) {
     return <VideoNotFound />
   }
 
   const [video, playlistCheck] = await Promise.all([
-    getVideoInfo(v),
+    getVideoInfo(v, source),
     playlistId ? checkVideoInPlaylist(playlistId, v) : Promise.resolve({ success: true, data: true }),
   ])
 
@@ -82,7 +84,9 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
           )}
         </div>
         <div className="flex gap-3 items-center">
-          {currentUserId && <SaveToPlaylistButton userId={currentUserId} videoId={videoId} />}
+          {currentUserId && (
+            <SaveToPlaylistButton userId={currentUserId} videoId={videoId} videoSource={video.data.source} />
+          )}
 
           <ComplaintButton authorId={currentUserId} targetId={videoId} targetType="Video" />
         </div>

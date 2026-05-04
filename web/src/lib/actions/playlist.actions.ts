@@ -3,7 +3,7 @@
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse, Optional } from '@/types/general.types'
-import { Video } from '@/types/video.types'
+import { Video, VideoSource } from '@/types/video.types'
 
 const endpoint = '/playlists'
 
@@ -161,11 +161,15 @@ export async function searchUserPlaylists(
   }
 }
 
-export async function togglePlaylistVideo(playlistId: string, videoId: string): Promise<BaseServerResponse<null>> {
+export async function togglePlaylistVideo(
+  playlistId: string,
+  videoId: string,
+  videoSource: VideoSource,
+): Promise<BaseServerResponse<null>> {
   try {
     const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/videos`, {
       playlistId,
-      videoIds: [videoId],
+      videoItems: [{ itemId: videoId, videoPlatform: videoSource }],
     })
 
     return response
