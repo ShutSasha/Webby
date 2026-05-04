@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	chatpb "webby-wsgateway/internal/grpc/chatpb"
+	"webby-wsgateway/internal/grpc/chatpb"
 )
 
 type ChatClient struct {
@@ -24,9 +24,9 @@ func NewChatClient(addr string) (*ChatClient, error) {
 
 func (c *ChatClient) Close() error { return c.conn.Close() }
 
-func (c *ChatClient) SaveMessage(ctx context.Context, roomID, userID, content string) (string, error) {
+func (c *ChatClient) SaveMessage(ctx context.Context, chatID, userID, content string) (string, error) {
 	resp, err := c.c.SaveMessage(ctx, &chatpb.SaveMessageRequest{
-		RoomId:  roomID,
+		ChatId:  chatID,
 		UserId:  userID,
 		Content: content,
 	})

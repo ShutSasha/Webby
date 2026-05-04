@@ -9,7 +9,7 @@ service ChatGrpcService {
 }
 
 message SaveMessageRequest {
-  string room_id = 1;
+  string chat_id = 1;
   string user_id = 2;
   string content = 3;
 }

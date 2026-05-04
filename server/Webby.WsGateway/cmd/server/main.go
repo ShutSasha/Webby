@@ -16,7 +16,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"webby-wsgateway/internal/config"
-	"webby-wsgateway/internal/db"
+	"webby-wsgateway/pkg/db"
 	clients "webby-wsgateway/internal/grpc"
 	handlers "webby-wsgateway/internal/handers"
 	redisbus "webby-wsgateway/internal/redis"

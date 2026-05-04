@@ -11,6 +11,7 @@ import (
 
 type Repository interface {
 	SaveToken(ctx context.Context, token string, userID uuid.UUID) error
+	GetUserID(ctx context.Context, token string) (uuid.UUID, error)
 }
 
 type Service struct {
@@ -32,9 +33,20 @@ func (svc *Service) GenerateToken(ctx context.Context, userID uuid.UUID) (string
 	return token, nil
 }
 
+func (svc *Service) GetUserID(ctx context.Context, token string) (uuid.UUID, error) {
+	const op = "services.GetUserID"
+
+	userID, err := svc.repository.GetUserID(ctx, token)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return userID, nil
+}
+
 func (svc *Service) generateToken() string {
 	b := make([]byte, 32)
 	rand.Read(b)
-	
+
 	return base64.RawURLEncoding.EncodeToString(b)
 }

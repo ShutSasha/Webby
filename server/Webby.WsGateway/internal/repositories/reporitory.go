@@ -2,9 +2,12 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"webby-wsgateway/internal/domain"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -31,4 +34,21 @@ func (r *Repository) SaveToken(ctx context.Context, token string, userID uuid.UU
 	}
 
 	return nil
+}
+
+func (r *Repository) GetUserID(ctx context.Context, token string) (uuid.UUID, error) {
+	const op = "repository.GetUserID"
+
+	query := `SELECT user_id FROM user_wstokens WHERE token=$1`
+
+	var userID uuid.UUID
+	if err := r.db.QueryRow(ctx, query, token).Scan(&userID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return uuid.Nil, domain.ErrUserNotFound
+		}
+
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return userID, nil
 }
