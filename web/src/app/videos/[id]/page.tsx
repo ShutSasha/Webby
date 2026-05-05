@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 
+import { VideoSource } from '@/types/video.types'
 import VideoDetails from '@/ui/components/modules/Playlists/VideoDetails'
 import VideoDetailsSkeleton from '@/ui/components/modules/Playlists/VideoDetailsSkeleton'
 import AsideVideoCard from '@/ui/components/modules/Videos/AsideVideoCard'
@@ -7,16 +8,18 @@ import { auth } from '@/workspace/auth'
 
 type Props = {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ source?: VideoSource }>
 }
 
-export default async function VideoPage({ params }: Props) {
+export default async function VideoPage({ params, searchParams }: Props) {
   const { id } = await params
+  const { source } = await searchParams
   const session = await auth()
 
   return (
     <div className="flex flex-col xl:flex-row gap-5">
       <Suspense key={id} fallback={<VideoDetailsSkeleton />}>
-        <VideoDetails v={id} currentUserId={session?.user.id} source={undefined} />
+        <VideoDetails v={id} currentUserId={session?.user.id} source={source} />
       </Suspense>
 
       <div

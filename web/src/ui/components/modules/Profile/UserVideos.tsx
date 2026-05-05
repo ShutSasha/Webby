@@ -46,7 +46,7 @@ export default function UserVideos({ userId }: Props) {
 
           return (
             <Link
-              href={`/videos/${video.videoId}`}
+              href={`/videos/${video.videoId}?source=Webby`}
               key={video.videoId}
               ref={isLast ? lastElementRef : null}
               className="group cursor-pointer"

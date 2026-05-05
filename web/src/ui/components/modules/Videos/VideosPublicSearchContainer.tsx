@@ -13,7 +13,7 @@ type Props = {
 }
 
 export default function VideosPublicSearchContainer({ query }: Props) {
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchVideosQuery(query)
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchVideosQuery(query, 'Webby')
   const { data: session } = useSession()
 
   const videos = data?.pages.flatMap(page => page?.data?.items || []) || []

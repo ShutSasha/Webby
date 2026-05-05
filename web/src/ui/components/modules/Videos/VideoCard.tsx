@@ -63,7 +63,7 @@ export default function VideoCard({
 
   return (
     <>
-      <Link href={`/videos/${videoId}`} className="group flex flex-col gap-3 cursor-pointer">
+      <Link href={`/videos/${videoId}?source=Webby`} className="group flex flex-col gap-3 cursor-pointer">
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-800">
           <Image
             src={previewUrl}

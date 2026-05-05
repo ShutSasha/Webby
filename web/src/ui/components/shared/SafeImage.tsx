@@ -1,34 +1,57 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 import Image, { ImageProps } from 'next/image'
 
-const DEFAULT_IMAGE = 'https://i.ibb.co/4RLdNrBC/785ca39a2a95c19e66b01b3e0615d32c.jpg'
+const FALLBACK_IMAGES = {
+  user: '/fallbacks/default-user-avatar.jpg',
+  video: '/fallbacks/video-not-found.jpg',
+  room: '/fallbacks/room-not-found.jpg',
+  playlist: '/fallbacks/playlist-not-found.jpg',
+  default: '/fallbacks/no-image.png',
+} as const
 
-interface Props extends Omit<ImageProps, 'src'> {
-  src: string | null | undefined
+export type FallbackType = keyof typeof FALLBACK_IMAGES
+
+interface SafeImageProps extends Omit<ImageProps, 'src'> {
+  src?: string | null
+  fallbackType?: FallbackType
 }
 
-// TODO: think about useEffect logic, it triggers so many re-renders for many reusable components
-export default function SafeImage({ src, alt, ...props }: Props) {
-  const validateSrc = (url: string | null | undefined): string => {
-    if (!url || typeof url !== 'string') return DEFAULT_IMAGE
+const checkIsValidSrc = (url?: string | null): boolean => {
+  if (!url || typeof url !== 'string') return false
 
-    const trimmed = url.trim()
+  const trimmed = url.trim()
+  if (trimmed === 'null' || trimmed === 'undefined' || trimmed === '') return false
 
-    const isValidFormat = trimmed.startsWith('/') || trimmed.startsWith('http')
+  if (trimmed.startsWith('/')) return true
 
-    const isGarbage = trimmed === 'null' || trimmed === 'undefined' || trimmed === ''
-
-    return !isGarbage && isValidFormat ? trimmed : DEFAULT_IMAGE
+  try {
+    new URL(trimmed)
+    return true
+  } catch {
+    return false
   }
+}
 
-  const [imgSrc, setImgSrc] = useState(() => validateSrc(src))
+export default function SafeImage({ src, alt, fallbackType = 'default', ...props }: SafeImageProps) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
 
-  useEffect(() => {
-    setImgSrc(validateSrc(src))
-  }, [src])
+  const isValid = checkIsValidSrc(src)
 
-  return <Image {...props} src={imgSrc} alt={alt || 'image'} onError={() => setImgSrc(DEFAULT_IMAGE)} />
+  const shouldUseFallback = !isValid || src === failedSrc
+
+  const finalSrc = shouldUseFallback ? FALLBACK_IMAGES[fallbackType] : (src as string)
+
+  return (
+    <Image
+      {...props}
+      src={finalSrc}
+      alt={alt || 'Image'}
+      onError={() => {
+        if (src) setFailedSrc(src)
+      }}
+    />
+  )
 }
