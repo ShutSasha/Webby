@@ -8,9 +8,15 @@ public class AchievementConfiguration : IEntityTypeConfiguration<Achievement>
 {
    public void Configure(EntityTypeBuilder<Achievement> builder)
    {
-      builder.ToTable("Achievements");
+      builder.ToTable("achievements");
 
       builder.HasKey(ac => ac.AchievementId);
-      
+
+      builder.Property(a => a.EventType)
+         .IsRequired();
+
+      builder.Property(a => a.TargetValue)
+         .IsRequired()
+         .HasDefaultValue(0);
    }
 }

@@ -17,5 +17,8 @@ public class UpdateAchievementRequest
    public string Description { get; set; }
 
    [Required]
-   public string Code { get; set; }
+   public string EventType { get; set; }
+   
+   [Required] 
+   public int TargetValue { get; set; }
 }
