@@ -54,6 +54,7 @@ public class UserService : IUserService
       response.User = _mapper.Map<UserDto>(user);
       response.UserFollowStats = followBlock;
       response.PinnedUserAchievements = await _achievementService.GetPinnedAchievements(userId);
+      response.IsPremiumUser = await _userPremiumRepository.HasUserValidSubscription(userId);
       return response;
    }
 
