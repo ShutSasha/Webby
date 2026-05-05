@@ -1,11 +1,16 @@
+import { useEffect, useRef, useState } from 'react'
+
 import { Route } from 'next'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import { clog } from '@/lib/utils/general.utils'
+import { VideoSource } from '@/types/video.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import SafeImage, { FallbackType } from '../../shared/SafeImage'
+import SaveToPlaylistModal from '../Playlists/SaveToPlaylistModal'
 
 type EntityType = 'Video' | 'Room' | 'Playlist' | 'Stream' | 'User' | 'YouTube'
 
@@ -15,7 +20,7 @@ type Props = {
   subtitle: string
   thumbnail: string
   type: EntityType
-
+  source?: string
   showAddButton?: boolean
 }
 
@@ -28,17 +33,60 @@ const FALLBACK_MAP: Record<EntityType, FallbackType> = {
   YouTube: 'video',
 }
 
-export default function GlobalSearchCard({ id, title, subtitle, thumbnail, type, showAddButton = true }: Props) {
+export default function GlobalSearchCard({
+  id,
+  title,
+  subtitle,
+  thumbnail,
+  type,
+  showAddButton = true,
+  source,
+}: Props) {
+  const { data: session } = useSession()
+  const currentUserId = session?.user?.id
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
   const isUser = type === 'User'
   const isRoom = type === 'Room'
-
+  const isStream = type === 'Stream'
+  const isYoutubeVideo = type === 'YouTube'
+  const isWebbyVideo = type === 'Video'
+  const isPlaylist = type === 'Playlist'
   const isExternal = type === 'Stream'
 
-  const handleAddToQueue = (e: React.MouseEvent) => {
+  const parsedSource: VideoSource = source === 'YouTube' ? 'YouTube' : 'Webby'
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false)
+      }
+    }
+    if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isMenuOpen])
+
+  const toggleMenu = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    setIsMenuOpen(!isMenuOpen)
+  }
 
-    clog(`[Queue] Added ${type} with ID:`, id)
+  const handleAddToPlaylistClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsMenuOpen(false)
+    setIsPlaylistModalOpen(true)
+  }
+
+  const handleAddToRoomClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsMenuOpen(false)
+    clog(`[Room] TODO: Add ${type} with ID to Room:`, id)
   }
 
   const routes: Record<EntityType, Route> = {
@@ -76,16 +124,46 @@ export default function GlobalSearchCard({ id, title, subtitle, thumbnail, type,
         </div>
       </div>
 
-      {showAddButton && !isUser && !isRoom && (
-        <button
-          onClick={handleAddToQueue}
-          className="p-2 mr-1 rounded-full text-neutral-500 hover:text-emerald-500 hover:bg-emerald-500/10
-            transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-          title="Add to Queue"
-        >
-          <PlusIcon className="w-5 h-5 stroke-2" />
-        </button>
-      )}
+      <div className="flex items-center gap-1 shrink-0">
+        {showAddButton && !isUser && !isRoom && (
+          <div className="relative shrink-0" ref={menuRef}>
+            <button
+              onClick={toggleMenu}
+              className="p-1.5 rounded-full text-neutral-500 hover:text-emerald-500 hover:bg-emerald-500/10
+                transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+            >
+              <PlusIcon className="w-5 h-5 stroke-2" />
+            </button>
+            {isMenuOpen && (
+              <div
+                className="absolute right-0 top-full mt-2 w-48 bg-neutral-800 border border-neutral-700/60 shadow-xl
+                  shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
+                onClick={e => e.preventDefault()}
+              >
+                {(isYoutubeVideo || isWebbyVideo) && (
+                  <button
+                    onClick={handleAddToPlaylistClick}
+                    className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50
+                      transition-colors flex items-center gap-3 cursor-pointer"
+                  >
+                    <span>Add to playlist</span>
+                  </button>
+                )}
+
+                {(isYoutubeVideo || isWebbyVideo || isPlaylist || isStream) && (
+                  <button
+                    onClick={handleAddToRoomClick}
+                    className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50
+                      transition-colors flex items-center gap-3 cursor-pointer"
+                  >
+                    <span>Add to room</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </>
   )
 
@@ -93,14 +171,24 @@ export default function GlobalSearchCard({ id, title, subtitle, thumbnail, type,
     isExternal ? '' : 'cursor-pointer'
   }`
 
-  if (isExternal) {
-    return <div className={wrapperClasses}>{cardContent}</div>
-  }
-
   return (
-    <Link href={targetUrl} className={wrapperClasses}>
-      {cardContent}
-    </Link>
+    <>
+      {isExternal ? (
+        <div className={wrapperClasses}>{cardContent}</div>
+      ) : (
+        <Link href={targetUrl} className={wrapperClasses}>
+          {cardContent}
+        </Link>
+      )}
+
+      <SaveToPlaylistModal
+        isOpen={isPlaylistModalOpen}
+        onClose={() => setIsPlaylistModalOpen(false)}
+        videoId={id}
+        userId={currentUserId}
+        videoSource={parsedSource}
+      />
+    </>
   )
 }
 
