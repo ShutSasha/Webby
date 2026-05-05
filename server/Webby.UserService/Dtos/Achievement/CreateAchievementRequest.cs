@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http.Timeouts;
 
 namespace Webby.UserService.Dtos.Achievement;
 
@@ -14,5 +15,10 @@ public class CreateAchievementRequest
    public string Description { get; set; }
 
    [Required]
-   public string Code { get; set; }
+   public string EventType { get; set; }
+   
+   [Required] 
+   public int TargetValue { get; set; }
+
+
 }
