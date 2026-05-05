@@ -4,25 +4,37 @@ import { searchVideos } from '@/lib/actions/video.actions'
 
 const PAGE_SIZE = 20
 
+type PageParam = {
+  page: number
+  token?: string | null
+  seed?: number | null
+}
+
 export const useSearchVideosQuery = (searchQuery: string, searchPlatform?: 'Webby' | 'YouTube') => {
   return useInfiniteQuery({
     queryKey: ['search-videos', searchQuery, searchPlatform],
 
-    queryFn: async ({ pageParam = 1 }) => {
-      const page = typeof pageParam === 'number' ? pageParam : 1
-      const token = typeof pageParam === 'string' ? pageParam : null
+    queryFn: async ({ pageParam }) => {
+      const { page, token, seed } = pageParam as PageParam
 
-      return await searchVideos(searchQuery, page, PAGE_SIZE, searchPlatform, token)
+      return await searchVideos(searchQuery, page, PAGE_SIZE, searchPlatform, token, seed)
     },
 
-    initialPageParam: 1 as string | number | undefined,
+    initialPageParam: { page: 1 } as PageParam,
 
     getNextPageParam: (lastPage, allPages) => {
       const token = lastPage?.data?.nextPageToken
-      if (token) return token
+      if (token) {
+        return { page: allPages.length + 1, token }
+      }
 
       const items = lastPage?.data?.items || []
-      if (items.length === PAGE_SIZE) return allPages.length + 1
+      if (items.length === PAGE_SIZE) {
+        return {
+          page: allPages.length + 1,
+          seed: lastPage?.data?.contentSeed,
+        }
+      }
 
       return undefined
     },
