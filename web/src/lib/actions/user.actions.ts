@@ -12,6 +12,7 @@ export type GetUserResponse = {
   user: User
   userFollowStats: UserFolowStats
   pinnedUserAchievements: Achievement[]
+  isPremiumUser: boolean
 }
 
 type GetUserFollowsResponse = {
@@ -173,18 +174,18 @@ export async function searchUsers(
   try {
     const params = new URLSearchParams()
     if (query) params.append('searchText', query)
-    
+
     params.append('page', page.toString())
     params.append('pageSize', pageSize.toString())
 
     const { data: response } = await $api.get<BaseServerResponse<SearchUsersResponse>>(
       `${endpoint}/search?${params.toString()}`,
     )
-    
+
     return response
   } catch (error: unknown) {
     serverLog('GET_USERS_SEARCH_ERROR', error, true)
-    
+
     return {
       data: null,
       success: false,

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import { getUser } from '@/lib/actions/user.actions'
@@ -31,13 +32,18 @@ export default async function ProfileSettings({ params }: Props) {
     )
   }
 
+  // TODO: add condition for premium link, check for premium user state through getuser API
   return (
     <div className="flex flex-col">
       <UserHeader image={session.user.image} username={session.user.username} />
-      <div className="flex justify-between items-center my-4">
+      <div className="flex justify-between items-center my-1">
         <p>User email: {userData.user.email}</p>
         <UploadAvatarContainer />
       </div>
+      <Link href={'/premium'} className="mb-3 text-emerald-500 underline w-fit">
+        Get premium
+      </Link>
+
       <p className="mb-2">About:</p>
       <AboutContainer userId={id} about={userData.user.about} />
     </div>
