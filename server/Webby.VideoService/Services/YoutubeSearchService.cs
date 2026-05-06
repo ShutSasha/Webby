@@ -288,7 +288,7 @@ public class YoutubeSearchService : IYouTubeSearchService
     {
         var hasSearch = !string.IsNullOrWhiteSpace(searchText);
     
-        string part = "id,status";
+        string part = "id";
         string url;
 
         if (hasSearch)
@@ -297,7 +297,6 @@ public class YoutubeSearchService : IYouTubeSearchService
             url = DefaultLinks.BaseYouTubeSearchLink +
                   $"?part={part}" +
                   $"&type=video" +
-                  $"&videoEmbeddable=true" +
                   $"&q={query}" +
                   $"&maxResults={pageSize}" +
                   $"&key={_apiKey}";
