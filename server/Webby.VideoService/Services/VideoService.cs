@@ -452,7 +452,7 @@ public class VideoService : IVideoService
       switch (platform)
       {
          case SearchVideoPlatforms.YouTube:
-            watchingVideo = await _youtubeSearchService.FindById(videoId);
+            watchingVideo = await _youtubeSearchService.FindById(actualId);
             break;
          case SearchVideoPlatforms.Webby:
             if (!Guid.TryParse(actualId, out var videoIdGuid))
