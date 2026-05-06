@@ -20,7 +20,7 @@ public interface IVideoService
    Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId, Guid playlistId, SearchOptions searchOptions);
    Task<PagedResponse<PreviewVideoDto>> GetRecommendationVideos(string videoId, Guid? requestUserId, int contentSeed,int page = 1, int size = 20);
    Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId);
-   Task CancelVideoUploading(Guid requestUserId, Guid videoId);
-   Task<bool> CheckUploadStatus(Guid videoId);
+   Task CancelVideoUploading(Guid requestUserId, string videoId);
+   Task<bool> CheckUploadStatus(string videoId);
    Task IncrementVideoView(Guid requestUserId, string videoId);
 }

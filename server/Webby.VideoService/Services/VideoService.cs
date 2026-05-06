@@ -120,7 +120,9 @@ public class VideoService : IVideoService
 
    public async Task CreateVideo(Guid userId, CreateVideoRequest request)
    {
-      var video = await _videoRepository.FindById(request.VideoId)
+      var (_, actualId) = ParseVideoPrefix(request.VideoId);
+      
+      var video = await _videoRepository.FindById(Guid.Parse(actualId))
                   ?? throw new ApiException("Create video error", 404, "Video wasn't found");
 
       if (userId != video.UserId)
@@ -506,9 +508,11 @@ public class VideoService : IVideoService
       };
    }
 
-   public async Task<bool> CheckUploadStatus(Guid videoId)
+   public async Task<bool> CheckUploadStatus(string videoId)
    {
-      var video = await _videoRepository.FindById(videoId);
+      var (_, actualId) = ParseVideoPrefix(videoId);
+      
+      var video = await _videoRepository.FindById(Guid.Parse(actualId));
       
       if (video == null) 
       {
@@ -562,9 +566,11 @@ public class VideoService : IVideoService
       return privateVideos?.Any() ?? false;
    }
 
-   public async Task CancelVideoUploading(Guid requestUserId, Guid videoId)
+   public async Task CancelVideoUploading(Guid requestUserId, string videoId)
    {
-      var video = await _videoRepository.FindById(videoId)
+      var (_, actualId) = ParseVideoPrefix(videoId);
+      
+      var video = await _videoRepository.FindById(Guid.Parse(actualId))
                   ?? throw new ApiException("Cancel video uploading", 404, "Video wasn't found");
 
       if (requestUserId != video.UserId)
@@ -583,12 +589,12 @@ public class VideoService : IVideoService
             if (!string.IsNullOrEmpty(video.VideoUrl))
                await _storageService.DeleteFileAsync(video.VideoUrl);
 
-            await _videoRepository.DeleteAsync(videoId);
+            await _videoRepository.DeleteAsync(video.VideoId);
             break;
 
          case VideoStatus.Failed:
          case VideoStatus.Canceled:
-            await _videoRepository.DeleteAsync(videoId);
+            await _videoRepository.DeleteAsync(video.VideoId);
             break;
       }
    }

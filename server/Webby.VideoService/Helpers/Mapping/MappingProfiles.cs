@@ -20,7 +20,12 @@ public class MappingProfiles : Profile
                .Select(vt => vt.Tag.Name)
                .ToList()));
       
-      CreateMap<Models.Video, UploadVideoResponse>();
+      CreateMap<Models.Video, UploadVideoResponse>()
+         .ForMember(dest
+               => dest.VideoId,
+            opt =>
+               opt.MapFrom(src => $"{PlatformPrefixesConstants.WebbyPrefix}{src.VideoId}"));
+      
       CreateMap<Models.Video, PreviewVideoDto>()
          .ForMember(dest
                => dest.VideoId,

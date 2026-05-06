@@ -46,9 +46,9 @@ public class VideoController: ControllerBase
       return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video",videos));
    }
 
-   [HttpGet("{videoId:guid}/check-upload-status")]
+   [HttpGet("{videoId}/check-upload-status")]
    [SwaggerOperation("Checks if video is uploaded to storage")]
-   public async Task<ActionResult<ApiResponse<bool>>> CheckUploadStatus([FromRoute] Guid videoId)
+   public async Task<ActionResult<ApiResponse<bool>>> CheckUploadStatus([FromRoute] string videoId)
    {
       var isVideoUploaded = await _videoService.CheckUploadStatus(videoId);
       return Ok(ApiResponse<bool>.Ok("Successfully extract video status",isVideoUploaded));
@@ -135,9 +135,9 @@ public class VideoController: ControllerBase
       return Ok(ApiResponse.Ok("Successfully delete video"));
    }
 
-   [HttpDelete("{videoId:guid}/cancel")]
+   [HttpDelete("{videoId}/cancel")]
    [SwaggerOperation("Cancel uploading video route", "AUTH REQUIRED")]
-   public async Task<ActionResult<ApiResponse>> CancelVideo([FromRoute] Guid videoId)
+   public async Task<ActionResult<ApiResponse>> CancelVideo([FromRoute] string videoId)
    {
       var userId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false)!;
       await _videoService.CancelVideoUploading(userId.Value,videoId);

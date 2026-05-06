@@ -6,7 +6,7 @@ namespace Webby.VideoService.Dtos.Video;
 public class CreateVideoRequest
 {
    [Required] 
-   public Guid VideoId { get; set; }
+   public string VideoId { get; set; }
    
    [Required]
    public string Name { get; set; }
