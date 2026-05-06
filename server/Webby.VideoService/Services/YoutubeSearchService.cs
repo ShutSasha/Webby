@@ -81,7 +81,7 @@ public class YoutubeSearchService : IYouTubeSearchService
 
         var videoDtos = fullData.Items.Select(item => new VideoDto
         {
-            VideoId = item.Id?.ToString(),
+            VideoId = PlatformPrefixesConstants.YouTubePrefix + item.Id?.ToString(),
             Name = item.Snippet.Title,
             Description = item.Snippet.Description,
             Source = "YouTube",
@@ -296,7 +296,7 @@ public class YoutubeSearchService : IYouTubeSearchService
     {
         return new VideoDto()
         {
-            VideoId = item.Id?.ToString(),
+            VideoId = PlatformPrefixesConstants.YouTubePrefix + item.Id?.ToString(),
             Name = item.Snippet.Title,
             Description = item.Snippet.Description,
             Source = "YouTube",

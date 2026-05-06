@@ -6,11 +6,7 @@ namespace Webby.VideoService.Dtos.Playlist;
 public class AddVideoToPlaylistRequest
 {
    public Guid PlaylistId { get; set; }
-   public List<AddVideoToPlaylistItem> VideoItems { get; set; }
+   public List<string> VideoIds { get; set; }
 }
 
-public class AddVideoToPlaylistItem
-{
-   public VideoPlatform VideoPlatform { get; set; }
-   public string? ItemId { get; set; }
-}
+public record PlaylistItemInput(VideoPlatform VideoPlatform, string ItemId);

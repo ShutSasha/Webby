@@ -23,18 +23,20 @@ public class VideoController: ControllerBase
    }
 
 
+   
    [HttpGet("{videoId}")]
    [SwaggerOperation("Get video information")]
    public async Task<ActionResult<ApiResponse<VideoDto>>> GetVideoInformation(
-      [FromRoute] string videoId, [FromQuery] SearchVideoPlatforms? platform)
+      [FromRoute] string videoId)
    {
       var requestedUserId = JwtHelper.ExtractUserId(HttpContext,false);
-      var getVideoInformationResult = await _videoService.GetVideoInformation(videoId, requestedUserId, platform);
+      var getVideoInformationResult = await _videoService.GetVideoInformation(videoId, requestedUserId);
 
       return Ok(ApiResponse<VideoDto>.Ok("Successfully retrieved video information",
          getVideoInformationResult));
    }
 
+   
    [HttpGet("search")]
    [SwaggerOperation("Search video route")]
    public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> SearchVideo([FromQuery] SearchVideoOptions searchOptions)
@@ -63,7 +65,8 @@ public class VideoController: ControllerBase
       var pagesResponse = await _videoService.SearchVideoInPlaylist(requestUserId,playlistId, searchOptions);
       return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video from playlist",pagesResponse));
    }
-
+   
+   
    [HttpGet("users/{userId:guid}")]
    [SwaggerOperation("Get user videos")]
    public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> GetUserVideos(
@@ -100,13 +103,8 @@ public class VideoController: ControllerBase
    [SwaggerOperation("Added view on specified video", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> IncrementVideoView([FromBody] IncrementViewRequest request)
    {
-      if (!Guid.TryParse(request.VideoId, out Guid videoId))
-      {
-         throw new ApiException("Increment video error", 400, "Incorrect video id format");
-      }
-      
       var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
-      await _videoService.IncrementVideoView(requestUserId.Value, videoId);
+      await _videoService.IncrementVideoView(requestUserId.Value, request.VideoId);
       return Ok(ApiResponse.Ok("Successfully increment video view"));
    }
    
@@ -128,9 +126,9 @@ public class VideoController: ControllerBase
       return Ok(ApiResponse.Ok("Successfully update video"));
    }
 
-   [HttpDelete("{videoId:guid}")]
+   [HttpDelete("{videoId}")]
    [SwaggerOperation("Delete video route", "AUTH REQUIRED")]
-   public async Task<ActionResult<ApiResponse>> DeleteVideo([FromRoute] Guid videoId)
+   public async Task<ActionResult<ApiResponse>> DeleteVideo([FromRoute] string videoId)
    {
       var userId = JwtHelper.ExtractUserId(HttpContext)!;
       await _videoService.DeleteVideo(userId.Value, videoId);
