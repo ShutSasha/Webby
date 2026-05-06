@@ -106,7 +106,6 @@ export default function PlaylistQueueContainer({
                   onOptimisticClick={() => setOptimisticId(video.videoId)}
                   isOwner={guestUserId === authorId}
                   userId={guestUserId || ''}
-                  videoSource={video.source}
                 />
               )
 

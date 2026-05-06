@@ -10,7 +10,7 @@ type Props = {
 
 export default function AsideVideoCard({ video }: Props) {
   return (
-    <Link href={`/videos/${video.videoId}?source=Webby`} className="group flex flex-col xl:flex-row gap-3">
+    <Link href={`/videos/${video.videoId}`} className="group flex flex-col xl:flex-row gap-3">
       <div className="overflow-hidden rounded-lg relative xl:w-[168px] h-fit shrink-0">
         <Image
           src={video.previewUrl}

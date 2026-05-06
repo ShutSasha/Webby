@@ -6,7 +6,6 @@ import { useSession } from 'next-auth/react'
 
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import { clog } from '@/lib/utils/general.utils'
-import { VideoSource } from '@/types/video.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import SafeImage, { FallbackType } from '../../shared/SafeImage'
@@ -20,7 +19,6 @@ type Props = {
   subtitle: string
   thumbnail: string
   type: EntityType
-  source?: string
   showAddButton?: boolean
 }
 
@@ -33,15 +31,7 @@ const FALLBACK_MAP: Record<EntityType, FallbackType> = {
   YouTube: 'video',
 }
 
-export default function GlobalSearchCard({
-  id,
-  title,
-  subtitle,
-  thumbnail,
-  type,
-  showAddButton = true,
-  source,
-}: Props) {
+export default function GlobalSearchCard({ id, title, subtitle, thumbnail, type, showAddButton = true }: Props) {
   const { data: session } = useSession()
   const currentUserId = session?.user?.id
 
@@ -56,8 +46,6 @@ export default function GlobalSearchCard({
   const isWebbyVideo = type === 'Video'
   const isPlaylist = type === 'Playlist'
   const isExternal = type === 'Stream'
-
-  const parsedSource: VideoSource = source === 'YouTube' ? 'YouTube' : 'Webby'
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -90,12 +78,12 @@ export default function GlobalSearchCard({
   }
 
   const routes: Record<EntityType, Route> = {
-    Video: `/videos/${id}?source=Webby` as Route,
+    Video: `/videos/${id}` as Route,
     Room: `/rooms/${id}` as Route,
     Playlist: `/playlists/${id}` as Route,
     Stream: `/streams/${id}` as Route,
     User: `/profile/${id}` as Route,
-    YouTube: `/videos/${id}?source=YouTube` as Route,
+    YouTube: `/videos/${id}` as Route,
   }
 
   const targetUrl = routes[type]
@@ -186,7 +174,6 @@ export default function GlobalSearchCard({
         onClose={() => setIsPlaylistModalOpen(false)}
         videoId={id}
         userId={currentUserId}
-        videoSource={parsedSource}
       />
     </>
   )
