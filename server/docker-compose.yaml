@@ -93,7 +93,7 @@ services:
       - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
-    container_name: webby-chat-service
+    container_name: webby/chat-service-service
 
   room-service:
     build:
@@ -127,7 +127,7 @@ services:
       - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
-    container_name: webby-room-queue-service
+    container_name: webby/room-queue-service-service
 
   votes-service:
     build:
