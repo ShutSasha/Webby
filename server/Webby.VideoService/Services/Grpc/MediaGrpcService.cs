@@ -1,114 +1,109 @@
 ﻿using Grpc.Core;
 using Webby.MediaService.GrpcServer;
 using Webby.VideoService.Constants;
+using Webby.VideoService.Dtos.Platforms.Enums;
 using Webby.VideoService.Dtos.Search;
+using Webby.VideoService.Helpers.Converters;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Interfaces.Services;
+using Webby.VideoService.Models.Enums;
 
 namespace Webby.VideoService.Services.Grpc;
 
 public class MediaGrpcService : MediaService.GrpcServer.MediaService.MediaServiceBase
 {
    private readonly IVideoService _videoService;
-   private readonly IPlaylistService _playlistService;
-   private readonly YoutubeSearchService _youtubeSearchService;
-   private readonly TwitchSearchService _twitchSearchService;
+   private readonly IYouTubeSearchService _youtubeSearchService;
+   private readonly ITwitchSearchService _twitchSearchService;
 
-   public MediaGrpcService(IVideoService videoService, IPlaylistService playlistService, TwitchSearchService twitchSearchService, YoutubeSearchService youtubeSearchService)
+   public MediaGrpcService(IVideoService videoService,ITwitchSearchService twitchSearchService,
+      IYouTubeSearchService youtubeSearchService)
    {
       _videoService = videoService;
-      _playlistService = playlistService;
       _twitchSearchService = twitchSearchService;
       _youtubeSearchService = youtubeSearchService;
    }
 
+
    public override async Task<VideoResponse> GetVideo(GetVideoRequest request, ServerCallContext context)
-{
-    switch (request.VideoType)
-    {
-        case VideoType.Video:
-        {
-            if (!Guid.TryParse(request.Id, out var videoId))
+   {
+      var parseResult = PlatformPrefixToPlatformConverter.ParseSystemPlatform(request.Id);
+
+      if (parseResult == null)
+      {
+         throw new ApiException("Get video error", 400, "Invalid id format");
+      }
+
+      var (videoPlatform, actualId) = parseResult.Value;
+
+      switch (videoPlatform)
+      {
+         case SystemPlatforms.Webby:
+         {
+            if (!Guid.TryParse(actualId, out var videoIdGuid))
             {
-                throw new ApiException("Validation error", 400, "Invalid ID format");
+               throw new ApiException("Get video error", 400, "Invalid webby video id format");
             }
 
-            var video = await _videoService.GetVideoById(videoId);
-            
-            return new VideoResponse
-            {
-                Id = video.VideoId.ToString(),
-                Title = video.Name,
-                Thumbnail = video.PreviewUrl,
-                VideoUrl = video.VideoUrl
-            };
-        }
-        
-        case VideoType.Youtube:
-        {
-            var ytVideo = await _youtubeSearchService.FindById(request.Id);
-            
-            return new VideoResponse
-            {
-                Id = ytVideo.VideoId, 
-                Title = ytVideo.Name,
-                Thumbnail = ytVideo.PreviewUrl,
-                VideoUrl = ytVideo.VideoUrl 
-            };
-        }
-        
-        case VideoType.Twitch:
-        {
-            var stream = await _twitchSearchService.FindById(request.Id);
-            
-                return new VideoResponse
-                {
-                    Id = stream.StreamId,
-                    Title = stream.Name,
-                    Thumbnail = stream.PreviewUrl,
-                    VideoUrl = stream.StreamUrl
-                };
-                
-        }
-        default:
-            throw new ApiException("Validation error", 400, "Unsupported video type");
-    }
-}
+            var video = await _videoService.GetVideoById(videoIdGuid);
 
-   public override async Task<PlaylistResponse> GetPlaylist(GetPlaylistRequest request, ServerCallContext context)
-   {
-      if (!Guid.TryParse(request.Id, out var playlistId))
-      {
-         throw new ApiException("Validation error", 400, "Invalid ID format");
+            return new VideoResponse()
+            {
+               Id = PlatformPrefixesConstants.WebbyPrefix + video.VideoId,
+               Thumbnail = video.PreviewUrl,
+               Title = video.Name,
+               VideoUrl = video.VideoUrl
+            };
+            
+         }
+         case SystemPlatforms.YouTube:
+         {
+            var ytVideo = await _youtubeSearchService.FindById(actualId);
+
+            return new VideoResponse()
+            {
+               Id = ytVideo.VideoId,
+               Thumbnail = ytVideo.PreviewUrl,
+               Title = ytVideo.Name,
+               VideoUrl = ytVideo.VideoUrl
+            };
+         }
+         case SystemPlatforms.Twitch:
+         {
+            var stream = await _twitchSearchService.FindById(actualId);
+
+            return new VideoResponse()
+            {
+               Id = stream.StreamId,
+               Thumbnail = stream.PreviewUrl,
+               Title = stream.Name,
+               VideoUrl = stream.StreamUrl
+            };
+         }
+         
+         default:
+            throw new ApiException("Get video error", 400, "Invalid video platform type");
       }
       
-      var playlistInfo = await _playlistService.GetPlaylistInformation(playlistId, null);
-      
-      var videosResult = await _videoService.SearchVideoInPlaylist(null,playlistId, new SearchOptions
-      {
-         Page = request.Page,
-         PageSize = request.PageSize
-      });
-      
-      var response = new PlaylistResponse
-      {
-         Id = playlistInfo.Playlist.PlaylistId.ToString(),
-         Title = playlistInfo.Playlist.Name,
-         Thumbnail = playlistInfo.FirstVideo?.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink,
-         TotalCount = videosResult.TotalCount
-      };
-      
-      var videoNodes = videosResult.Items.Select(v => new VideoResponse
-      {
-         Id = v.VideoId.ToString(),
-         Title = v.Name,
-         Thumbnail = v.PreviewUrl,
-         VideoUrl = v.VideoUrl
-      });
+   }
 
-      response.Videos.AddRange(videoNodes);
+   public override async Task<GetVideosBatchResponse> GetVideosBatch(GetVideosBatchRequest request, ServerCallContext context)
+   {
+      var getRangeResult = await _videoService.GetVideoRange(request.Ids.ToList());
+
+      var response = new GetVideosBatchResponse();
+
+      var mappedVideos = getRangeResult.videoDtos.Select(v => new VideoResponse
+      {
+         Id = v.VideoId ?? string.Empty,
+         Title = v.Name ?? string.Empty,
+         Thumbnail = v.PreviewUrl ?? string.Empty,
+         VideoUrl = v.VideoUrl ?? string.Empty
+      });
+      
+      response.Videos.AddRange(mappedVideos);
+      response.UnavailableVideoIds.AddRange(getRangeResult.unavailableVideos);
 
       return response;
    }
-   
 }

@@ -23,4 +23,6 @@ public interface IVideoService
    Task CancelVideoUploading(Guid requestUserId, string videoId);
    Task<bool> CheckUploadStatus(string videoId);
    Task IncrementVideoView(Guid requestUserId, string videoId);
+
+   Task<(List<VideoDto> videoDtos,List<string> unavailableVideos)> GetVideoRange(List<string> ids);
 }
