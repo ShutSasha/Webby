@@ -9,7 +9,6 @@ import MoreVertical from '@/assets/icons/shared/more-vertical.svg'
 import { formatTimeAgo, formatVideoTime } from '@/lib/utils/date.utils'
 import { cn } from '@/lib/utils/general.utils'
 import { formatViews } from '@/lib/utils/video.utils'
-import { VideoSource } from '@/types/video.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import ComplaintModal from '../../shared/ComplaintModal'
@@ -25,7 +24,6 @@ type Props = {
   createAt: string
   userAvatar: string
   currentUserId: string | undefined
-  videoSource: VideoSource
 }
 
 export default function VideoCard({
@@ -38,7 +36,6 @@ export default function VideoCard({
   createAt,
   userAvatar,
   currentUserId,
-  videoSource,
 }: Props) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -63,7 +60,7 @@ export default function VideoCard({
 
   return (
     <>
-      <Link href={`/videos/${videoId}?source=Webby`} className="group flex flex-col gap-3 cursor-pointer">
+      <Link href={`/videos/${videoId}`} className="group flex flex-col gap-3 cursor-pointer">
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-800">
           <Image
             src={previewUrl}
@@ -174,7 +171,6 @@ export default function VideoCard({
         onClose={() => setIsPlaylistModalOpen(false)}
         videoId={videoId}
         userId={currentUserId}
-        videoSource={videoSource}
       />
     </>
   )

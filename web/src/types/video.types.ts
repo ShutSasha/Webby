@@ -29,6 +29,19 @@ export type Video = {
   user: VideoUser
 }
 
+export type RecommendedVideo = {
+  videoId: string
+  name: string
+  previewUrl: string
+  views: number
+  isPrivate: boolean
+  createdAt: string
+  duration: number
+  user: VideoUser
+}
+
+export type GetRecommendationsResponse = PaginatedData<RecommendedVideo>
+
 export type UploadVideoResponse = {
   videoId: string
   userId: string

@@ -4,7 +4,6 @@ import Link from 'next/link'
 import LockIcon from '@/assets/icons/shared/lock.svg'
 import { checkVideoInPlaylist } from '@/lib/actions/playlist.actions'
 import { getVideoInfo } from '@/lib/actions/video.actions'
-import { VideoSource } from '@/types/video.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import SaveToPlaylistButton from './SaveToPlaylistBtn/SaveToPlaylistButton'
@@ -18,16 +17,15 @@ type Props = {
   v: string | undefined
   currentUserId: string | undefined
   playlistId?: string
-  source: VideoSource | undefined
 }
 
-export default async function VideoDetails({ v, currentUserId, playlistId, source }: Props) {
+export default async function VideoDetails({ v, currentUserId, playlistId }: Props) {
   if (!v) {
     return <VideoNotFound />
   }
 
   const [video, playlistCheck] = await Promise.all([
-    getVideoInfo(v, source),
+    getVideoInfo(v),
     playlistId ? checkVideoInPlaylist(playlistId, v) : Promise.resolve({ success: true, data: true }),
   ])
 
@@ -39,7 +37,7 @@ export default async function VideoDetails({ v, currentUserId, playlistId, sourc
     return <VideoNotFound />
   }
 
-  const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate, videoTags } = video.data
+  const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate, videoTags, source } = video.data
   const isOwner = currentUserId === user.userId
 
   if (isPrivate && !isOwner) {
@@ -85,17 +83,16 @@ export default async function VideoDetails({ v, currentUserId, playlistId, sourc
             )}
           </div>
           <div className="flex gap-3 items-center">
-            {currentUserId && (
-              <SaveToPlaylistButton userId={currentUserId} videoId={videoId} videoSource={video.data.source} />
-            )}
+            {currentUserId && <SaveToPlaylistButton userId={currentUserId} videoId={videoId} />}
 
-            <ComplaintButton authorId={currentUserId} targetId={videoId} targetType="Video" />
+            {/* slice cuts the id's prefixt wb_ */}
+            <ComplaintButton authorId={currentUserId} targetId={videoId.slice(3)} targetType="Video" />
           </div>
         </div>
       )}
       {currentUserId && source !== 'Webby' && (
         <div className="flex flex-row-reverse">
-          <SaveToPlaylistButton userId={currentUserId} videoId={videoId} videoSource={video.data.source} />
+          <SaveToPlaylistButton userId={currentUserId} videoId={v} />
         </div>
       )}
       <VideoDescription text={description ?? ''} views={views} date={createdAt} videoTags={videoTags} />

@@ -2,6 +2,7 @@
 using FluentAssertions;
 using NSubstitute;
 using UserService;
+using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Helpers.Exception;
@@ -327,7 +328,7 @@ public class PlaylistServiceTests
       // Arrange
       var playlistId = Guid.NewGuid();
       var userId = Guid.NewGuid();
-      var emptyList = new List<AddVideoToPlaylistItem>();
+      var emptyList = new List<string>();
 
       // Act
       Func<Task> act = async () => await _sut.AttachVideoToPlaylist(playlistId, emptyList, userId);
@@ -338,17 +339,30 @@ public class PlaylistServiceTests
    }
 
    [Fact]
+   public async Task CheckIfVideoExistInPlaylist_ShouldReturnRepositoryResult()
+   {
+       // Arrange
+       var playlistId = Guid.NewGuid();
+       var videoId = PlatformPrefixesConstants.WebbyPrefix + Guid.NewGuid();
+       _playlistRepositoryMock.CheckIsVideoAdded(videoId, playlistId).Returns(true);
+
+       // Act
+       var result = await _sut.CheckIfVideoExistInPlaylist(playlistId, videoId);
+
+       // Assert
+       result.Should().BeTrue();
+       await _playlistRepositoryMock.Received(1).CheckIsVideoAdded(videoId, playlistId);
+   }
+
+   [Fact]
    public async Task AttachVideoToPlaylist_WhenNewLocalVideo_ShouldCallAddPlaylistVideos()
    {
       // Arrange
       var playlistId = Guid.NewGuid();
       var userId = Guid.NewGuid();
-      var videoId = Guid.NewGuid().ToString();
+      var videoId = PlatformPrefixesConstants.WebbyPrefix + Guid.NewGuid().ToString();
 
-      var requestItems = new List<AddVideoToPlaylistItem>
-      {
-         new AddVideoToPlaylistItem { VideoPlatform = VideoPlatform.Webby, ItemId = videoId }
-      };
+      var requestItems = new List<string>() { videoId };
 
       var playlist = new Models.Playlist 
       { 
@@ -369,21 +383,4 @@ public class PlaylistServiceTests
       await _playlistRepositoryMock.Received(1).AddPlaylistVideos(Arg.Is<List<PlaylistVideo>>(list => 
          list.Count == 1 && list[0].VideoPlatform == VideoPlatform.Webby));
    }
-   
-   [Fact]
-   public async Task CheckIfVideoExistInPlaylist_ShouldReturnRepositoryResult()
-   {
-       // Arrange
-       var playlistId = Guid.NewGuid();
-       var videoId = "some-video-id";
-       _playlistRepositoryMock.CheckIsVideoAdded(videoId, playlistId).Returns(true);
-
-       // Act
-       var result = await _sut.CheckIfVideoExistInPlaylist(playlistId, videoId);
-
-       // Assert
-       result.Should().BeTrue();
-       await _playlistRepositoryMock.Received(1).CheckIsVideoAdded(videoId, playlistId);
-   }
-
 }

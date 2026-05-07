@@ -53,11 +53,10 @@ export function usePlaylistAutoPlay({
 
     if (currentIndex !== -1 && currentIndex < currentVideos.length - 1) {
       const nextVideoId = currentVideos[currentIndex + 1].videoId
-      const nextVideoSource = currentVideos[currentIndex + 1].source
 
       setOptimisticId(nextVideoId)
 
-      router.push(`/playlists/${playlistId}?v=${nextVideoId}&source=${nextVideoSource}`, { scroll: false })
+      router.push(`/playlists/${playlistId}?v=${nextVideoId}`, { scroll: false })
     } else {
       const isPlaying = usePlayerPlayStore.getState().playing
       if (isPlaying) {

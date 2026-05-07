@@ -12,6 +12,7 @@ public class YouTubeVideoResponse
       public Snippet Snippet { get; set; }
       public ContentDetails? ContentDetails { get; set; }
       public Statistics? Statistics { get; set; }
+      public VideoStatusInfo Status { get; set; }
    }
 
    public class Snippet
@@ -23,9 +24,14 @@ public class YouTubeVideoResponse
       public DateTime PublishedAt { get; set; }
       public Thumbnails Thumbnails { get; set; }
       public List<string>? Tags { get; set; }
+      public string LiveBroadcastContent { get; set; }
    }
 
-   public class ContentDetails { public string Duration { get; set; } }
+   public class ContentDetails
+   {
+      public string Duration { get; set; } 
+      public RegionRestrictionInfo RegionRestriction { get; set; }
+   }
    public class Statistics { public string ViewCount { get; set; } }
 
    public class Thumbnails
@@ -39,5 +45,16 @@ public class YouTubeVideoResponse
    {
       public int TotalResults { get; set; }
       public int ResultsPerPage { get; set; }
+   }
+   
+   public class VideoStatusInfo
+   {
+      public string PrivacyStatus { get; set; }
+      public bool? Embeddable { get; set; }
+   }
+   
+   public class RegionRestrictionInfo
+   {
+      public List<string> Blocked { get; set; } 
    }
 }

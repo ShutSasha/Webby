@@ -139,7 +139,6 @@ function VideosTab({ query }: { query: string }) {
                 subtitle={`Webby • ${video.views.toLocaleString()} views • by ${video.user.username}`}
                 thumbnail={video.previewUrl}
                 type="Video"
-                source="Webby"
               />
             ))}
           </div>
@@ -177,7 +176,6 @@ function VideosTab({ query }: { query: string }) {
                 subtitle={`YouTube • ${video.views.toLocaleString()} views • by ${video.user.username}`}
                 thumbnail={video.previewUrl}
                 type="YouTube"
-                source="YouTube"
               />
             ))}
           </div>

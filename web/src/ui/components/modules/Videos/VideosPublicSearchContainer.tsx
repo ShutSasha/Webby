@@ -66,7 +66,6 @@ export default function VideosPublicSearchContainer({ query }: Props) {
               createAt={video.createdAt}
               userAvatar={video.user.avatarUrl}
               currentUserId={session?.user.id}
-              videoSource={video.source}
             />
           )
 

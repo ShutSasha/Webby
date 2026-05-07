@@ -143,7 +143,7 @@ export function StudioVideoRow({ video }: Props) {
         <div className="flex flex-col justify-center overflow-hidden min-w-0">
           {isReady ? (
             <Link
-              href={`/videos/${video.videoId}?source=Webby`}
+              href={`/videos/${video.videoId}`}
               className="text-sm font-semibold text-neutral-100 line-clamp-2 wrap-break-word hover:text-emerald-400
                 transition-colors"
             >

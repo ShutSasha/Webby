@@ -14,7 +14,6 @@ import { useTogglePlaylistVideoMutation } from '@/lib/hooks/api/playlist/useTogg
 import { cn } from '@/lib/utils/general.utils'
 import { usePlayerPlayStore } from '@/stores/player.store'
 import { useToastStore } from '@/stores/toast-store'
-import { VideoSource } from '@/types/video.types'
 
 interface Props {
   id: string
@@ -25,7 +24,6 @@ interface Props {
   onOptimisticClick: () => void
   isOwner: boolean
   userId: string
-  videoSource: VideoSource
 }
 
 export default function VideoItem({
@@ -37,7 +35,6 @@ export default function VideoItem({
   onOptimisticClick,
   isOwner,
   userId,
-  videoSource,
 }: Props) {
   const playing = usePlayerPlayStore(state => state.playing)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
@@ -61,7 +58,7 @@ export default function VideoItem({
     if (isPending) return
 
     toggleVideo(
-      { playlistId, videoId: id, videoSource },
+      { playlistId, videoId: id },
       {
         onError: () => {
           addToast(`Failed to delete video in playlist`, 'error')
@@ -78,7 +75,7 @@ export default function VideoItem({
     if (!isActive) {
       onOptimisticClick()
 
-      router.push(`/playlists/${playlistId}?v=${id}&source=${videoSource}`, { scroll: false })
+      router.push(`/playlists/${playlistId}?v=${id}`, { scroll: false })
 
       if (!playing) togglePlay()
       return
@@ -95,7 +92,7 @@ export default function VideoItem({
       layout
     >
       <Link
-        href={`/playlists/${playlistId}?v=${id}&source=${videoSource}`}
+        href={`/playlists/${playlistId}?v=${id}`}
         onClick={() => {
           if (!isActive) onOptimisticClick()
         }}

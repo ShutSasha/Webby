@@ -3,16 +3,13 @@
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse } from '@/types/general.types'
-import { GetUserVideosResponse, SearchVideosResponse, Video, VideoSource } from '@/types/video.types'
+import { GetRecommendationsResponse, GetUserVideosResponse, SearchVideosResponse, Video } from '@/types/video.types'
 
 const endpoint = '/videos'
 
-export async function getVideoInfo(
-  videoId: string,
-  platform: VideoSource = 'Webby',
-): Promise<BaseServerResponse<Video>> {
+export async function getVideoInfo(videoId: string): Promise<BaseServerResponse<Video>> {
   try {
-    const { data: response } = await $api.get<BaseServerResponse<Video>>(`${endpoint}/${videoId}?platform=${platform}`)
+    const { data: response } = await $api.get<BaseServerResponse<Video>>(`${endpoint}/${videoId}`)
 
     return response
   } catch (error: unknown) {
@@ -179,6 +176,37 @@ export async function incrementVideoView(videoId: string): Promise<BaseServerRes
       data: null,
       success: false,
       message: 'Failed to increment view count',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function getVideoRecommendations(
+  videoId: string,
+  page: number = 1,
+  pageSize: number = 20,
+  contentSeed?: number | null,
+): Promise<BaseServerResponse<GetRecommendationsResponse>> {
+  try {
+    const params = new URLSearchParams()
+
+    params.append('page', page.toString())
+    params.append('pageSize', pageSize.toString())
+
+    if (contentSeed) params.append('contentSeed', contentSeed.toString())
+
+    const { data: response } = await $api.get<BaseServerResponse<GetRecommendationsResponse>>(
+      `${endpoint}/recommendation/${videoId}?${params.toString()}`,
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_VIDEO_RECOMMENDATIONS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve video recommendations',
       errors: parseAxiosError(error),
     }
   }

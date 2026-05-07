@@ -4,7 +4,6 @@ import Image from 'next/image'
 
 import { useTogglePlaylistVideoMutation } from '@/lib/hooks/api/playlist/useTogglePlaylistVideo'
 import { useToastStore } from '@/stores/toast-store'
-import { VideoSource } from '@/types/video.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {
@@ -15,19 +14,9 @@ type Props = {
   count: number
   isVideoAdded: boolean
   userId: string
-  videoSource: VideoSource | undefined
 }
 
-export default function PlaylistItem({
-  videoId,
-  playlistId,
-  image,
-  name,
-  count,
-  isVideoAdded,
-  userId,
-  videoSource,
-}: Props) {
+export default function PlaylistItem({ videoId, playlistId, image, name, count, isVideoAdded, userId }: Props) {
   const addToast = useToastStore(state => state.addToast)
 
   const [isAdded, setIsAdded] = useState(isVideoAdded)
@@ -48,7 +37,7 @@ export default function PlaylistItem({
     setLocalCount(prev => (newIsAdded ? prev + 1 : prev - 1))
 
     toggleVideo(
-      { playlistId, videoId, videoSource },
+      { playlistId, videoId },
       {
         onError: () => {
           setIsAdded(!newIsAdded)
