@@ -1,4 +1,4 @@
-package create_test
+package handlers_test
 
 import (
 	"bytes"
@@ -10,12 +10,11 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-	"webby-chat/internal/apperrors"
-	"webby-chat/internal/handlers"
-	"webby-chat/internal/handlers/chats/create/mocks"
-	"webby-chat/internal/handlers/responses"
-	"webby-chat/internal/models"
-	"webby-chat/pkg/logger"
+	"webby/chat-service/internal/apperrors"
+	"webby/chat-service/internal/handlers"
+	handlermocks "webby/chat-service/internal/handlers/mocks"
+	"webby/chat-service/internal/models"
+	"webby/chat-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -37,23 +36,23 @@ func setupRequest(body string) (*gin.Context, *httptest.ResponseRecorder) {
 
 func TestCreateChat_Success(t *testing.T) {
 	t.Run("Create chat without roomId", func(t *testing.T) {
-		mockCreator := mocks.NewMockCreator(t)
+		mockService := handlermocks.NewMockService(t)
 		chatId := uuid.New()
 		chat := &models.Chat{
 			Id:        chatId,
 			RoomId:    nil,
 			CreatedAt: time.Now(),
 		}
-		mockCreator.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return(chat, nil).Once()
+		mockService.On("Create", mock.Anything, models.CreateChatRequest{RoomId: nil}).Return(chat, nil).Once()
 
-		handler := handlers.New(mockCreator)
+		handler := handlers.New(mockService)
 		c, w := setupRequest(`{}`)
 
 		handler.Create(c)
 
 		require.Equal(t, http.StatusCreated, w.Code)
 
-		var resp responses.ApiResponse[map[string]any]
+		var resp handlers.ApiResponse[map[string]any]
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		require.NoError(t, err)
 		require.True(t, resp.Success)
@@ -62,17 +61,18 @@ func TestCreateChat_Success(t *testing.T) {
 	})
 
 	t.Run("Create chat with roomId", func(t *testing.T) {
-		mockCreator := mocks.NewMockCreator(t)
+		mockService := handlermocks.NewMockService(t)
 		chatId := uuid.New()
 		roomId := uuid.New()
+		roomIdStr := roomId.String()
 		chat := &models.Chat{
 			Id:        chatId,
 			RoomId:    &roomId,
 			CreatedAt: time.Now(),
 		}
-		mockCreator.On("Create", mock.Anything, &roomId).Return(chat, nil).Once()
+		mockService.On("Create", mock.Anything, models.CreateChatRequest{RoomId: &roomIdStr}).Return(chat, nil).Once()
 
-		handler := handlers.New(mockCreator)
+		handler := handlers.New(mockService)
 		body := `{"roomId":"` + roomId.String() + `"}`
 		c, w := setupRequest(body)
 
@@ -80,7 +80,7 @@ func TestCreateChat_Success(t *testing.T) {
 
 		require.Equal(t, http.StatusCreated, w.Code)
 
-		var resp responses.ApiResponse[map[string]any]
+		var resp handlers.ApiResponse[map[string]any]
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		require.NoError(t, err)
 		require.True(t, resp.Success)
@@ -91,8 +91,11 @@ func TestCreateChat_Success(t *testing.T) {
 
 func TestCreateChat_ValidationErrors(t *testing.T) {
 	t.Run("Invalid roomId format", func(t *testing.T) {
-		mockCreator := mocks.NewMockCreator(t)
-		handler := handlers.New(mockCreator)
+		mockService := handlermocks.NewMockService(t)
+		invalidRoomId := "not-a-uuid"
+		mockService.On("Create", mock.Anything, models.CreateChatRequest{RoomId: &invalidRoomId}).Return(nil, apperrors.ErrInvalidInput).Once()
+
+		handler := handlers.New(mockService)
 
 		c, w := setupRequest(`{"roomId":"not-a-uuid"}`)
 
@@ -100,15 +103,15 @@ func TestCreateChat_ValidationErrors(t *testing.T) {
 
 		require.Equal(t, http.StatusBadRequest, w.Code)
 
-		var resp responses.ApiResponse[struct{}]
+		var resp handlers.ApiResponse[struct{}]
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		require.NoError(t, err)
 		require.False(t, resp.Success)
 	})
 
 	t.Run("Invalid JSON body", func(t *testing.T) {
-		mockCreator := mocks.NewMockCreator(t)
-		handler := handlers.New(mockCreator)
+		mockService := handlermocks.NewMockService(t)
+		handler := handlers.New(mockService)
 
 		c, w := setupRequest(`{invalid}`)
 
@@ -120,10 +123,10 @@ func TestCreateChat_ValidationErrors(t *testing.T) {
 
 func TestCreateChat_ServiceErrors(t *testing.T) {
 	t.Run("Conflict error", func(t *testing.T) {
-		mockCreator := mocks.NewMockCreator(t)
-		mockCreator.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return((*models.Chat)(nil), apperrors.ErrConflict).Once()
+		mockService := handlermocks.NewMockService(t)
+		mockService.On("Create", mock.Anything, models.CreateChatRequest{RoomId: nil}).Return((*models.Chat)(nil), apperrors.ErrConflict).Once()
 
-		handler := handlers.New(mockCreator)
+		handler := handlers.New(mockService)
 		c, w := setupRequest(`{}`)
 
 		handler.Create(c)
@@ -132,10 +135,10 @@ func TestCreateChat_ServiceErrors(t *testing.T) {
 	})
 
 	t.Run("Internal error", func(t *testing.T) {
-		mockCreator := mocks.NewMockCreator(t)
-		mockCreator.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return((*models.Chat)(nil), apperrors.ErrInternal).Once()
+		mockService := handlermocks.NewMockService(t)
+		mockService.On("Create", mock.Anything, models.CreateChatRequest{RoomId: nil}).Return((*models.Chat)(nil), apperrors.ErrInternal).Once()
 
-		handler := handlers.New(mockCreator)
+		handler := handlers.New(mockService)
 		c, w := setupRequest(`{}`)
 
 		handler.Create(c)

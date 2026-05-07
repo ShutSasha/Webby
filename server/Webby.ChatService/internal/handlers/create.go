@@ -3,10 +3,9 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"strings"
 	"time"
-	"webby-chat/internal/handlers/responses"
-	"webby-chat/pkg/logger"
+	"webby/chat-service/internal/models"
+	"webby/chat-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -31,32 +30,18 @@ func (h handler) Create(c *gin.Context) {
 	var req createRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Debug("invalid request body", slog.Any("error", err))
-		responses.HandleValidationError(c, err)
+		HandleValidationError(c, err)
 		return
 	}
 
-	var roomId *uuid.UUID
-	if req.RoomId != nil && strings.TrimSpace(*req.RoomId) != "" {
-		parsed, err := uuid.Parse(strings.TrimSpace(*req.RoomId))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, responses.ApiResponse[struct{}]{
-				Success: false,
-				Message: "Validation error",
-				Errors: map[string]string{"roomId": "invalid UUID format"},
-			})
-			return
-		}
-		roomId = &parsed
-	}
-
-	chat, err := h.service.Create(ctx, roomId)
+	chat, err := h.service.Create(ctx, models.CreateChatRequest(req))
 	if err != nil {
 		log.Error("create chat error", slog.String("err", err.Error()))
-		responses.HandleAppError(c, "Create chat error", err)
+		HandleAppError(c, "Create chat error", err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, responses.ApiResponse[chatResponse]{
+	c.JSON(http.StatusCreated, ApiResponse[chatResponse]{
 		Success: true,
 		Message: "Chat created",
 		Data: &chatResponse{

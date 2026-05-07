@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
-	"webby-chat/internal/config"
-	"webby-chat/pkg/http/middleware/cors"
-	loggerMw "webby-chat/pkg/http/middleware/logger"
+	"webby/chat-service/internal/config"
+	"webby/chat-service/pkg/http/middleware/cors"
+	loggerMw "webby/chat-service/pkg/http/middleware/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"

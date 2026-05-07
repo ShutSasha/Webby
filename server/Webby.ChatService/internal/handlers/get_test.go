@@ -1,4 +1,4 @@
-package get_test
+package handlers_test
 
 import (
 	"context"
@@ -9,12 +9,11 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-	"webby-chat/internal/apperrors"
-	"webby-chat/internal/handlers"
-	"webby-chat/internal/handlers/chats/get/mocks"
-	"webby-chat/internal/handlers/responses"
-	"webby-chat/internal/models"
-	"webby-chat/pkg/logger"
+	"webby/chat-service/internal/apperrors"
+	"webby/chat-service/internal/handlers"
+	handlermocks "webby/chat-service/internal/handlers/mocks"
+	"webby/chat-service/internal/models"
+	"webby/chat-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -22,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupRequest(chatID string, userID uuid.UUID) (*gin.Context, *httptest.ResponseRecorder) {
+func setupGetRequest(chatID string, userID uuid.UUID) (*gin.Context, *httptest.ResponseRecorder) {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -41,22 +40,22 @@ func TestGetChat_Success(t *testing.T) {
 	roomID := uuid.New()
 
 	t.Run("Chat retrieved successfully", func(t *testing.T) {
-		mockGetter := mocks.NewMockGetter(t)
+		mockService := handlermocks.NewMockService(t)
 		chat := &models.Chat{
 			Id:        chatID,
 			RoomId:    &roomID,
 			CreatedAt: time.Now(),
 		}
-		mockGetter.On("GetById", mock.Anything, chatID).Return(chat, nil).Once()
+		mockService.On("GetById", mock.Anything, chatID).Return(chat, nil).Once()
 
-		handler := handlers.New(mockGetter)
-		c, w := setupRequest(chatID.String(), userID)
+		handler := handlers.New(mockService)
+		c, w := setupGetRequest(chatID.String(), userID)
 
 		handler.Get(c)
 
 		require.Equal(t, http.StatusOK, w.Code)
 
-		var resp responses.ApiResponse[map[string]any]
+		var resp handlers.ApiResponse[map[string]any]
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		require.NoError(t, err)
 		require.True(t, resp.Success)
@@ -66,22 +65,22 @@ func TestGetChat_Success(t *testing.T) {
 	})
 
 	t.Run("Chat without room", func(t *testing.T) {
-		mockGetter := mocks.NewMockGetter(t)
+		mockService := handlermocks.NewMockService(t)
 		chat := &models.Chat{
 			Id:        chatID,
 			RoomId:    nil,
 			CreatedAt: time.Now(),
 		}
-		mockGetter.On("GetById", mock.Anything, chatID).Return(chat, nil).Once()
+		mockService.On("GetById", mock.Anything, chatID).Return(chat, nil).Once()
 
-		handler := handlers.New(mockGetter)
-		c, w := setupRequest(chatID.String(), userID)
+		handler := handlers.New(mockService)
+		c, w := setupGetRequest(chatID.String(), userID)
 
 		handler.Get(c)
 
 		require.Equal(t, http.StatusOK, w.Code)
 
-		var resp responses.ApiResponse[map[string]any]
+		var resp handlers.ApiResponse[map[string]any]
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		require.NoError(t, err)
 		require.True(t, resp.Success)
@@ -102,15 +101,15 @@ func TestGetChat_ValidationErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockGetter := mocks.NewMockGetter(t)
-			handler := handlers.New(mockGetter)
+			mockService := handlermocks.NewMockService(t)
+			handler := handlers.New(mockService)
 
-			c, w := setupRequest(tt.pathChatID, userID)
+			c, w := setupGetRequest(tt.pathChatID, userID)
 
 			handler.Get(c)
 			require.Equal(t, http.StatusBadRequest, w.Code)
 
-			var resp responses.ApiResponse[struct{}]
+			var resp handlers.ApiResponse[struct{}]
 			err := json.Unmarshal(w.Body.Bytes(), &resp)
 			require.NoError(t, err)
 			require.False(t, resp.Success)
@@ -133,11 +132,11 @@ func TestGetChat_ServiceErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockGetter := mocks.NewMockGetter(t)
-			mockGetter.On("GetById", mock.Anything, chatID).Return((*models.Chat)(nil), tt.mockError).Once()
+			mockService := handlermocks.NewMockService(t)
+			mockService.On("GetById", mock.Anything, chatID).Return((*models.Chat)(nil), tt.mockError).Once()
 
-			handler := handlers.New(mockGetter)
-			c, w := setupRequest(chatID.String(), userID)
+			handler := handlers.New(mockService)
+			c, w := setupGetRequest(chatID.String(), userID)
 
 			handler.Get(c)
 

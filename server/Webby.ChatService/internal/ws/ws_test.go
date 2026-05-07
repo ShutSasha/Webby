@@ -3,7 +3,7 @@ package ws_test
 import (
 	"testing"
 
-	"webby-chat/internal/ws"
+	"webby/chat-service/internal/ws"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"

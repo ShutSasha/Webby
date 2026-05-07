@@ -3,8 +3,9 @@ package logger
 import (
 	"log/slog"
 
+	ctxlogger "webby/chat-service/pkg/logger"
+
 	"github.com/gin-gonic/gin"
-	ctxlogger "webby-chat/pkg/logger"
 )
 
 func Logger(log *slog.Logger) gin.HandlerFunc {

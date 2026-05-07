@@ -3,12 +3,13 @@ package handlers
 import (
 	"context"
 
+	"webby/chat-service/internal/models"
+
 	"github.com/google/uuid"
-	"webby-chat/internal/models"
 )
 
 type Service interface {
-	Create(ctx context.Context, roomId *uuid.UUID) (*models.Chat, error)
+	Create(ctx context.Context, req models.CreateChatRequest) (*models.Chat, error)
 	GetById(ctx context.Context, chatId uuid.UUID) (*models.Chat, error)
 }
 

@@ -1,4 +1,4 @@
-module webby-chat
+module webby/chat-service
 
 go 1.25.1
 

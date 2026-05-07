@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"net/http"
-	"webby-chat/docs"
-	"webby-chat/internal/config"
-	"webby-chat/pkg/http/middleware/auth"
+	"webby/chat-service/docs"
+	"webby/chat-service/internal/config"
+	"webby/chat-service/pkg/http/middleware/auth"
 
 	"github.com/gin-gonic/gin"
 )

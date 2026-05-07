@@ -1,186 +1,65 @@
 openapi: 3.0.3
 info:
-  title: Webby.ChatService
+  title: Webby - Chat Service
   description: |
-    Real-time chat service for Webby rooms. Provides REST endpoints for chat management
-    and Socket.IO WebSocket events for real-time messaging.
-
-    ## Socket.IO Events
-
-    Connect to `ws://localhost:8081/socket.io/` with query param `?token=<JWT>`.
-
-    ### Client → Server Events
-
-    | Event | Payload | Description |
-    |-------|---------|-------------|
-    | `chat:join` | `{ "chatId": "uuid" }` | Join a chat room (must be a member) |
-    | `messages:list` | `{ "chatId": "uuid", "page": 1, "limit": 50 }` | Get paginated messages (newest first) |
-    | `messages:send` | `{ "chatId": "uuid", "content": "text" }` | Send a message to chat |
-    | `messages:edit` | `{ "messageId": "uuid", "content": "new text" }` | Edit own message |
-    | `messages:delete` | `{ "messageId": "uuid" }` | Delete own message |
-
-    ### Server → Client Events
-
-    | Event | Payload | Description |
-    |-------|---------|-------------|
-    | `messages:list:response` | `{ items, page, pageSize, totalCount }` | Response to messages:list |
-    | `messages:new` | `{ id, senderId, chatId, content, createdAt }` | New message broadcast |
-    | `messages:edited` | `{ id, senderId, chatId, content, isEdited, editedAt }` | Edited message broadcast |
-    | `messages:deleted` | `{ id, chatId }` | Deleted message broadcast |
-
-  version: "1.0"
+    The Chat Service manages chat creation and retrieval for Webby rooms.
+    All endpoints require a valid JWT Bearer token.
+  version: 1.0.0
   contact:
-    name: Webby Team
-
-servers:
-  - url: http://localhost:8081
-    description: Local development
-
-security:
-  - BearerAuth: []
-
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  schemas:
-    ChatResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        roomId:
-          type: string
-          format: uuid
-          nullable: true
-          example: "550e8400-e29b-41d4-a716-446655440001"
-        createdAt:
-          type: string
-          format: date-time
-          example: "2026-04-04T12:00:00Z"
-
-    MessageResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        senderId:
-          type: string
-          format: uuid
-        chatId:
-          type: string
-          format: uuid
-        content:
-          type: string
-          example: "Hello, world!"
-        isEdited:
-          type: boolean
-          example: false
-        editedAt:
-          type: string
-          format: date-time
-          nullable: true
-        createdAt:
-          type: string
-          format: date-time
-
-    ApiSuccessChat:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: "Chat created"
-        data:
-          $ref: '#/components/schemas/ChatResponse'
-
-    ApiError:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: false
-        message:
-          type: string
-          example: "An error occurred"
-        errors:
-          type: object
-          additionalProperties:
-            type: string
-
-    PaginatedMessages:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/MessageResponse'
-        page:
-          type: integer
-          example: 1
-        pageSize:
-          type: integer
-          example: 50
-        totalCount:
-          type: integer
-          example: 100
-
+    name: Webby Platform Team
+tags:
+  - name: Chats
+    description: Endpoints for managing chats
 paths:
   /api/chats:
     post:
-      summary: Create a new chat
-      description: Create a new chat, optionally linked to a room.
       tags:
         - Chats
+      summary: Create a chat
+      description: Create a new chat. If a room ID is provided, the service will reuse an existing chat for that room when available.
+      operationId: createChat
       security:
-        - BearerAuth: []
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                roomId:
-                  type: string
-                  format: uuid
-                  description: Optional room ID to link the chat to
+              $ref: '#/components/schemas/CreateChatRequest'
       responses:
         '201':
-          description: Chat created successfully
+          description: Chat created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiSuccessChat'
+                $ref: '#/components/schemas/ChatApiResponse'
         '400':
-          description: Invalid input
+          description: Validation error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
-
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/chats/{id}:
     get:
-      summary: Get a chat by ID
-      description: Retrieve a chat by its UUID.
       tags:
         - Chats
+      summary: Get chat by ID
+      description: Retrieve a chat by UUID.
+      operationId: getChatById
       security:
-        - BearerAuth: []
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -188,22 +67,87 @@ paths:
           schema:
             type: string
             format: uuid
+          description: Chat identifier
       responses:
         '200':
-          description: Chat retrieved
+          description: Chat retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiSuccessChat'
+                $ref: '#/components/schemas/ChatApiResponse'
         '400':
-          description: Invalid UUID
+          description: Validation error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Chat not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    CreateChatRequest:
+      type: object
+      properties:
+        roomId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Optional room UUID to reuse an existing chat
+    ChatResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    ChatApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ChatResponse'
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: string

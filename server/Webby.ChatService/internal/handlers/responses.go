@@ -1,4 +1,4 @@
-package responses
+package handlers
 
 import (
 	"errors"
@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"reflect"
 
+	"webby/chat-service/internal/apperrors"
+	"webby/chat-service/pkg/http/render"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"webby-chat/internal/apperrors"
-	"webby-chat/pkg/http/render"
 )
 
 type ApiResponse[T any] struct {
@@ -32,36 +33,6 @@ func Error(w http.ResponseWriter, r *http.Request, statusCode int, message strin
 		Message: message,
 		Errors:  problems,
 	})
-}
-
-type ApiError struct {
-	Title string
-	Err   error
-}
-
-func (e *ApiError) Error() string {
-	return e.Err.Error()
-}
-
-func (e *ApiError) Unwrap() error {
-	return e.Err
-}
-
-func NewApiError(title string, err error) error {
-	return &ApiError{Title: title, Err: err}
-}
-
-type ValidationError struct {
-	Title string
-	Err   map[string]string
-}
-
-func (e *ValidationError) Error() string {
-	return e.Title
-}
-
-func NewValidationError(title string, problems map[string]string) error {
-	return &ValidationError{Title: title, Err: problems}
 }
 
 func HandleValidationError(c *gin.Context, err error) {

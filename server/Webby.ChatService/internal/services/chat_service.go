@@ -3,8 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
-	"webby-chat/internal/apperrors"
-	"webby-chat/internal/models"
+	"strings"
+	"webby/chat-service/internal/apperrors"
+	"webby/chat-service/internal/models"
 
 	"github.com/google/uuid"
 )
@@ -34,7 +35,23 @@ func NewChatService(chatRepo ChatRepo, chatMemberRepo ChatMemberRepo) *ChatServi
 	}
 }
 
-func (s *ChatService) Create(ctx context.Context, roomId *uuid.UUID) (*models.Chat, error) {
+func (s *ChatService) Create(ctx context.Context, req models.CreateChatRequest) (*models.Chat, error) {
+	var roomId *uuid.UUID
+	if req.RoomId != nil && strings.TrimSpace(*req.RoomId) != "" {
+		parsed, err := uuid.Parse(strings.TrimSpace(*req.RoomId))
+		if err != nil {
+			return nil, apperrors.ErrInvalidInput
+		}
+		roomId = &parsed
+	}
+
+	if roomId != nil {
+		existing, err := s.chatRepo.GetByRoomId(ctx, *roomId)
+		if err == nil && existing != nil {
+			return existing, nil
+		}
+	}
+
 	chat := &models.Chat{
 		RoomId: roomId,
 	}
@@ -98,38 +115,6 @@ func (s *ChatService) EnsureMember(ctx context.Context, chatId, userId uuid.UUID
 		return nil
 	}
 	return s.chatMemberRepo.Add(ctx, chatId, userId)
-}
-
-func (s *ChatService) CreateForRoom(ctx context.Context, roomId uuid.UUID) (*models.Chat, error) {
-	existing, err := s.chatRepo.GetByRoomId(ctx, roomId)
-	if err == nil && existing != nil {
-		return existing, nil
-	}
-
-	chat := &models.Chat{
-		RoomId: &roomId,
-	}
-
-	id, err := s.chatRepo.Create(ctx, chat)
-	if err != nil {
-		return nil, fmt.Errorf("create chat for room %s: %w", roomId, err)
-	}
-
-	chat.Id = id
-	return chat, nil
-}
-
-func (s *ChatService) GetOrCreateByRoomId(ctx context.Context, roomId uuid.UUID) (*models.Chat, error) {
-	chat, err := s.chatRepo.GetByRoomId(ctx, roomId)
-	if err == nil {
-		return chat, nil
-	}
-
-	if !isNotFound(err) {
-		return nil, err
-	}
-
-	return s.CreateForRoom(ctx, roomId)
 }
 
 func isNotFound(err error) bool {

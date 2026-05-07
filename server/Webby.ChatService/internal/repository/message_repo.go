@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"webby-chat/internal/apperrors"
-	"webby-chat/internal/models"
+	"webby/chat-service/internal/apperrors"
+	"webby/chat-service/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -23,15 +23,13 @@ func NewMessageRepository(db *pgxpool.Pool) *MessageRepository {
 func (r *MessageRepository) Create(ctx context.Context, msg *models.Message) (*models.Message, error) {
 	const op = "repository.MessageRepository.Create"
 
-	msg.Id = uuid.New()
-
 	query := `
-		INSERT INTO messages (id, sender_id, chat_id, content)
-		VALUES ($1, $2, $3, $4)
-		RETURNING created_at
+		INSERT INTO messages (sender_id, chat_id, content)
+		VALUES ($1, $2, $3)
+		RETURNING id, created_at
 	`
 
-	err := r.db.QueryRow(ctx, query, msg.Id, msg.SenderId, msg.ChatId, msg.Content).Scan(&msg.CreatedAt)
+	err := r.db.QueryRow(ctx, query, msg.SenderID, msg.ChatID, msg.Content).Scan(&msg.ID, &msg.CreatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -54,7 +52,7 @@ func (r *MessageRepository) GetById(ctx context.Context, id uuid.UUID) (*models.
 
 	var msg models.Message
 	err := r.db.QueryRow(ctx, query, id).Scan(
-		&msg.Id, &msg.SenderId, &msg.ChatId,
+		&msg.ID, &msg.SenderID, &msg.ChatID,
 		&msg.Content, &msg.IsEdited, &msg.EditedAt, &msg.CreatedAt,
 	)
 	if err != nil {
@@ -83,7 +81,7 @@ func (r *MessageRepository) Update(ctx context.Context, id uuid.UUID, content st
 
 	var msg models.Message
 	err := r.db.QueryRow(ctx, query, id, content).Scan(
-		&msg.Id, &msg.SenderId, &msg.ChatId,
+		&msg.ID, &msg.SenderID, &msg.ChatID,
 		&msg.Content, &msg.IsEdited, &msg.EditedAt, &msg.CreatedAt,
 	)
 	if err != nil {
@@ -156,7 +154,7 @@ func (r *MessageRepository) ListByChat(ctx context.Context, chatId uuid.UUID, pa
 	for rows.Next() {
 		var msg models.Message
 		if err := rows.Scan(
-			&msg.Id, &msg.SenderId, &msg.ChatId,
+			&msg.ID, &msg.SenderID, &msg.ChatID,
 			&msg.Content, &msg.IsEdited, &msg.EditedAt, &msg.CreatedAt,
 		); err != nil {
 			return nil, 0, fmt.Errorf("%s: scan failed: %w", op, err)

@@ -163,7 +163,7 @@ func (x *AddChatMemberRequest) GetUserId() string {
 
 type SaveMessageRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	RoomId        string                 `protobuf:"bytes,1,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	ChatId        string                 `protobuf:"bytes,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
 	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -200,9 +200,9 @@ func (*SaveMessageRequest) Descriptor() ([]byte, []int) {
 	return file_proto_chat_chat_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *SaveMessageRequest) GetRoomId() string {
+func (x *SaveMessageRequest) GetChatId() string {
 	if x != nil {
-		return x.RoomId
+		return x.ChatId
 	}
 	return ""
 }
@@ -366,7 +366,7 @@ const file_proto_chat_chat_proto_rawDesc = "" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\"`\n" +
 	"\x12SaveMessageRequest\x12\x17\n" +
-	"\aroom_id\x18\x01 \x01(\tR\x06roomId\x12\x17\n" +
+	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\"4\n" +
 	"\x13SaveMessageResponse\x12\x1d\n" +
@@ -381,7 +381,7 @@ const file_proto_chat_chat_proto_rawDesc = "" +
 	"CreateChat\x12\x17.chat.CreateChatRequest\x1a\x12.chat.ChatResponse\x12C\n" +
 	"\x0fGetChatByRoomId\x12\x1c.chat.GetChatByRoomIdRequest\x1a\x12.chat.ChatResponse\x12H\n" +
 	"\rAddChatMember\x12\x1a.chat.AddChatMemberRequest\x1a\x1b.chat.AddChatMemberResponse\x12B\n" +
-	"\vSaveMessage\x12\x18.chat.SaveMessageRequest\x1a\x19.chat.SaveMessageResponseB!Z\x1fwebby-chat/internal/grpc/chatpbb\x06proto3"
+	"\vSaveMessage\x12\x18.chat.SaveMessageRequest\x1a\x19.chat.SaveMessageResponseB)Z'webby/chat-service/internal/grpc/chatpbb\x06proto3"
 
 var (
 	file_proto_chat_chat_proto_rawDescOnce sync.Once

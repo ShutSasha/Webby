@@ -4,8 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
-	"webby-chat/internal/handlers/responses"
-	"webby-chat/pkg/logger"
+	"webby/chat-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -27,10 +26,10 @@ func (h handler) Get(c *gin.Context) {
 	chatId, err := uuid.Parse(chatIdStr)
 	if err != nil {
 		log.Debug("invalid chat id", slog.String("err", err.Error()))
-		c.JSON(http.StatusBadRequest, responses.ApiResponse[struct{}]{
+		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 			Success: false,
 			Message: "Validation error",
-			Errors: map[string]string{"id": "invalid UUID format"},
+			Errors:  map[string]string{"id": "invalid UUID format"},
 		})
 		return
 	}
@@ -38,11 +37,11 @@ func (h handler) Get(c *gin.Context) {
 	chat, err := h.service.GetById(ctx, chatId)
 	if err != nil {
 		log.Error("retrieve chat error", slog.String("err", err.Error()))
-		responses.HandleAppError(c, "Get chat error", err)
+		HandleAppError(c, "Get chat error", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, responses.ApiResponse[chatGetResponse]{
+	c.JSON(http.StatusOK, ApiResponse[chatGetResponse]{
 		Success: true,
 		Message: "Chat retrieved",
 		Data: &chatGetResponse{

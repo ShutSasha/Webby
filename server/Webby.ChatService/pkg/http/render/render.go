@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
-	"webby-chat/internal/apperrors"
+	"webby/chat-service/internal/apperrors"
 
 	"github.com/goccy/go-json"
 
