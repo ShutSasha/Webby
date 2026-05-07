@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"webby/internal/apperrors"
-	"webby/internal/models"
+	"webby/room-service/internal/apperrors"
+	"webby/room-service/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"

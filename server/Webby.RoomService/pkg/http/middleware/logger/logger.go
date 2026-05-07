@@ -3,7 +3,7 @@ package logger
 import (
 	"log/slog"
 
-	ctxlogger "webby/pkg/logger"
+	ctxlogger "webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )

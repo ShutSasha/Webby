@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"context"
-	"webby/internal/models"
+	"webby/room-service/internal/models"
 
 	"github.com/google/uuid"
 )

@@ -7,7 +7,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	models "webby/internal/models"
+	models "webby/room-service/internal/models"
 
 	uuid "github.com/google/uuid"
 )

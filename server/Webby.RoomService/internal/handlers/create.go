@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"webby/internal/apperrors"
-	"webby/internal/models"
-	"webby/pkg/logger"
+	"webby/room-service/internal/apperrors"
+	"webby/room-service/internal/models"
+	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

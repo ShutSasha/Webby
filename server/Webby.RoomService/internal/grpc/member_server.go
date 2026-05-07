@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"webby/internal/grpc/memberpb"
+	"webby/room-service/internal/grpc/memberpb"
 
 	"github.com/google/uuid"
 )

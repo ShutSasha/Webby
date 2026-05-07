@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"net/http"
-	"webby/docs"
-	"webby/internal/config"
-	"webby/pkg/http/middleware/auth"
+	"webby/room-service/docs"
+	"webby/room-service/internal/config"
+	"webby/room-service/pkg/http/middleware/auth"
 
 	"github.com/gin-gonic/gin"
 )

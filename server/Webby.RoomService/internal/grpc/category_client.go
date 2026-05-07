@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"webby/internal/grpc/categorypb"
+	"webby/room-service/internal/grpc/categorypb"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

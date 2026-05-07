@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package media;
 
-option go_package = "webby/internal/grpc/mediapb";
+option go_package = "webby/room-service/internal/grpc/mediapb";
 
 service MediaService {
   rpc GetVideo(GetVideoRequest) returns (VideoResponse);

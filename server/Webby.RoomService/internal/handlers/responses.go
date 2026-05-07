@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"webby/internal/apperrors"
+	"webby/room-service/internal/apperrors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"

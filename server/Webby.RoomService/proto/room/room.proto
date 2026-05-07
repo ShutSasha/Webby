@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package room;
 
-option go_package = "webby/internal/grpc/roompb";
+option go_package = "webby/room-service/internal/grpc/roompb";
 
 service RoomGrpcService {
   rpc GetRoomHost(GetRoomHostRequest) returns (GetRoomHostResponse);

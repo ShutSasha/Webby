@@ -2,8 +2,8 @@ package grpc
 
 import (
 	"context"
-	"webby/internal/grpc/roompb"
-	"webby/internal/models"
+	"webby/room-service/internal/grpc/roompb"
+	"webby/room-service/internal/models"
 
 	"github.com/google/uuid"
 )

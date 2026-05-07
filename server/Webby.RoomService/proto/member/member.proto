@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package member;
 
-option go_package = "webby/internal/grpc/memberpb";
+option go_package = "webby/room-service/internal/grpc/memberpb";
 
 service MemberGrpcService {
   rpc MemberExists(MemberExistsRequest) returns (MemberExistsResponse);
