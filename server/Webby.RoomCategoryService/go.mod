@@ -1,4 +1,4 @@
-module webby
+module webby/room-category-service
 
 go 1.25.1
 

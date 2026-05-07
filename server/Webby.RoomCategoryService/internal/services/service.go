@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
-	"webby/internal/apperrors"
-	"webby/internal/models"
+	"webby/room-category-service/internal/apperrors"
+	"webby/room-category-service/internal/models"
 )
 
 type Repository interface {

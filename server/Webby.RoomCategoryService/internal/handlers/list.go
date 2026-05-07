@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	"webby/pkg/logger"
+	"webby/room-category-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )

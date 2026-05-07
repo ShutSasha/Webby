@@ -3,7 +3,7 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"webby/pkg/logger"
+	"webby/room-category-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"webby/internal/apperrors"
-	"webby/internal/models"
+	"webby/room-category-service/internal/apperrors"
+	"webby/room-category-service/internal/models"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"

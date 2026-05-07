@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"context"
-	"webby/internal/models"
+	"webby/room-category-service/internal/models"
 )
 
 type Service interface {

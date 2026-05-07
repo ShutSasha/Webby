@@ -9,10 +9,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"webby/internal/apperrors"
-	"webby/internal/handlers"
-	handlermocks "webby/internal/handlers/mocks"
-	"webby/pkg/logger"
+	"webby/room-category-service/internal/apperrors"
+	"webby/room-category-service/internal/handlers"
+	handlermocks "webby/room-category-service/internal/handlers/mocks"
+	"webby/room-category-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"

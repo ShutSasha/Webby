@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"strings"
 
-	"webby/internal/config"
-	"webby/pkg/http/middleware/cors"
-	loggerMw "webby/pkg/http/middleware/logger"
+	"webby/room-category-service/internal/config"
+	"webby/room-category-service/pkg/http/middleware/cors"
+	loggerMw "webby/room-category-service/pkg/http/middleware/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
