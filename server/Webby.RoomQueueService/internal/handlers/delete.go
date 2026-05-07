@@ -3,7 +3,7 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"webby-room-queue/pkg/logger"
+	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -12,11 +12,10 @@ import (
 func (h *handler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.FromContext(ctx).With(
-		slog.String("operation", "httpserver.queue.delete"),
+		slog.String("operation", "handlers.Delete"),
 	)
 
-	itemIdStr := c.Param("itemId")
-	itemId, err := uuid.Parse(itemIdStr)
+	itemID, err := uuid.Parse(c.Param("itemID"))
 	if err != nil {
 		log.Debug("invalid item id", slog.Any("err", err))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
@@ -29,10 +28,8 @@ func (h *handler) Delete(c *gin.Context) {
 		return
 	}
 
-	userIdStr := ctx.Value("userID").(string)
-	userId, _ := uuid.Parse(userIdStr)
-
-	if err := h.service.DeleteFromQueue(ctx, itemId, userId); err != nil {
+	userID, _ := uuid.Parse(ctx.Value("userID").(string))
+	if err := h.service.DeleteFromQueue(ctx, itemID, userID); err != nil {
 		log.Error("delete from queue error", slog.Any("err", err))
 		HandleAppError(c, "Delete from queue error", err)
 		return

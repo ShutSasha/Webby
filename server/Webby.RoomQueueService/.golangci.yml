@@ -19,7 +19,7 @@ linters-settings:
   lll:
     line-length: 110
   goimports:
-    local-prefixes: webby-room-queue
+    local-prefixes: webby/room-queue-service
   revive:
     enable-default-rules: true
     ignore-generated-header: true

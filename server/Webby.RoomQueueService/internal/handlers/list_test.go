@@ -9,11 +9,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"webby-room-queue/internal/apperrors"
-	"webby-room-queue/internal/handlers"
-	handlermocks "webby-room-queue/internal/handlers/mocks"
-	"webby-room-queue/internal/services"
-	"webby-room-queue/pkg/logger"
+	"webby/room-queue-service/internal/apperrors"
+	"webby/room-queue-service/internal/handlers"
+	handlermocks "webby/room-queue-service/internal/handlers/mocks"
+	"webby/room-queue-service/internal/services"
+	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -63,19 +63,19 @@ func TestListQueue(t *testing.T) {
 				childId := uuid.New()
 				items := []services.QueueItemEnriched{
 					{
-						Id:         uuid.New(),
-						EntityId:   videoId,
-						EntityType: "video",
-						Title:      "Test Video",
-						Thumbnail:  "https://example.com/thumb.jpg",
-						VideoUrl:   "https://example.com/video.mp4",
-						IsActive:   true,
-						IsFolder:   false,
+						Id:        uuid.New(),
+						VideoID:   videoId,
+						VideoType: "video",
+						Title:     "Test Video",
+						Thumbnail: "https://example.com/thumb.jpg",
+						VideoUrl:  "https://example.com/video.mp4",
+						IsActive:  true,
+						IsFolder:  false,
 					},
 					{
 						Id:            uuid.New(),
-						EntityId:      playlistId,
-						EntityType:    "playlist",
+						VideoID:       playlistId,
+						VideoType:     "playlist",
 						Title:         "Test Playlist",
 						Thumbnail:     "https://example.com/playlist.jpg",
 						IsActive:      false,

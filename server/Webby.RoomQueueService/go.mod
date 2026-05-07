@@ -1,4 +1,4 @@
-module webby-room-queue
+module webby/room-queue-service
 
 go 1.25.1
 

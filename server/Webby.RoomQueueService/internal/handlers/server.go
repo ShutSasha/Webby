@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"strings"
 
-	"webby-room-queue/internal/config"
-	"webby-room-queue/pkg/http/middleware/cors"
-	loggerMw "webby-room-queue/pkg/http/middleware/logger"
+	"webby/room-queue-service/internal/config"
+	"webby/room-queue-service/pkg/http/middleware/cors"
+	loggerMw "webby/room-queue-service/pkg/http/middleware/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"

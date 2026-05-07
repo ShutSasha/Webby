@@ -11,11 +11,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"webby-room-queue/internal/apperrors"
-	"webby-room-queue/internal/handlers"
-	handlermocks "webby-room-queue/internal/handlers/mocks"
-	"webby-room-queue/internal/models"
-	"webby-room-queue/pkg/logger"
+	"webby/room-queue-service/internal/apperrors"
+	"webby/room-queue-service/internal/handlers"
+	handlermocks "webby/room-queue-service/internal/handlers/mocks"
+	"webby/room-queue-service/internal/models"
+	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -72,12 +72,12 @@ func TestAddToQueue(t *testing.T) {
 				ms.EXPECT().AddToQueue(
 					mock.Anything, roomID, userID, entityID, "video",
 				).Return(&models.QueueItem{
-					Id:         uuid.New(),
-					RoomId:     roomID,
-					EntityId:   entityID,
-					EntityType: "video",
-					IsActive:   false,
-					Position:   1,
+					ID:        uuid.New(),
+					RoomID:    roomID,
+					VideoID:   entityID,
+					VideoType: "video",
+					IsActive:  false,
+					Position:  1,
 				}, nil).Once()
 			},
 			expectedStatus: http.StatusCreated,
@@ -102,12 +102,12 @@ func TestAddToQueue(t *testing.T) {
 				ms.EXPECT().AddToQueue(
 					mock.Anything, roomID, userID, entityID, "playlist",
 				).Return(&models.QueueItem{
-					Id:         uuid.New(),
-					RoomId:     roomID,
-					EntityId:   entityID,
-					EntityType: "playlist",
-					IsActive:   false,
-					Position:   2,
+					ID:        uuid.New(),
+					RoomID:    roomID,
+					VideoID:   entityID,
+					VideoType: "playlist",
+					IsActive:  false,
+					Position:  2,
 				}, nil).Once()
 			},
 			expectedStatus: http.StatusCreated,

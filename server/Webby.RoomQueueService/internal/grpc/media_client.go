@@ -3,26 +3,17 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"webby-room-queue/internal/grpc/mediapb"
+	"webby/room-queue-service/internal/grpc/mediapb"
 
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type VideoInfo struct {
-	Id        uuid.UUID
+	ID        string
 	Title     string
 	Thumbnail string
 	VideoUrl  string
-}
-
-type PlaylistInfo struct {
-	Id         uuid.UUID
-	Title      string
-	Thumbnail  string
-	TotalCount int
-	Videos     []VideoInfo
 }
 
 type MediaClient struct {
@@ -53,79 +44,40 @@ func (m *MediaClient) Close() error {
 	return m.conn.Close()
 }
 
-func entityTypeToVideoType(entityType string) mediapb.VideoType {
-	switch entityType {
-	case "youtube":
-		return mediapb.VideoType_YOUTUBE
-	case "twitch":
-		return mediapb.VideoType_TWITCH
-	default:
-		return mediapb.VideoType_VIDEO
-	}
-}
+func (m *MediaClient) GetVideo(ctx context.Context, id string) (*VideoInfo, error) {
+	const op = "grpc.media_client.GetVideo"
 
-func (m *MediaClient) GetVideo(
-	ctx context.Context, id uuid.UUID, entityType string,
-) (*VideoInfo, error) {
-	resp, err := m.client.GetVideo(
-		ctx, &mediapb.GetVideoRequest{
-			Id:        id.String(),
-			VideoType: entityTypeToVideoType(entityType),
-		},
-	)
+	resp, err := m.client.GetVideo(ctx, &mediapb.GetVideoRequest{Id: id})
 	if err != nil {
-		return nil, fmt.Errorf("get video %s: %w", id.String(), err)
-	}
-
-	videoId, err := uuid.Parse(resp.Id)
-	if err != nil {
-		return nil, fmt.Errorf("parse video id: %w", err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return &VideoInfo{
-		Id:        videoId,
+		ID:        resp.Id,
 		Title:     resp.Title,
 		Thumbnail: resp.Thumbnail,
 		VideoUrl:  resp.VideoUrl,
 	}, nil
 }
 
-func (m *MediaClient) GetPlaylist(
-	ctx context.Context, id uuid.UUID, page, pageSize int32,
-) (*PlaylistInfo, error) {
-	resp, err := m.client.GetPlaylist(ctx, &mediapb.GetPlaylistRequest{
-		Id:       id.String(),
-		Page:     page,
-		PageSize: pageSize,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("get playlist %s: %w", id.String(), err)
-	}
+func (m *MediaClient) GetVideosBatch(ctx context.Context, ids []string) ([]VideoInfo, error) {
+	const op = "grpc.media_client.GetVideosBatch"
 
-	playlistId, err := uuid.Parse(resp.Id)
+	resp, err := m.client.GetVideosBatch(ctx, &mediapb.GetVideosBatchRequest{Ids: ids})
 	if err != nil {
-		return nil, fmt.Errorf("parse playlist id: %w", err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	videos := make([]VideoInfo, 0, len(resp.Videos))
-	for _, v := range resp.Videos {
-		vid, err := uuid.Parse(v.Id)
-		if err != nil {
-			return nil, fmt.Errorf("parse video id in playlist: %w", err)
+	for _, video := range resp.GetVideos() {
+		vidInfo := VideoInfo{
+			ID:        video.Id,
+			Title:     video.Title,
+			Thumbnail: video.Thumbnail,
+			VideoUrl:  video.VideoUrl,
 		}
-		videos = append(videos, VideoInfo{
-			Id:        vid,
-			Title:     v.Title,
-			Thumbnail: v.Thumbnail,
-			VideoUrl:  v.VideoUrl,
-		})
-	}
 
-	return &PlaylistInfo{
-		Id:         playlistId,
-		Title:      resp.Title,
-		Thumbnail:  resp.Thumbnail,
-		TotalCount: int(resp.TotalCount),
-		Videos:     videos,
-	}, nil
+		videos = append(videos, vidInfo)
+	}
+	return videos, nil
 }

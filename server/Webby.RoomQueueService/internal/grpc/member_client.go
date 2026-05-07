@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"webby-room-queue/internal/grpc/memberpb"
+	"webby/room-queue-service/internal/grpc/memberpb"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"

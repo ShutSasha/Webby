@@ -7,11 +7,12 @@
 package memberpb
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -128,7 +129,7 @@ const file_member_proto_rawDesc = "" +
 	"\x14MemberExistsResponse\x12\x16\n" +
 	"\x06exists\x18\x01 \x01(\bR\x06exists2^\n" +
 	"\x11MemberGrpcService\x12I\n" +
-	"\fMemberExists\x12\x1b.member.MemberExistsRequest\x1a\x1c.member.MemberExistsResponseB)Z'webby-room-queue/internal/grpc/memberpbb\x06proto3"
+	"\fMemberExists\x12\x1b.member.MemberExistsRequest\x1a\x1c.member.MemberExistsResponseB)Z'webby/room-queue-service/internal/grpc/memberpbb\x06proto3"
 
 var (
 	file_member_proto_rawDescOnce sync.Once

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
-	"webby-room-queue/internal/apperrors"
+	"webby/room-queue-service/internal/apperrors"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"

@@ -3,69 +3,69 @@ package services
 import (
 	"context"
 	"fmt"
-	"webby-room-queue/internal/apperrors"
-	grpcClient "webby-room-queue/internal/grpc"
-	"webby-room-queue/internal/models"
+	"webby/room-queue-service/internal/apperrors"
+	grpcClient "webby/room-queue-service/internal/grpc"
+	"webby/room-queue-service/internal/models"
 
 	"github.com/google/uuid"
 )
 
 type QueueItemRepository interface {
-	Create(ctx context.Context, item *models.QueueItem) (uuid.UUID, error)
-	Delete(ctx context.Context, id uuid.UUID) error
+	Create(ctx context.Context, item *models.QueueItem) (uuid.UUID, int, error)
+	Delete(ctx context.Context, id uuid.UUID) (int, error)
 	GetById(ctx context.Context, id uuid.UUID) (*models.QueueItem, error)
-	ListByRoom(ctx context.Context, roomId uuid.UUID) ([]models.QueueItem, error)
+	ListByRoom(ctx context.Context, roomId uuid.UUID, offset, limit int) ([]models.QueueItem, int, error)
 	MoveToTop(ctx context.Context, id uuid.UUID) error
 }
 
 type MediaClient interface {
-	GetVideo(ctx context.Context, id uuid.UUID, entityType string) (*grpcClient.VideoInfo, error)
-	GetPlaylist(
-		ctx context.Context, id uuid.UUID, page, pageSize int32,
-	) (*grpcClient.PlaylistInfo, error)
+	GetVideo(ctx context.Context, id string) (*grpcClient.VideoInfo, error)
+	GetVideosBatch(ctx context.Context, ids []string) ([]grpcClient.VideoInfo, error)
+}
+
+type ChatClient interface {
+	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (uuid.UUID, error)
 }
 
 type MemberChecker interface {
 	Exists(ctx context.Context, roomId, userId uuid.UUID) (bool, error)
 }
 
+type EventPublisher interface {
+	Publish(ctx context.Context, channel string, payload any) error
+}
+
 type Service struct {
 	repo          QueueItemRepository
 	mediaClient   MediaClient
+	chatClient    ChatClient
 	memberChecker MemberChecker
+	publisher     EventPublisher
 }
 
 func New(
 	repo QueueItemRepository,
 	mediaClient MediaClient,
 	memberChecker MemberChecker,
+	publisher EventPublisher,
 ) *Service {
 	return &Service{
 		repo:          repo,
 		mediaClient:   mediaClient,
 		memberChecker: memberChecker,
+		publisher:     publisher,
 	}
 }
 
-type QueueVideoChild struct {
+type QueueItemEnriched struct {
 	Id        uuid.UUID `json:"id"`
+	VideoID   uuid.UUID `json:"videoId"`
+	VideoType string    `json:"videoType"`
 	Title     string    `json:"title"`
 	Thumbnail string    `json:"thumbnail"`
 	VideoUrl  string    `json:"videoUrl"`
-}
-
-type QueueItemEnriched struct {
-	Id            uuid.UUID         `json:"id"`
-	EntityId      uuid.UUID         `json:"entityId"`
-	EntityType    string            `json:"entityType"`
-	Title         string            `json:"title"`
-	Thumbnail     string            `json:"thumbnail"`
-	VideoUrl      string            `json:"videoUrl"`
-	IsActive      bool              `json:"isActive"`
-	IsFolder      bool              `json:"isFolder"`
-	Position      int               `json:"position"`
-	TotalChildren int               `json:"totalChildren"`
-	Children      []QueueVideoChild `json:"children,omitempty"`
+	IsActive  bool      `json:"isActive"`
+	Position  int       `json:"position"`
 }
 
 func (s *Service) ensureMember(
@@ -83,184 +83,125 @@ func (s *Service) ensureMember(
 
 func (s *Service) AddToQueue(
 	ctx context.Context,
-	roomId, userId, entityId uuid.UUID,
-	entityType string,
-) (*models.QueueItem, error) {
-	if err := s.ensureMember(ctx, roomId, userId); err != nil {
-		return nil, err
+	roomID, userID uuid.UUID,
+	videoID string,
+) (uuid.UUID, int, error) {
+	const op = "services.AddToQueue"
+
+	if err := s.ensureMember(ctx, roomID, userID); err != nil {
+		return uuid.Nil, -1, err
 	}
 
-	switch entityType {
-	case "video", "youtube", "twitch":
-		if _, err := s.mediaClient.GetVideo(ctx, entityId, entityType); err != nil {
-			return nil, fmt.Errorf("%w: video not found", apperrors.ErrNotFound)
-		}
-	case "playlist":
-		if _, err := s.mediaClient.GetPlaylist(ctx, entityId, 1, 1); err != nil {
-			return nil, fmt.Errorf(
-				"%w: playlist not found", apperrors.ErrNotFound,
-			)
-		}
-	default:
-		return nil, fmt.Errorf(
-			"%w: entityType must be 'video', 'playlist', 'youtube' or 'twitch'",
-			apperrors.ErrInvalidInput,
-		)
+	if _, err := s.mediaClient.GetVideo(ctx, videoID); err != nil {
+		return uuid.Nil, -1, fmt.Errorf("%s: %w", op, apperrors.ErrVideoNotFound)
 	}
 
 	item := &models.QueueItem{
-		RoomId:     roomId,
-		EntityId:   entityId,
-		EntityType: entityType,
-		IsActive:   false,
+		RoomID:  roomID,
+		VideoID: videoID,
 	}
-
-	id, err := s.repo.Create(ctx, item)
+	id, position, err := s.repo.Create(ctx, item)
 	if err != nil {
-		return nil, err
+		return uuid.Nil, -1, err
 	}
 
-	item.Id = id
-	return item, nil
+	chatID, err := s.chatClient.GetChatIDByRoomID(ctx, roomID, userID)
+	if err != nil {
+		return uuid.Nil, -1, fmt.Errorf("%s: %w", op, err)
+	}
+
+	envelope := struct {
+		Type    string `json:"type"`
+		Payload any    `json:"payload"`
+	}{
+		Type:    "QUEUE_UPDATED",
+		Payload: map[string]any{"position": position},
+	}
+	if err := s.publisher.Publish(ctx, "chat:"+chatID.String(), envelope); err != nil {
+		return uuid.Nil, -1, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return id, position, nil
 }
 
 func (s *Service) GetQueue(
 	ctx context.Context,
-	roomId, userId uuid.UUID,
+	roomID, userID uuid.UUID,
 	page, limit int,
-) ([]QueueItemEnriched, int, error) {
-	if err := s.ensureMember(ctx, roomId, userId); err != nil {
-		return nil, 0, err
-	}
+) ([]models.EnrichedQueueItem, int, error) {
+	const op = "services.GetQueue"
 
-	items, err := s.repo.ListByRoom(ctx, roomId)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	type itemMeta struct {
-		videoCount int
-	}
-	metas := make([]itemMeta, len(items))
-	totalVideos := 0
-
-	for i, item := range items {
-		switch item.EntityType {
-		case "video", "youtube", "twitch":
-			metas[i] = itemMeta{videoCount: 1}
-		case "playlist":
-			pl, err := s.mediaClient.GetPlaylist(
-				ctx, item.EntityId, 1, 1,
-			)
-			if err != nil {
-				metas[i] = itemMeta{videoCount: 0}
-			} else {
-				metas[i] = itemMeta{videoCount: pl.TotalCount}
-			}
-		}
-		totalVideos += metas[i].videoCount
+	if err := s.ensureMember(ctx, roomID, userID); err != nil {
+		return nil, 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	offset := (page - 1) * limit
-	running := 0
-	enriched := make([]QueueItemEnriched, 0)
-	remaining := limit
-
-	for i, item := range items {
-		vc := metas[i].videoCount
-		if vc == 0 {
-			continue
-		}
-
-		itemEnd := running + vc
-		if itemEnd <= offset {
-			running = itemEnd
-			continue
-		}
-		if remaining <= 0 {
-			break
-		}
-
-		entry := QueueItemEnriched{
-			Id:         item.Id,
-			EntityId:   item.EntityId,
-			EntityType: item.EntityType,
-			IsActive:   item.IsActive,
-			Position:   item.Position,
-		}
-
-		switch item.EntityType {
-		case "video", "youtube", "twitch":
-			video, err := s.mediaClient.GetVideo(ctx, item.EntityId, item.EntityType)
-			if err != nil {
-				entry.Title = "Unknown video"
-				entry.Thumbnail = ""
-			} else {
-				entry.Title = video.Title
-				entry.Thumbnail = video.Thumbnail
-				entry.VideoUrl = video.VideoUrl
-			}
-			entry.IsFolder = false
-			remaining--
-
-		case "playlist":
-			subStart := 0
-			if offset > running {
-				subStart = offset - running
-			}
-			subCount := min(vc-subStart, remaining)
-
-			playlist, err := s.mediaClient.GetPlaylist(
-				ctx, item.EntityId, 1, int32(subStart+subCount),
-			)
-			if err != nil {
-				entry.Title = "Unknown playlist"
-				entry.Thumbnail = ""
-				entry.IsFolder = true
-				entry.TotalChildren = vc
-			} else {
-				entry.Title = playlist.Title
-				entry.Thumbnail = playlist.Thumbnail
-				entry.IsFolder = true
-				entry.TotalChildren = playlist.TotalCount
-				vids := playlist.Videos
-				if subStart < len(vids) {
-					vids = vids[subStart:]
-				}
-				children := make([]QueueVideoChild, 0, len(vids))
-				for _, v := range vids {
-					children = append(children, QueueVideoChild{
-						Id:        v.Id,
-						Title:     v.Title,
-						Thumbnail: v.Thumbnail,
-						VideoUrl:  v.VideoUrl,
-					})
-				}
-				entry.Children = children
-			}
-			remaining -= subCount
-		}
-
-		enriched = append(enriched, entry)
-		running = itemEnd
+	items, total, err := s.repo.ListByRoom(ctx, roomID, offset, limit)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return enriched, totalVideos, nil
+	videoIDs := make([]string, 0, len(items))
+	for _, item := range items {
+		videoIDs = append(videoIDs, item.VideoID)
+	}
+
+	videos, err := s.mediaClient.GetVideosBatch(ctx, videoIDs)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	enrichedItems := make([]models.EnrichedQueueItem, 0, len(items))
+	for i := range items {
+		entry := models.EnrichedQueueItem{
+			ID:        items[i].ID,
+			VideoID:   items[i].VideoID,
+			IsActive:  items[i].IsActive,
+			Position:  items[i].Position,
+			Title:     videos[i].Title,
+			Thumbnail: videos[i].Thumbnail,
+			VideoUrl:  videos[i].VideoUrl,
+		}
+		enrichedItems = append(enrichedItems, entry)
+	}
+
+	return enrichedItems, total, nil
 }
 
-func (s *Service) DeleteFromQueue(
-	ctx context.Context, itemId, userId uuid.UUID,
-) error {
-	item, err := s.repo.GetById(ctx, itemId)
+func (s *Service) DeleteFromQueue(ctx context.Context, itemID, userID uuid.UUID) error {
+	const op = "services.DeleteFromQueue"
+
+	item, err := s.repo.GetById(ctx, itemID)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: failed get item by ID: %w", op, err)
 	}
 
-	if err := s.ensureMember(ctx, item.RoomId, userId); err != nil {
-		return err
+	if err := s.ensureMember(ctx, item.RoomID, userID); err != nil {
+		return fmt.Errorf("%s: failed ensure user is room member: %w", op, err)
 	}
 
-	return s.repo.Delete(ctx, itemId)
+	position, err := s.repo.Delete(ctx, itemID)
+	if err != nil {
+		return fmt.Errorf("%s: failed to delete item: %w", op, err)
+	}
+
+	chatID, err := s.chatClient.GetChatIDByRoomID(ctx, item.RoomID, userID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	envelope := struct {
+		Type    string `json:"type"`
+		Payload any    `json:"payload"`
+	}{
+		Type:    "QUEUE_UPDATED",
+		Payload: map[string]any{"position": position},
+	}
+	if err := s.publisher.Publish(ctx, "chat:"+chatID.String(), envelope); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }
 
 func (s *Service) MoveToTop(ctx context.Context, id uuid.UUID) error {

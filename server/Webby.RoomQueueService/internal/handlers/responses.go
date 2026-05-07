@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"webby-room-queue/internal/apperrors"
+	"webby/room-queue-service/internal/apperrors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -77,7 +77,8 @@ func formatErrorMessage(fe validator.FieldError) string {
 
 func mapAppErrorToStatus(err error) int {
 	switch {
-	case errors.Is(err, apperrors.ErrNotFound):
+	case errors.Is(err, apperrors.ErrQueueItemNotFound),
+		errors.Is(err, apperrors.ErrVideoNotFound):
 		return http.StatusNotFound
 	case errors.Is(err, apperrors.ErrConflict):
 		return http.StatusConflict

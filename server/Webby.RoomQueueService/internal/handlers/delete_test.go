@@ -9,10 +9,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"webby-room-queue/internal/apperrors"
-	"webby-room-queue/internal/handlers"
-	handlermocks "webby-room-queue/internal/handlers/mocks"
-	"webby-room-queue/pkg/logger"
+	"webby/room-queue-service/internal/apperrors"
+	"webby/room-queue-service/internal/handlers"
+	handlermocks "webby/room-queue-service/internal/handlers/mocks"
+	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

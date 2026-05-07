@@ -4,41 +4,29 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	"webby-room-queue/pkg/logger"
+	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-type videoChild struct {
-	Id        uuid.UUID `json:"id"`
+type queueItemResponse struct {
+	ID        uuid.UUID `json:"id"`
+	VideoID   string    `json:"entityId"`
 	Title     string    `json:"title"`
 	Thumbnail string    `json:"thumbnail"`
 	VideoUrl  string    `json:"videoUrl"`
-}
-
-type queueItemResponse struct {
-	Id            uuid.UUID    `json:"id"`
-	EntityId      uuid.UUID    `json:"entityId"`
-	EntityType    string       `json:"entityType"`
-	Title         string       `json:"title"`
-	Thumbnail     string       `json:"thumbnail"`
-	VideoUrl      string       `json:"videoUrl"`
-	IsActive      bool         `json:"isActive"`
-	IsFolder      bool         `json:"isFolder"`
-	Position      int          `json:"position"`
-	TotalChildren int          `json:"totalChildren"`
-	Children      []videoChild `json:"children,omitempty"`
+	IsActive  bool      `json:"isActive"`
+	Position  int       `json:"position"`
 }
 
 func (h *handler) List(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.FromContext(ctx).With(
-		slog.String("operation", "httpserver.queue.list"),
+		slog.String("operation", "handlers.List"),
 	)
 
-	roomIdStr := c.Param("id")
-	roomId, err := uuid.Parse(roomIdStr)
+	roomID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		log.Debug("invalid room id", slog.Any("err", err))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
@@ -63,12 +51,8 @@ func (h *handler) List(c *gin.Context) {
 		limit = 100
 	}
 
-	userIdStr := ctx.Value("userID").(string)
-	userId, _ := uuid.Parse(userIdStr)
-
-	items, total, err := h.service.GetQueue(
-		ctx, roomId, userId, page, limit,
-	)
+	userID, _ := uuid.Parse(ctx.Value("userID").(string))
+	items, total, err := h.service.GetQueue(ctx, roomID, userID, page, limit)
 	if err != nil {
 		log.Error("list queue error", slog.Any("err", err))
 		HandleAppError(c, "List queue error", err)
@@ -78,28 +62,13 @@ func (h *handler) List(c *gin.Context) {
 	result := make([]queueItemResponse, 0, len(items))
 	for _, item := range items {
 		entry := queueItemResponse{
-			Id:            item.Id,
-			EntityId:      item.EntityId,
-			EntityType:    item.EntityType,
-			Title:         item.Title,
-			Thumbnail:     item.Thumbnail,
-			VideoUrl:      item.VideoUrl,
-			IsActive:      item.IsActive,
-			IsFolder:      item.IsFolder,
-			Position:      item.Position,
-			TotalChildren: item.TotalChildren,
-		}
-		if len(item.Children) > 0 {
-			children := make([]videoChild, 0, len(item.Children))
-			for _, ch := range item.Children {
-				children = append(children, videoChild{
-					Id:        ch.Id,
-					Title:     ch.Title,
-					Thumbnail: ch.Thumbnail,
-					VideoUrl:  ch.VideoUrl,
-				})
-			}
-			entry.Children = children
+			ID:        item.ID,
+			VideoID:   item.VideoID,
+			Title:     item.Title,
+			Thumbnail: item.Thumbnail,
+			VideoUrl:  item.VideoUrl,
+			IsActive:  item.IsActive,
+			Position:  item.Position,
 		}
 		result = append(result, entry)
 	}

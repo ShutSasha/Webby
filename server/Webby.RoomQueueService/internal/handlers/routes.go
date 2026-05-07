@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"net/http"
-	"webby-room-queue/docs"
-	"webby-room-queue/internal/config"
-	"webby-room-queue/pkg/http/middleware/auth"
+	"webby/room-queue-service/docs"
+	"webby/room-queue-service/internal/config"
+	"webby/room-queue-service/pkg/http/middleware/auth"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +17,7 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 	{
 		api.POST("", handler.Add)
 		api.GET("", handler.List)
-		api.DELETE("/:itemId", handler.Delete)
+		api.DELETE("/:itemID", handler.Delete)
 	}
 
 	router.GET("/swagger", swaggerUI)

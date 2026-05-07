@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             v4.25.9
-// source: media.proto
+// source: proto/media/media.proto
 
 package mediapb
 
@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MediaService_GetVideo_FullMethodName    = "/media.MediaService/GetVideo"
-	MediaService_GetPlaylist_FullMethodName = "/media.MediaService/GetPlaylist"
+	MediaService_GetVideo_FullMethodName       = "/media.MediaService/GetVideo"
+	MediaService_GetVideosBatch_FullMethodName = "/media.MediaService/GetVideosBatch"
 )
 
 // MediaServiceClient is the client API for MediaService service.
@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MediaServiceClient interface {
 	GetVideo(ctx context.Context, in *GetVideoRequest, opts ...grpc.CallOption) (*VideoResponse, error)
-	GetPlaylist(ctx context.Context, in *GetPlaylistRequest, opts ...grpc.CallOption) (*PlaylistResponse, error)
+	GetVideosBatch(ctx context.Context, in *GetVideosBatchRequest, opts ...grpc.CallOption) (*GetVideosBatchResponse, error)
 }
 
 type mediaServiceClient struct {
@@ -49,10 +49,10 @@ func (c *mediaServiceClient) GetVideo(ctx context.Context, in *GetVideoRequest, 
 	return out, nil
 }
 
-func (c *mediaServiceClient) GetPlaylist(ctx context.Context, in *GetPlaylistRequest, opts ...grpc.CallOption) (*PlaylistResponse, error) {
+func (c *mediaServiceClient) GetVideosBatch(ctx context.Context, in *GetVideosBatchRequest, opts ...grpc.CallOption) (*GetVideosBatchResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PlaylistResponse)
-	err := c.cc.Invoke(ctx, MediaService_GetPlaylist_FullMethodName, in, out, cOpts...)
+	out := new(GetVideosBatchResponse)
+	err := c.cc.Invoke(ctx, MediaService_GetVideosBatch_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (c *mediaServiceClient) GetPlaylist(ctx context.Context, in *GetPlaylistReq
 // for forward compatibility.
 type MediaServiceServer interface {
 	GetVideo(context.Context, *GetVideoRequest) (*VideoResponse, error)
-	GetPlaylist(context.Context, *GetPlaylistRequest) (*PlaylistResponse, error)
+	GetVideosBatch(context.Context, *GetVideosBatchRequest) (*GetVideosBatchResponse, error)
 	mustEmbedUnimplementedMediaServiceServer()
 }
 
@@ -78,8 +78,8 @@ type UnimplementedMediaServiceServer struct{}
 func (UnimplementedMediaServiceServer) GetVideo(context.Context, *GetVideoRequest) (*VideoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetVideo not implemented")
 }
-func (UnimplementedMediaServiceServer) GetPlaylist(context.Context, *GetPlaylistRequest) (*PlaylistResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetPlaylist not implemented")
+func (UnimplementedMediaServiceServer) GetVideosBatch(context.Context, *GetVideosBatchRequest) (*GetVideosBatchResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetVideosBatch not implemented")
 }
 func (UnimplementedMediaServiceServer) mustEmbedUnimplementedMediaServiceServer() {}
 func (UnimplementedMediaServiceServer) testEmbeddedByValue()                      {}
@@ -120,20 +120,20 @@ func _MediaService_GetVideo_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MediaService_GetPlaylist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPlaylistRequest)
+func _MediaService_GetVideosBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVideosBatchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MediaServiceServer).GetPlaylist(ctx, in)
+		return srv.(MediaServiceServer).GetVideosBatch(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: MediaService_GetPlaylist_FullMethodName,
+		FullMethod: MediaService_GetVideosBatch_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MediaServiceServer).GetPlaylist(ctx, req.(*GetPlaylistRequest))
+		return srv.(MediaServiceServer).GetVideosBatch(ctx, req.(*GetVideosBatchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -150,10 +150,10 @@ var MediaService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MediaService_GetVideo_Handler,
 		},
 		{
-			MethodName: "GetPlaylist",
-			Handler:    _MediaService_GetPlaylist_Handler,
+			MethodName: "GetVideosBatch",
+			Handler:    _MediaService_GetVideosBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "media.proto",
+	Metadata: "proto/media/media.proto",
 }

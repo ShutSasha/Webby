@@ -7,9 +7,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	models "webby-room-queue/internal/models"
-
-	services "webby-room-queue/internal/services"
+	models "webby/room-queue-service/internal/models"
 
 	uuid "github.com/google/uuid"
 )
@@ -27,34 +25,41 @@ func (_m *MockService) EXPECT() *MockService_Expecter {
 	return &MockService_Expecter{mock: &_m.Mock}
 }
 
-// AddToQueue provides a mock function with given fields: ctx, roomId, userId, entityId, entityType
-func (_m *MockService) AddToQueue(ctx context.Context, roomId uuid.UUID, userId uuid.UUID, entityId uuid.UUID, entityType string) (*models.QueueItem, error) {
-	ret := _m.Called(ctx, roomId, userId, entityId, entityType)
+// AddToQueue provides a mock function with given fields: ctx, roomId, userId, entityId
+func (_m *MockService) AddToQueue(ctx context.Context, roomId uuid.UUID, userId uuid.UUID, entityId string) (uuid.UUID, int, error) {
+	ret := _m.Called(ctx, roomId, userId, entityId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddToQueue")
 	}
 
-	var r0 *models.QueueItem
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, string) (*models.QueueItem, error)); ok {
-		return rf(ctx, roomId, userId, entityId, entityType)
+	var r0 uuid.UUID
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, string) (uuid.UUID, int, error)); ok {
+		return rf(ctx, roomId, userId, entityId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, string) *models.QueueItem); ok {
-		r0 = rf(ctx, roomId, userId, entityId, entityType)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, string) uuid.UUID); ok {
+		r0 = rf(ctx, roomId, userId, entityId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.QueueItem)
+			r0 = ret.Get(0).(uuid.UUID)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, string) error); ok {
-		r1 = rf(ctx, roomId, userId, entityId, entityType)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, string) int); ok {
+		r1 = rf(ctx, roomId, userId, entityId)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, uuid.UUID, uuid.UUID, string) error); ok {
+		r2 = rf(ctx, roomId, userId, entityId)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // MockService_AddToQueue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddToQueue'
@@ -66,25 +71,24 @@ type MockService_AddToQueue_Call struct {
 //   - ctx context.Context
 //   - roomId uuid.UUID
 //   - userId uuid.UUID
-//   - entityId uuid.UUID
-//   - entityType string
-func (_e *MockService_Expecter) AddToQueue(ctx interface{}, roomId interface{}, userId interface{}, entityId interface{}, entityType interface{}) *MockService_AddToQueue_Call {
-	return &MockService_AddToQueue_Call{Call: _e.mock.On("AddToQueue", ctx, roomId, userId, entityId, entityType)}
+//   - entityId string
+func (_e *MockService_Expecter) AddToQueue(ctx interface{}, roomId interface{}, userId interface{}, entityId interface{}) *MockService_AddToQueue_Call {
+	return &MockService_AddToQueue_Call{Call: _e.mock.On("AddToQueue", ctx, roomId, userId, entityId)}
 }
 
-func (_c *MockService_AddToQueue_Call) Run(run func(ctx context.Context, roomId uuid.UUID, userId uuid.UUID, entityId uuid.UUID, entityType string)) *MockService_AddToQueue_Call {
+func (_c *MockService_AddToQueue_Call) Run(run func(ctx context.Context, roomId uuid.UUID, userId uuid.UUID, entityId string)) *MockService_AddToQueue_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID), args[3].(uuid.UUID), args[4].(string))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID), args[3].(string))
 	})
 	return _c
 }
 
-func (_c *MockService_AddToQueue_Call) Return(_a0 *models.QueueItem, _a1 error) *MockService_AddToQueue_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *MockService_AddToQueue_Call) Return(_a0 uuid.UUID, _a1 int, _a2 error) *MockService_AddToQueue_Call {
+	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *MockService_AddToQueue_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, string) (*models.QueueItem, error)) *MockService_AddToQueue_Call {
+func (_c *MockService_AddToQueue_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, string) (uuid.UUID, int, error)) *MockService_AddToQueue_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -137,36 +141,36 @@ func (_c *MockService_DeleteFromQueue_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
-// GetQueue provides a mock function with given fields: ctx, roomId, userId, page, limit
-func (_m *MockService) GetQueue(ctx context.Context, roomId uuid.UUID, userId uuid.UUID, page int, limit int) ([]services.QueueItemEnriched, int, error) {
-	ret := _m.Called(ctx, roomId, userId, page, limit)
+// GetQueue provides a mock function with given fields: ctx, roomID, userID, page, limit
+func (_m *MockService) GetQueue(ctx context.Context, roomID uuid.UUID, userID uuid.UUID, page int, limit int) ([]models.EnrichedQueueItem, int, error) {
+	ret := _m.Called(ctx, roomID, userID, page, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetQueue")
 	}
 
-	var r0 []services.QueueItemEnriched
+	var r0 []models.EnrichedQueueItem
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, int) ([]services.QueueItemEnriched, int, error)); ok {
-		return rf(ctx, roomId, userId, page, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, int) ([]models.EnrichedQueueItem, int, error)); ok {
+		return rf(ctx, roomID, userID, page, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, int) []services.QueueItemEnriched); ok {
-		r0 = rf(ctx, roomId, userId, page, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, int) []models.EnrichedQueueItem); ok {
+		r0 = rf(ctx, roomID, userID, page, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]services.QueueItemEnriched)
+			r0 = ret.Get(0).([]models.EnrichedQueueItem)
 		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, int, int) int); ok {
-		r1 = rf(ctx, roomId, userId, page, limit)
+		r1 = rf(ctx, roomID, userID, page, limit)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, uuid.UUID, uuid.UUID, int, int) error); ok {
-		r2 = rf(ctx, roomId, userId, page, limit)
+		r2 = rf(ctx, roomID, userID, page, limit)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -181,27 +185,27 @@ type MockService_GetQueue_Call struct {
 
 // GetQueue is a helper method to define mock.On call
 //   - ctx context.Context
-//   - roomId uuid.UUID
-//   - userId uuid.UUID
+//   - roomID uuid.UUID
+//   - userID uuid.UUID
 //   - page int
 //   - limit int
-func (_e *MockService_Expecter) GetQueue(ctx interface{}, roomId interface{}, userId interface{}, page interface{}, limit interface{}) *MockService_GetQueue_Call {
-	return &MockService_GetQueue_Call{Call: _e.mock.On("GetQueue", ctx, roomId, userId, page, limit)}
+func (_e *MockService_Expecter) GetQueue(ctx interface{}, roomID interface{}, userID interface{}, page interface{}, limit interface{}) *MockService_GetQueue_Call {
+	return &MockService_GetQueue_Call{Call: _e.mock.On("GetQueue", ctx, roomID, userID, page, limit)}
 }
 
-func (_c *MockService_GetQueue_Call) Run(run func(ctx context.Context, roomId uuid.UUID, userId uuid.UUID, page int, limit int)) *MockService_GetQueue_Call {
+func (_c *MockService_GetQueue_Call) Run(run func(ctx context.Context, roomID uuid.UUID, userID uuid.UUID, page int, limit int)) *MockService_GetQueue_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID), args[3].(int), args[4].(int))
 	})
 	return _c
 }
 
-func (_c *MockService_GetQueue_Call) Return(_a0 []services.QueueItemEnriched, _a1 int, _a2 error) *MockService_GetQueue_Call {
+func (_c *MockService_GetQueue_Call) Return(_a0 []models.EnrichedQueueItem, _a1 int, _a2 error) *MockService_GetQueue_Call {
 	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *MockService_GetQueue_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, int, int) ([]services.QueueItemEnriched, int, error)) *MockService_GetQueue_Call {
+func (_c *MockService_GetQueue_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, int, int) ([]models.EnrichedQueueItem, int, error)) *MockService_GetQueue_Call {
 	_c.Call.Return(run)
 	return _c
 }

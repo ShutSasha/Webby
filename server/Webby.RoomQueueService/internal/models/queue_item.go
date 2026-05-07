@@ -7,11 +7,20 @@ import (
 )
 
 type QueueItem struct {
-	Id         uuid.UUID
-	RoomId     uuid.UUID
-	EntityId   uuid.UUID
-	EntityType string
-	IsActive   bool
-	Position   int
-	CreatedAt  time.Time
+	ID        uuid.UUID
+	RoomID    uuid.UUID
+	VideoID   string
+	IsActive  bool
+	Position  int
+	CreatedAt time.Time
+}
+
+type EnrichedQueueItem struct {
+	ID        uuid.UUID
+	VideoID   string
+	Title     string
+	Thumbnail string
+	VideoUrl  string
+	IsActive  bool
+	Position  int
 }

@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"webby-room-queue/internal/grpc/queuepb"
+	"webby/room-queue-service/internal/grpc/queuepb"
 
 	"github.com/google/uuid"
 )

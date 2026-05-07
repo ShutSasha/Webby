@@ -3,23 +3,19 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"webby-room-queue/pkg/logger"
+	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type addRequest struct {
-	EntityId   string `json:"entityId" binding:"required,uuid"`
-	EntityType string `json:"entityType" binding:"required,oneof=video playlist youtube twitch"`
+	VideoID string `json:"videoId" binding:"required,min=5"`
 }
 
 type addResponse struct {
-	Id         uuid.UUID `json:"id"`
-	EntityId   uuid.UUID `json:"entityId"`
-	EntityType string    `json:"entityType"`
-	IsActive   bool      `json:"isActive"`
-	Position   int       `json:"position"`
+	ID       uuid.UUID `json:"id"`
+	Position int       `json:"position"`
 }
 
 func (h *handler) Add(c *gin.Context) {
@@ -28,8 +24,7 @@ func (h *handler) Add(c *gin.Context) {
 		slog.String("operation", "httpserver.queue.add"),
 	)
 
-	roomIdStr := c.Param("id")
-	roomId, err := uuid.Parse(roomIdStr)
+	roomID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		log.Debug("invalid room id", slog.Any("err", err))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
@@ -49,13 +44,8 @@ func (h *handler) Add(c *gin.Context) {
 		return
 	}
 
-	entityId, _ := uuid.Parse(req.EntityId)
-	userIdStr := ctx.Value("userID").(string)
-	userId, _ := uuid.Parse(userIdStr)
-
-	item, err := h.service.AddToQueue(
-		ctx, roomId, userId, entityId, req.EntityType,
-	)
+	userID, _ := uuid.Parse(ctx.Value("userID").(string))
+	itemID, position, err := h.service.AddToQueue(ctx, roomID, userID, req.VideoID)
 	if err != nil {
 		log.Error("add to queue error", slog.Any("err", err))
 		HandleAppError(c, "Add to queue error", err)
@@ -65,12 +55,6 @@ func (h *handler) Add(c *gin.Context) {
 	c.JSON(http.StatusCreated, ApiResponse[addResponse]{
 		Success: true,
 		Message: "Item added to queue",
-		Data: &addResponse{
-			Id:         item.Id,
-			EntityId:   item.EntityId,
-			EntityType: item.EntityType,
-			IsActive:   item.IsActive,
-			Position:   item.Position,
-		},
+		Data:    &addResponse{ID: itemID, Position: position},
 	})
 }
