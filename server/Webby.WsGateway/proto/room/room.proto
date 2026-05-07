@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package room;
 
-option go_package = "webby-wsgateway/internal/grpc/roompb";
+option go_package = "webby/wsgateway/internal/grpc/roompb";
 
 service RoomGrpcService {
   // AwardActiveUsers tells RoomService which users are currently online in which rooms,

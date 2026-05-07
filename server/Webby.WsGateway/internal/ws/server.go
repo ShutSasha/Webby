@@ -9,9 +9,9 @@ import (
 	"github.com/google/uuid"
 	socketio "github.com/googollee/go-socket.io"
 
-	clients "webby-wsgateway/internal/grpc"
+	clients "webby/wsgateway/internal/grpc"
 
-	"webby-wsgateway/internal/domain"
+	"webby/wsgateway/internal/domain"
 )
 
 const callTimeout = 5 * time.Second

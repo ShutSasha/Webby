@@ -7,11 +7,12 @@
 package roompb
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -165,7 +166,7 @@ const file_proto_room_room_proto_rawDesc = "" +
 	"\buser_ids\x18\x02 \x03(\tR\auserIds\"\x1a\n" +
 	"\x18AwardActiveUsersResponse2d\n" +
 	"\x0fRoomGrpcService\x12Q\n" +
-	"\x10AwardActiveUsers\x12\x1d.room.AwardActiveUsersRequest\x1a\x1e.room.AwardActiveUsersResponseB&Z$webby-wsgateway/internal/grpc/roompbb\x06proto3"
+	"\x10AwardActiveUsers\x12\x1d.room.AwardActiveUsersRequest\x1a\x1e.room.AwardActiveUsersResponseB&Z$webby/wsgateway/internal/grpc/roompbb\x06proto3"
 
 var (
 	file_proto_room_room_proto_rawDescOnce sync.Once

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package chat;
 
-option go_package = "webby-wsgateway/internal/grpc/chatpb";
+option go_package = "webby/wsgateway/internal/grpc/chatpb";
 
 service ChatGrpcService {
   rpc SaveMessage(SaveMessageRequest) returns (SaveMessageResponse);

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"webby-wsgateway/internal/domain"
+	"webby/wsgateway/internal/domain"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"

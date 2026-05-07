@@ -3,7 +3,7 @@ package logger
 import (
 	"log/slog"
 
-	ctxlogger "webby-wsgateway/pkg/logger"
+	ctxlogger "webby/wsgateway/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )

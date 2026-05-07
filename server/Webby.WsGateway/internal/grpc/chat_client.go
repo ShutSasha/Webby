@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"webby-wsgateway/internal/grpc/chatpb"
+	"webby/wsgateway/internal/grpc/chatpb"
 )
 
 type ChatClient struct {

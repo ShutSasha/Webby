@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package votes;
 
-option go_package = "webby-wsgateway/internal/grpc/votespb";
+option go_package = "webby/wsgateway/internal/grpc/votespb";
 
 service VotesGrpcService {
   rpc CastVote(CastVoteRequest) returns (CastVoteResponse);

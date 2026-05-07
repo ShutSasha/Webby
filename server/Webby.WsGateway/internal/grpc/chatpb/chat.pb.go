@@ -7,11 +7,12 @@
 package chatpb
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -138,7 +139,7 @@ const file_proto_chat_chat_proto_rawDesc = "" +
 	"\n" +
 	"message_id\x18\x01 \x01(\tR\tmessageId2U\n" +
 	"\x0fChatGrpcService\x12B\n" +
-	"\vSaveMessage\x12\x18.chat.SaveMessageRequest\x1a\x19.chat.SaveMessageResponseB&Z$webby-wsgateway/internal/grpc/chatpbb\x06proto3"
+	"\vSaveMessage\x12\x18.chat.SaveMessageRequest\x1a\x19.chat.SaveMessageResponseB&Z$webby/wsgateway/internal/grpc/chatpbb\x06proto3"
 
 var (
 	file_proto_chat_chat_proto_rawDescOnce sync.Once

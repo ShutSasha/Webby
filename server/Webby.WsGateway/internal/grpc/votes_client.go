@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	votespb "webby-wsgateway/internal/grpc/votespb"
+	votespb "webby/wsgateway/internal/grpc/votespb"
 )
 
 type VotesClient struct {

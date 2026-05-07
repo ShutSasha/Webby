@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	roompb "webby-wsgateway/internal/grpc/roompb"
+	roompb "webby/wsgateway/internal/grpc/roompb"
 )
 
 // RoomActivity is the gateway-internal representation of "who is online in which room"

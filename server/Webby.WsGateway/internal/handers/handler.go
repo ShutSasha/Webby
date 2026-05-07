@@ -3,7 +3,7 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"webby-wsgateway/pkg/logger"
+	"webby/wsgateway/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 
-	"webby-wsgateway/internal/ws"
+	"webby/wsgateway/internal/ws"
 )
 
 type EventType string
@@ -19,6 +19,7 @@ const (
 	EventMessageCreated EventType = "MESSAGE_CREATED"
 	EventVoteUpdated    EventType = "VOTE_UPDATED"
 	EventPointsAwarded  EventType = "POINTS_AWARDED"
+	EventQueueUpdated   EventType = "QUEUE_UPDATED"
 )
 
 type Envelope struct {
@@ -58,7 +59,7 @@ func (s *Subscriber) Run(ctx context.Context) error {
 }
 
 func (s *Subscriber) handle(channel, payload string) {
-	roomID, err := roomIDFromChannel(channel)
+	chatID, err := chatIDFromChannel(channel)
 	if err != nil {
 		s.logger.Warn("redis: bad channel", slog.String("channel", channel))
 		return
@@ -71,21 +72,24 @@ func (s *Subscriber) handle(channel, payload string) {
 	}
 
 	switch env.Type {
-	case EventMessageCreated, EventVoteUpdated, EventPointsAwarded:
+	case EventMessageCreated,
+		EventVoteUpdated,
+		EventPointsAwarded,
+		EventQueueUpdated:
 		var raw any
 		if len(env.Payload) > 0 {
-			_ = json.Unmarshal(env.Payload, &raw)
+			json.Unmarshal(env.Payload, &raw)
 		}
-		s.ws.BroadcastToRoom(roomID, string(env.Type), raw)
+		s.ws.BroadcastToRoom(chatID, string(env.Type), raw)
 	default:
 		s.logger.Warn("redis: unknown event type", slog.String("type", string(env.Type)))
 	}
 }
 
-func roomIDFromChannel(ch string) (uuid.UUID, error) {
-	const prefix = "room:"
+func chatIDFromChannel(ch string) (uuid.UUID, error) {
+	const prefix = "chat:"
 	if !strings.HasPrefix(ch, prefix) {
-		return uuid.Nil, errors.New("channel must start with 'room:'")
+		return uuid.Nil, errors.New("channel must start with 'chat:'")
 	}
 	return uuid.Parse(ch[len(prefix):])
 }

@@ -7,11 +7,12 @@
 package votespb
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -137,7 +138,7 @@ const file_proto_votes_votes_proto_rawDesc = "" +
 	"\tchoice_id\x18\x04 \x01(\tR\bchoiceId\"\x12\n" +
 	"\x10CastVoteResponse2O\n" +
 	"\x10VotesGrpcService\x12;\n" +
-	"\bCastVote\x12\x16.votes.CastVoteRequest\x1a\x17.votes.CastVoteResponseB'Z%webby-wsgateway/internal/grpc/votespbb\x06proto3"
+	"\bCastVote\x12\x16.votes.CastVoteRequest\x1a\x17.votes.CastVoteResponseB'Z%webby/wsgateway/internal/grpc/votespbb\x06proto3"
 
 var (
 	file_proto_votes_votes_proto_rawDescOnce sync.Once

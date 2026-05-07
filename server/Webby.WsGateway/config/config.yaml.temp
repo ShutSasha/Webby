@@ -10,7 +10,7 @@ redis:
   addr: "localhost:6379"
   password: ""
   db: 0
-  pattern: "room:*"
+  pattern: "chat:*"
 
 grpc:
   chat: "localhost:50051"

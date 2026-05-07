@@ -1,4 +1,4 @@
-module webby-wsgateway
+module webby/wsgateway
 
 go 1.25.1
 

@@ -15,15 +15,14 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"webby-wsgateway/internal/config"
-	"webby-wsgateway/pkg/db"
-	clients "webby-wsgateway/internal/grpc"
-	handlers "webby-wsgateway/internal/handers"
-	redisbus "webby-wsgateway/internal/redis"
-	"webby-wsgateway/internal/repositories"
-	"webby-wsgateway/internal/services"
-	"webby-wsgateway/internal/worker"
-	"webby-wsgateway/internal/ws"
+	"webby/wsgateway/internal/config"
+	clients "webby/wsgateway/internal/grpc"
+	handlers "webby/wsgateway/internal/handers"
+	redisbus "webby/wsgateway/internal/redis"
+	"webby/wsgateway/internal/repositories"
+	"webby/wsgateway/internal/services"
+	"webby/wsgateway/internal/ws"
+	"webby/wsgateway/pkg/db"
 )
 
 func main() {
@@ -32,6 +31,15 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	db, err := db.New(cfg.ConnectionString)
+	if err != nil {
+		logger.Error("database connection failed", slog.String("error", err.Error()))
+	}
+	defer db.Close()
+
+	repository := repositories.New(db)
+	service := services.New(repository)
 
 	chatClient, err := clients.NewChatClient(cfg.Grpc.Chat)
 	if err != nil {
@@ -62,7 +70,7 @@ func main() {
 	})
 	defer rdb.Close()
 
-	wsSrv := ws.NewServer(logger, []byte(cfg.JwtSecret), chatClient)
+	wsSrv := ws.NewServer(service, logger, []byte(cfg.JwtSecret), chatClient)
 	go func() {
 		if err := wsSrv.Serve(); err != nil {
 			logger.Error("socket.io serve", slog.String("err", err.Error()))
@@ -70,16 +78,8 @@ func main() {
 	}()
 	defer wsSrv.Close()
 
-	db, err := db.New(cfg.ConnectionString)
-	if err != nil {
-		logger.Error("database connection failed", slog.String("error", err.Error()))
-	}
-	defer db.Close()
-
 	logger.Info("database connected successfully")
 
-	repository := repositories.New(db)
-	service := services.New(repository)
 	server := handlers.NewServer(cfg, service, logger, wsSrv)
 
 	httpSrv := &http.Server{
@@ -102,13 +102,6 @@ func main() {
 	wg.Go(func() {
 		if err := sub.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
 			logger.Error("redis subscriber", slog.String("err", err.Error()))
-		}
-	})
-
-	act := worker.NewActivity(logger, wsSrv, roomClient, cfg.Worker.ActivityInterval)
-	wg.Go(func() {
-		if err := act.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
-			logger.Error("activity worker", slog.String("err", err.Error()))
 		}
 	})
 

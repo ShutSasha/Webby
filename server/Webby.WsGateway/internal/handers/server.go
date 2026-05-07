@@ -5,16 +5,16 @@ import (
 	"log/slog"
 	"net/http"
 
-	"webby-wsgateway/docs"
-	"webby-wsgateway/internal/config"
-	"webby-wsgateway/internal/ws"
-	"webby-wsgateway/pkg/http/middleware/auth"
-	"webby-wsgateway/pkg/http/middleware/cors"
+	"webby/wsgateway/docs"
+	"webby/wsgateway/internal/config"
+	"webby/wsgateway/internal/ws"
+	"webby/wsgateway/pkg/http/middleware/auth"
+	"webby/wsgateway/pkg/http/middleware/cors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	loggerMw "webby-wsgateway/pkg/http/middleware/logger"
+	loggerMw "webby/wsgateway/pkg/http/middleware/logger"
 )
 
 type Service interface {
