@@ -8,8 +8,14 @@ Connect to the notifications hub using the following endpoint:
 
 `ws://localhost:5000/hubs/notifications`
 
-**Authentication:** Authentication is required. Pass your JWT token via the `accessToken` query parameter:  
-`ws://localhost:5000/hubs/notifications?accessToken=<YOUR_JWT_TOKEN>`
+**Authentication:** Authentication is required and utilizes a secure one-time ticket system.
+
+1. **Obtain a Ticket:** Make an authenticated request to:
+   `GET /api/notification/one-time-ticket`
+   *(Extract the ticket string from the API response).*
+
+2. **Establish Connection:** Connect to the WebSocket hub by passing the retrieved ticket via the `ticket` query parameter:
+   `ws://localhost:5000/hubs/notifications?ticket=<YOUR_ONE_TIME_TICKET>`
 
 ---
 

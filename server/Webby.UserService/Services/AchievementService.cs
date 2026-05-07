@@ -57,10 +57,11 @@ public class AchievementService : IAchievementService
         var achievement = new Achievement
         {
             AchievementId = achievementId,
-            Code = request.Code,
             Description = request.Description,
             IconUrl = achievementIconPath,
-            Title = request.Title
+            Title = request.Title,
+            TargetValue = request.TargetValue,
+            EventType = request.EventType
         };
 
         await _achievementRepository.Add(achievement);
@@ -104,7 +105,8 @@ public class AchievementService : IAchievementService
 
         achievement.Title = request.Title;
         achievement.Description = request.Description;
-        achievement.Code = request.Code;
+        achievement.EventType = request.EventType;
+        achievement.TargetValue = request.TargetValue;
         
         if (request.File.Length != 0)
         {

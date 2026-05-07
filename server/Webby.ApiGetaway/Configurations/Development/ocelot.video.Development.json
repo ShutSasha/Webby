@@ -273,6 +273,21 @@
       },
 
       {
+         "DownstreamPathTemplate": "/api/videos/recommendation/{videoId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/recommendation/{videoId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
          "DownstreamPathTemplate": "/api/streams/search",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [

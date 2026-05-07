@@ -1,0 +1,85 @@
+import { useEffect, useRef } from 'react'
+
+import { HubConnection, HubConnectionBuilder, LogLevel, HttpTransportType } from '@microsoft/signalr'
+import { useQueryClient } from '@tanstack/react-query'
+import { useSession } from 'next-auth/react'
+
+import { useNotificationPopupStore } from '@/stores/notification-popup.store'
+import { Notification } from '@/types/notification.types'
+
+import { getOneTimeTicket } from '../actions/notification.actions'
+
+export const useNotificationSocket = () => {
+  const { status } = useSession()
+  const addPopup = useNotificationPopupStore(state => state.addPopup)
+  const setUnreadCount = useNotificationPopupStore(state => state.setUnreadCount)
+  const connectionRef = useRef<HubConnection | null>(null)
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    if (status !== 'authenticated') return
+
+    let isMounted = true
+
+    const connectToHub = async () => {
+      try {
+        const ticketResponse = await getOneTimeTicket()
+
+        if (!ticketResponse.success || !ticketResponse.data) {
+          console.error('SignalR Ticket Error:', ticketResponse.message)
+          return
+        }
+
+        const ticket = ticketResponse.data
+
+        if (!isMounted) return
+
+        const baseUrl = process.env.NEXT_PUBLIC_SIGNALR_URL || 'http://localhost:5000/hubs/notifications'
+
+        const hubUrl = `${baseUrl}?ticket=${ticket}`
+
+        const connection = new HubConnectionBuilder()
+          .withUrl(hubUrl, {
+            skipNegotiation: true,
+            transport: HttpTransportType.WebSockets,
+          })
+          .withAutomaticReconnect()
+          .configureLogging(LogLevel.Information)
+          .build()
+
+        connectionRef.current = connection
+
+        await connection.start()
+        console.log('SignalR Connected Successfully with One-Time Ticket.')
+
+        connection.on('ReceiveNotification', (notification: Notification) => {
+          addPopup(notification)
+
+          queryClient.invalidateQueries({ queryKey: ['user-notifications'] })
+          queryClient.invalidateQueries({ queryKey: ['unread-notifications'] })
+        })
+
+        connection.on('UpdateUnreadNotificationsCount', (count: number) => {
+          setUnreadCount(count)
+          queryClient.setQueryData(['unread-notifications-count'], count)
+        })
+
+        connection.on('AuthError', (errorMsg: string) => {
+          console.error('SignalR AuthError:', errorMsg)
+          connection.stop()
+        })
+      } catch (err) {
+        console.error('SignalR Connection Error: ', err)
+      }
+    }
+
+    connectToHub()
+
+    return () => {
+      isMounted = false
+      if (connectionRef.current) {
+        connectionRef.current.stop()
+      }
+    }
+  }, [status, addPopup, setUnreadCount, queryClient])
+}

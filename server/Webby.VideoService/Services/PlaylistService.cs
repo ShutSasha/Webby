@@ -7,12 +7,14 @@ using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
+using Webby.VideoService.Helpers.Converters;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.Playlist;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
+using Webby.VideoService.Models.Enums;
 
 namespace Webby.VideoService.Services;
 
@@ -22,14 +24,15 @@ public class PlaylistService : IPlaylistService
    private readonly IMapper _mapper;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
    private readonly IVideoRepository _videoRepository;
-
+   private readonly IYouTubeSearchService _youtubeSearchService;
    public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper,
-      UserGrpcService.UserGrpcServiceClient userClient, IVideoRepository videoRepository)
+      UserGrpcService.UserGrpcServiceClient userClient, IVideoRepository videoRepository, IYouTubeSearchService youtubeSearchService)
    {
       _playlistRepository = playlistRepository;
       _mapper = mapper;
       _userClient = userClient;
       _videoRepository = videoRepository;
+      _youtubeSearchService = youtubeSearchService;
    }
 
    public async Task<Playlist> GetPlaylistById(Guid playlistId)
@@ -59,8 +62,10 @@ public class PlaylistService : IPlaylistService
       return _mapper.Map<PlaylistDto>(playlist);
    }
 
-   public async Task<PagedResponse<PlaylistPreviewDto>> GetUserPlaylists(Guid? requestUserId, Guid? videoId, Guid userId, GetUserPlaylistsRequest request)
+   public async Task<PagedResponse<PlaylistPreviewDto>> GetUserPlaylists(Guid? requestUserId, string videoId, Guid userId, GetUserPlaylistsRequest request)
    {
+      string actualId = default;
+      
       var skip = (request.Page - 1) * request.PageSize;
 
       var (additionalCondition, parameters, predicate)
@@ -83,17 +88,25 @@ public class PlaylistService : IPlaylistService
       
       HashSet<Guid> addedSet = [];
 
-      if (videoId.HasValue && playlistIds.Count > 0)
+      if (!string.IsNullOrEmpty(videoId) && playlistIds.Count > 0)
       {
+         var parseResult = PlatformPrefixToPlatformConverter.ParseVideoPlatform(videoId);
+
+         if (parseResult == null)
+         {
+            throw new ApiException("Get user playlist error", 400, "Invalid id format");
+         }
+
+         (_, actualId) = parseResult.Value;
          addedSet = await _playlistRepository
-            .GetPlaylistIdsContainingVideo(videoId.Value, playlistIds);
+            .GetPlaylistIdsContainingVideo(actualId, playlistIds);
       }
 
       var detailedPlaylists = await _playlistRepository.GetPlaylistsDetails(playlistIds);
 
-      var playlistsPreviews = MapToPreviewDtos(
+      var playlistsPreviews = await MapToPreviewDtos(
          detailedPlaylists,
-         videoId,
+         actualId,
          addedSet,
          requestUserId
       );
@@ -115,13 +128,18 @@ public class PlaylistService : IPlaylistService
       {
          throw new ApiException("Update playlist error", 404, "Playlist wasn't found");
       }
+
+      if (playlist.UserId != requestUserId)
+      {
+         throw new ApiException("Update playlist error", 403, "You can't update this playlist");
+      }
       
       playlist.Name = request.Name;
       playlist.IsPrivate = request.IsPrivate;
 
       await _playlistRepository.Update(playlist);
 
-      return MapToPlaylistDto(playlist,requestUserId);
+      return await MapToPlaylistDto(playlist,requestUserId);
    }
 
    public async Task DeletePlaylist(Guid userId, Guid playlistId)
@@ -146,132 +164,208 @@ public class PlaylistService : IPlaylistService
       var playlist = await _playlistRepository.FindByIdWithVideos(playlistId)
                      ?? throw new ApiException("Get playlist information error", 404, "Playlist wasn't found");
 
-      var playlistDto = MapToPlaylistDto(playlist,requestedUserId);
+      var playlistDto = await MapToPlaylistDto(playlist, requestedUserId);
+
+      var youtubeIds = playlist.PlaylistVideos
+         .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
+         .Select(pv => pv.ExternalVideoId!)
+         .ToList();
+
+      var youtubeVideosDict = new Dictionary<string, VideoDto>();
+      
+      if (youtubeIds.Count != 0)
+      {
+         var ytList = await _youtubeSearchService.GetList(youtubeIds);
+         youtubeVideosDict = ytList.ToDictionary(v => v.VideoId!);
+      }
+
+      var unavailableYoutubeCount = youtubeIds.Count - youtubeVideosDict.Count;
 
       var visiblePlaylistVideos = playlist.PlaylistVideos
-         .Where(pv => !pv.Video.IsPrivate || pv.Video.UserId == requestedUserId)
+         .Where(pv => 
+            (pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId) && youtubeVideosDict.ContainsKey(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalVideoId)) ||
+            (pv is { VideoPlatform: VideoPlatform.Webby, Video: not null } && (!pv.Video.IsPrivate || pv.Video.UserId == requestedUserId)))
          .ToList();
 
       playlistDto.CountOfVideos = visiblePlaylistVideos.Count;
 
-      var video = visiblePlaylistVideos
-         .OrderByDescending(pv => pv.CreatedAt)
-         .Select(pv => pv.Video)
-         .FirstOrDefault();
+      var sortedVideos = visiblePlaylistVideos.OrderByDescending(pv => pv.CreatedAt).ToList();
 
       VideoDto? videoDto = null;
 
-      if (video != null)
+      foreach (var playlistVideo in sortedVideos)
       {
-         videoDto = new VideoDto
+         if (playlistVideo is { VideoPlatform: VideoPlatform.Webby, Video: not null })
          {
-            VideoId = video.VideoId.ToString(),
-            Name = video.Name,
-            Views = video.Views,
-            CreatedAt = video.CreatedAt,
-            PreviewUrl = video.PreviewUrl,
-            IsPrivate = video.IsPrivate,
-         };
-
-         if (video.UserId != Guid.Empty)
-         {
-            try
+            var video = playlistVideo.Video;
+            videoDto = new VideoDto
             {
-               var userResponse = await _userClient.GetUserByIdAsync(
-                  new GetUserRequest
-                  {
-                     UserId = video.UserId.ToString(),
-                     RequestUserId = requestedUserId.ToString()
-                  }
-               );
+               VideoId = PlatformPrefixesConstants.WebbyPrefix + video.VideoId.ToString(),
+               Name = video.Name,
+               Views = video.Views,
+               CreatedAt = video.CreatedAt,
+               PreviewUrl = video.PreviewUrl,
+               IsPrivate = video.IsPrivate,
+            };
 
-               if (userResponse != null)
+            if (video.UserId != Guid.Empty)
+            {
+               try
                {
-                  videoDto.User = new UserVideoDto
+                  var userResponse = await _userClient.GetUserByIdAsync(
+                     new GetUserRequest
+                     {
+                        UserId = video.UserId.ToString(),
+                        RequestUserId = requestedUserId.ToString()
+                     }
+                  );
+
+                  if (userResponse != null)
                   {
-                     UserId = userResponse.UserId,
-                     Username = userResponse.Username,
-                     AvatarUrl = userResponse.AvatarUrl,
-                     IsFollowed = userResponse.IsFollowed
-                  };
+                     videoDto.User = new UserVideoDto
+                     {
+                        UserId = userResponse.UserId,
+                        Username = userResponse.Username,
+                        AvatarUrl = userResponse.AvatarUrl,
+                        IsFollowed = userResponse.IsFollowed
+                     };
+                  }
+               }
+               catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
+               {
+                  throw new ApiException("Get playlist information error", 404, ex.Message);
+               }
+               catch (RpcException ex)
+               {
+                  throw new ApiException("Get playlist information error", 500, ex.Message);
                }
             }
-            catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
+
+            break;
+         }
+         else if (playlistVideo.VideoPlatform == VideoPlatform.YouTube &&
+                  !string.IsNullOrEmpty(playlistVideo.ExternalVideoId))
+         {
+            if (youtubeVideosDict.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + playlistVideo.ExternalVideoId, out var ytVideo))
             {
-               throw new ApiException("Get playlist information error", 404, ex.Message);
-            }
-            catch (RpcException ex)
-            {
-               throw new ApiException("Get playlist information error", 500, ex.Message);
+               videoDto = ytVideo;
+               break;
             }
          }
       }
 
-      var unavailableCount = playlist.PlaylistVideos
-         .Select(pv => pv.Video)
-         .Count(v => v.IsPrivate && v.UserId != requestedUserId);
-      
+      var unavailableWebbyCount = playlist.PlaylistVideos
+         .Count(pv => pv is { VideoPlatform: VideoPlatform.Webby, Video.IsPrivate: true } &&
+                      pv.Video.UserId != requestedUserId);
+
       return new GetPlaylistResponse
       {
          Playlist = playlistDto,
          FirstVideo = videoDto,
-         HiddenVideosCount = unavailableCount
+         HiddenVideosCount = unavailableWebbyCount + unavailableYoutubeCount
       };
    }
 
-   public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<Guid> videoIds, Guid requestUserId)
+   public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<string> videoIds, Guid requestUserId)
    {
-      if (videoIds == null || !videoIds.Any())
-         throw new ApiException("Attach video error", 400, "No videos to add");
+       if (videoIds.Count == 0)
+           throw new ApiException("Attach video error", 400, "No videos to add");
 
-      var playlist = await _playlistRepository.GetPlaylistDetails(playlistId)
-                     ?? throw new ApiException("Attach video to playlist error", 404, "Playlist wasn't found");
+       var playlist = await _playlistRepository.GetPlaylistDetails(playlistId)
+           ?? throw new ApiException("Attach video to playlist error", 404, "Playlist wasn't found");
 
-      if (playlist.UserId != requestUserId)
-      {
-         throw new ApiException("Attach video to playlist error", 403, "You can't update this playlist");
-      }
+       if (playlist.UserId != requestUserId)
+           throw new ApiException("Attach video to playlist error", 403, "You can't update this playlist");
+       
+       var parsedItems = videoIds
+           .Select(id =>
+           {
+              var result = PlatformPrefixToPlatformConverter.ParseVideoPlatform(id);
 
-      var existingVideoIds = playlist.PlaylistVideos
-         .Select(pv => pv.VideoId)
-         .ToHashSet();
-      
-      var playlistVideosToDelete = playlist.PlaylistVideos
-         .Where(p => videoIds.Contains(p.VideoId))
-         .ToList();
+              if (result == null)
+              {
+                 throw new ApiException("Attach video error", 400, "Invalid id format");
+              }
 
-      var playlistVideos = videoIds
-         .Distinct()
-         .Where(videoId => !existingVideoIds.Contains(videoId))
-         .Select(videoId => new PlaylistVideo
-         {
-            PlaylistId = playlistId,
-            VideoId = videoId,
-            CreatedAt = DateTime.UtcNow,
-         })
-         .ToList();
+              return new PlaylistItemInput(
+                 result.Value.Platform,
+                 result.Value.ActualId
+              );
+           })
+           .ToList();
 
-      var playlistVideoIds = playlistVideos.Select(pv => pv.VideoId).ToList();
+       var uniqueRequestedItems = parsedItems
+           .DistinctBy(v => new { v.VideoPlatform, v.ItemId })
+           .ToList();
+       
+       var existingItems = playlist.PlaylistVideos
+           .Select(pv => new PlaylistItemInput(
+               pv.VideoPlatform,
+               pv.VideoPlatform == VideoPlatform.Webby
+                   ? pv.VideoId!.ToString()
+                   : pv.ExternalVideoId!
+           ))
+           .ToHashSet();
+       
+       var playlistVideosToDelete = playlist.PlaylistVideos
+           .Where(p => uniqueRequestedItems.Any(req =>
+               req.VideoPlatform == p.VideoPlatform &&
+               req.ItemId == (p.VideoPlatform == VideoPlatform.Webby
+                   ? p.VideoId!.ToString()
+                   : p.ExternalVideoId)))
+           .ToList();
 
-      if (playlistVideoIds.Count > 0)
-      {
-         var isAllVideosInDb = await _videoRepository.CheckVideosCount(playlistVideoIds);
-         if (!isAllVideosInDb)
-         {
-            throw new ApiException("Update playlist error", 404, "Videos wasn't found");
-         }
+       var newItemsToAdd = uniqueRequestedItems
+           .Where(req => !existingItems.Contains(req))
+           .ToList();
 
-         var hasForbiddenVideos = await _videoRepository.CheckForbiddenVideos(playlistVideoIds, requestUserId);
-         
-         if (hasForbiddenVideos)
-         {
-            throw new ApiException("Add video to playlist error", 403, "You can't add private videos");
-         }
-      }
+       
+       var localVideoIdsStrings = newItemsToAdd
+           .Where(v => v.VideoPlatform == VideoPlatform.Webby)
+           .Select(v => v.ItemId)
+           .ToList();
 
-      await _playlistRepository.AddPlaylistVideos(playlistVideos);
-      await _playlistRepository.DeletePlaylistVideos(playlistVideosToDelete);
-      return MapToPlaylistDto((await _playlistRepository.GetPlaylistDetails(playlistId))!,requestUserId);
+       if (localVideoIdsStrings.Any())
+       {
+           var localVideoGuids = localVideoIdsStrings
+               .Select(id =>
+               {
+                   if (!Guid.TryParse(id, out var guid))
+                       throw new ApiException("Update playlist error", 400, "Invalid local video ID format");
+
+                   return guid;
+               })
+               .ToList();
+
+           var isAllVideosInDb = await _videoRepository.CheckVideosCount(localVideoGuids);
+           if (!isAllVideosInDb)
+               throw new ApiException("Update playlist error", 404, "Local videos weren't found");
+
+           var hasForbiddenVideos = await _videoRepository.CheckForbiddenVideos(localVideoGuids, requestUserId);
+           if (hasForbiddenVideos)
+               throw new ApiException("Add video to playlist error", 403, "You can't add private videos");
+       }
+       
+       
+       var playlistVideos = newItemsToAdd.Select(item => new PlaylistVideo
+       {
+           PlaylistVideoId = Guid.NewGuid(),
+           PlaylistId = playlistId,
+           VideoPlatform = item.VideoPlatform,
+           VideoId = item.VideoPlatform == VideoPlatform.Webby ? Guid.Parse(item.ItemId) : null,
+           ExternalVideoId = item.VideoPlatform == VideoPlatform.YouTube ? item.ItemId : null,
+           CreatedAt = DateTime.UtcNow,
+       }).ToList();
+
+       if (playlistVideos.Count > 0)
+           await _playlistRepository.AddPlaylistVideos(playlistVideos);
+
+       if (playlistVideosToDelete.Count > 0)
+           await _playlistRepository.DeletePlaylistVideos(playlistVideosToDelete);
+
+       var updatedPlaylist = await _playlistRepository.GetPlaylistDetails(playlistId);
+
+       return await MapToPlaylistDto(updatedPlaylist!, requestUserId);
    }
 
    public async Task<PagedResponse<SearchPlaylistDto>> SearchPlaylists(
@@ -303,16 +397,16 @@ public class PlaylistService : IPlaylistService
          .ToList();
 
       var users = await _userClient.GetUsersByIdsAsync(new GetUsersRequest
-         { UserIds = {userIds }
-   }
-   );
+         { UserIds = {userIds}}
+      );
 
 
-   var usersDict = users.Users.ToDictionary(u => u.UserId, u => u);
+      var usersDict = users.Users.ToDictionary(u => u.UserId, u => u);
+         
+      var tasks = detailedPlaylists
+         .Select(p => MapToSearchPlaylistDto(p, requestUserId, usersDict));
       
-      var items = detailedPlaylists
-         .Select(p => MapToSearchPlaylistDto(p,requestUserId, usersDict))
-         .ToList();
+      var items = (await Task.WhenAll(tasks)).ToList();
 
       return new PagedResponse<SearchPlaylistDto>
       {
@@ -323,15 +417,24 @@ public class PlaylistService : IPlaylistService
       };
    }
 
-   public async Task<bool> CheckIfVideoExistInPlaylist(Guid playlistId, Guid videoId)
-      => await _playlistRepository.CheckIsVideoAdded(videoId,playlistId);
-
-   private PlaylistDto MapToPlaylistDto(Playlist playlist,Guid? requestUserId)
+   public async Task<bool> CheckIfVideoExistInPlaylist(Guid playlistId, string videoId)
    {
-      var lastVideo = playlist.PlaylistVideos?
-         .OrderByDescending(pv => pv.CreatedAt)
-         .Select(pv => pv.Video!)
-         .FirstOrDefault(v => !v.IsPrivate || v.UserId == requestUserId);
+      var parseResult = PlatformPrefixToPlatformConverter.ParseVideoPlatform(videoId);
+
+      if (parseResult == null)
+      {
+         throw new ApiException("Check if video exist error", 400, "Invalid id format type");
+      }
+
+      var (_, actualId) = parseResult.Value;
+      return await _playlistRepository.CheckIsVideoAdded(actualId, playlistId);
+   }
+      
+
+   private async Task<PlaylistDto> MapToPlaylistDto(Playlist playlist, Guid? requestUserId)
+   {
+      var covers = await GetPlaylistsCoversAsync(new[] { playlist }, requestUserId);
+      var coverUrl = covers.GetValueOrDefault(playlist.PlaylistId, DefaultLinks.PlaylistEmptyLink);
 
       return new PlaylistDto
       {
@@ -340,19 +443,17 @@ public class PlaylistService : IPlaylistService
          Name = playlist.Name,
          IsPrivate = playlist.IsPrivate,
          CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
-         PlaylistCover = lastVideo?.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
+         PlaylistCover = coverUrl
       };
    }
    
-   private SearchPlaylistDto MapToSearchPlaylistDto(
+   private async Task<SearchPlaylistDto> MapToSearchPlaylistDto(
       Playlist playlist,
       Guid? requestUserId,
       Dictionary<string, UserResponse> usersDict)
    {
-      var lastVideo = playlist.PlaylistVideos?
-         .OrderByDescending(pv => pv.CreatedAt)
-         .Select(pv => pv.Video!)
-         .FirstOrDefault(v => !v.IsPrivate || v.UserId == requestUserId);
+      var covers = await GetPlaylistsCoversAsync(new[] { playlist }, requestUserId);
+      var coverUrl = covers.GetValueOrDefault(playlist.PlaylistId, DefaultLinks.PlaylistEmptyLink);
 
       usersDict.TryGetValue(playlist.UserId.ToString(), out var user);
 
@@ -364,34 +465,99 @@ public class PlaylistService : IPlaylistService
          IsPrivate = playlist.IsPrivate,
          Username = user?.Username ?? "Deleted user",
          CountOfVideos = playlist.PlaylistVideos?.Count ?? 0,
-         PlaylistCover = lastVideo?.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink
+         PlaylistCover = coverUrl
       };
    }
    
-   private List<PlaylistPreviewDto> MapToPreviewDtos(
+   private async Task<List<PlaylistPreviewDto>> MapToPreviewDtos(
       IEnumerable<Playlist> playlists,
-      Guid? videoId,
+      string videoId,
       HashSet<Guid> addedSet,
       Guid? requestUserId)
    {
+      var covers = await GetPlaylistsCoversAsync(playlists, requestUserId);
+      
       return playlists
-         .Select(p => 
+         .Select(p => new PlaylistPreviewDto
          {
-            var lastVideo = p.PlaylistVideos
-               .OrderByDescending(pv => pv.CreatedAt)
-               .Select(pv => pv.Video!)
-               .FirstOrDefault(v => !v.IsPrivate || v.UserId == requestUserId);
-
-            return new PlaylistPreviewDto
-            {
-               PlaylistId = p.PlaylistId,
-               Name = p.Name,
-               CountOfVideos = p.PlaylistVideos.Count,
-               PlaylistCover = lastVideo?.PreviewUrl ?? DefaultLinks.PlaylistEmptyLink,
-               IsVideoAdded = videoId.HasValue && addedSet.Contains(p.PlaylistId),
-               IsPrivate = p.IsPrivate
-            };
+            PlaylistId = p.PlaylistId,
+            Name = p.Name,
+            CountOfVideos = p.PlaylistVideos?.Count ?? 0,
+            PlaylistCover = covers.GetValueOrDefault(p.PlaylistId, DefaultLinks.PlaylistEmptyLink),
+            IsVideoAdded = !string.IsNullOrEmpty(videoId) && addedSet.Contains(p.PlaylistId),
+            IsPrivate = p.IsPrivate
          })
          .ToList();
    }
+   
+   private async Task<Dictionary<Guid, string>> GetPlaylistsCoversAsync(IEnumerable<Playlist> playlists, Guid? requestUserId)
+   {
+       var covers = new Dictionary<Guid, string>();
+       var youtubeIdsToFetch = new HashSet<string>();
+       
+       foreach (var playlist in playlists)
+       {
+           var youtubeVideos = playlist.PlaylistVideos?
+               .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
+               .Select(pv => pv.ExternalVideoId!);
+
+           if (youtubeVideos != null)
+           {
+               foreach (var id in youtubeVideos)
+               {
+                   youtubeIdsToFetch.Add(id);
+               }
+           }
+       }
+       
+       var youtubeVideosDict = new Dictionary<string, VideoDto>();
+       if (youtubeIdsToFetch.Count != 0)
+       {
+           var ytList = await _youtubeSearchService.GetList(youtubeIdsToFetch.ToList());
+           youtubeVideosDict = ytList.ToDictionary(v => v.VideoId!);
+       }
+       
+       foreach (var playlist in playlists)
+       {
+           string coverUrl = DefaultLinks.PlaylistEmptyLink;
+
+           var availableVideos = playlist.PlaylistVideos?
+               .Where(pv =>
+                   pv.VideoPlatform == VideoPlatform.YouTube ||
+                   (pv.VideoPlatform == VideoPlatform.Webby && pv.Video != null && (!pv.Video.IsPrivate || pv.Video.UserId == requestUserId))
+               )
+               .OrderByDescending(pv => pv.CreatedAt)
+               .ToList();
+
+           if (availableVideos != null && availableVideos.Any())
+           {
+               foreach (var pv in availableVideos)
+               {
+                   if (pv.VideoPlatform == VideoPlatform.Webby)
+                   {
+                       var localCover = pv.Video!.PreviewUrl;
+                       if (!string.IsNullOrEmpty(localCover))
+                       {
+                           coverUrl = localCover;
+                           break;
+                       }
+                   }
+                   else if (pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
+                   {
+                       if (youtubeVideosDict.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalVideoId, out var ytVideo) &&
+                           !string.IsNullOrEmpty(ytVideo.PreviewUrl))
+                       {
+                           coverUrl = ytVideo.PreviewUrl;
+                           break;
+                       }
+                   }
+               }
+           }
+
+           covers[playlist.PlaylistId] = coverUrl;
+       }
+
+       return covers;
+   }
+   
 }

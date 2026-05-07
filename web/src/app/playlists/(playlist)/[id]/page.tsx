@@ -3,9 +3,9 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 
 import { getPlaylistInfo } from '@/lib/actions/playlist.actions'
-import PlayerSkeleton from '@/ui/components/modules/Playlists/PlayerSkeleton'
 import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer/PlaylistQueueContainer'
 import VideoDetails from '@/ui/components/modules/Playlists/VideoDetails'
+import VideoDetailsSkeleton from '@/ui/components/modules/Playlists/VideoDetailsSkeleton'
 import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
@@ -38,8 +38,8 @@ export default async function PlaylistPage({ params, searchParams }: Props) {
   }
 
   return (
-    <div className="flex gap-5">
-      <Suspense key={v} fallback={<PlayerSkeleton />}>
+    <div className="flex flex-col xl:flex-row gap-5">
+      <Suspense key={v} fallback={<VideoDetailsSkeleton />}>
         <VideoDetails currentUserId={session?.user.id} v={v} playlistId={playlistId} />
       </Suspense>
       <PlaylistQueueContainer

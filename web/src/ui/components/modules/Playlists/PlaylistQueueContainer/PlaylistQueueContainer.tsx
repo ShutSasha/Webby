@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react'
 
-import { AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'next/navigation'
 import { useDebouncedCallback } from 'use-debounce'
 
 import { useSearchPlaylistVideosQuery } from '@/lib/hooks/api/playlist/useSearchPlaylistVideos'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import { usePlaylistAutoPlay } from '@/lib/hooks/usePlaylistAutoPlay'
-import VideoItem from '@/ui/components/modules/Playlists/VideoItem'
+import VideoItem, { VideoItemSkeleton } from '@/ui/components/modules/Playlists/VideoItem'
 
 import PlaylistContainerHeader from './PlaylistContainerHeader'
 import PlaylistQueueFooter from './PlaylistQueueFooter'
@@ -82,41 +81,43 @@ export default function PlaylistQueueContainer({
   }, [currentV])
 
   return (
-    <div className="w-[300px] xl:w-[320px] 2xl:w-[388px] flex flex-col h-[90vh] shrink-0">
+    <div className="w-full xl:w-[320px] 2xl:w-[388px] flex flex-col h-[90vh] shrink-0">
       <PlaylistContainerHeader playlistName={playlistName} hiddenVideosCount={hiddenVideosCount} />
       <Search loading={isLoading} handleSearchChange={debouncedSearch} />
       <QueueContainer>
         {isLoading && uiVideos.length === 0 ? (
-          <p className="text-center text-neutral-500 py-10">Loading queue...</p>
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <VideoItemSkeleton key={`skeleton-${index}`} />
+            ))}
+          </div>
         ) : (
           <>
-            <AnimatePresence mode="popLayout">
-              {uiVideos.map((video, index) => {
-                const isLast = uiVideos.length === index + 1
-                const item = (
-                  <VideoItem
-                    key={video.videoId}
-                    id={video.videoId}
-                    title={video.name}
-                    thumbnail={video.previewUrl}
-                    playlistId={playlistId}
-                    optimisticId={optimisticId}
-                    onOptimisticClick={() => setOptimisticId(video.videoId)}
-                    isOwner={guestUserId === authorId}
-                    userId={guestUserId || ''}
-                  />
-                )
+            {uiVideos.map((video, index) => {
+              const isLast = uiVideos.length === index + 1
+              const item = (
+                <VideoItem
+                  key={video.videoId}
+                  id={video.videoId}
+                  title={video.name}
+                  thumbnail={video.previewUrl}
+                  playlistId={playlistId}
+                  optimisticId={optimisticId}
+                  onOptimisticClick={() => setOptimisticId(video.videoId)}
+                  isOwner={guestUserId === authorId}
+                  userId={guestUserId || ''}
+                />
+              )
 
-                if (isLast) {
-                  return (
-                    <div ref={lastElementRef} key={video.videoId}>
-                      {item}
-                    </div>
-                  )
-                }
-                return item
-              })}
-            </AnimatePresence>
+              if (isLast) {
+                return (
+                  <div ref={lastElementRef} key={video.videoId}>
+                    {item}
+                  </div>
+                )
+              }
+              return item
+            })}
 
             <PlaylistQueueFooter
               fetchingMore={isFetchingNextPage}

@@ -135,7 +135,7 @@ export default function VideoMetadataForm({
 
       <div className="flex justify-end gap-3 pt-6 border-t border-neutral-800 mt-2">
         <CoreButton type="button" variant="secondary" onClick={onCancel} disabled={isSaving}>
-          Cancel
+          Back to upload
         </CoreButton>
         <CoreButton
           type="submit"

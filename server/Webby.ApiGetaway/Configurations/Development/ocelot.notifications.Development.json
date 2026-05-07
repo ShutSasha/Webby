@@ -158,6 +158,35 @@
       },
 
       {
+         "DownstreamPathTemplate": "/api/notifications/one-time-ticket",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5006
+            }
+         ],
+         "UpstreamPathTemplate": "/api/notifications/one-time-ticket",
+         "UpstreamHttpMethod": ["GET"],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/hubs/notifications/negotiate",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5006
+            }
+         ],
+         "UpstreamPathTemplate": "/hubs/notifications/negotiate",
+         "UpstreamHttpMethod": ["POST"]
+      },
+
+      {
          "DownstreamPathTemplate": "/hubs/notifications",
          "DownstreamScheme": "ws",
          "DownstreamHostAndPorts": [
@@ -167,10 +196,8 @@
             }
          ],
          "UpstreamPathTemplate": "/hubs/notifications",
-         "UpstreamHttpMethod": [ "GET", "POST", "OPTIONS" ],
-         "AuthenticationOptions": {
-            "AuthenticationProviderKey": "Bearer"
-         }
+         "UpstreamHttpMethod": [ "GET", "POST", "OPTIONS" ]
       }
+      
    ]
 }

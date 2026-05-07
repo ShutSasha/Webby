@@ -11,7 +11,7 @@ export default function RoomPage() {
   return (
     <div className="flex flex-col">
       <div className="flex gap-5">
-        <CustomPlayer videoUrl={testVideoUrl} />
+        <CustomPlayer videoUrl={testVideoUrl} isRoom />
         <RoomInteractionContainer />
       </div>
       <div className="flex gap-5">

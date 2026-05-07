@@ -12,7 +12,7 @@ export default async function RoomsPage({ searchParams }: Props) {
 
   return (
     <>
-      <AnimatedTabsContainer currentTab={tab} />
+      <AnimatedTabsContainer currentTab={tab || 'All'} />
       <RoomsContainer query={safeQuery} category={tab || ''} />
     </>
   )

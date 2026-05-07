@@ -11,4 +11,7 @@ public class SearchVideoOptions : SearchOptions
    
    [FromQuery(Name = "nextPageToken")]
    public string? NextPageToken { get; set; }
+   
+   [FromQuery(Name = "contentSeed")] 
+   public int ContentSeed { get; set; } = 0;
 }

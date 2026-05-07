@@ -2,14 +2,14 @@
 
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
-import { BaseServerResponse, Platform } from '@/types/general.types'
-import { GetUserVideosResponse, SearchVideosResponse, Video } from '@/types/video.types'
+import { BaseServerResponse } from '@/types/general.types'
+import { GetRecommendationsResponse, GetUserVideosResponse, SearchVideosResponse, Video } from '@/types/video.types'
 
 const endpoint = '/videos'
 
-export async function getVideoInfo(videoId: string, platform: Platform = 'Webby'): Promise<BaseServerResponse<Video>> {
+export async function getVideoInfo(videoId: string): Promise<BaseServerResponse<Video>> {
   try {
-    const { data: response } = await $api.get<BaseServerResponse<Video>>(`${endpoint}/${videoId}?platform=${platform}`)
+    const { data: response } = await $api.get<BaseServerResponse<Video>>(`${endpoint}/${videoId}`)
 
     return response
   } catch (error: unknown) {
@@ -28,22 +28,28 @@ export async function searchVideos(
   query: string,
   page: number,
   pageSize: number,
+  searchPlatform?: 'Webby' | 'YouTube',
+  nextPageToken?: string | null,
+  contentSeed?: number | null,
 ): Promise<BaseServerResponse<SearchVideosResponse>> {
   try {
-    const { data: response } = await $api.get<BaseServerResponse<SearchVideosResponse>>(
-      `${endpoint}/search?searchText=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`,
-    )
+    const params = new URLSearchParams()
+    if (query) params.append('searchText', query)
 
+    params.append('page', page.toString())
+    params.append('pageSize', pageSize.toString())
+    if (searchPlatform) params.append('searchPlatform', searchPlatform)
+
+    if (nextPageToken) params.append('nextPageToken', nextPageToken)
+    if (contentSeed) params.append('contentSeed', contentSeed.toString())
+
+    const { data: response } = await $api.get<BaseServerResponse<SearchVideosResponse>>(
+      `${endpoint}/search?${params.toString()}`,
+    )
     return response
   } catch (error: unknown) {
     serverLog('GET_PUBLIC_VIDEOS_WHILE_SEARCH_ERROR', error, true)
-
-    return {
-      data: null,
-      success: false,
-      message: `Failed to retrieve public videos from search`,
-      errors: parseAxiosError(error),
-    }
+    return { data: null, success: false, message: `Failed to retrieve videos`, errors: parseAxiosError(error) }
   }
 }
 
@@ -151,6 +157,56 @@ export async function updateVideoMetadataAction(formData: FormData): Promise<Bas
       data: null,
       success: false,
       message: 'Failed to update video metadata',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function incrementVideoView(videoId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/increment-view`, {
+      videoId,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('INCREMENT_VIDEO_VIEW_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to increment view count',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function getVideoRecommendations(
+  videoId: string,
+  page: number = 1,
+  pageSize: number = 20,
+  contentSeed?: number | null,
+): Promise<BaseServerResponse<GetRecommendationsResponse>> {
+  try {
+    const params = new URLSearchParams()
+
+    params.append('page', page.toString())
+    params.append('pageSize', pageSize.toString())
+
+    if (contentSeed) params.append('contentSeed', contentSeed.toString())
+
+    const { data: response } = await $api.get<BaseServerResponse<GetRecommendationsResponse>>(
+      `${endpoint}/recommendation/${videoId}?${params.toString()}`,
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_VIDEO_RECOMMENDATIONS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve video recommendations',
       errors: parseAxiosError(error),
     }
   }

@@ -17,6 +17,8 @@ type PaginatedData<T> = {
   page: number
   pageSize: number
   totalCount: number
+  nextPageToken?: string | null
+  contentSeed?: number | null
 }
 
 type Platform = 'Webby' | 'Youtube' | 'Twitch'

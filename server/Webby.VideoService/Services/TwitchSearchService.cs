@@ -13,7 +13,7 @@ using Webby.VideoService.Interfaces.Services;
 
 namespace Webby.VideoService.Services;
 
-public class TwitchSearchService : IExternalVideoSearchService<StreamDto>
+public class TwitchSearchService : ITwitchSearchService
 {
     private readonly HttpClient _httpClient;
     private readonly TwitchOptions _options;
@@ -91,7 +91,7 @@ public class TwitchSearchService : IExternalVideoSearchService<StreamDto>
         
         var resultItems = streamData.Select(item => new StreamDto
         {
-            StreamId = item.Id,
+            StreamId = PlatformPrefixesConstants.TwitchPrefix + item.Id,
             Name = item.Title,
             StartedAt = item.StartedAt,
             PreviewUrl = item.ThumbnailUrl.Replace("{width}",_options.ThumbnailWidth).Replace("{height}", _options.ThumbnailHeight),
@@ -100,7 +100,7 @@ public class TwitchSearchService : IExternalVideoSearchService<StreamDto>
             Source = "Twitch",
             User = new UserVideoDto
             {
-                UserId = item.UserId,
+                UserId = PlatformPrefixesConstants.TwitchPrefix + item.UserId,
                 Username = item.UserName ?? item.DisplayName ?? "Unknown",
                 AvatarUrl = avatars.GetValueOrDefault(item.UserId ?? item.Id) ?? "",
                 IsFollowed = false
@@ -145,12 +145,12 @@ public class TwitchSearchService : IExternalVideoSearchService<StreamDto>
 
         throw new ApiException("Get twitch stream error", 404, "Stream wasn't found");
     }
-    
+
     private StreamDto MapToStreamDto(TwitchItem? item, string? avatarUrl)
     {
         return new StreamDto
         {
-            StreamId = item.Id,
+            StreamId = PlatformPrefixesConstants.TwitchPrefix + item.Id,
             Name = item.Title,
             StartedAt = item.StartedAt,
             PreviewUrl = item.ThumbnailUrl.Replace("{width}", _options.ThumbnailWidth).Replace("{height}", _options.ThumbnailHeight),
@@ -159,7 +159,7 @@ public class TwitchSearchService : IExternalVideoSearchService<StreamDto>
             Source = "Twitch",
             User = new UserVideoDto
             {
-                UserId = item.UserId,
+                UserId = PlatformPrefixesConstants.TwitchPrefix + item.UserId,
                 Username = item.UserName ?? item.DisplayName ?? "Unknown",
                 AvatarUrl = avatarUrl ?? "",
                 IsFollowed = false

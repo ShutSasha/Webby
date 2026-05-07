@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Webby.VideoService.Constants;
 using Webby.VideoService.Data;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Models;
@@ -17,6 +18,7 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
    {
       return await _context.Videos
          .Include(v => v.VideoTags)
+         .ThenInclude(vt => vt.Tag)
          .FirstAsync(v => v.VideoId == videoId);
    }
    public async Task<(List<Video>, int)> GetPaginatedUserVideos(
@@ -68,62 +70,87 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
                                       && v.UserId != requestUserId);
    }
    
-   public async Task<(List<Video> Items, int Total)> SearchVideosInPlaylistAsync(
-      Guid playlistId,
-      Guid? requestUserId,
-      string? searchText,
-      int skip,
-      int take)
+   public async Task<(List<PlaylistVideo> Items, int Total)> SearchVideosInPlaylistAsync(
+    Guid playlistId,
+    Guid? requestUserId,
+    string? searchText,
+    int skip,
+    int take)
    {
-      var query = @"
-        SELECT v.*
+       var query = @"
+        SELECT pv.*
         FROM ""PlaylistVideos"" pv
-        JOIN ""Videos"" v ON v.""VideoId"" = pv.""VideoId""
+        LEFT JOIN ""Videos"" v ON v.""VideoId"" = pv.""VideoId""
         WHERE pv.""PlaylistId"" = @playlistId
-          AND v.""IsPublished"" = TRUE
-          AND (v.""IsPrivate"" = FALSE OR v.""UserId"" = @requestUserId)
           AND (
-              v.""VideoUploadStatus"" = @statusReady 
-              OR (v.""UserId"" = @requestUserId AND v.""VideoUploadStatus"" = @statusUploading)
+              pv.""VideoPlatform"" = @youtubePlatform
+              OR (
+                  pv.""VideoPlatform"" = @webbyPlatform
+                  AND v.""IsPublished"" = TRUE
+                  AND (v.""IsPrivate"" = FALSE OR v.""UserId"" = @requestUserId)
+                  AND (
+                      v.""VideoUploadStatus"" = @statusReady 
+                      OR (v.""UserId"" = @requestUserId AND v.""VideoUploadStatus"" = @statusUploading)
+                  )
+              )
           )
     ";
       
-      var parameters = new List<NpgsqlParameter>
-      {
-         new NpgsqlParameter("@playlistId", playlistId),
-         new NpgsqlParameter("@requestUserId", (object?)requestUserId ?? DBNull.Value),
-         new NpgsqlParameter("@statusReady", VideoStatus.Ready.ToString()),
-         new NpgsqlParameter("@statusUploading", VideoStatus.Uploading.ToString())
-      };
-
-      if (!string.IsNullOrWhiteSpace(searchText) && searchText.Trim().Length >= 3)
-      {
-         query += " AND (v.\"Name\" <% @search OR v.\"Name\" ILIKE @likePattern) ";
-         parameters.Add(new NpgsqlParameter("@search", searchText));
-         parameters.Add(new NpgsqlParameter("@likePattern", $"%{searchText}%"));
-      }
+       var parameters = new List<NpgsqlParameter>
+       {
+           new NpgsqlParameter("@playlistId", playlistId),
+           new NpgsqlParameter("@requestUserId", (object?)requestUserId ?? DBNull.Value),
+           new NpgsqlParameter("@statusReady", VideoStatus.Ready.ToString()),
+           new NpgsqlParameter("@statusUploading", VideoStatus.Uploading.ToString()),
+           new NpgsqlParameter("@youtubePlatform", VideoPlatform.YouTube.ToString()),
+           new NpgsqlParameter("@webbyPlatform", VideoPlatform.Webby.ToString())
+       };
       
-      var countParameters = parameters.Select(p => p.Clone()).ToArray();
-      var total = await _context.Videos
-         .FromSqlRaw(query, countParameters)
-         .CountAsync();
-      
-      query += " ORDER BY " +
-               (!string.IsNullOrWhiteSpace(searchText) && searchText.Trim().Length >= 3
-                  ? "(CASE WHEN v.\"Name\" ILIKE @likePattern THEN 1 ELSE 0 END) DESC, " +
-                    "word_similarity(@search, v.\"Name\") DESC, "
-                  : "") +
-               "pv.\"CreatedAt\" DESC " +
-               "LIMIT @take OFFSET @skip";
-      
-      parameters.Add(new NpgsqlParameter("@take", take));
-      parameters.Add(new NpgsqlParameter("@skip", skip));
+       var trimmedSearch = searchText?.Trim();
+       bool hasSearch = !string.IsNullOrWhiteSpace(trimmedSearch);
 
-      var items = await _context.Videos
-         .FromSqlRaw(query, parameters.ToArray())
-         .ToListAsync();
+       if (hasSearch)
+       {
+           if (trimmedSearch!.Length >= 3)
+           {
+               query += " AND (pv.\"VideoPlatform\" = @youtubePlatform OR (pv.\"VideoPlatform\" = @webbyPlatform AND (v.\"Name\"::text <% @search OR v.\"Name\" ILIKE @likePattern))) ";
+           }
+           else
+           {
+               query += " AND (pv.\"VideoPlatform\" = @youtubePlatform OR (pv.\"VideoPlatform\" = @webbyPlatform AND v.\"Name\" ILIKE @likePattern)) ";
+           }
+           parameters.Add(new NpgsqlParameter("@search", trimmedSearch));
+           parameters.Add(new NpgsqlParameter("@likePattern", $"%{trimmedSearch}%"));
+       }
+      
+       var countParameters = parameters.Select(p => p.Clone()).ToArray();
+       var total = await _context.PlaylistVideos
+           .FromSqlRaw(query, countParameters)
+           .CountAsync();
+       
+       if (hasSearch && trimmedSearch!.Length >= 3)
+       {
+           query += " ORDER BY " +
+                    "(CASE WHEN pv.\"VideoPlatform\" = @webbyPlatform AND v.\"Name\" ILIKE @likePattern THEN 1 ELSE 0 END) DESC, " +
+                    "(CASE WHEN pv.\"VideoPlatform\" = @webbyPlatform THEN word_similarity(@search, v.\"Name\"::text) ELSE 0 END) DESC, " +
+                    "pv.\"CreatedAt\" DESC ";
+       }
+       else
+       {
+           query += " ORDER BY pv.\"CreatedAt\" DESC ";
+       }
+      
+       query += "LIMIT @take OFFSET @skip";
+      
+       parameters.Add(new NpgsqlParameter("@take", take));
+       parameters.Add(new NpgsqlParameter("@skip", skip));
+      
+       var items = await _context.PlaylistVideos
+           .FromSqlRaw(query, parameters.ToArray())
+           .Include(pv => pv.Video) 
+           .ToListAsync();
 
-      return (items, total);
+       return (items, total);
    }
 
    public async Task UpdateVideoFileMetaData(Guid videoId, string videoFileUrl, long duration)
@@ -135,8 +162,7 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
             .SetProperty(v => v.Duration, duration)
          );
    }
-
-
+   
    public async Task<bool> FindUserView(Guid userId, Guid videoId) 
       => await _context.UserViews.AnyAsync(uv => uv.UserId == userId && uv.VideoId == videoId);
    
@@ -149,4 +175,109 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
 
    public async Task<int> CountUserView(Guid videoId) 
       => await _context.UserViews.CountAsync(uv => uv.VideoId == videoId);
+   
+   public async Task<List<string>> GetRecentUserViewTagsAsync(Guid userId, int limit = 30)
+   {
+       var recentVideoIds = await _context.UserViews
+           .Where(uv => uv.UserId == userId)
+           .Select(uv => uv.VideoId)
+           .Take(limit)
+           .ToListAsync();
+
+       if (recentVideoIds.Count == 0)
+           return [];
+       
+       return await _context.Videos
+           .Where(v => recentVideoIds.Contains(v.VideoId))
+           .SelectMany(v => v.VideoTags!)
+           .Select(vt => vt.Tag.Name)
+           .Distinct()
+           .ToListAsync();
+   }
+
+   public async Task<(List<Video> Items, int Total, int Seed)> GetRecommendedVideosAsync(
+    Guid? currentVideoId,
+    List<string> currentTags,
+    List<Guid> subscribedIds,
+    List<string> historyTags,
+    int skip,
+    int pageSize,
+    int contentSeed = 0)
+   {
+       var query = _context.Videos
+           .Where(v => v.IsPublished 
+                    && !v.IsPrivate 
+                    && v.VideoUploadStatus == VideoStatus.Ready);
+       
+       if (currentVideoId.HasValue && currentVideoId.Value != Guid.Empty)
+       {
+           query = query.Where(v => v.VideoId != currentVideoId.Value);
+       }
+       
+       var scoredQuery = query.Select(v => new
+       {
+           Video = v,
+           
+           CurrentTagsScore = currentTags.Any() 
+               ? v.VideoTags!.Count(vt => currentTags.Contains(vt.Tag.Name)) * ScoreConstants.VideoTagWatchScoreMultiplier
+               : 0,
+               
+           SubscriptionScore = subscribedIds.Contains(v.UserId) 
+              ? ScoreConstants.UserFollowScore
+              : 0,
+           
+           HistoryTagsScore = historyTags.Any()
+               ? v.VideoTags!.Count(vt => historyTags.Contains(vt.Tag.Name)) * ScoreConstants.HistoryVideoTagScoreMultiplier
+               : 0,
+           
+           PopularityScore = v.Views / ScoreConstants.PopularityScoreDivider 
+       });
+       
+       var orderedQuery = scoredQuery
+           .OrderByDescending(x => x.CurrentTagsScore + x.SubscriptionScore + x.HistoryTagsScore + x.PopularityScore)
+           .ThenByDescending(x => x.Video.CreatedAt);
+
+       var total = await orderedQuery.CountAsync();
+       var seed = contentSeed == 0 ? Guid.NewGuid().GetHashCode() : contentSeed;
+       
+       const int maxCandidatePoolSize = 30; 
+       
+       List<Video> items;
+
+       if (skip < maxCandidatePoolSize)
+       {
+           var candidateIds = await orderedQuery
+               .Take(maxCandidatePoolSize)
+               .Select(x => x.Video.VideoId)
+               .ToListAsync();
+
+           var random = new Random(seed);
+           
+           var pagedIds = candidateIds
+               .OrderBy(id => random.Next())
+               .Skip(skip)
+               .Take(pageSize)
+               .ToList();
+           
+           var unorderedItems = await _context.Videos
+               .Include(v => v.VideoTags)!
+               .ThenInclude(vt => vt.Tag)
+               .Where(v => pagedIds.Contains(v.VideoId))
+               .ToListAsync();
+           
+           items = unorderedItems.OrderBy(v => pagedIds.IndexOf(v.VideoId)).ToList();
+       }
+       else
+       {
+           items = await orderedQuery
+               .Skip(skip)
+               .Take(pageSize)
+               .Select(x => x.Video)
+               .Include(v => v.VideoTags)!
+               .ThenInclude(vt => vt.Tag)
+               .ToListAsync();
+       }
+
+       return (items, total, seed);
+   }
 }

@@ -30,11 +30,9 @@ public class StreamController : ControllerBase
 
    [HttpGet("{streamerId}")]
    [SwaggerOperation("Get stream information by streamer id")]
-   public async Task<ActionResult<ApiResponse<StreamDto>>> GetStreamInformation([FromRoute] string streamerId,
-      [FromQuery(Name = "searchPlatform")]
-      SearchStreamPlatforms? searchStreamPlatforms)
+   public async Task<ActionResult<ApiResponse<StreamDto>>> GetStreamInformation([FromRoute] string streamerId)
    {
-      var getStreamResult = await _streamService.GetStreamById(streamerId, searchStreamPlatforms);
+      var getStreamResult = await _streamService.GetStreamById(streamerId);
       return Ok(ApiResponse<StreamDto>.Ok("Successfully retrieved stream", getStreamResult));
    }
    

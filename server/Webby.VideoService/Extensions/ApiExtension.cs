@@ -99,6 +99,8 @@ public static class ApiExtension
       serviceCollection.AddScoped<IVideoService,Services.VideoService>();
       serviceCollection.AddScoped<IStorageService, StorageService>();
       serviceCollection.AddScoped<IStreamService, StreamService>();
+      serviceCollection.AddScoped<IYouTubeSearchService,YoutubeSearchService>();
+      serviceCollection.AddScoped<ITwitchSearchService, TwitchSearchService>();
    }
 
    public static void AddExternalServices(this IServiceCollection serviceCollection)

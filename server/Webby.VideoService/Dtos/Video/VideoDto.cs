@@ -2,12 +2,13 @@
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video.Enums;
 using Webby.VideoService.Helpers.Converters;
+using Webby.VideoService.Interfaces.Dto;
 using Webby.VideoService.Models.Enums;
 using Webby.VideoService.Services.Background;
 
 namespace Webby.VideoService.Dtos.Video;
 
-public class VideoDto
+public class VideoDto : IVideoDtoWithUser
 {
    public string VideoId { get; set; }
    public required string Name { get; set; }

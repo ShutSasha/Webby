@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
    public DbSet<Achievement> Achievements { get; set; }
    public DbSet<UserAchievement> UserAchievements { get; set; }
    public DbSet<Payment> Payments { get; set; }
+   public DbSet<UserAchievementProgress> UserAchievementProgresses { get; set; }
 
    protected override void OnModelCreating(ModelBuilder modelBuilder)
    {
@@ -23,5 +24,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
       modelBuilder.ApplyConfiguration(new AchievementConfiguration());
       modelBuilder.ApplyConfiguration(new UserAchievementConfiguration());
       modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+      modelBuilder.ApplyConfiguration(new UserAchievementProgressConfiguration());
    }
 }

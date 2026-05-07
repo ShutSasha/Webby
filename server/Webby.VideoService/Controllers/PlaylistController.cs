@@ -28,17 +28,10 @@ public class PlaylistController : ControllerBase
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
 
-      Guid? videoIdGuid = null;
-
-      if (!string.IsNullOrWhiteSpace(videoId) && Guid.TryParse(videoId, out var parsedVideoId))
-      {
-         videoIdGuid = parsedVideoId;
-      }
-
       var result = await _playlistService
          .GetUserPlaylists(
             requestUserId,
-            videoIdGuid,
+            videoId,
             userId,
             request);
 
@@ -47,13 +40,13 @@ public class PlaylistController : ControllerBase
          result));
    }
    
-   [HttpGet("{playlistId:guid}/videos/{videoId:guid}/exists")]
-   public async Task<ActionResult<ApiResponse<bool>>> CheckIfVideoExists([FromRoute] Guid playlistId, Guid videoId)
+   [HttpGet("{playlistId:guid}/videos/{videoId}/exists")]
+   public async Task<ActionResult<ApiResponse<bool>>> CheckIfVideoExists([FromRoute] Guid playlistId, string videoId)
    {
       var checkVideoExistResult = await _playlistService.CheckIfVideoExistInPlaylist(playlistId, videoId);
       return Ok(ApiResponse<bool>.Ok("Successfully retrieve information",checkVideoExistResult));
    }
-
+   
    [HttpGet("{playlistId:guid}/details")]
    [SwaggerOperation("Get playlist information")]
    public async Task<ActionResult<ApiResponse<GetPlaylistResponse>>> GetPlaylistInformation([FromRoute] Guid playlistId)
