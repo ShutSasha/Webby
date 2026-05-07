@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"webby-vote-service/internal/apperrors"
-	"webby-vote-service/internal/models"
+	"webby/vote-service/internal/apperrors"
+	"webby/vote-service/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"

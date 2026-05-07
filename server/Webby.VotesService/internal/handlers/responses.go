@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"webby-vote-service/internal/apperrors"
+	"webby/vote-service/internal/apperrors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"

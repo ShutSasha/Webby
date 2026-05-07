@@ -19,7 +19,7 @@ linters-settings:
   lll:
     line-length: 110
   goimports:
-    local-prefixes: webby-vote-service
+    local-prefixes: webby/vote-service
   revive:
     enable-default-rules: true
     ignore-generated-header: true

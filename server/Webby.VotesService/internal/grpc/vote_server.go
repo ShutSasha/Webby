@@ -2,8 +2,8 @@ package grpc
 
 import (
 	"context"
-	"webby-vote-service/internal/grpc/votepb"
-	"webby-vote-service/internal/models"
+	"webby/vote-service/internal/grpc/votepb"
+	"webby/vote-service/internal/models"
 
 	"github.com/google/uuid"
 )

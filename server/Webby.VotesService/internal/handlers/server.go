@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"strings"
 
-	"webby-vote-service/internal/config"
-	"webby-vote-service/pkg/http/middleware/cors"
-	loggerMw "webby-vote-service/pkg/http/middleware/logger"
+	"webby/vote-service/internal/config"
+	"webby/vote-service/pkg/http/middleware/cors"
+	loggerMw "webby/vote-service/pkg/http/middleware/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"

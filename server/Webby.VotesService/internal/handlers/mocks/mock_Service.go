@@ -7,7 +7,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	services "webby-vote-service/internal/services"
+	services "webby/vote-service/internal/services"
 
 	uuid "github.com/google/uuid"
 )

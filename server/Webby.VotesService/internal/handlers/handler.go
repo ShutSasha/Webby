@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"context"
-	"webby-vote-service/internal/services"
+	"webby/vote-service/internal/services"
 
 	"github.com/google/uuid"
 )

@@ -7,11 +7,12 @@
 package queuepb
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -119,7 +120,7 @@ const file_queue_queue_proto_rawDesc = "" +
 	"\x11MoveToTopResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess2R\n" +
 	"\x10QueueGrpcService\x12>\n" +
-	"\tMoveToTop\x12\x17.queue.MoveToTopRequest\x1a\x18.queue.MoveToTopResponseB*Z(webby-vote-service/internal/grpc/queuepbb\x06proto3"
+	"\tMoveToTop\x12\x17.queue.MoveToTopRequest\x1a\x18.queue.MoveToTopResponseB*Z(webby/vote-service/internal/grpc/queuepbb\x06proto3"
 
 var (
 	file_queue_queue_proto_rawDescOnce sync.Once

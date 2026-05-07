@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package vote;
 
-option go_package = "webby-vote-service/internal/grpc/votepb";
+option go_package = "webby/vote-service/internal/grpc/votepb";
 
 service VoteGrpcService {
   rpc GetActiveVotes(GetActiveVotesRequest) returns (GetActiveVotesResponse);

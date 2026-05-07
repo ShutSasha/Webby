@@ -3,8 +3,8 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"webby-vote-service/internal/services"
-	"webby-vote-service/pkg/logger"
+	"webby/vote-service/internal/services"
+	"webby/vote-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

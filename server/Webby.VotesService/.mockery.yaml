@@ -9,6 +9,6 @@ filename: "mock_{{.InterfaceNameCamel}}.go"
 mockname: "Mock{{.InterfaceName}}"
 
 packages:
-  webby-vote-service/internal/handlers:
+  webby/vote-service/internal/handlers:
     config:
       recursive: false

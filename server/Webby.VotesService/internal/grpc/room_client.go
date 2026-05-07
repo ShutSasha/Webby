@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"webby-vote-service/internal/grpc/roompb"
+	"webby/vote-service/internal/grpc/roompb"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"

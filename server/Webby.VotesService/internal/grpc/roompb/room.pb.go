@@ -7,11 +7,12 @@
 package roompb
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -119,7 +120,7 @@ const file_room_room_proto_rawDesc = "" +
 	"\x13GetRoomHostResponse\x12\x16\n" +
 	"\x06hostId\x18\x01 \x01(\tR\x06hostId2U\n" +
 	"\x0fRoomGrpcService\x12B\n" +
-	"\vGetRoomHost\x12\x18.room.GetRoomHostRequest\x1a\x19.room.GetRoomHostResponseB)Z'webby-vote-service/internal/grpc/roompbb\x06proto3"
+	"\vGetRoomHost\x12\x18.room.GetRoomHostRequest\x1a\x19.room.GetRoomHostResponseB)Z'webby/vote-service/internal/grpc/roompbb\x06proto3"
 
 var (
 	file_room_room_proto_rawDescOnce sync.Once

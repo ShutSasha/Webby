@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"net/http"
-	"webby-vote-service/docs"
-	"webby-vote-service/internal/config"
-	"webby-vote-service/pkg/http/middleware/auth"
+	"webby/vote-service/docs"
+	"webby/vote-service/internal/config"
+	"webby/vote-service/pkg/http/middleware/auth"
 
 	"github.com/gin-gonic/gin"
 )

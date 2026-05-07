@@ -9,10 +9,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"webby-vote-service/internal/apperrors"
-	"webby-vote-service/internal/handlers"
-	handlermocks "webby-vote-service/internal/handlers/mocks"
-	"webby-vote-service/pkg/logger"
+	"webby/vote-service/internal/apperrors"
+	"webby/vote-service/internal/handlers"
+	handlermocks "webby/vote-service/internal/handlers/mocks"
+	"webby/vote-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

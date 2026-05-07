@@ -3,7 +3,7 @@ package logger
 import (
 	"log/slog"
 
-	ctxlogger "webby-vote-service/pkg/logger"
+	ctxlogger "webby/vote-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )

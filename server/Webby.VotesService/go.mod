@@ -1,4 +1,4 @@
-module webby-vote-service
+module webby/vote-service
 
 go 1.25.1
 

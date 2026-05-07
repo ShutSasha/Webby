@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math"
 	"time"
-	"webby-vote-service/internal/apperrors"
-	"webby-vote-service/internal/models"
+	"webby/vote-service/internal/apperrors"
+	"webby/vote-service/internal/models"
 
 	"github.com/google/uuid"
 )
