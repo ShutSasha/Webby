@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package media;
+package chat;
 
 option go_package = "webby/room-queue-service/internal/grpc/chatpb";
 
-service ChatService {
+service ChatGrpcService {
   rpc GetChatIDByRoomID(GetChatIDByRoomIDRequest) returns (ChatIDByRoomIDResponse);
 }
 
@@ -14,6 +14,5 @@ message GetChatIDByRoomIDRequest {
 }
 
 message ChatIDByRoomIDResponse {
-  bool success = 1;
   string chatID = 2;
 }

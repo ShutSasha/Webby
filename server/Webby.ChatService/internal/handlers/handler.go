@@ -9,8 +9,8 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, req models.CreateChatRequest) (*models.Chat, error)
-	GetById(ctx context.Context, chatId uuid.UUID) (*models.Chat, error)
+	Create(ctx context.Context, roomID *uuid.UUID) (*models.Chat, error)
+	GetById(ctx context.Context, chatID uuid.UUID) (*models.Chat, error)
 }
 
 type handler struct {

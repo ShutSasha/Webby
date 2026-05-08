@@ -18,6 +18,7 @@
     {
       "DownstreamPathTemplate": "/api/rooms/{id}/queue",
       "DownstreamScheme": "http",
+      "Priority": 10,
       "DownstreamHostAndPorts": [
         {
           "Host": "127.0.0.1",
@@ -33,6 +34,7 @@
     {
       "DownstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
       "DownstreamScheme": "http",
+      "Priority": 10,
       "DownstreamHostAndPorts": [
         {
           "Host": "127.0.0.1",

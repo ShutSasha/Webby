@@ -14,3 +14,5 @@ redis:
 
 grpc:
   port: 50051
+  roomServiceAddress: "localhost:50054"
+

@@ -192,14 +192,14 @@ paths:
                 data:
                   items:
                     - id: "660e8400-e29b-41d4-a716-446655440001"
-                      entityId: "wb_550e8400-e29b-41d4-a716-446655440000"
+                      videoId: "wb_550e8400-e29b-41d4-a716-446655440000"
                       title: "Fears to Fathom: Ironbark Lookout"
                       thumbnail: "https://example.com/thumb.jpg"
                       videoUrl: "https://example.com/video.mp4"
                       isActive: true
                       position: 1
                     - id: "660e8400-e29b-41d4-a716-446655440002"
-                      entityId: "wb_770e8400-e29b-41d4-a716-446655440000"
+                      videoId: "wb_770e8400-e29b-41d4-a716-446655440000"
                       title: "Another Video"
                       thumbnail: "https://example.com/thumb2.jpg"
                       videoUrl: "https://example.com/video2.mp4"
@@ -372,7 +372,7 @@ components:
           type: string
           format: uuid
           example: "660e8400-e29b-41d4-a716-446655440001"
-        entityId:
+        videoId:
           type: string
           example: "wb_550e8400-e29b-41d4-a716-446655440000"
           description: Video identifier (presigned URL or video ID).

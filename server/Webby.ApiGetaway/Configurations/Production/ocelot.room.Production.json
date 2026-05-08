@@ -16,54 +16,6 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/categories",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/categories",
-      "UpstreamHttpMethod": ["POST"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      },
-      "RoleClaimsRequirement": {
-        "Role": "Admin"
-      }
-    },
-    {
-      "DownstreamPathTemplate": "/api/categories/{id}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/categories/{id}",
-      "UpstreamHttpMethod": ["PUT", "DELETE"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      },
-      "RoleClaimsRequirement": {
-        "Role": "Admin"
-      }
-    },
-    {
-      "DownstreamPathTemplate": "/api/categories",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/categories",
-      "UpstreamHttpMethod": ["GET"]
-    },
-    {
       "DownstreamPathTemplate": "/api/rooms",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
@@ -121,36 +73,6 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/rooms/{id}/queue",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/queue",
-      "UpstreamHttpMethod": ["POST", "GET"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      }
-    },
-    {
-      "DownstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
-      "UpstreamHttpMethod": ["DELETE"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      }
-    },
-    {
       "DownstreamPathTemplate": "/api/rooms/{id}/members",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
@@ -191,53 +113,6 @@
       ],
       "UpstreamPathTemplate": "/api/rooms/{id}/members/{memberId}/points",
       "UpstreamHttpMethod": ["PATCH"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      }
-    },
-
-    {
-      "DownstreamPathTemplate": "/api/rooms/{id}/votes",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/votes",
-      "UpstreamHttpMethod": ["GET", "POST"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      }
-    },
-
-    {
-      "DownstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}",
-      "UpstreamHttpMethod": ["GET", "DELETE"],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      }
-    },
-    {
-      "DownstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/cast",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "127.0.0.1",
-          "Port": 8080
-        }
-      ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/cast",
-      "UpstreamHttpMethod": ["POST", "DELETE"],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }

@@ -75,7 +75,6 @@ func (x *GetChatIDByRoomIDRequest) GetUserID() string {
 
 type ChatIDByRoomIDResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	ChatID        string                 `protobuf:"bytes,2,opt,name=chatID,proto3" json:"chatID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -111,13 +110,6 @@ func (*ChatIDByRoomIDResponse) Descriptor() ([]byte, []int) {
 	return file_proto_chat_chat_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ChatIDByRoomIDResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
 func (x *ChatIDByRoomIDResponse) GetChatID() string {
 	if x != nil {
 		return x.ChatID
@@ -129,15 +121,14 @@ var File_proto_chat_chat_proto protoreflect.FileDescriptor
 
 const file_proto_chat_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/chat/chat.proto\x12\x05media\"J\n" +
+	"\x15proto/chat/chat.proto\x12\x04chat\"J\n" +
 	"\x18GetChatIDByRoomIDRequest\x12\x16\n" +
 	"\x06roomID\x18\x01 \x01(\tR\x06roomID\x12\x16\n" +
-	"\x06userID\x18\x02 \x01(\tR\x06userID\"J\n" +
-	"\x16ChatIDByRoomIDResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x16\n" +
-	"\x06chatID\x18\x02 \x01(\tR\x06chatID2b\n" +
-	"\vChatService\x12S\n" +
-	"\x11GetChatIDByRoomID\x12\x1f.media.GetChatIDByRoomIDRequest\x1a\x1d.media.ChatIDByRoomIDResponseB/Z-webby/room-queue-service/internal/grpc/chatpbb\x06proto3"
+	"\x06userID\x18\x02 \x01(\tR\x06userID\"0\n" +
+	"\x16ChatIDByRoomIDResponse\x12\x16\n" +
+	"\x06chatID\x18\x02 \x01(\tR\x06chatID2d\n" +
+	"\x0fChatGrpcService\x12Q\n" +
+	"\x11GetChatIDByRoomID\x12\x1e.chat.GetChatIDByRoomIDRequest\x1a\x1c.chat.ChatIDByRoomIDResponseB/Z-webby/room-queue-service/internal/grpc/chatpbb\x06proto3"
 
 var (
 	file_proto_chat_chat_proto_rawDescOnce sync.Once
@@ -153,12 +144,12 @@ func file_proto_chat_chat_proto_rawDescGZIP() []byte {
 
 var file_proto_chat_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_proto_chat_chat_proto_goTypes = []any{
-	(*GetChatIDByRoomIDRequest)(nil), // 0: media.GetChatIDByRoomIDRequest
-	(*ChatIDByRoomIDResponse)(nil),   // 1: media.ChatIDByRoomIDResponse
+	(*GetChatIDByRoomIDRequest)(nil), // 0: chat.GetChatIDByRoomIDRequest
+	(*ChatIDByRoomIDResponse)(nil),   // 1: chat.ChatIDByRoomIDResponse
 }
 var file_proto_chat_chat_proto_depIdxs = []int32{
-	0, // 0: media.ChatService.GetChatIDByRoomID:input_type -> media.GetChatIDByRoomIDRequest
-	1, // 1: media.ChatService.GetChatIDByRoomID:output_type -> media.ChatIDByRoomIDResponse
+	0, // 0: chat.ChatGrpcService.GetChatIDByRoomID:input_type -> chat.GetChatIDByRoomIDRequest
+	1, // 1: chat.ChatGrpcService.GetChatIDByRoomID:output_type -> chat.ChatIDByRoomIDResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

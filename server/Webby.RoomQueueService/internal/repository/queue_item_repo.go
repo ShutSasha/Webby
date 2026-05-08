@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -34,12 +35,18 @@ func (r *QueueItemRepository) Create(
 	query := `
 		INSERT INTO queue_items (room_id, video_id, position)
 		VALUES ($1, $2, (SELECT COALESCE(MAX(position), 0) + 1
-			FROM queue_items WHERE room_id = $2))
+			FROM queue_items WHERE room_id = $1))
 		RETURNING id, position
 	`
 
 	err := r.db.QueryRow(ctx, query, item.RoomID, item.VideoID).Scan(&item.ID, &item.Position)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return uuid.Nil, -1, fmt.Errorf("%s: %w", op, apperrors.ErrConflict)
+			}
+		}
 		return uuid.Nil, -1, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 

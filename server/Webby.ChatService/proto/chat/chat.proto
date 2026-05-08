@@ -7,6 +7,7 @@ option go_package = "webby/chat-service/internal/grpc/chatpb";
 service ChatGrpcService {
   rpc CreateChat(CreateChatRequest) returns (ChatResponse);
   rpc GetChatByRoomId(GetChatByRoomIdRequest) returns (ChatResponse);
+  rpc GetChatIDByRoomID(GetChatIDByRoomIDRequest) returns (ChatIDByRoomIDResponse);
   rpc AddChatMember(AddChatMemberRequest) returns (AddChatMemberResponse);
   rpc SaveMessage(SaveMessageRequest) returns (SaveMessageResponse);
 }
@@ -40,3 +41,12 @@ message ChatResponse {
 }
 
 message AddChatMemberResponse {}
+
+message GetChatIDByRoomIDRequest {
+  string roomID = 1;
+  string userID = 2;
+}
+
+message ChatIDByRoomIDResponse {
+  string chatID = 2;
+}

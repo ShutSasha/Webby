@@ -27,6 +27,7 @@ type GrpcConfig struct {
 	Host                string `yaml:"host"`
 	Port                int    `yaml:"port"`
 	MediaServiceAddress string `yaml:"mediaServiceAddress"`
+	ChatServiceAddress  string `yaml:"chatServiceAddress"`
 	RoomServiceAddress  string `yaml:"roomServiceAddress"`
 }
 

@@ -39,8 +39,8 @@ func TestCreateChat_Success(t *testing.T) {
 		mockService := handlermocks.NewMockService(t)
 		chatId := uuid.New()
 		chat := &models.Chat{
-			Id:        chatId,
-			RoomId:    nil,
+			ID:        chatId,
+			RoomID:    nil,
 			CreatedAt: time.Now(),
 		}
 		mockService.On("Create", mock.Anything, models.CreateChatRequest{RoomId: nil}).Return(chat, nil).Once()
@@ -66,8 +66,8 @@ func TestCreateChat_Success(t *testing.T) {
 		roomId := uuid.New()
 		roomIdStr := roomId.String()
 		chat := &models.Chat{
-			Id:        chatId,
-			RoomId:    &roomId,
+			ID:        chatId,
+			RoomID:    &roomId,
 			CreatedAt: time.Now(),
 		}
 		mockService.On("Create", mock.Anything, models.CreateChatRequest{RoomId: &roomIdStr}).Return(chat, nil).Once()

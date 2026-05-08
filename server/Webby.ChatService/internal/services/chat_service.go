@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"strings"
 	"webby/chat-service/internal/apperrors"
 	"webby/chat-service/internal/models"
 
@@ -14,6 +13,7 @@ type ChatRepo interface {
 	Create(ctx context.Context, chat *models.Chat) (uuid.UUID, error)
 	GetById(ctx context.Context, id uuid.UUID) (*models.Chat, error)
 	GetByRoomId(ctx context.Context, roomId uuid.UUID) (*models.Chat, error)
+	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
 }
 
 type ChatMemberRepo interface {
@@ -23,45 +23,45 @@ type ChatMemberRepo interface {
 	ListByChat(ctx context.Context, chatId uuid.UUID) ([]uuid.UUID, error)
 }
 
+type RoomMemberClient interface {
+	Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error)
+}
+
 type ChatService struct {
-	chatRepo       ChatRepo
-	chatMemberRepo ChatMemberRepo
+	chatRepo         ChatRepo
+	chatMemberRepo   ChatMemberRepo
+	roomMemberClient RoomMemberClient
 }
 
-func NewChatService(chatRepo ChatRepo, chatMemberRepo ChatMemberRepo) *ChatService {
+func NewChatService(
+	chatRepo ChatRepo,
+	chatMemberRepo ChatMemberRepo,
+	roomMemberClient RoomMemberClient,
+) *ChatService {
 	return &ChatService{
-		chatRepo:       chatRepo,
-		chatMemberRepo: chatMemberRepo,
+		chatRepo:         chatRepo,
+		chatMemberRepo:   chatMemberRepo,
+		roomMemberClient: roomMemberClient,
 	}
 }
 
-func (s *ChatService) Create(ctx context.Context, req models.CreateChatRequest) (*models.Chat, error) {
-	var roomId *uuid.UUID
-	if req.RoomId != nil && strings.TrimSpace(*req.RoomId) != "" {
-		parsed, err := uuid.Parse(strings.TrimSpace(*req.RoomId))
-		if err != nil {
-			return nil, apperrors.ErrInvalidInput
-		}
-		roomId = &parsed
-	}
-
-	if roomId != nil {
-		existing, err := s.chatRepo.GetByRoomId(ctx, *roomId)
+func (s *ChatService) Create(ctx context.Context, roomID *uuid.UUID) (*models.Chat, error) {
+	if roomID != nil {
+		existing, err := s.chatRepo.GetByRoomId(ctx, *roomID)
 		if err == nil && existing != nil {
 			return existing, nil
 		}
 	}
 
 	chat := &models.Chat{
-		RoomId: roomId,
+		RoomID: roomID,
 	}
-
 	id, err := s.chatRepo.Create(ctx, chat)
 	if err != nil {
 		return nil, fmt.Errorf("create chat: %w", err)
 	}
 
-	chat.Id = id
+	chat.ID = id
 	return chat, nil
 }
 
@@ -79,6 +79,22 @@ func (s *ChatService) GetByRoomId(ctx context.Context, roomId uuid.UUID) (*model
 		return nil, err
 	}
 	return chat, nil
+}
+
+func (s *ChatService) GetChatIDByRoomID(ctx context.Context, roomID, userID uuid.UUID) (uuid.UUID, error) {
+	const op = "WebbyChatService.ChatService.GetChatIDByRoomID"
+
+	isMember, err := s.roomMemberClient.Exists(ctx, roomID, userID)
+	if err != nil || !isMember {
+		return uuid.Nil, fmt.Errorf("%s: forbidden %w", op, err)
+	}
+
+	id, err := s.chatRepo.GetChatIDByRoomID(ctx, roomID)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return id, nil
 }
 
 func (s *ChatService) AddMember(ctx context.Context, chatId, userId uuid.UUID) error {

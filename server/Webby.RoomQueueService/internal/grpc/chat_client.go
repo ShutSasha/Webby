@@ -17,7 +17,7 @@ type ChatIDInfo struct {
 }
 
 type ChatClient struct {
-	client chatpb.ChatServiceClient
+	client chatpb.ChatGrpcServiceClient
 	conn   *grpc.ClientConn
 }
 
@@ -32,7 +32,7 @@ func NewChatClient(address string) (*ChatClient, error) {
 		)
 	}
 
-	client := chatpb.NewChatServiceClient(conn)
+	client := chatpb.NewChatGrpcServiceClient(conn)
 
 	return &ChatClient{
 		client: client,
@@ -51,7 +51,7 @@ func (m *ChatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, us
 		RoomID: roomID.String(),
 		UserID: userID.String(),
 	})
-	if err != nil && !resp.Success {
+	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s: failed to get chat id by room id: %w", op, err)
 	}
 

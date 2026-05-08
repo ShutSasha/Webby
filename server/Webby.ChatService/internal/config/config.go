@@ -24,7 +24,8 @@ type HttpConfig struct {
 }
 
 type GrpcConfig struct {
-	Port int `yaml:"port"`
+	Port               int    `yaml:"port"`
+	RoomServiceAddress string `yaml:"roomServiceAddress"`
 }
 
 type RedisConfig struct {

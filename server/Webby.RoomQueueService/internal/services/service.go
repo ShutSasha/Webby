@@ -46,12 +46,14 @@ type Service struct {
 func New(
 	repo QueueItemRepository,
 	mediaClient MediaClient,
+	chatClient ChatClient,
 	memberChecker MemberChecker,
 	publisher EventPublisher,
 ) *Service {
 	return &Service{
 		repo:          repo,
 		mediaClient:   mediaClient,
+		chatClient:    chatClient,
 		memberChecker: memberChecker,
 		publisher:     publisher,
 	}

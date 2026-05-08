@@ -45,8 +45,8 @@ func (h handler) Get(c *gin.Context) {
 		Success: true,
 		Message: "Chat retrieved",
 		Data: &chatGetResponse{
-			Id:        chat.Id,
-			RoomId:    chat.RoomId,
+			Id:        chat.ID,
+			RoomId:    chat.RoomID,
 			CreatedAt: chat.CreatedAt.Format(time.RFC3339),
 		},
 	})

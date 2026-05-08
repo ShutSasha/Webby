@@ -42,8 +42,8 @@ func TestGetChat_Success(t *testing.T) {
 	t.Run("Chat retrieved successfully", func(t *testing.T) {
 		mockService := handlermocks.NewMockService(t)
 		chat := &models.Chat{
-			Id:        chatID,
-			RoomId:    &roomID,
+			ID:        chatID,
+			RoomID:    &roomID,
 			CreatedAt: time.Now(),
 		}
 		mockService.On("GetById", mock.Anything, chatID).Return(chat, nil).Once()
@@ -67,8 +67,8 @@ func TestGetChat_Success(t *testing.T) {
 	t.Run("Chat without room", func(t *testing.T) {
 		mockService := handlermocks.NewMockService(t)
 		chat := &models.Chat{
-			Id:        chatID,
-			RoomId:    nil,
+			ID:        chatID,
+			RoomID:    nil,
 			CreatedAt: time.Now(),
 		}
 		mockService.On("GetById", mock.Anything, chatID).Return(chat, nil).Once()

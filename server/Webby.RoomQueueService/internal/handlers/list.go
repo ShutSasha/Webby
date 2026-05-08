@@ -12,7 +12,7 @@ import (
 
 type queueItemResponse struct {
 	ID        uuid.UUID `json:"id"`
-	VideoID   string    `json:"entityId"`
+	VideoID   string    `json:"videoId"`
 	Title     string    `json:"title"`
 	Thumbnail string    `json:"thumbnail"`
 	VideoUrl  string    `json:"videoUrl"`

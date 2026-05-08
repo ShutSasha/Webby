@@ -58,13 +58,25 @@ func run(ctx context.Context, w io.Writer) error {
 
 	logger.Info("database connected successfully")
 
+	roomMemberClient, err := grpcserver.NewMemberClient(
+		cfg.Grpc.RoomServiceAddress,
+	)
+	if err != nil {
+		logger.Error(
+			"room service gRPC connection failed",
+			slog.String("error", err.Error()),
+		)
+		return err
+	}
+	defer roomMemberClient.Close()
+
 	// Repositories
 	chatRepo := repository.NewChatRepository(db)
 	chatMemberRepo := repository.NewChatMemberRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 
 	// Services
-	chatService := services.NewChatService(chatRepo, chatMemberRepo)
+	chatService := services.NewChatService(chatRepo, chatMemberRepo, roomMemberClient)
 	messageService := services.NewMessageService(messageRepo, chatMemberRepo)
 
 	// Redis publisher for event dispatch

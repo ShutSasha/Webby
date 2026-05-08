@@ -74,6 +74,18 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer mediaClient.Close()
 
+	chatClient, err := grpcserver.NewChatClient(
+		cfg.Grpc.ChatServiceAddress,
+	)
+	if err != nil {
+		logger.Error(
+			"chat service gRPC connection failed",
+			slog.String("error", err.Error()),
+		)
+		return err
+	}
+	defer chatClient.Close()
+
 	memberClient, err := grpcserver.NewMemberClient(
 		cfg.Grpc.RoomServiceAddress,
 	)
@@ -94,7 +106,11 @@ func run(ctx context.Context, w io.Writer) error {
 	defer rdb.Close()
 
 	redisPublisher := publisher.New(rdb)
-	queueService := services.New(queueItemRepo, mediaClient, memberClient, redisPublisher)
+	queueService := services.New(
+		queueItemRepo,
+		mediaClient, chatClient, memberClient,
+		redisPublisher,
+	)
 
 	server := httpserver.NewServer(cfg, logger, queueService)
 	httpServer := &http.Server{
