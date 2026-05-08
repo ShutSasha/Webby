@@ -7,12 +7,11 @@
 package mediapb
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -296,7 +295,7 @@ const file_proto_media_media_proto_rawDesc = "" +
 	"\x06videos\x18\x05 \x03(\v2\x14.media.VideoResponseR\x06videos2\x8b\x01\n" +
 	"\fMediaService\x128\n" +
 	"\bGetVideo\x12\x16.media.GetVideoRequest\x1a\x14.media.VideoResponse\x12A\n" +
-	"\vGetPlaylist\x12\x19.media.GetPlaylistRequest\x1a\x17.media.PlaylistResponseB\x1dZ\x1bwebby/room-service/internal/grpc/mediapbb\x06proto3"
+	"\vGetPlaylist\x12\x19.media.GetPlaylistRequest\x1a\x17.media.PlaylistResponseB*Z(webby/room-service/internal/grpc/mediapbb\x06proto3"
 
 var (
 	file_proto_media_media_proto_rawDescOnce sync.Once

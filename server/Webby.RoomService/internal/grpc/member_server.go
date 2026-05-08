@@ -23,17 +23,17 @@ func NewMemberServer(memberChecker MemberChecker) *MemberServer {
 func (s *MemberServer) MemberExists(
 	ctx context.Context, req *memberpb.MemberExistsRequest,
 ) (*memberpb.MemberExistsResponse, error) {
-	roomId, err := uuid.Parse(req.GetRoomId())
+	roomID, err := uuid.Parse(req.GetRoomId())
 	if err != nil {
 		return nil, err
 	}
 
-	userId, err := uuid.Parse(req.GetUserId())
+	userID, err := uuid.Parse(req.GetUserId())
 	if err != nil {
 		return nil, err
 	}
 
-	exists, err := s.memberChecker.Exists(ctx, roomId, userId)
+	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
 	if err != nil {
 		return nil, err
 	}

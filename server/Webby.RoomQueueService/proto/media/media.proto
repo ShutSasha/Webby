@@ -26,4 +26,5 @@ message GetVideosBatchRequest {
 
 message GetVideosBatchResponse {
   repeated VideoResponse videos = 1;
+  repeated string unavailableVideoIds = 2;
 }

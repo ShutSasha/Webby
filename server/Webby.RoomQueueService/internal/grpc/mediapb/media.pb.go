@@ -178,10 +178,11 @@ func (x *GetVideosBatchRequest) GetIds() []string {
 }
 
 type GetVideosBatchResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Videos        []*VideoResponse       `protobuf:"bytes,1,rep,name=videos,proto3" json:"videos,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Videos              []*VideoResponse       `protobuf:"bytes,1,rep,name=videos,proto3" json:"videos,omitempty"`
+	UnavailableVideoIds []string               `protobuf:"bytes,2,rep,name=unavailableVideoIds,proto3" json:"unavailableVideoIds,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *GetVideosBatchResponse) Reset() {
@@ -221,6 +222,13 @@ func (x *GetVideosBatchResponse) GetVideos() []*VideoResponse {
 	return nil
 }
 
+func (x *GetVideosBatchResponse) GetUnavailableVideoIds() []string {
+	if x != nil {
+		return x.UnavailableVideoIds
+	}
+	return nil
+}
+
 var File_proto_media_media_proto protoreflect.FileDescriptor
 
 const file_proto_media_media_proto_rawDesc = "" +
@@ -234,9 +242,10 @@ const file_proto_media_media_proto_rawDesc = "" +
 	"\tthumbnail\x18\x03 \x01(\tR\tthumbnail\x12\x1a\n" +
 	"\bvideoUrl\x18\x04 \x01(\tR\bvideoUrl\")\n" +
 	"\x15GetVideosBatchRequest\x12\x10\n" +
-	"\x03ids\x18\x01 \x03(\tR\x03ids\"F\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\"x\n" +
 	"\x16GetVideosBatchResponse\x12,\n" +
-	"\x06videos\x18\x01 \x03(\v2\x14.media.VideoResponseR\x06videos2\x97\x01\n" +
+	"\x06videos\x18\x01 \x03(\v2\x14.media.VideoResponseR\x06videos\x120\n" +
+	"\x13unavailableVideoIds\x18\x02 \x03(\tR\x13unavailableVideoIds2\x97\x01\n" +
 	"\fMediaService\x128\n" +
 	"\bGetVideo\x12\x16.media.GetVideoRequest\x1a\x14.media.VideoResponse\x12M\n" +
 	"\x0eGetVideosBatch\x12\x1c.media.GetVideosBatchRequest\x1a\x1d.media.GetVideosBatchResponseB0Z.webby/room-queue-service/internal/grpc/mediapbb\x06proto3"

@@ -68,16 +68,32 @@ func (m *MediaClient) GetVideosBatch(ctx context.Context, ids []string) ([]Video
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	videos := make([]VideoInfo, 0, len(resp.Videos))
-	for _, video := range resp.GetVideos() {
-		vidInfo := VideoInfo{
-			ID:        video.Id,
-			Title:     video.Title,
-			Thumbnail: video.Thumbnail,
-			VideoUrl:  video.VideoUrl,
+	videoMap := make(map[string]*mediapb.VideoResponse, len(resp.GetVideos()))
+	for _, v := range resp.GetVideos() {
+		videoMap[v.Id] = v
+	}
+
+	unavailableMap := make(map[string]struct{}, len(resp.GetUnavailableVideoIds()))
+	for _, id := range resp.GetUnavailableVideoIds() {
+		unavailableMap[id] = struct{}{}
+	}
+
+	resultVideos := make([]VideoInfo, len(ids))
+	for i, id := range ids {
+		if _, unavailable := unavailableMap[id]; unavailable {
+			resultVideos[i] = VideoInfo{ID: id, Title: "Unavailable video"}
+			continue
 		}
 
-		videos = append(videos, vidInfo)
+		if v, ok := videoMap[id]; ok {
+			resultVideos[i] = VideoInfo{
+				ID:        v.Id,
+				Title:     v.Title,
+				Thumbnail: v.Thumbnail,
+				VideoUrl:  v.VideoUrl,
+			}
+		}
 	}
-	return videos, nil
+
+	return resultVideos, nil
 }

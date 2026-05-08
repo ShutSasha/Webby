@@ -83,7 +83,9 @@ services:
     volumes:
       - redis-data:/data
     container_name: webby-redis
-    command: redis-server --requirepass your_super_password
+    environment:
+      - REDIS_PASSWORD=${RedisPassword}
+    command: redis-server --requirepass ${RedisPassword}
 
   chat-service:
     build:

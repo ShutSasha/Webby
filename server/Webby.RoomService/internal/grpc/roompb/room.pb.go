@@ -2,17 +2,16 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v4.25.9
-// source: room/room.proto
+// source: proto/room/room.proto
 
 package roompb
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -31,7 +30,7 @@ type GetRoomHostRequest struct {
 
 func (x *GetRoomHostRequest) Reset() {
 	*x = GetRoomHostRequest{}
-	mi := &file_room_room_proto_msgTypes[0]
+	mi := &file_proto_room_room_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +42,7 @@ func (x *GetRoomHostRequest) String() string {
 func (*GetRoomHostRequest) ProtoMessage() {}
 
 func (x *GetRoomHostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_room_room_proto_msgTypes[0]
+	mi := &file_proto_room_room_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +55,7 @@ func (x *GetRoomHostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoomHostRequest.ProtoReflect.Descriptor instead.
 func (*GetRoomHostRequest) Descriptor() ([]byte, []int) {
-	return file_room_room_proto_rawDescGZIP(), []int{0}
+	return file_proto_room_room_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetRoomHostRequest) GetRoomId() string {
@@ -75,7 +74,7 @@ type GetRoomHostResponse struct {
 
 func (x *GetRoomHostResponse) Reset() {
 	*x = GetRoomHostResponse{}
-	mi := &file_room_room_proto_msgTypes[1]
+	mi := &file_proto_room_room_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -87,7 +86,7 @@ func (x *GetRoomHostResponse) String() string {
 func (*GetRoomHostResponse) ProtoMessage() {}
 
 func (x *GetRoomHostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_room_room_proto_msgTypes[1]
+	mi := &file_proto_room_room_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -100,7 +99,7 @@ func (x *GetRoomHostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoomHostResponse.ProtoReflect.Descriptor instead.
 func (*GetRoomHostResponse) Descriptor() ([]byte, []int) {
-	return file_room_room_proto_rawDescGZIP(), []int{1}
+	return file_proto_room_room_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetRoomHostResponse) GetHostId() string {
@@ -110,36 +109,36 @@ func (x *GetRoomHostResponse) GetHostId() string {
 	return ""
 }
 
-var File_room_room_proto protoreflect.FileDescriptor
+var File_proto_room_room_proto protoreflect.FileDescriptor
 
-const file_room_room_proto_rawDesc = "" +
+const file_proto_room_room_proto_rawDesc = "" +
 	"\n" +
-	"\x0froom/room.proto\x12\x04room\",\n" +
+	"\x15proto/room/room.proto\x12\x04room\",\n" +
 	"\x12GetRoomHostRequest\x12\x16\n" +
 	"\x06roomId\x18\x01 \x01(\tR\x06roomId\"-\n" +
 	"\x13GetRoomHostResponse\x12\x16\n" +
 	"\x06hostId\x18\x01 \x01(\tR\x06hostId2U\n" +
 	"\x0fRoomGrpcService\x12B\n" +
-	"\vGetRoomHost\x12\x18.room.GetRoomHostRequest\x1a\x19.room.GetRoomHostResponseB\x1cZ\x1awebby/room-service/internal/grpc/roompbb\x06proto3"
+	"\vGetRoomHost\x12\x18.room.GetRoomHostRequest\x1a\x19.room.GetRoomHostResponseB)Z'webby/room-service/internal/grpc/roompbb\x06proto3"
 
 var (
-	file_room_room_proto_rawDescOnce sync.Once
-	file_room_room_proto_rawDescData []byte
+	file_proto_room_room_proto_rawDescOnce sync.Once
+	file_proto_room_room_proto_rawDescData []byte
 )
 
-func file_room_room_proto_rawDescGZIP() []byte {
-	file_room_room_proto_rawDescOnce.Do(func() {
-		file_room_room_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_room_room_proto_rawDesc), len(file_room_room_proto_rawDesc)))
+func file_proto_room_room_proto_rawDescGZIP() []byte {
+	file_proto_room_room_proto_rawDescOnce.Do(func() {
+		file_proto_room_room_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_room_room_proto_rawDesc), len(file_proto_room_room_proto_rawDesc)))
 	})
-	return file_room_room_proto_rawDescData
+	return file_proto_room_room_proto_rawDescData
 }
 
-var file_room_room_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_room_room_proto_goTypes = []any{
+var file_proto_room_room_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_room_room_proto_goTypes = []any{
 	(*GetRoomHostRequest)(nil),  // 0: room.GetRoomHostRequest
 	(*GetRoomHostResponse)(nil), // 1: room.GetRoomHostResponse
 }
-var file_room_room_proto_depIdxs = []int32{
+var file_proto_room_room_proto_depIdxs = []int32{
 	0, // 0: room.RoomGrpcService.GetRoomHost:input_type -> room.GetRoomHostRequest
 	1, // 1: room.RoomGrpcService.GetRoomHost:output_type -> room.GetRoomHostResponse
 	1, // [1:2] is the sub-list for method output_type
@@ -149,26 +148,26 @@ var file_room_room_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_room_room_proto_init() }
-func file_room_room_proto_init() {
-	if File_room_room_proto != nil {
+func init() { file_proto_room_room_proto_init() }
+func file_proto_room_room_proto_init() {
+	if File_proto_room_room_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_room_room_proto_rawDesc), len(file_room_room_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_room_room_proto_rawDesc), len(file_proto_room_room_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_room_room_proto_goTypes,
-		DependencyIndexes: file_room_room_proto_depIdxs,
-		MessageInfos:      file_room_room_proto_msgTypes,
+		GoTypes:           file_proto_room_room_proto_goTypes,
+		DependencyIndexes: file_proto_room_room_proto_depIdxs,
+		MessageInfos:      file_proto_room_room_proto_msgTypes,
 	}.Build()
-	File_room_room_proto = out.File
-	file_room_room_proto_goTypes = nil
-	file_room_room_proto_depIdxs = nil
+	File_proto_room_room_proto = out.File
+	file_proto_room_room_proto_goTypes = nil
+	file_proto_room_room_proto_depIdxs = nil
 }

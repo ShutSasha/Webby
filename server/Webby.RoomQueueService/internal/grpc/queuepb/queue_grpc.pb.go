@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             v4.25.9
-// source: queue.proto
+// source: proto/queue/queue.proto
 
 package queuepb
 
@@ -117,5 +117,5 @@ var QueueGrpcService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "queue.proto",
+	Metadata: "proto/queue/queue.proto",
 }

@@ -17,10 +17,12 @@ import (
 	grpcserver "webby/room-queue-service/internal/grpc"
 	"webby/room-queue-service/internal/grpc/queuepb"
 	httpserver "webby/room-queue-service/internal/handlers"
+	"webby/room-queue-service/internal/publisher"
 	"webby/room-queue-service/internal/repository"
 	"webby/room-queue-service/internal/services"
 	"webby/room-queue-service/pkg/slogpretty"
 
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 )
 
@@ -84,9 +86,15 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer memberClient.Close()
 
-	queueService := services.New(
-		queueItemRepo, mediaClient, memberClient,
-	)
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	defer rdb.Close()
+
+	redisPublisher := publisher.New(rdb)
+	queueService := services.New(queueItemRepo, mediaClient, memberClient, redisPublisher)
 
 	server := httpserver.NewServer(cfg, logger, queueService)
 	httpServer := &http.Server{

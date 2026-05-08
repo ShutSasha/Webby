@@ -3,22 +3,13 @@ info:
   title: Webby - Room Queue Service
   description: |
     The Room Queue Service manages the playback queue for rooms on the Webby platform.
-    Each room has an ordered queue of videos and playlists that members can add to, view, and remove from.
-
-    Queue items support four video types and playlists:
-    - **video** — a single video from the Video Service
-    - **youtube** — a YouTube video
-    - **twitch** — a Twitch video
-    - **playlist** — a playlist containing multiple child videos
+    Each room has an ordered queue of videos that members can add to, view, and remove from.
 
     **Position Management**
 
     Queue items are ordered by sequential positions starting from 1.
     When an item is deleted, all items with a higher position have their position decremented by 1,
     maintaining a continuous sequence.
-
-    Pagination in the list endpoint is based on individual video count
-    (a playlist with 10 videos counts as 10 entries for pagination purposes).
 
     **Authentication**
 
@@ -41,11 +32,10 @@ paths:
         - Queue
       summary: Add item to queue
       description: |
-        Add a video, YouTube video, Twitch video, or playlist to the room's playback queue.
+        Add a video to the room's playback queue.
         The item is appended to the end of the queue with the next available position.
 
-        Only room members can add items. The entity must exist in the Video Service.
-        Video types include: video, youtube, twitch, and playlist.
+        Only room members can add items.
 
         **Requires authentication and room membership.**
       operationId: addToQueue
@@ -67,8 +57,7 @@ paths:
             schema:
               $ref: "#/components/schemas/AddQueueItemRequest"
             example:
-              entityId: "550e8400-e29b-41d4-a716-446655440000"
-              entityType: video
+              videoId: "wb_b8bdc077-92c6-4026-9616-4b19fa10fc27"
       responses:
         "201":
           description: Item successfully added to queue.
@@ -81,13 +70,10 @@ paths:
                 message: Item added to queue
                 data:
                   id: "660e8400-e29b-41d4-a716-446655440001"
-                  entityId: "550e8400-e29b-41d4-a716-446655440000"
-                  entityType: video
-                  isActive: false
                   position: 3
                 errors: null
         "400":
-          description: Validation error (invalid room ID, entity ID, or entity type).
+          description: Validation error (invalid room ID or video ID).
           content:
             application/json:
               schema:
@@ -101,15 +87,14 @@ paths:
                     data: null
                     errors:
                       id: the room id format is not valid
-                validationFailed:
-                  summary: Missing or invalid fields
+                missingVideoId:
+                  summary: Missing videoId
                   value:
                     success: false
                     message: Validation error
                     data: null
                     errors:
-                      entityId: must be a valid UUID
-                      entityType: "must be one of: video playlist youtube twitch"
+                      videoId: this field is required
         "401":
           description: Missing or invalid JWT token.
           content:
@@ -158,11 +143,9 @@ paths:
         - Queue
       summary: Get room queue
       description: |
-        Retrieve the playback queue for a room with enriched media data (titles, thumbnails, video URLs).
+        Retrieve the playback queue for a room with media data (titles, thumbnails, video URLs).
 
-        Pagination is based on individual video count: a playlist with 10 videos counts as
-        10 entries. Playlist items include a `children` array with the slice of child videos
-        that falls within the current page.
+        Pagination is based on queue item count.
 
         **Requires authentication and room membership.**
       operationId: getQueue
@@ -209,33 +192,22 @@ paths:
                 data:
                   items:
                     - id: "660e8400-e29b-41d4-a716-446655440001"
-                      entityId: "550e8400-e29b-41d4-a716-446655440000"
-                      entityType: video
+                      entityId: "wb_550e8400-e29b-41d4-a716-446655440000"
                       title: "Fears to Fathom: Ironbark Lookout"
                       thumbnail: "https://example.com/thumb.jpg"
                       videoUrl: "https://example.com/video.mp4"
                       isActive: true
-                      isFolder: false
                       position: 1
-                      totalChildren: 0
                     - id: "660e8400-e29b-41d4-a716-446655440002"
-                      entityId: "770e8400-e29b-41d4-a716-446655440000"
-                      entityType: playlist
-                      title: "Horror Marathon"
-                      thumbnail: "https://example.com/playlist.jpg"
-                      videoUrl: ""
+                      entityId: "wb_770e8400-e29b-41d4-a716-446655440000"
+                      title: "Another Video"
+                      thumbnail: "https://example.com/thumb2.jpg"
+                      videoUrl: "https://example.com/video2.mp4"
                       isActive: false
-                      isFolder: true
                       position: 2
-                      totalChildren: 5
-                      children:
-                        - id: "880e8400-e29b-41d4-a716-446655440001"
-                          title: "Episode 1"
-                          thumbnail: "https://example.com/ep1.jpg"
-                          videoUrl: "https://example.com/ep1.mp4"
                   page: 1
                   pageSize: 10
-                  totalCount: 6
+                  totalCount: 2
                 errors: null
         "400":
           description: Invalid room ID format.
@@ -274,12 +246,11 @@ paths:
         - Queue
       summary: Remove item from queue
       description: |
-        Remove a video, YouTube video, Twitch video, or playlist from the room's playback queue.
+        Remove a video from the room's playback queue.
         When an item is deleted, all items with a higher position have their position decremented by 1,
         ensuring positions remain sequential.
-        
-        Only room members can remove items. Individual playlist children cannot be
-        removed — only the top-level queue item (the entire playlist).
+
+        Only room members can remove items.
 
         **Requires authentication and room membership.**
       operationId: deleteFromQueue
@@ -372,54 +343,30 @@ components:
       type: object
       description: Payload for adding an item to the room queue.
       required:
-        - entityId
-        - entityType
+        - videoId
       properties:
-        entityId:
+        videoId:
           type: string
-          format: uuid
-          description: UUID of the video, YouTube video, Twitch video, or playlist to add.
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        entityType:
-          type: string
-          enum:
-            - video
-            - youtube
-            - twitch
-            - playlist
-          description: "Type of media entity: 'video', 'youtube', 'twitch', or 'playlist'."
-          example: video
+          description: Video identifier (presigned URL or video ID).
+          example: "wb_b8bdc077-92c6-4026-9616-4b19fa10fc27"
 
     QueueItemCreated:
       type: object
-      description: A newly created queue item (before enrichment).
+      description: A newly created queue item.
       properties:
         id:
           type: string
           format: uuid
           description: Unique queue item ID.
           example: "660e8400-e29b-41d4-a716-446655440001"
-        entityId:
-          type: string
-          format: uuid
-          description: UUID of the associated video or playlist.
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        entityType:
-          type: string
-          enum: [video, youtube, twitch, playlist]
-          example: video
-        isActive:
-          type: boolean
-          description: Whether the item is currently playing.
-          example: false
         position:
           type: integer
-          description: Ordinal position in the queue (always starts from 1).
+          description: Ordinal position in the queue.
           example: 3
 
     QueueItemDetail:
       type: object
-      description: An enriched queue item with media metadata.
+      description: Queue item with media metadata.
       properties:
         id:
           type: string
@@ -427,15 +374,11 @@ components:
           example: "660e8400-e29b-41d4-a716-446655440001"
         entityId:
           type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        entityType:
-          type: string
-          enum: [video, youtube, twitch, playlist]
-          example: video
+          example: "wb_550e8400-e29b-41d4-a716-446655440000"
+          description: Video identifier (presigned URL or video ID).
         title:
           type: string
-          description: Title from the Video/Playlist service.
+          description: Title from the Video Service.
           example: "Fears to Fathom: Ironbark Lookout"
         thumbnail:
           type: string
@@ -443,45 +386,15 @@ components:
           example: "https://example.com/thumb.jpg"
         videoUrl:
           type: string
-          description: Direct video URL (empty for playlists).
+          description: Direct video URL.
           example: "https://example.com/video.mp4"
         isActive:
           type: boolean
           example: true
-        isFolder:
-          type: boolean
-          description: True if the item is a playlist containing child videos.
-          example: false
         position:
           type: integer
           example: 1
-        totalChildren:
-          type: integer
-          description: Total child videos (0 for single videos).
-          example: 0
-        children:
-          type: array
-          description: Child videos for playlist items (within current page).
-          items:
-            $ref: "#/components/schemas/QueueVideoChild"
 
-    QueueVideoChild:
-      type: object
-      description: A child video inside a playlist queue item.
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: "880e8400-e29b-41d4-a716-446655440001"
-        title:
-          type: string
-          example: "Episode 1"
-        thumbnail:
-          type: string
-          example: "https://example.com/ep1.jpg"
-        videoUrl:
-          type: string
-          example: "https://example.com/ep1.mp4"
 
     PaginatedQueue:
       type: object

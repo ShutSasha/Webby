@@ -137,29 +137,32 @@ func (r *QueueItemRepository) GetById(
 
 func (r *QueueItemRepository) ListByRoom(
 	ctx context.Context, roomID uuid.UUID,
-) ([]models.QueueItem, error) {
+	offset, limit int,
+) ([]models.QueueItem, int, error) {
 	const op = "repository.QueueItemRepository.ListByRoom"
 
 	if roomID == uuid.Nil {
-		return nil, fmt.Errorf(
-			"%s: %w: invalid room id", op, apperrors.ErrInvalidInput,
-		)
+		return nil, 0, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
 	query := `
-		SELECT id, room_id, video_id, is_active, position, created_at
-		FROM queue_items
-		WHERE room_id = $1
-		ORDER BY position ASC
-	`
+        SELECT id, room_id, video_id, is_active, position, created_at, 
+               COUNT(*) OVER() as total_count
+        FROM queue_items
+        WHERE room_id = $1
+        ORDER BY position ASC
+        LIMIT $2 OFFSET $3
+    `
 
-	rows, err := r.db.Query(ctx, query, roomID)
+	rows, err := r.db.Query(ctx, query, roomID, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("%s: query failed: %w", op, err)
+		return nil, 0, fmt.Errorf("%s: query failed: %w", op, err)
 	}
 	defer rows.Close()
 
-	items := []models.QueueItem{}
+	items := make([]models.QueueItem, 0, limit)
+	total := 0
+
 	for rows.Next() {
 		var item models.QueueItem
 		err := rows.Scan(
@@ -169,18 +172,18 @@ func (r *QueueItemRepository) ListByRoom(
 			&item.IsActive,
 			&item.Position,
 			&item.CreatedAt,
+			&total,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("%s: row scan failed: %w", op, err)
+			return nil, 0, fmt.Errorf("%s: row scan failed: %w", op, err)
 		}
 		items = append(items, item)
 	}
-
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("%s: rows iteration error: %w", op, err)
+		return nil, 0, fmt.Errorf("%s: rows iteration error: %w", op, err)
 	}
 
-	return items, nil
+	return items, total, nil
 }
 
 func (r *QueueItemRepository) MoveToTop(

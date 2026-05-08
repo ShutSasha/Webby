@@ -1,7 +1,7 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/swagger/doc.json",
+      "DownstreamPathTemplate": "/swagger/doc.yaml",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {

@@ -9,7 +9,7 @@ http:
 
 redis:
   addr: "localhost:6379"
-  password: ""
+  password: "{{RedisPassword}}"
   db: 0
 
 grpc:

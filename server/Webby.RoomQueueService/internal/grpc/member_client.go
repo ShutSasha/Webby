@@ -39,18 +39,18 @@ func (m *MemberClient) Close() error {
 }
 
 func (m *MemberClient) Exists(
-	ctx context.Context, roomId, userId uuid.UUID,
+	ctx context.Context, roomID, userID uuid.UUID,
 ) (bool, error) {
 	resp, err := m.client.MemberExists(
 		ctx, &memberpb.MemberExistsRequest{
-			RoomId: roomId.String(),
-			UserId: userId.String(),
+			RoomId: roomID.String(),
+			UserId: userID.String(),
 		},
 	)
 	if err != nil {
 		return false, fmt.Errorf(
 			"member exists check for room %s, user %s: %w",
-			roomId.String(), userId.String(), err,
+			roomID.String(), userID.String(), err,
 		)
 	}
 
