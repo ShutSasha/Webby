@@ -76,6 +76,31 @@ public class VideoService : IVideoService
 
    public async Task<UploadVideoResponse> UploadVideoFile(Guid userId, UploadVideoRequest request)
    {
+      var userVideosCount = await _videoRepository.CountUserVideos(userId);
+
+      if (userVideosCount >= LimitationConstants.FreeUploadVideosLimit)
+      {
+         var userPremiumStatus = await _userClient
+            .GetPremiumStatusAsync(
+               new GetPremiumStatusRequest()
+               {
+                  UserId = userId.ToString()
+               });
+
+         switch (userPremiumStatus.Status)
+         {
+            case PremiumStatus.Trial:
+            case PremiumStatus.Active:
+               break;
+            case PremiumStatus.None:
+               throw new ApiException("Upload file error", 403, $"You can't upload more than {LimitationConstants.FreeUploadVideosLimit} without premium status");
+            case PremiumStatus.Expired:
+               throw new ApiException("Upload file error",403,$"Your premium subscription have expired. You may upload only {LimitationConstants.FreeUploadVideosLimit} videos without premium status");
+            default:
+               throw new ApiException("Upload file error", 500, "Invalid premium status type");
+         }
+      }
+      
       if (request.VideoFile == null || request.VideoFile.Length == 0)
          throw new ArgumentException("File is empty");
 

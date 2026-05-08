@@ -21,6 +21,14 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
          .ThenInclude(vt => vt.Tag)
          .FirstAsync(v => v.VideoId == videoId);
    }
+
+   public async Task<int> CountUserVideos(Guid userId)
+   {
+       return await _context.Videos
+           .Where(v => v.UserId == userId)
+           .CountAsync();
+   }
+
    public async Task<(List<Video>, int)> GetPaginatedUserVideos(
       Guid userId, 
       bool isOwner, 
