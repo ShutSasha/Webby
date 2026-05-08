@@ -37,6 +37,9 @@ paths:
 
         Only room members can add items.
 
+        After adding to a queue - sends `QUEUE_UPDATED` event through the WS Socket.IO.
+        Read the `WsGateway` for the event explanation.
+
         **Requires authentication and room membership.**
       operationId: addToQueue
       security:
@@ -252,6 +255,9 @@ paths:
 
         Only room members can remove items.
 
+        After deleting from a queue - sends `QUEUE_UPDATED` event through the WS Socket.IO.
+        Read the `WsGateway` for the event explanation.
+
         **Requires authentication and room membership.**
       operationId: deleteFromQueue
       security:
@@ -394,7 +400,6 @@ components:
         position:
           type: integer
           example: 1
-
 
     PaginatedQueue:
       type: object

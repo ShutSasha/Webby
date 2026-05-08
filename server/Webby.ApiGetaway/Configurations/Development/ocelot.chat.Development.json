@@ -1,5 +1,20 @@
 {
   "Routes": [
+     {
+      "DownstreamPathTemplate": "/swagger/doc.yaml",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/chat/swagger/v1/swagger.json",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AllowAnonymous": true
+      }
+    },
     {
       "DownstreamPathTemplate": "/api/chats",
       "DownstreamScheme": "http",
