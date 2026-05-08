@@ -11,17 +11,28 @@ interface Props {
   modalClasses?: string
 }
 
-export default function Modal({ isOpen, onClose, children, modalClasses }: Props) {
+export default function Modal({ isOpen, onClose, children, modalClasses = '' }: Props) {
   const [mounted, setMounted] = useState(false)
+
+  const [shouldRender, setShouldRender] = useState(isOpen)
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true)
+    } else {
+      const timer = setTimeout(() => setShouldRender(false), 400)
+      return () => clearTimeout(timer)
+    }
   }, [isOpen])
 
-  if (!mounted) return null
+  if (!mounted || !shouldRender) return null
 
   return createPortal(
-    <RemoveScroll enabled={isOpen}>
+    <RemoveScroll enabled={shouldRender}>
       <div
         className={`fixed inset-0 z-100 flex items-center justify-center transition-all duration-400 ${
           isOpen ? 'visible' : 'invisible'
