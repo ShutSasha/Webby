@@ -2,6 +2,8 @@
 
 import { useState, useRef, useLayoutEffect } from 'react'
 
+import Linkify from 'linkify-react'
+
 import { formatDate } from '@/lib/utils/date.utils'
 import { cn } from '@/lib/utils/general.utils'
 
@@ -39,7 +41,15 @@ export default function VideoDescription(props: Props) {
             !isExpanded && 'line-clamp-3',
           )}
         >
-          {props.text}
+          <Linkify
+            options={{
+              target: '_blank',
+              rel: 'noopener noreferrer',
+              className: 'text-blue-400 hover:underline transition-colors break-words',
+            }}
+          >
+            {props.text}
+          </Linkify>
 
           {props.videoTags && props.videoTags.length > 0 && (
             <>
