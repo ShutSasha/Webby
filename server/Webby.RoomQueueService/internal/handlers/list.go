@@ -3,12 +3,20 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+type listUri struct {
+	RoomID string `uri:"id" binding:"required,uuid"`
+}
+
+type listQuery struct {
+	Page  int `form:"page,default=1" binding:"omitempty,min=1"`
+	Limit int `form:"limit,default=10" binding:"omitempty,min=1,max=100"`
+}
 
 type queueItemResponse struct {
 	ID        uuid.UUID `json:"id"`
@@ -22,37 +30,33 @@ type queueItemResponse struct {
 
 func (h *handler) List(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(
-		slog.String("operation", "handlers.List"),
-	)
+	log := logger.FromContext(ctx).With("operation", "handlers.List")
 
-	roomID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		log.Debug("invalid room id", slog.Any("err", err))
+	var uri listUri
+	if err := c.ShouldBindUri(&uri); err != nil {
+		log.Debug("invalid room id in uri", slog.Any("err", err))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 			Success: false,
 			Message: "Validation error",
-			Errors: map[string]string{
-				"id": "the room id format is not valid",
-			},
+			Errors:  map[string]string{"id": "invalid room id format"},
 		})
 		return
 	}
 
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	if page < 1 {
-		page = 1
+	var query listQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Debug("invalid query params", slog.Any("err", err))
+		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
+			Success: false,
+			Message: "Validation error",
+			Errors:  map[string]string{"query": "invalid page or limit values"},
+		})
+		return
 	}
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if limit < 1 {
-		limit = 10
-	} else if limit > 100 {
-		limit = 100
-	}
-
+	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	items, total, err := h.service.GetQueue(ctx, roomID, userID, page, limit)
+	items, total, err := h.service.GetQueue(ctx, roomID, userID, query.Page, query.Limit)
 	if err != nil {
 		log.Error("list queue error", slog.Any("err", err))
 		HandleAppError(c, "List queue error", err)
@@ -61,7 +65,7 @@ func (h *handler) List(c *gin.Context) {
 
 	result := make([]queueItemResponse, 0, len(items))
 	for _, item := range items {
-		entry := queueItemResponse{
+		result = append(result, queueItemResponse{
 			ID:        item.ID,
 			VideoID:   item.VideoID,
 			Title:     item.Title,
@@ -69,8 +73,7 @@ func (h *handler) List(c *gin.Context) {
 			VideoUrl:  item.VideoUrl,
 			IsActive:  item.IsActive,
 			Position:  item.Position,
-		}
-		result = append(result, entry)
+		})
 	}
 
 	c.JSON(http.StatusOK, ApiResponse[PaginatedResponse[queueItemResponse]]{
@@ -78,8 +81,8 @@ func (h *handler) List(c *gin.Context) {
 		Message: "Queue retrieved successfully",
 		Data: &PaginatedResponse[queueItemResponse]{
 			Items: result,
-			Page:  page,
-			Limit: limit,
+			Page:  query.Page,
+			Limit: query.Limit,
 			Total: total,
 		},
 	})

@@ -10,7 +10,7 @@ import (
 type Service interface {
 	AddToQueue(
 		ctx context.Context,
-		roomId, userId uuid.UUID,
+		roomID, userID uuid.UUID,
 		entityId string,
 	) (uuid.UUID, int, error)
 	GetQueue(
@@ -18,7 +18,9 @@ type Service interface {
 		roomID, userID uuid.UUID,
 		page, limit int,
 	) ([]models.EnrichedQueueItem, int, error)
-	DeleteFromQueue(ctx context.Context, itemId, userId uuid.UUID) error
+	DeleteFromQueue(ctx context.Context, itemID, userID uuid.UUID) error
+	ActivateVideo(ctx context.Context, itemID, userID uuid.UUID) error
+	DeactivateQueue(ctx context.Context, roomID, userID uuid.UUID) error
 }
 
 type handler struct {

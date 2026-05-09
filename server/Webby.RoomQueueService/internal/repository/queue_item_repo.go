@@ -119,7 +119,6 @@ func (r *QueueItemRepository) GetById(
 		FROM queue_items
 		WHERE id = $1
 	`
-
 	var item models.QueueItem
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&item.ID,
@@ -149,7 +148,7 @@ func (r *QueueItemRepository) ListByRoom(
 	const op = "repository.QueueItemRepository.ListByRoom"
 
 	if roomID == uuid.Nil {
-		return nil, 0, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
+		return nil, -1, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
 	query := `
@@ -160,10 +159,9 @@ func (r *QueueItemRepository) ListByRoom(
         ORDER BY position ASC
         LIMIT $2 OFFSET $3
     `
-
 	rows, err := r.db.Query(ctx, query, roomID, limit, offset)
 	if err != nil {
-		return nil, 0, fmt.Errorf("%s: query failed: %w", op, err)
+		return nil, -1, fmt.Errorf("%s: query failed: %w", op, err)
 	}
 	defer rows.Close()
 
@@ -182,12 +180,12 @@ func (r *QueueItemRepository) ListByRoom(
 			&total,
 		)
 		if err != nil {
-			return nil, 0, fmt.Errorf("%s: row scan failed: %w", op, err)
+			return nil, -1, fmt.Errorf("%s: row scan failed: %w", op, err)
 		}
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("%s: rows iteration error: %w", op, err)
+		return nil, -1, fmt.Errorf("%s: rows iteration error: %w", op, err)
 	}
 
 	return items, total, nil
@@ -255,4 +253,88 @@ func (r *QueueItemRepository) MoveToTop(
 	}
 
 	return nil
+}
+
+func (r *QueueItemRepository) ActivateVideo(
+	ctx context.Context,
+	roomID, itemID uuid.UUID,
+) (int, int, error) {
+	const op = "repository.QueueItemRepository.ActivateVideo"
+
+	if itemID == uuid.Nil {
+		return -1, -1, fmt.Errorf("%s: %w: invalid item id", op, apperrors.ErrInvalidInput)
+	}
+
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return -1, -1, fmt.Errorf("%s: begin transaction: %w", op, err)
+	}
+	defer tx.Rollback(ctx)
+
+	itemQuery := `SELECT position FROM queue_items WHERE id = $1`
+	var currPosition int
+	if err = tx.QueryRow(ctx, itemQuery, itemID).Scan(&currPosition); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return -1, -1, fmt.Errorf(
+				"%s: queue item %s: %w",
+				op, itemID.String(), apperrors.ErrQueueItemNotFound,
+			)
+		}
+		return -1, -1, fmt.Errorf("%s: get item: %w", op, err)
+	}
+
+	updatePreviousQuery := `
+        UPDATE queue_items
+        SET is_active = FALSE
+        WHERE room_id = $1 AND is_active = TRUE AND id != $2
+        RETURNING position
+    `
+	prevPosition := -1
+	if err = tx.QueryRow(ctx, updatePreviousQuery, roomID, itemID).Scan(&prevPosition); err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return -1, -1, fmt.Errorf("%s: update previous failed: %w", op, err)
+		}
+	}
+
+	updateCurrentQuery := `
+        UPDATE queue_items
+        SET is_active = TRUE
+        WHERE id = $1 AND is_active = FALSE
+    `
+	commandTag, err := tx.Exec(ctx, updateCurrentQuery, itemID)
+	if err != nil {
+		return -1, -1, fmt.Errorf("%s: set current active: %w", op, err)
+	}
+	if commandTag.RowsAffected() == 0 {
+		return -1, -1, nil
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return -1, -1, fmt.Errorf("%s: commit: %w", op, err)
+	}
+
+	return prevPosition, currPosition, nil
+}
+
+func (r *QueueItemRepository) DeactivateQueue(ctx context.Context, roomID uuid.UUID) (int, error) {
+	const op = "repository.QueueItemRepository.DeactivateQueue"
+
+	if roomID == uuid.Nil {
+		return -1, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
+	}
+
+	query := `
+		UPDATE queue_items
+		SET is_active = FALSE
+		WHERE room_id = $1 AND is_active = TRUE
+		RETURNING position
+	`
+	position := -1
+	if err := r.db.QueryRow(ctx, query, roomID).Scan(&position); err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return -1, fmt.Errorf("%s: deactivate queue failed: %w", op, err)
+		}
+	}
+
+	return position, nil
 }

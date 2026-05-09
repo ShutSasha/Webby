@@ -46,6 +46,38 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}/activate",
+      "DownstreamScheme": "http",
+      "Priority": 10,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8083
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}/activate",
+      "UpstreamHttpMethod": ["PATCH"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue/deactivate",
+      "DownstreamScheme": "http",
+      "Priority": 10,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8083
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue/deactivate",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     }
   ]
 }

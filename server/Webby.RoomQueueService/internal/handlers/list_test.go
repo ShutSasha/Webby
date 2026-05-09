@@ -12,7 +12,7 @@ import (
 	"webby/room-queue-service/internal/apperrors"
 	"webby/room-queue-service/internal/handlers"
 	handlermocks "webby/room-queue-service/internal/handlers/mocks"
-	"webby/room-queue-service/internal/services"
+	"webby/room-queue-service/internal/models"
 	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -53,47 +53,35 @@ func TestListQueue(t *testing.T) {
 		validateBody   func(t *testing.T, body string)
 	}{
 		{
-			name:        "Success - Queue with video and playlist",
+			name:        "Success - Queue with items",
 			roomIdPath:  roomID.String(),
 			queryString: "?page=1&limit=10",
 			userID:      userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
 				videoId := uuid.New()
-				playlistId := uuid.New()
-				childId := uuid.New()
-				items := []services.QueueItemEnriched{
+				items := []models.EnrichedQueueItem{
 					{
-						Id:        uuid.New(),
-						VideoID:   videoId,
-						VideoType: "video",
+						ID:        uuid.New(),
+						VideoID:   "wb_" + videoId.String(),
 						Title:     "Test Video",
 						Thumbnail: "https://example.com/thumb.jpg",
 						VideoUrl:  "https://example.com/video.mp4",
 						IsActive:  true,
-						IsFolder:  false,
+						Position:  1,
 					},
 					{
-						Id:            uuid.New(),
-						VideoID:       playlistId,
-						VideoType:     "playlist",
-						Title:         "Test Playlist",
-						Thumbnail:     "https://example.com/playlist.jpg",
-						IsActive:      false,
-						IsFolder:      true,
-						TotalChildren: 2,
-						Children: []services.QueueVideoChild{
-							{
-								Id:        childId,
-								Title:     "Child Video",
-								Thumbnail: "https://example.com/child.jpg",
-								VideoUrl:  "https://example.com/child.mp4",
-							},
-						},
+						ID:        uuid.New(),
+						VideoID:   "wb_" + uuid.New().String(),
+						Title:     "Second Video",
+						Thumbnail: "https://example.com/thumb2.jpg",
+						VideoUrl:  "https://example.com/video2.mp4",
+						IsActive:  false,
+						Position:  2,
 					},
 				}
 				ms.EXPECT().GetQueue(
 					mock.Anything, roomID, userID, 1, 10,
-				).Return(items, 3, nil).Once()
+				).Return(items, 2, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -103,26 +91,14 @@ func TestListQueue(t *testing.T) {
 				paged := resp["data"].(map[string]any)
 				data := paged["items"].([]any)
 				assert.Len(t, data, 2)
-				assert.Equal(t, float64(3), paged["totalCount"])
+				assert.Equal(t, float64(2), paged["totalCount"])
 				assert.Equal(t, float64(1), paged["page"])
 				assert.Equal(t, float64(10), paged["pageSize"])
 
 				video := data[0].(map[string]any)
-				assert.Equal(t, "video", video["entityType"])
 				assert.Equal(t, "Test Video", video["title"])
 				assert.Equal(t, true, video["isActive"])
-				assert.Equal(t, false, video["isFolder"])
-
-				playlist := data[1].(map[string]any)
-				assert.Equal(t, "playlist", playlist["entityType"])
-				assert.Equal(t, true, playlist["isFolder"])
-				assert.Equal(t, float64(2), playlist["totalChildren"])
-				children := playlist["children"].([]any)
-				assert.Len(t, children, 1)
-				assert.Equal(
-					t, "Child Video",
-					children[0].(map[string]any)["title"],
-				)
+				assert.Equal(t, float64(1), video["position"])
 			},
 		},
 		{
@@ -134,7 +110,7 @@ func TestListQueue(t *testing.T) {
 				ms.EXPECT().GetQueue(
 					mock.Anything, roomID, userID, 1, 10,
 				).Return(
-					[]services.QueueItemEnriched{}, 0, nil,
+					[]models.EnrichedQueueItem{}, 0, nil,
 				).Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -198,7 +174,7 @@ func TestListQueue(t *testing.T) {
 				ms.EXPECT().GetQueue(
 					mock.Anything, roomID, userID, 2, 5,
 				).Return(
-					[]services.QueueItemEnriched{}, 12, nil,
+					[]models.EnrichedQueueItem{}, 12, nil,
 				).Once()
 			},
 			expectedStatus: http.StatusOK,

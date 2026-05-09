@@ -14,7 +14,6 @@ import (
 	"webby/room-queue-service/internal/apperrors"
 	"webby/room-queue-service/internal/handlers"
 	handlermocks "webby/room-queue-service/internal/handlers/mocks"
-	"webby/room-queue-service/internal/models"
 	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -64,21 +63,13 @@ func TestAddToQueue(t *testing.T) {
 			name:       "Success - Add video to queue",
 			roomIdPath: roomID.String(),
 			requestBody: map[string]string{
-				"entityId":   entityID.String(),
-				"entityType": "video",
+				"videoId": entityID.String(),
 			},
 			userID: userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().AddToQueue(
-					mock.Anything, roomID, userID, entityID, "video",
-				).Return(&models.QueueItem{
-					ID:        uuid.New(),
-					RoomID:    roomID,
-					VideoID:   entityID,
-					VideoType: "video",
-					IsActive:  false,
-					Position:  1,
-				}, nil).Once()
+					mock.Anything, roomID, userID, entityID.String(),
+				).Return(uuid.New(), 1, nil).Once()
 			},
 			expectedStatus: http.StatusCreated,
 			validateBody: func(t *testing.T, body string) {
@@ -86,29 +77,21 @@ func TestAddToQueue(t *testing.T) {
 				require.NoError(t, json.Unmarshal([]byte(body), &resp))
 				assert.True(t, resp["success"].(bool))
 				data := resp["data"].(map[string]any)
-				assert.Equal(t, entityID.String(), data["entityId"])
-				assert.Equal(t, "video", data["entityType"])
+				assert.NotEmpty(t, data["id"])
+				assert.Equal(t, float64(1), data["position"])
 			},
 		},
 		{
-			name:       "Success - Add playlist to queue",
+			name:       "Success - Add another video to queue",
 			roomIdPath: roomID.String(),
 			requestBody: map[string]string{
-				"entityId":   entityID.String(),
-				"entityType": "playlist",
+				"videoId": entityID.String(),
 			},
 			userID: userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().AddToQueue(
-					mock.Anything, roomID, userID, entityID, "playlist",
-				).Return(&models.QueueItem{
-					ID:        uuid.New(),
-					RoomID:    roomID,
-					VideoID:   entityID,
-					VideoType: "playlist",
-					IsActive:  false,
-					Position:  2,
-				}, nil).Once()
+					mock.Anything, roomID, userID, entityID.String(),
+				).Return(uuid.New(), 2, nil).Once()
 			},
 			expectedStatus: http.StatusCreated,
 			validateBody: func(t *testing.T, body string) {
@@ -116,13 +99,13 @@ func TestAddToQueue(t *testing.T) {
 				require.NoError(t, json.Unmarshal([]byte(body), &resp))
 				assert.True(t, resp["success"].(bool))
 				data := resp["data"].(map[string]any)
-				assert.Equal(t, "playlist", data["entityType"])
+				assert.Equal(t, float64(2), data["position"])
 			},
 		},
 		{
 			name:           "Failure - Invalid room id",
 			roomIdPath:     "not-a-uuid",
-			requestBody:    map[string]string{"entityId": entityID.String(), "entityType": "video"},
+			requestBody:    map[string]string{"videoId": entityID.String()},
 			userID:         userID.String(),
 			mockSetup:      func(ms *handlermocks.MockService) {},
 			expectedStatus: http.StatusBadRequest,
@@ -131,11 +114,9 @@ func TestAddToQueue(t *testing.T) {
 			},
 		},
 		{
-			name:       "Failure - Missing entityId",
-			roomIdPath: roomID.String(),
-			requestBody: map[string]string{
-				"entityType": "video",
-			},
+			name:           "Failure - Missing videoId",
+			roomIdPath:     roomID.String(),
+			requestBody:    map[string]string{},
 			userID:         userID.String(),
 			mockSetup:      func(ms *handlermocks.MockService) {},
 			expectedStatus: http.StatusBadRequest,
@@ -144,25 +125,10 @@ func TestAddToQueue(t *testing.T) {
 			},
 		},
 		{
-			name:       "Failure - Invalid entityType",
+			name:       "Failure - Invalid videoId format",
 			roomIdPath: roomID.String(),
 			requestBody: map[string]string{
-				"entityId":   entityID.String(),
-				"entityType": "movie",
-			},
-			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
-			expectedStatus: http.StatusBadRequest,
-			validateBody: func(t *testing.T, body string) {
-				assertErrorResponse(t, body)
-			},
-		},
-		{
-			name:       "Failure - Invalid entityId format",
-			roomIdPath: roomID.String(),
-			requestBody: map[string]string{
-				"entityId":   "not-a-uuid",
-				"entityType": "video",
+				"videoId": "abc",
 			},
 			userID:         userID.String(),
 			mockSetup:      func(ms *handlermocks.MockService) {},
@@ -186,14 +152,13 @@ func TestAddToQueue(t *testing.T) {
 			name:       "Failure - Forbidden (not a member)",
 			roomIdPath: roomID.String(),
 			requestBody: map[string]string{
-				"entityId":   entityID.String(),
-				"entityType": "video",
+				"videoId": entityID.String(),
 			},
 			userID: userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().AddToQueue(
-					mock.Anything, roomID, userID, entityID, "video",
-				).Return(nil, apperrors.ErrForbidden).Once()
+					mock.Anything, roomID, userID, entityID.String(),
+				).Return(uuid.Nil, -1, apperrors.ErrForbidden).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody: func(t *testing.T, body string) {
@@ -201,20 +166,19 @@ func TestAddToQueue(t *testing.T) {
 			},
 		},
 		{
-			name:       "Failure - Entity not found",
+			name:       "Failure - Video not found",
 			roomIdPath: roomID.String(),
 			requestBody: map[string]string{
-				"entityId":   entityID.String(),
-				"entityType": "video",
+				"videoId": entityID.String(),
 			},
 			userID: userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().AddToQueue(
-					mock.Anything, roomID, userID, entityID, "video",
+					mock.Anything, roomID, userID, entityID.String(),
 				).Return(
-					nil,
+					uuid.Nil, -1,
 					fmt.Errorf(
-						"%w: video not found", apperrors.ErrNotFound,
+						"%w: video not found", apperrors.ErrVideoNotFound,
 					),
 				).Once()
 			},
@@ -227,14 +191,13 @@ func TestAddToQueue(t *testing.T) {
 			name:       "Failure - Internal server error",
 			roomIdPath: roomID.String(),
 			requestBody: map[string]string{
-				"entityId":   entityID.String(),
-				"entityType": "video",
+				"videoId": entityID.String(),
 			},
 			userID: userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().AddToQueue(
-					mock.Anything, roomID, userID, entityID, "video",
-				).Return(nil, apperrors.ErrInternal).Once()
+					mock.Anything, roomID, userID, entityID.String(),
+				).Return(uuid.Nil, -1, apperrors.ErrInternal).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody: func(t *testing.T, body string) {

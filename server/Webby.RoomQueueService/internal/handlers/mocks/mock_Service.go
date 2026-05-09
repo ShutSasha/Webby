@@ -25,9 +25,57 @@ func (_m *MockService) EXPECT() *MockService_Expecter {
 	return &MockService_Expecter{mock: &_m.Mock}
 }
 
-// AddToQueue provides a mock function with given fields: ctx, roomId, userId, entityId
-func (_m *MockService) AddToQueue(ctx context.Context, roomId uuid.UUID, userId uuid.UUID, entityId string) (uuid.UUID, int, error) {
-	ret := _m.Called(ctx, roomId, userId, entityId)
+// ActivateVideo provides a mock function with given fields: ctx, itemID, userID
+func (_m *MockService) ActivateVideo(ctx context.Context, itemID uuid.UUID, userID uuid.UUID) error {
+	ret := _m.Called(ctx, itemID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActivateVideo")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r0 = rf(ctx, itemID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockService_ActivateVideo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ActivateVideo'
+type MockService_ActivateVideo_Call struct {
+	*mock.Call
+}
+
+// ActivateVideo is a helper method to define mock.On call
+//   - ctx context.Context
+//   - itemID uuid.UUID
+//   - userID uuid.UUID
+func (_e *MockService_Expecter) ActivateVideo(ctx interface{}, itemID interface{}, userID interface{}) *MockService_ActivateVideo_Call {
+	return &MockService_ActivateVideo_Call{Call: _e.mock.On("ActivateVideo", ctx, itemID, userID)}
+}
+
+func (_c *MockService_ActivateVideo_Call) Run(run func(ctx context.Context, itemID uuid.UUID, userID uuid.UUID)) *MockService_ActivateVideo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockService_ActivateVideo_Call) Return(_a0 error) *MockService_ActivateVideo_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockService_ActivateVideo_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) error) *MockService_ActivateVideo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AddToQueue provides a mock function with given fields: ctx, roomID, userID, entityId
+func (_m *MockService) AddToQueue(ctx context.Context, roomID uuid.UUID, userID uuid.UUID, entityId string) (uuid.UUID, int, error) {
+	ret := _m.Called(ctx, roomID, userID, entityId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddToQueue")
@@ -37,10 +85,10 @@ func (_m *MockService) AddToQueue(ctx context.Context, roomId uuid.UUID, userId 
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, string) (uuid.UUID, int, error)); ok {
-		return rf(ctx, roomId, userId, entityId)
+		return rf(ctx, roomID, userID, entityId)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, string) uuid.UUID); ok {
-		r0 = rf(ctx, roomId, userId, entityId)
+		r0 = rf(ctx, roomID, userID, entityId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(uuid.UUID)
@@ -48,13 +96,13 @@ func (_m *MockService) AddToQueue(ctx context.Context, roomId uuid.UUID, userId 
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, string) int); ok {
-		r1 = rf(ctx, roomId, userId, entityId)
+		r1 = rf(ctx, roomID, userID, entityId)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, uuid.UUID, uuid.UUID, string) error); ok {
-		r2 = rf(ctx, roomId, userId, entityId)
+		r2 = rf(ctx, roomID, userID, entityId)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -69,14 +117,14 @@ type MockService_AddToQueue_Call struct {
 
 // AddToQueue is a helper method to define mock.On call
 //   - ctx context.Context
-//   - roomId uuid.UUID
-//   - userId uuid.UUID
+//   - roomID uuid.UUID
+//   - userID uuid.UUID
 //   - entityId string
-func (_e *MockService_Expecter) AddToQueue(ctx interface{}, roomId interface{}, userId interface{}, entityId interface{}) *MockService_AddToQueue_Call {
-	return &MockService_AddToQueue_Call{Call: _e.mock.On("AddToQueue", ctx, roomId, userId, entityId)}
+func (_e *MockService_Expecter) AddToQueue(ctx interface{}, roomID interface{}, userID interface{}, entityId interface{}) *MockService_AddToQueue_Call {
+	return &MockService_AddToQueue_Call{Call: _e.mock.On("AddToQueue", ctx, roomID, userID, entityId)}
 }
 
-func (_c *MockService_AddToQueue_Call) Run(run func(ctx context.Context, roomId uuid.UUID, userId uuid.UUID, entityId string)) *MockService_AddToQueue_Call {
+func (_c *MockService_AddToQueue_Call) Run(run func(ctx context.Context, roomID uuid.UUID, userID uuid.UUID, entityId string)) *MockService_AddToQueue_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID), args[3].(string))
 	})
@@ -93,9 +141,57 @@ func (_c *MockService_AddToQueue_Call) RunAndReturn(run func(context.Context, uu
 	return _c
 }
 
-// DeleteFromQueue provides a mock function with given fields: ctx, itemId, userId
-func (_m *MockService) DeleteFromQueue(ctx context.Context, itemId uuid.UUID, userId uuid.UUID) error {
-	ret := _m.Called(ctx, itemId, userId)
+// DeactivateQueue provides a mock function with given fields: ctx, roomID, userID
+func (_m *MockService) DeactivateQueue(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) error {
+	ret := _m.Called(ctx, roomID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeactivateQueue")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r0 = rf(ctx, roomID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockService_DeactivateQueue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeactivateQueue'
+type MockService_DeactivateQueue_Call struct {
+	*mock.Call
+}
+
+// DeactivateQueue is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roomID uuid.UUID
+//   - userID uuid.UUID
+func (_e *MockService_Expecter) DeactivateQueue(ctx interface{}, roomID interface{}, userID interface{}) *MockService_DeactivateQueue_Call {
+	return &MockService_DeactivateQueue_Call{Call: _e.mock.On("DeactivateQueue", ctx, roomID, userID)}
+}
+
+func (_c *MockService_DeactivateQueue_Call) Run(run func(ctx context.Context, roomID uuid.UUID, userID uuid.UUID)) *MockService_DeactivateQueue_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockService_DeactivateQueue_Call) Return(_a0 error) *MockService_DeactivateQueue_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockService_DeactivateQueue_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) error) *MockService_DeactivateQueue_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteFromQueue provides a mock function with given fields: ctx, itemID, userID
+func (_m *MockService) DeleteFromQueue(ctx context.Context, itemID uuid.UUID, userID uuid.UUID) error {
+	ret := _m.Called(ctx, itemID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteFromQueue")
@@ -103,7 +199,7 @@ func (_m *MockService) DeleteFromQueue(ctx context.Context, itemId uuid.UUID, us
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
-		r0 = rf(ctx, itemId, userId)
+		r0 = rf(ctx, itemID, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -118,13 +214,13 @@ type MockService_DeleteFromQueue_Call struct {
 
 // DeleteFromQueue is a helper method to define mock.On call
 //   - ctx context.Context
-//   - itemId uuid.UUID
-//   - userId uuid.UUID
-func (_e *MockService_Expecter) DeleteFromQueue(ctx interface{}, itemId interface{}, userId interface{}) *MockService_DeleteFromQueue_Call {
-	return &MockService_DeleteFromQueue_Call{Call: _e.mock.On("DeleteFromQueue", ctx, itemId, userId)}
+//   - itemID uuid.UUID
+//   - userID uuid.UUID
+func (_e *MockService_Expecter) DeleteFromQueue(ctx interface{}, itemID interface{}, userID interface{}) *MockService_DeleteFromQueue_Call {
+	return &MockService_DeleteFromQueue_Call{Call: _e.mock.On("DeleteFromQueue", ctx, itemID, userID)}
 }
 
-func (_c *MockService_DeleteFromQueue_Call) Run(run func(ctx context.Context, itemId uuid.UUID, userId uuid.UUID)) *MockService_DeleteFromQueue_Call {
+func (_c *MockService_DeleteFromQueue_Call) Run(run func(ctx context.Context, itemID uuid.UUID, userID uuid.UUID)) *MockService_DeleteFromQueue_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
 	})

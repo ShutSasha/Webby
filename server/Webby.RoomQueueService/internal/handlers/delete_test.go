@@ -111,7 +111,7 @@ func TestDeleteFromQueue(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().DeleteFromQueue(
 					mock.Anything, itemID, userID,
-				).Return(apperrors.ErrNotFound).Once()
+				).Return(apperrors.ErrQueueItemNotFound).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody: func(t *testing.T, body string) {
