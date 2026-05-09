@@ -346,6 +346,9 @@ paths:
 
         Only room members can activate items.
 
+        After activating video in a queue - sends `QUEUE_UPDATED` event through the WS Socket.IO.
+        Read the `WsGateway` for the event explanation.
+
         **Requires authentication and room membership.**
       operationId: activateQueueItem
       security:
@@ -426,6 +429,9 @@ paths:
         No item will be marked as active after this operation.
 
         Only room members can deactivate the queue.
+
+        After deactivating a queue - sends `QUEUE_UPDATED` event through the WS Socket.IO.
+        Read the `WsGateway` for the event explanation.
 
         **Requires authentication and room membership.**
       operationId: deactivateQueue
