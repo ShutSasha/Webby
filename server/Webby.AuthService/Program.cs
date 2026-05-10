@@ -39,14 +39,14 @@ try
     app.UseCustomSerilogRequestLogging();
     app.UseMiddleware<ExceptionMiddleware>();
     app.UseMiddleware<ValidationExceptionMiddleware>();
-
-    if (app.Environment.IsDevelopment())
+    
+    app.UseSwagger(c => { c.RouteTemplate = "docs/auth-service/{documentName}/swagger.json"; });
+    app.UseSwaggerUI(c =>
     {
-        app.UseSwagger(c => { c.RouteTemplate = "docs/auth-service/{documentName}/swagger.json"; });
-
-        app.UseSwaggerUI(c => { c.SwaggerEndpoint("/docs/auth-service/v1/swagger.json", "Auth Service API"); });
-    }
-
+        c.SwaggerEndpoint("/docs/auth-service/v1/swagger.json", "Auth Service API");
+        c.RoutePrefix = "docs/auth-service";
+    });
+    
     app.UseHttpsRedirection();
     app.UseRouting();
 

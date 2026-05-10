@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using UserService;
 using Webby.VideoService.Constants;
+using Webby.VideoService.Dtos.Platforms.Enums;
 using Webby.VideoService.Dtos.Search;
+using Webby.VideoService.Dtos.Stream;
 using Webby.VideoService.Dtos.Stream.Enums;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
@@ -26,26 +28,26 @@ public class VideoService : IVideoService
    private readonly IVideoRepository _videoRepository;
    private readonly IStorageService _storageService;
    private readonly ITagService _tagService;
-   private readonly IPlaylistService _playlistService;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
    private readonly IMapper _mapper;
    private readonly IBackgroundTaskQueue _queue;
    private readonly IServiceScopeFactory _scopeFactory;
    private readonly IYouTubeSearchService _youtubeSearchService;
+   private readonly ITwitchSearchService _twitchSearchService;
    public VideoService(IVideoRepository videoRepository, IStorageService storageService,
-      ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, 
+      ITagService tagService, UserGrpcService.UserGrpcServiceClient userClient, 
       IMapper mapper, IBackgroundTaskQueue queue,
-      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService)
+      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService, ITwitchSearchService twitchSearchService)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
       _tagService = tagService;
-      _playlistService = playlistService;
       _userClient = userClient;
       _mapper = mapper;
       _queue = queue;
       _scopeFactory = scopeFactory;
       _youtubeSearchService = youtubeSearchService;
+      _twitchSearchService = twitchSearchService;
    }
 
    public async Task<Video> GetVideoById(Guid videoId)
@@ -581,6 +583,110 @@ public class VideoService : IVideoService
       await _videoRepository.Update(video);
    }
 
+   //TODO: Refactor structuring
+   public async Task<(List<VideoDto>, List<string>)> GetVideoRange(List<string> ids)
+   {
+      
+      if (ids == null || ids.Count == 0)
+      {
+         return ([],[]);
+      }
+
+      var webbyIds = new List<Guid>();
+      var youtubeIds = new List<string>();
+      var twitchIds = new List<string>();
+      var unavailableVideos = new List<string>();
+      
+      foreach (var id in ids)
+      {
+         var parseResult = PlatformPrefixToPlatformConverter.ParseSystemPlatform(id);
+         
+         if (parseResult == null)
+            continue;
+
+         var (platform, actualId) = parseResult.Value;
+         
+
+         switch (platform)
+         {
+            case SystemPlatforms.Webby:
+               if (Guid.TryParse(actualId, out var guidId))
+               {
+                  webbyIds.Add(guidId);
+               }
+               break;
+            case SystemPlatforms.YouTube:
+               youtubeIds.Add(actualId);
+               break;
+            case SystemPlatforms.Twitch:
+               twitchIds.Add(actualId);
+               break;
+         }
+      }
+      
+      var fetchedVideosDict = new Dictionary<string, VideoDto>(StringComparer.OrdinalIgnoreCase);
+      
+      if (webbyIds.Count != 0)
+      {
+         var webbyVideos = await _videoRepository
+            .GetByPredicate(v => webbyIds.Contains(v.VideoId) && 
+                                 !v.IsPrivate &&
+                                 v.IsPublished);
+         
+         if (webbyVideos != null && webbyVideos.Any())
+         {
+            var enrichedWebbyVideos = await MapAndEnrichWithUsersAsync<VideoDto>(webbyVideos.ToList());
+            foreach (var video in enrichedWebbyVideos)
+            {
+               fetchedVideosDict[video.VideoId] = video; 
+            }
+         }
+      }
+      
+      if (youtubeIds.Count != 0)
+      {
+         var youtubeVideos = await _youtubeSearchService.GetList(youtubeIds);
+         
+         if (youtubeVideos != null)
+         {
+            foreach (var video in youtubeVideos)
+            {
+               fetchedVideosDict[video.VideoId] = video;
+            }
+         }
+      }
+      
+      if (twitchIds.Count != 0)
+      {
+         var twitchVideos = await _twitchSearchService.GetList(twitchIds); 
+         
+         if (twitchVideos != null)
+         {
+            foreach (var stream in twitchVideos)
+            {
+               var video = ParseStreamToVideoDto(stream);
+               fetchedVideosDict[video.VideoId] = video;
+            }
+         }
+      }
+
+      var resultItems = new List<VideoDto>();
+      
+      foreach (var id in ids)
+      {
+         if (fetchedVideosDict.TryGetValue(id, out var videoDto))
+         {
+            resultItems.Add(videoDto);
+         }
+         else
+         {
+            unavailableVideos.Add(id);
+         }
+      }
+
+      return (resultItems,unavailableVideos);
+   }
+
    public async Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId)
    {
       var privateVideos = await _videoRepository
@@ -688,6 +794,27 @@ public class VideoService : IVideoService
 
       return (platform, actualId);
       
+   }
+   
+   private VideoDto ParseStreamToVideoDto(StreamDto stream)
+   {
+      if (stream == null) 
+         return null;
+
+      return new VideoDto
+      {
+         VideoId = stream.StreamId,
+         Name = stream.Name,
+         Views = stream.Viewers,
+         CreatedAt = stream.StartedAt,
+         VideoUrl = stream.StreamUrl,
+         PreviewUrl = stream.PreviewUrl,
+         User = stream.User,
+         Description = string.Empty,
+         Duration = 0,
+         IsPrivate = false,
+         VideoTags = new List<string>()
+      };
    }
    
 }

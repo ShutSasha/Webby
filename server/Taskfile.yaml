@@ -59,15 +59,42 @@ tasks:
       - |
         cd ./Webby.NotificationService
         dotnet run -p:WarningLevel=0
+
+  run_vote_service:
+    desc: "Run the Go VoteService"
+    cmds:
+      - |
+        cd ./Webby.VotesService
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
+
+  run_room_queue_service:
+    desc: "Run the Go RoomQueueService"
+    cmds:
+      - |
+        cd ./Webby.RoomQueueService
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
   
+  run_ws_gateway:
+    desc: "Run the Go WsGateway"
+    cmds:
+      - |
+        cd ./Webby.WsGateway
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
+
   run_all:
     desc: "Run all services"
     deps:
       - run_auth_service
       - run_api_getaway
+      - run_ws_gateway
       - run_user_service
       - run_video_service
       - run_room_category_service
       - run_room_service
       - run_chat_service
       - run_notification_service
+      - run_vote_service
+      - run_room_queue_service

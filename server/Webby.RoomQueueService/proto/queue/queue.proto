@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package queue;
+
+option go_package = "webby/room-queue-service/internal/grpc/queuepb";
+
+service QueueGrpcService {
+  rpc MoveToTop(MoveToTopRequest) returns (MoveToTopResponse);
+}
+
+message MoveToTopRequest {
+  string id = 1;
+}
+
+message MoveToTopResponse {
+  bool success = 1;
+}

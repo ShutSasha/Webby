@@ -1,0 +1,20 @@
+env: "local"
+connectionString: "{{UriConnectionString}}"
+jwtSecret: "{{JwtAccessSecretKey}}"
+
+http:
+  host: "localhost"
+  port: 8083
+  timeout: 10s
+
+redis:
+  addr: "localhost:6379"
+  password: "{{RedisPassword}}"
+  db: 0
+
+grpc:
+  host: "localhost"
+  port: 50053
+  mediaServiceAddress: "localhost:5005"
+  chatServiceAddress: "localhost:50051"
+  roomServiceAddress: "localhost:50054"

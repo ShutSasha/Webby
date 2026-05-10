@@ -490,3 +490,5 @@ ocelot.json
 
 .env
 config.yaml
+
+*.work

@@ -31,9 +31,12 @@ type AwsConfig struct {
 }
 
 type GrpcConfig struct {
+	Host                   string `yaml:"host"`
+	Port                   int    `yaml:"port"`
 	MediaServiceAddress    string `yaml:"mediaServiceAddress"`
 	ChatServiceAddress     string `yaml:"chatServiceAddress"`
 	CategoryServiceAddress string `yaml:"categoryServiceAddress"`
+	QueueServiceAddress    string `yaml:"queueServiceAddress"`
 }
 
 func MustLoad() *Config {

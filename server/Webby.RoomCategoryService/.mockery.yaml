@@ -9,6 +9,6 @@ filename: "mock_{{.InterfaceNameCamel}}.go"
 mockname: "Mock{{.InterfaceName}}"
 
 packages:
-  webby/internal/handlers:
+  webby/room-category-service/internal/handlers:
     config:
       recursive: true

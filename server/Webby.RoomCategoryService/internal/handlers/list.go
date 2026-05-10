@@ -4,13 +4,14 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"webby/room-category-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) List(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := h.logger.With(slog.String("operation", "httpserver.categories.list"))
+	log := logger.FromContext(ctx).With(slog.String("operation", "handlers.list"))
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if page < 1 {
@@ -25,7 +26,6 @@ func (h *handler) List(c *gin.Context) {
 	}
 
 	search := c.Query("search")
-
 	categories, total, err := h.service.List(ctx, search, page, limit)
 	if err != nil {
 		log.Error("list categories error", slog.Any("err", err))

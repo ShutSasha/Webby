@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package chat;
 
-option go_package = "webby/internal/grpc/chatpb";
+option go_package = "webby/room-service/internal/grpc/chatpb";
 
 service ChatGrpcService {
   rpc CreateChat(CreateChatRequest) returns (ChatResponse);

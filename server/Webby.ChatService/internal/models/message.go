@@ -7,9 +7,9 @@ import (
 )
 
 type Message struct {
-	Id        uuid.UUID
-	SenderId  uuid.UUID
-	ChatId    uuid.UUID
+	ID        uuid.UUID
+	SenderID  uuid.UUID
+	ChatID    uuid.UUID
 	Content   string
 	IsEdited  bool
 	EditedAt  *time.Time

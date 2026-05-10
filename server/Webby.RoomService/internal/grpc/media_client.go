@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"webby/internal/grpc/mediapb"
+	"webby/room-service/internal/grpc/mediapb"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"

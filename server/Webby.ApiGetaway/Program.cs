@@ -30,22 +30,26 @@ try
     app.UseCors("AllowWebOrigin");
     app.UseAuthentication();
     app.UseAuthorization();
-
-    if (app.Environment.IsDevelopment())
+    
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
         c.SwaggerEndpoint("/auth/swagger/v1/swagger.json", "AuthService");
         c.SwaggerEndpoint("/room-category/swagger/v1/swagger.json", "RoomCategoryService");
+        c.SwaggerEndpoint("/room-queue/swagger/v1/swagger.json", "RoomQueueService");
+        c.SwaggerEndpoint("/vote/swagger/v1/swagger.json", "VoteService");
         c.SwaggerEndpoint("/user/swagger/v1/swagger.json", "UserService");
         c.SwaggerEndpoint("/video/swagger/v1/swagger.json", "VideoService");
         c.SwaggerEndpoint("/room/swagger/v1/swagger.json", "RoomService");
         c.SwaggerEndpoint("/chat/swagger/v1/swagger.json", "ChatService");
+        c.SwaggerEndpoint("/ws/swagger/v1/swagger.json", "WsGateway");
         c.SwaggerEndpoint("/notification/swagger/v1/swagger.json", "NotificationService");
         c.RoutePrefix = "";
         });
-    }
+    });
     app.UseApiExceptionHandling();
 
     app.UseWebSockets();

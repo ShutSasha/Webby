@@ -2,12 +2,14 @@ syntax = "proto3";
 
 package chat;
 
-option go_package = "webby-chat/internal/grpc/chatpb";
+option go_package = "webby/chat-service/internal/grpc/chatpb";
 
 service ChatGrpcService {
   rpc CreateChat(CreateChatRequest) returns (ChatResponse);
   rpc GetChatByRoomId(GetChatByRoomIdRequest) returns (ChatResponse);
+  rpc GetChatIDByRoomID(GetChatIDByRoomIDRequest) returns (ChatIDByRoomIDResponse);
   rpc AddChatMember(AddChatMemberRequest) returns (AddChatMemberResponse);
+  rpc SaveMessage(SaveMessageRequest) returns (SaveMessageResponse);
 }
 
 message CreateChatRequest {
@@ -23,9 +25,28 @@ message AddChatMemberRequest {
   string user_id = 2;
 }
 
+message SaveMessageRequest {
+  string chat_id = 1;
+  string user_id = 2;
+  string content = 3;
+}
+
+message SaveMessageResponse {
+  string message_id = 1;
+}
+
 message ChatResponse {
   string id = 1;
   string room_id = 2;
 }
 
 message AddChatMemberResponse {}
+
+message GetChatIDByRoomIDRequest {
+  string roomID = 1;
+  string userID = 2;
+}
+
+message ChatIDByRoomIDResponse {
+  string chatID = 2;
+}

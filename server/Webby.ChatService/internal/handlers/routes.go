@@ -1,41 +1,36 @@
-package httpserver
+package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby-chat/internal/config"
-	"webby-chat/internal/handlers/chats"
-	"webby-chat/internal/handlers/chats/create"
-	"webby-chat/internal/handlers/chats/get"
+	"webby/chat-service/docs"
+	"webby/chat-service/internal/config"
+	"webby/chat-service/pkg/http/middleware/auth"
 
-	socketio "github.com/googollee/go-socket.io"
+	"github.com/gin-gonic/gin"
 )
 
-type ChatService interface {
-	create.Creator
-	get.Getter
+func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
+	requireAuth := auth.AuthMiddleware([]byte(cfg.JwtSecret))
+
+	api := router.Group("/api")
+	{
+		chats := api.Group("/chats")
+		chats.Use(requireAuth)
+		chats.POST("", handler.Create)
+		chats.GET("/:id", handler.Get)
+	}
+
+	router.GET("/swagger", swaggerUI)
+	router.GET("/swagger/", swaggerUI)
+	router.GET("/swagger/index.html", swaggerUI)
+	router.GET("/swagger/doc.yaml", swaggerSpec)
 }
 
-func addRoutes(
-	mux *http.ServeMux,
-	cfg *config.Config,
-	logger *slog.Logger,
-	chatService ChatService,
-	socketServer *socketio.Server,
-) {
-	mux.Handle("/api/", http.NotFoundHandler())
+func swaggerUI(c *gin.Context) {
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(docs.SwaggerUIHTML))
+}
 
-	chats.RegisterChats(mux, []byte(cfg.JwtSecret), logger, chatService)
-
-	mux.Handle("/socket.io/", socketServer)
-
-	mux.HandleFunc("GET /swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		http.ServeFile(w, r, "./docs/oas.json")
-	})
-
-	mux.HandleFunc("GET /swagger/doc.yaml", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/x-yaml")
-		http.ServeFile(w, r, "./docs/oas.yml")
-	})
+func swaggerSpec(c *gin.Context) {
+	c.Header("Content-Type", "application/x-yaml")
+	c.File("./docs/oas.yml")
 }

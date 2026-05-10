@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"webby/internal/grpc/chatpb"
+	"webby/room-service/internal/grpc/chatpb"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"

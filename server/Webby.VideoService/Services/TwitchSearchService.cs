@@ -146,6 +146,72 @@ public class TwitchSearchService : ITwitchSearchService
         throw new ApiException("Get twitch stream error", 404, "Stream wasn't found");
     }
 
+    public async Task<List<StreamDto>> GetList(List<string> sourceIds)
+    {
+        if (sourceIds == null || sourceIds.Count == 0)
+            return new List<StreamDto>();
+
+        await AuthenticateAsync();
+
+        var results = new List<StreamDto>();
+        var items = new List<TwitchItem>();
+
+        foreach (var chunk in sourceIds.Chunk(100))
+        {
+            var streamUrl = $"{DefaultLinks.BaseTwitchStreamLink}?user_id={string.Join("&user_id=", chunk)}";
+            var streamResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(streamUrl);
+            
+            var foundUserIds = new HashSet<string>();
+
+            if (streamResponse?.Data != null)
+            {
+                items.AddRange(streamResponse.Data);
+                foreach (var stream in streamResponse.Data)
+                {
+                    if (!string.IsNullOrEmpty(stream.UserId))
+                    {
+                        foundUserIds.Add(stream.UserId);
+                    }
+                }
+            }
+
+            var missingIds = chunk.Except(foundUserIds).ToList();
+
+            if (missingIds.Count > 0)
+            {
+                var videoUrl = $"https://api.twitch.tv/helix/videos?id={string.Join("&id=", missingIds)}";
+                var videoResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(videoUrl);
+                
+                if (videoResponse?.Data != null)
+                {
+                    items.AddRange(videoResponse.Data);
+                }
+            }
+        }
+
+        if (items.Count == 0)
+            return results;
+
+        var userIds = items.Select(i => i.UserId ?? i.Id).Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+        var avatars = new Dictionary<string, string>();
+
+        foreach (var userChunk in userIds.Chunk(100))
+        {
+            var chunkAvatars = await GetUsersAvatarsAsync(userChunk);
+            foreach (var kvp in chunkAvatars)
+            {
+                avatars[kvp.Key] = kvp.Value;
+            }
+        }
+
+        foreach (var item in items)
+        {
+            results.Add(MapToStreamDto(item, avatars.GetValueOrDefault(item.UserId ?? item.Id!)));
+        }
+
+        return results;
+    }
+
     private StreamDto MapToStreamDto(TwitchItem? item, string? avatarUrl)
     {
         return new StreamDto

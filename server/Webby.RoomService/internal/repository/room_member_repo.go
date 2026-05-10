@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"webby/internal/apperrors"
-	"webby/internal/models"
+	"webby/room-service/internal/apperrors"
+	"webby/room-service/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -70,7 +70,7 @@ func (r *RoomMemberRepository) Exists(ctx context.Context, roomId, userId uuid.U
 	return exists, nil
 }
 
-func (r *RoomMemberRepository) EnsureMember(ctx context.Context, roomId, userId uuid.UUID) error {
+func (r *RoomMemberRepository) EnsureMember(ctx context.Context, roomID, userID uuid.UUID) error {
 	const op = "repository.RoomMemberRepository.EnsureMember"
 
 	query := `
@@ -79,7 +79,7 @@ func (r *RoomMemberRepository) EnsureMember(ctx context.Context, roomId, userId 
 		ON CONFLICT (room_id, user_id) DO NOTHING
 	`
 
-	_, err := r.db.Exec(ctx, query, roomId, userId)
+	_, err := r.db.Exec(ctx, query, roomID, userID)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}

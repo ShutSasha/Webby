@@ -23,8 +23,14 @@
     "SuccessUrl": "http://localhost:3000/payment/success",
     "CancelUrl": "http://localhost:3000/payment/failed"
   },
+  
  "AutoMapper":{
     "LicenseKey": "{{AutoMapperLicenseKey}}"
- }
+  },
+  
+  "GrpcClients": {
+    "VideoServiceUrl": "http://localhost:5005",
+    "NotificationServiceUrl": "http://localhost:5007"
+  }
   
 }

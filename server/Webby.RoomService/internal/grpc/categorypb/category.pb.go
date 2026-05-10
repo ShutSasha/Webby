@@ -119,7 +119,7 @@ const file_proto_category_category_proto_rawDesc = "" +
 	"\x16CategoryExistsResponse\x12\x16\n" +
 	"\x06exists\x18\x01 \x01(\bR\x06exists2j\n" +
 	"\x13CategoryGrpcService\x12S\n" +
-	"\x0eCategoryExists\x12\x1f.category.CategoryExistsRequest\x1a .category.CategoryExistsResponseB Z\x1ewebby/internal/grpc/categorypbb\x06proto3"
+	"\x0eCategoryExists\x12\x1f.category.CategoryExistsRequest\x1a .category.CategoryExistsResponseB-Z+webby/room-service/internal/grpc/categorypbb\x06proto3"
 
 var (
 	file_proto_category_category_proto_rawDescOnce sync.Once

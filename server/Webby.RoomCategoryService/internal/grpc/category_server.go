@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"webby/internal/grpc/categorypb"
+	"webby/room-category-service/internal/grpc/categorypb"
 )
 
 type CategoryService interface {

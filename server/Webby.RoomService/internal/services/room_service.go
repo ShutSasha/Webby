@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"path/filepath"
 	"time"
-	"webby/internal/apperrors"
-	"webby/internal/models"
+	"webby/room-service/internal/apperrors"
+	"webby/room-service/internal/models"
 
 	"github.com/google/uuid"
 )
@@ -48,11 +48,11 @@ type CategoryClientInterface interface {
 }
 
 type RoomService struct {
-	roomRepo        RoomRepository
-	roomMemberRepo  RoomMemberRepository
-	fileRepo        FileRepository
-	chatClient      ChatClientInterface
-	categoryClient  CategoryClientInterface
+	roomRepo       RoomRepository
+	roomMemberRepo RoomMemberRepository
+	fileRepo       FileRepository
+	chatClient     ChatClientInterface
+	categoryClient CategoryClientInterface
 }
 
 func NewRoomService(repo RoomRepository, roomMemberRepo RoomMemberRepository, fileRepo FileRepository, chatClient ChatClientInterface, categoryClient CategoryClientInterface) *RoomService {

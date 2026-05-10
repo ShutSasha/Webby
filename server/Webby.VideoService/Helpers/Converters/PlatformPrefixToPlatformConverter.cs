@@ -1,4 +1,5 @@
 ﻿using Webby.VideoService.Constants;
+using Webby.VideoService.Dtos.Platforms.Enums;
 using Webby.VideoService.Dtos.Stream.Enums;
 using Webby.VideoService.Dtos.Video.Enums;
 using Webby.VideoService.Models.Enums;
@@ -30,6 +31,15 @@ public static class PlatformPrefixToPlatformConverter
             { PlatformPrefixesConstants.TwitchPrefix, SearchStreamPlatforms.Twitch }
         };
 
+    private static readonly IReadOnlyDictionary<string, SystemPlatforms> SystemPlatformsMap =
+        new Dictionary<string, SystemPlatforms>
+        {
+            { PlatformPrefixesConstants.WebbyPrefix, SystemPlatforms.Webby },
+            { PlatformPrefixesConstants.YouTubePrefix, SystemPlatforms.YouTube },
+            { PlatformPrefixesConstants.TwitchPrefix, SystemPlatforms.Twitch }
+        };
+    
+
     private static PlatformParseResult<TEnum>? Parse<TEnum>(
         string prefixedId,
         IReadOnlyDictionary<string, TEnum> prefixMap)
@@ -58,4 +68,8 @@ public static class PlatformPrefixToPlatformConverter
 
     public static PlatformParseResult<SearchStreamPlatforms>? ParseStreamPlatform(string prefixedId)
         => Parse(prefixedId, StreamPlatformMap);
+
+    public static PlatformParseResult<SystemPlatforms>? ParseSystemPlatform(string prefixedId)
+        => Parse(prefixedId, SystemPlatformsMap);
+    
 }

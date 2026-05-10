@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"webby-chat/internal/apperrors"
-	"webby-chat/internal/models"
+	"webby/chat-service/internal/apperrors"
+	"webby/chat-service/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -23,7 +23,7 @@ func NewChatRepository(db *pgxpool.Pool) *ChatRepository {
 func (r *ChatRepository) Create(ctx context.Context, chat *models.Chat) (uuid.UUID, error) {
 	const op = "repository.ChatRepository.Create"
 
-	chat.Id = uuid.New()
+	chat.ID = uuid.New()
 
 	query := `
 		INSERT INTO chats (id, room_id)
@@ -31,12 +31,12 @@ func (r *ChatRepository) Create(ctx context.Context, chat *models.Chat) (uuid.UU
 		RETURNING created_at
 	`
 
-	err := r.db.QueryRow(ctx, query, chat.Id, chat.RoomId).Scan(&chat.CreatedAt)
+	err := r.db.QueryRow(ctx, query, chat.ID, chat.RoomID).Scan(&chat.CreatedAt)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
-	return chat.Id, nil
+	return chat.ID, nil
 }
 
 func (r *ChatRepository) GetById(ctx context.Context, id uuid.UUID) (*models.Chat, error) {
@@ -53,7 +53,7 @@ func (r *ChatRepository) GetById(ctx context.Context, id uuid.UUID) (*models.Cha
 	`
 
 	var chat models.Chat
-	err := r.db.QueryRow(ctx, query, id).Scan(&chat.Id, &chat.RoomId, &chat.CreatedAt)
+	err := r.db.QueryRow(ctx, query, id).Scan(&chat.ID, &chat.RoomID, &chat.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("%s: chat %s: %w", op, id.String(), apperrors.ErrNotFound)
@@ -78,7 +78,7 @@ func (r *ChatRepository) GetByRoomId(ctx context.Context, roomId uuid.UUID) (*mo
 	`
 
 	var chat models.Chat
-	err := r.db.QueryRow(ctx, query, roomId).Scan(&chat.Id, &chat.RoomId, &chat.CreatedAt)
+	err := r.db.QueryRow(ctx, query, roomId).Scan(&chat.ID, &chat.RoomID, &chat.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("%s: room %s: %w", op, roomId.String(), apperrors.ErrNotFound)
@@ -87,4 +87,20 @@ func (r *ChatRepository) GetByRoomId(ctx context.Context, roomId uuid.UUID) (*mo
 	}
 
 	return &chat, nil
+}
+
+func (r *ChatRepository) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
+	const op = "repository.ChatRepository.GetChatIDByRoomID"
+
+	query := `SELECT id FROM chats WHERE room_id = $1`
+	var id uuid.UUID
+	err := r.db.QueryRow(ctx, query, roomID).Scan(&id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return uuid.Nil, fmt.Errorf("%s: room %s: %w", op, roomID.String(), apperrors.ErrNotFound)
+		}
+		return uuid.Nil, fmt.Errorf("%s: query failed: %w", op, err)
+	}
+
+	return id, nil
 }

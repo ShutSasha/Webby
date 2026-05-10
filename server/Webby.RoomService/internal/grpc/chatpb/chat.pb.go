@@ -269,7 +269,7 @@ const file_proto_chat_chat_proto_rawDesc = "" +
 	"\n" +
 	"CreateChat\x12\x17.chat.CreateChatRequest\x1a\x12.chat.ChatResponse\x12C\n" +
 	"\x0fGetChatByRoomId\x12\x1c.chat.GetChatByRoomIdRequest\x1a\x12.chat.ChatResponse\x12H\n" +
-	"\rAddChatMember\x12\x1a.chat.AddChatMemberRequest\x1a\x1b.chat.AddChatMemberResponseB\x1cZ\x1awebby/internal/grpc/chatpbb\x06proto3"
+	"\rAddChatMember\x12\x1a.chat.AddChatMemberRequest\x1a\x1b.chat.AddChatMemberResponseB)Z'webby/room-service/internal/grpc/chatpbb\x06proto3"
 
 var (
 	file_proto_chat_chat_proto_rawDescOnce sync.Once
