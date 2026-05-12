@@ -1,15 +1,22 @@
 /**
  * Converts an ISO date string (e.g., 2026-03-16T17:53:56.468988Z) into dd/mm/yyyy format.
  * * @param dateString - The ISO date string retrieved from the server.
- * @returns A formatted date string or 'Invalid Date' if input is undefined.
+ * @returns A formatted date string or 'Unknown time' if input is undefined.
  */
-export const formatDate = (dateString: string | undefined): string => {
-  if (!dateString) return 'Invalid Date'
+export const formatDate = (dateString: string | Date | number | unknown): string => {
+  if (
+    !dateString ||
+    (typeof dateString !== 'string' && typeof dateString !== 'number' && !(dateString instanceof Date))
+  ) {
+    return 'Unknown time'
+  }
+
+  if (!dateString) return 'Unknown time'
 
   const date = new Date(dateString)
 
   if (isNaN(date.getTime())) {
-    return 'Invalid Date'
+    return 'Unknown time'
   }
 
   /**
@@ -23,32 +30,43 @@ export const formatDate = (dateString: string | undefined): string => {
   }).format(date)
 }
 
-export function formatTimeAgo(dateInput: string | Date | number): string {
-  const date = new Date(dateInput)
-  const now = new Date()
+const TIME_INTERVALS = [
+  { label: 'year', seconds: 31536000 },
+  { label: 'month', seconds: 2592000 },
+  { label: 'week', seconds: 604800 },
+  { label: 'day', seconds: 86400 },
+  { label: 'hour', seconds: 3600 },
+  { label: 'minute', seconds: 60 },
+] as const
 
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+let rtfCache: Intl.RelativeTimeFormat | null = null
+
+export function formatTimeAgo(dateInput: string | Date | number | unknown): string {
+  if (!dateInput || (typeof dateInput !== 'string' && typeof dateInput !== 'number' && !(dateInput instanceof Date))) {
+    return 'Unknown time'
+  }
+
+  const date = new Date(dateInput)
+
+  if (isNaN(date.getTime())) {
+    return 'Unknown time'
+  }
+
+  const diffInSeconds = Math.floor((Date.now() - date.getTime()) / 1000)
 
   if (diffInSeconds < 60) {
     return 'just now'
   }
 
-  const rtf = new Intl.RelativeTimeFormat('en-US', { numeric: 'always' })
+  if (!rtfCache) {
+    rtfCache = new Intl.RelativeTimeFormat('en-US', { numeric: 'always' })
+  }
 
-  const intervals = [
-    { label: 'year', seconds: 31536000 },
-    { label: 'month', seconds: 2592000 },
-    { label: 'week', seconds: 604800 },
-    { label: 'day', seconds: 86400 },
-    { label: 'hour', seconds: 3600 },
-    { label: 'minute', seconds: 60 },
-  ] as const
-
-  for (const interval of intervals) {
+  for (const interval of TIME_INTERVALS) {
     const count = Math.floor(diffInSeconds / interval.seconds)
 
     if (count >= 1) {
-      return rtf.format(-count, interval.label)
+      return rtfCache.format(-count, interval.label)
     }
   }
 
