@@ -11,14 +11,14 @@ import (
 )
 
 type VideoInfo struct {
-	Id        uuid.UUID
+	ID        uuid.UUID
 	Title     string
 	Thumbnail string
 	VideoUrl  string
 }
 
 type PlaylistInfo struct {
-	Id         uuid.UUID
+	ID         uuid.UUID
 	Title      string
 	Thumbnail  string
 	TotalCount int
@@ -31,9 +31,11 @@ type MediaClient struct {
 }
 
 func NewMediaClient(address string) (*MediaClient, error) {
+	const op = "grpc.NewMediaClient"
+
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to media service: %w", err)
+		return nil, fmt.Errorf("%s: failed to connect to media service: %w", op, err)
 	}
 
 	client := mediapb.NewMediaServiceClient(conn)
@@ -49,58 +51,22 @@ func (m *MediaClient) Close() error {
 }
 
 func (m *MediaClient) GetVideo(ctx context.Context, id uuid.UUID) (*VideoInfo, error) {
+	const op = "grpc.MediaClient.GetVideo"
+
 	resp, err := m.client.GetVideo(ctx, &mediapb.GetVideoRequest{Id: id.String()})
 	if err != nil {
-		return nil, fmt.Errorf("get video %s: %w", id.String(), err)
+		return nil, fmt.Errorf("%s %s: %w", op, id.String(), err)
 	}
 
 	videoId, err := uuid.Parse(resp.Id)
 	if err != nil {
-		return nil, fmt.Errorf("parse video id: %w", err)
+		return nil, fmt.Errorf("%s parse video id: %w", op, err)
 	}
 
 	return &VideoInfo{
-		Id:        videoId,
+		ID:        videoId,
 		Title:     resp.Title,
 		Thumbnail: resp.Thumbnail,
 		VideoUrl:  resp.VideoUrl,
-	}, nil
-}
-
-func (m *MediaClient) GetPlaylist(ctx context.Context, id uuid.UUID, page, pageSize int32) (*PlaylistInfo, error) {
-	resp, err := m.client.GetPlaylist(ctx, &mediapb.GetPlaylistRequest{
-		Id:       id.String(),
-		Page:     page,
-		PageSize: pageSize,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("get playlist %s: %w", id.String(), err)
-	}
-
-	playlistId, err := uuid.Parse(resp.Id)
-	if err != nil {
-		return nil, fmt.Errorf("parse playlist id: %w", err)
-	}
-
-	videos := make([]VideoInfo, 0, len(resp.Videos))
-	for _, v := range resp.Videos {
-		vid, err := uuid.Parse(v.Id)
-		if err != nil {
-			return nil, fmt.Errorf("parse video id in playlist: %w", err)
-		}
-		videos = append(videos, VideoInfo{
-			Id:        vid,
-			Title:     v.Title,
-			Thumbnail: v.Thumbnail,
-			VideoUrl:  v.VideoUrl,
-		})
-	}
-
-	return &PlaylistInfo{
-		Id:         playlistId,
-		Title:      resp.Title,
-		Thumbnail:  resp.Thumbnail,
-		TotalCount: int(resp.TotalCount),
-		Videos:     videos,
 	}, nil
 }

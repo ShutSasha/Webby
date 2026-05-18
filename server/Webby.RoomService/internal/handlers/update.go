@@ -1,97 +1,64 @@
 package handlers
 
 import (
-	"errors"
 	"io"
 	"log/slog"
+	"mime/multipart"
 	"net/http"
-	"strconv"
-	"strings"
-	"webby/room-service/internal/apperrors"
 	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
+type updateUri struct {
+	RoomID string `uri:"id" binding:"required,uuid"`
+}
+
+type updateRequest struct {
+	Name      *string               `form:"name" binding:"omitempty,min=2,max=50"`
+	Category  *string               `form:"categoryName" binding:"omitempty"`
+	IsPrivate *bool                 `form:"isPrivate" binding:"omitempty"`
+	Thumbnail *multipart.FileHeader `form:"thumbnail"`
+}
+
 type updateResponse struct {
-	Id           uuid.UUID `json:"id"`
-	Name         string    `json:"name"`
-	CategoryName string    `json:"categoryName"`
-	IsPrivate    bool      `json:"isPrivate"`
-	Thumbnail    string    `json:"thumbnail,omitempty"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Category  string    `json:"categoryName"`
+	IsPrivate bool      `json:"isPrivate"`
+	Thumbnail string    `json:"thumbnail,omitempty"`
 }
 
 func (h *handler) Update(c *gin.Context) {
 	const maxFileSize = 2 * 1024 * 1024
 
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(slog.String("operation", "httpserver.rooms.update"))
+	log := logger.FromContext(ctx).With("operation", "handlers.Update")
 
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		log.Debug("invalid UUID format", slog.String("id", idStr))
-		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
-			Success: false,
-			Message: "Validation error",
-			Errors:  map[string]string{"id": "the id format is not valid"},
-		})
+	var uri updateUri
+	if err := c.ShouldBindUri(&uri); err != nil {
+		log.Debug("uri validation error", slog.Any("err", err))
+		HandleValidationError(c, err)
+		return
+	}
+	log = log.With("room_id", uri.RoomID)
+
+	var req updateRequest
+	if err := c.ShouldBind(&req); err != nil {
+		log.Debug("form validation error", slog.Any("err", err))
+		HandleValidationError(c, err)
 		return
 	}
 
-	if err := c.Request.ParseMultipartForm(int64(maxFileSize)); err != nil {
-		log.Debug("failed to parse multipart form", slog.String("error", err.Error()))
-		HandleAppError(c, "Validation error", apperrors.ErrInvalidInput)
-		return
-	}
-
-	var name, categoryName *string
-	var isPrivate *bool
-	problems := make(map[string]string)
-
-	if nameVal := c.Request.FormValue("name"); nameVal != "" {
-		if strings.TrimSpace(nameVal) == "" || len(nameVal) < 2 || len(nameVal) > 50 {
-			problems["name"] = "must be between 2 and 50 characters and cannot be empty"
-		} else {
-			name = &nameVal
-		}
-	}
-
-	if categoryVal := c.Request.FormValue("categoryName"); categoryVal != "" {
-		if strings.TrimSpace(categoryVal) == "" {
-			problems["categoryName"] = "category name cannot be whitespace-only"
-		} else {
-			categoryName = &categoryVal
-		}
-	}
-
-	if isPrivateStr := c.Request.FormValue("isPrivate"); isPrivateStr != "" {
-		isParsed, err := strconv.ParseBool(isPrivateStr)
-		if err != nil {
-			problems["isPrivate"] = "must be 'true' or 'false'"
-		} else {
-			isPrivate = &isParsed
-		}
-	}
-
-	if len(problems) > 0 {
-		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
-			Success: false,
-			Message: "Validation error",
-			Errors:  problems,
-		})
-		return
-	}
+	roomID, _ := uuid.Parse(uri.RoomID)
+	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 
 	var thumbnailData *[]byte
 	var thumbnailFilename *string
 
-	file, fileHeader, err := c.Request.FormFile("thumbnail")
-	if err == nil {
-		defer file.Close()
-
-		if fileHeader.Size > int64(maxFileSize) {
+	if req.Thumbnail != nil {
+		if req.Thumbnail.Size > int64(maxFileSize) {
 			c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 				Success: false,
 				Message: "Validation error",
@@ -99,6 +66,22 @@ func (h *handler) Update(c *gin.Context) {
 			})
 			return
 		}
+		if req.Thumbnail.Size == 0 {
+			c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
+				Success: false,
+				Message: "Validation error",
+				Errors:  map[string]string{"thumbnail": "file cannot be empty"},
+			})
+			return
+		}
+
+		file, err := req.Thumbnail.Open()
+		if err != nil {
+			log.Error("failed to open thumbnail file", slog.String("error", err.Error()))
+			HandleAppError(c, "File open error", err)
+			return
+		}
+		defer file.Close()
 
 		data, err := io.ReadAll(file)
 		if err != nil {
@@ -106,19 +89,23 @@ func (h *handler) Update(c *gin.Context) {
 			HandleAppError(c, "File upload error", err)
 			return
 		}
+
 		thumbnailData = &data
-		filename := fileHeader.Filename
+		filename := req.Thumbnail.Filename
 		thumbnailFilename = &filename
-	} else if !errors.Is(err, http.ErrMissingFile) {
-		log.Debug("unexpected file error", slog.String("error", err.Error()))
-		HandleAppError(c, "File upload error", apperrors.ErrInvalidInput)
-		return
 	}
 
-	userIdStr := ctx.Value("userID").(string)
-	userId, _ := uuid.Parse(userIdStr)
+	updatedRoom, err := h.service.Update(
+		ctx,
+		roomID,
+		req.Name,
+		req.Category,
+		req.IsPrivate,
+		thumbnailData,
+		thumbnailFilename,
+		userID,
+	)
 
-	updatedRoom, err := h.service.Update(ctx, id, name, categoryName, isPrivate, thumbnailData, thumbnailFilename, userId)
 	if err != nil {
 		log.Error("update room error", slog.Any("err", err))
 		HandleAppError(c, "Update room error", err)
@@ -129,11 +116,11 @@ func (h *handler) Update(c *gin.Context) {
 		Success: true,
 		Message: "Room updated",
 		Data: &updateResponse{
-			Id:           updatedRoom.Id,
-			Name:         updatedRoom.Name,
-			CategoryName: updatedRoom.CategoryName,
-			IsPrivate:    updatedRoom.IsPrivate,
-			Thumbnail:    updatedRoom.Thumbnail,
+			ID:        updatedRoom.ID,
+			Name:      updatedRoom.Name,
+			Category:  updatedRoom.Category,
+			IsPrivate: updatedRoom.IsPrivate,
+			Thumbnail: updatedRoom.Thumbnail,
 		},
 	})
 }

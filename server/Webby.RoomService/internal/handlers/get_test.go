@@ -54,14 +54,14 @@ func TestGetRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().GetById(mock.Anything, roomID, userID).Return(&models.Room{
-					Id:           roomID,
-					HostId:       userID,
-					CategoryName: "Gaming",
-					Name:         "Test Room",
-					Thumbnail:    "https://example.com/thumb.jpg",
-					IsPrivate:    false,
-					ChatId:       &chatID,
+				ms.EXPECT().GetByID(mock.Anything, roomID, userID).Return(&models.Room{
+					ID:        roomID,
+					HostID:    userID,
+					Category:  "Gaming",
+					Name:      "Test Room",
+					Thumbnail: "https://example.com/thumb.jpg",
+					IsPrivate: false,
+					ChatID:    &chatID,
 				}, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -85,7 +85,7 @@ func TestGetRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().GetById(mock.Anything, roomID, userID).Return(nil, fmt.Errorf("room: %w", apperrors.ErrNotFound)).Once()
+				ms.EXPECT().GetByID(mock.Anything, roomID, userID).Return(nil, fmt.Errorf("room: %w", apperrors.ErrNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   assertErrorResponse,
@@ -95,7 +95,7 @@ func TestGetRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().GetById(mock.Anything, roomID, userID).Return(nil, apperrors.ErrForbidden).Once()
+				ms.EXPECT().GetByID(mock.Anything, roomID, userID).Return(nil, apperrors.ErrForbidden).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody:   assertErrorResponse,
@@ -128,13 +128,13 @@ func TestGetRoomResponseFields(t *testing.T) {
 	userID := uuid.New()
 
 	mockService := handlermocks.NewMockService(t)
-	mockService.EXPECT().GetById(mock.Anything, roomID, userID).Return(&models.Room{
-		Id:           roomID,
-		HostId:       userID,
-		CategoryName: "Music",
-		Name:         "My Room",
-		Thumbnail:    "https://example.com/thumb.jpg",
-		IsPrivate:    true,
+	mockService.EXPECT().GetByID(mock.Anything, roomID, userID).Return(&models.Room{
+		ID:        roomID,
+		HostID:    userID,
+		Category:  "Music",
+		Name:      "My Room",
+		Thumbnail: "https://example.com/thumb.jpg",
+		IsPrivate: true,
 	}, nil).Once()
 
 	router := setupGetRouter(mockService)

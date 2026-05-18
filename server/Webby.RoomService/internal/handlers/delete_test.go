@@ -10,11 +10,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"webby/room-service/internal/apperrors"
 	"webby/room-service/internal/handlers"
 	handlermocks "webby/room-service/internal/handlers/mocks"
 	"webby/room-service/internal/models"
 	"webby/room-service/pkg/logger"
-	"webby/room-service/internal/apperrors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -154,11 +154,11 @@ func assertSuccessWithData(t *testing.T, body string) map[string]any {
 
 func newRoom() *models.Room {
 	return &models.Room{
-		Id:           uuid.New(),
-		HostId:       uuid.New(),
-		CategoryName: "Gaming",
-		Name:         "Test Room",
-		Thumbnail:    "https://example.com/thumb.jpg",
-		IsPrivate:    false,
+		ID:        uuid.New(),
+		HostID:    uuid.New(),
+		Category:  "Gaming",
+		Name:      "Test Room",
+		Thumbnail: "https://example.com/thumb.jpg",
+		IsPrivate: false,
 	}
 }

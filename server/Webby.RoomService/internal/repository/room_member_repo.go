@@ -150,7 +150,7 @@ func (r *RoomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID,
 	for rows.Next() {
 		var member models.RoomMemberInfo
 		err := rows.Scan(
-			&member.UserId,
+			&member.UserID,
 			&member.Username,
 			&member.AvatarUrl,
 			&member.RoomPoints,
@@ -216,7 +216,7 @@ func (r *RoomMemberRepository) UpdatePoints(ctx context.Context, roomId, userId 
 
 	var member models.RoomMemberInfo
 	err := r.db.QueryRow(ctx, query, roomId, userId, delta).Scan(
-		&member.UserId,
+		&member.UserID,
 		&member.Username,
 		&member.AvatarUrl,
 		&member.RoomPoints,

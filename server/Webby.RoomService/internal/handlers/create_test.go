@@ -72,13 +72,13 @@ func TestCreateRoom(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().Create(mock.Anything, mock.AnythingOfType("*models.Room"), mock.Anything, mock.Anything).
 					Return(&models.Room{
-						Id:           roomID,
-						HostId:       userID,
-						CategoryName: "Gaming",
-						Name:         "Test Room",
-						IsPrivate:    false,
-						Thumbnail:    "https://example.com/thumb.jpg",
-						ChatId:       &chatID,
+						ID:        roomID,
+						HostID:    userID,
+						Category:  "Gaming",
+						Name:      "Test Room",
+						IsPrivate: false,
+						Thumbnail: "https://example.com/thumb.jpg",
+						ChatID:    &chatID,
 					}, nil).Once()
 			},
 			expectedStatus: http.StatusCreated,
@@ -99,11 +99,11 @@ func TestCreateRoom(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().Create(mock.Anything, mock.AnythingOfType("*models.Room"), mock.Anything, mock.Anything).
 					Return(&models.Room{
-						Id:           roomID,
-						HostId:       userID,
-						CategoryName: "Music",
-						Name:         "Private Room",
-						IsPrivate:    true,
+						ID:        roomID,
+						HostID:    userID,
+						Category:  "Music",
+						Name:      "Private Room",
+						IsPrivate: true,
 					}, nil).Once()
 			},
 			expectedStatus: http.StatusCreated,

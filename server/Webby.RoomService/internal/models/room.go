@@ -7,22 +7,22 @@ import (
 )
 
 type Room struct {
-	Id           uuid.UUID
-	HostId       uuid.UUID
-	CategoryName string
-	Name         string
-	Thumbnail    string
-	IsPrivate    bool
-	CreatedAt    time.Time
-	ChatId       *uuid.UUID
+	ID        uuid.UUID
+	HostID    uuid.UUID
+	Category  string
+	Name      string
+	Thumbnail string
+	IsPrivate bool
+	CreatedAt time.Time
+	ChatID    *uuid.UUID
 }
 
 type PublicRoom struct {
-	Id            uuid.UUID
-	HostId        uuid.UUID
+	ID            uuid.UUID
+	HostID        uuid.UUID
 	HostUsername  string
 	HostAvatarUrl string
-	CategoryName  string
+	Category      string
 	Name          string
 	Thumbnail     string
 	IsPrivate     bool

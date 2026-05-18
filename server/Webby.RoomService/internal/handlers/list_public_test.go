@@ -48,7 +48,7 @@ func TestListPublicRooms(t *testing.T) {
 			queryParams: "",
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "", (*string)(nil)).Return([]models.PublicRoom{
-					{Id: uuid.New(), Name: "Room 1", HostId: hostID, HostUsername: "user1", HostAvatarUrl: "https://example.com/avatar.jpg", CategoryName: "Gaming", Thumbnail: "https://example.com/thumb.jpg"},
+					{ID: uuid.New(), Name: "Room 1", HostID: hostID, HostUsername: "user1", HostAvatarUrl: "https://example.com/avatar.jpg", Category: "Gaming", Thumbnail: "https://example.com/thumb.jpg"},
 				}, int64(1), nil).Once()
 			},
 			expectedStatus: http.StatusOK,

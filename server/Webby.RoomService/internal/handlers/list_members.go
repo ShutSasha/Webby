@@ -3,51 +3,49 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
+type listMembersUri struct {
+	RoomID string `uri:"id" binding:"required,uuid"`
+}
+
+type listMembersQuery struct {
+	Page   int    `form:"page,default=1" binding:"omitempty,min=1"`
+	Limit  int    `form:"limit,default=10" binding:"omitempty,min=1,max=100"`
+	Search string `form:"search" binding:"omitempty"`
+}
+
+type memberItem struct {
+	UserID     uuid.UUID `json:"userId"`
+	Username   string    `json:"username"`
+	AvatarUrl  string    `json:"avatarUrl"`
+	RoomPoints int       `json:"roomPoints"`
+}
+
 func (h *handler) ListMembers(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(slog.String("operation", "httpserver.rooms.listMembers"))
+	log := logger.FromContext(ctx).With("operation", "handlers.ListMembers")
 
-	roomIdStr := c.Param("id")
-	roomId, err := uuid.Parse(roomIdStr)
-	if err != nil {
-		log.Debug("invalid id", slog.String("err", err.Error()))
-		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
-			Success: false,
-			Message: "Validation error",
-			Errors:  map[string]string{"id": "the id format is not valid"},
-		})
+	var uri listMembersUri
+	if err := c.ShouldBindUri(&uri); err != nil {
+		log.Debug("uri validation error", slog.Any("err", err))
+		HandleValidationError(c, err)
 		return
 	}
 
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	if page < 1 {
-		page = 1
+	var query listMembersQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Debug("query validation error", slog.Any("err", err))
+		HandleValidationError(c, err)
+		return
 	}
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if limit < 1 {
-		limit = 10
-	} else if limit > 100 {
-		limit = 100
-	}
-
-	search := c.Query("search")
-
-	type memberItem struct {
-		UserId     uuid.UUID `json:"userId"`
-		Username   string    `json:"username"`
-		AvatarUrl  string    `json:"avatarUrl"`
-		RoomPoints int       `json:"roomPoints"`
-	}
-
-	members, total, err := h.service.ListMembers(ctx, roomId, page, limit, search)
+	roomID, _ := uuid.Parse(uri.RoomID)
+	members, total, err := h.service.ListMembers(ctx, roomID, query.Page, query.Limit, query.Search)
 	if err != nil {
 		log.Error("list members error", slog.Any("err", err))
 		HandleAppError(c, "List room members error", err)
@@ -57,7 +55,7 @@ func (h *handler) ListMembers(c *gin.Context) {
 	items := make([]memberItem, len(members))
 	for i, member := range members {
 		items[i] = memberItem{
-			UserId:     member.UserId,
+			UserID:     member.UserID,
 			Username:   member.Username,
 			AvatarUrl:  member.AvatarUrl,
 			RoomPoints: member.RoomPoints,
@@ -69,8 +67,8 @@ func (h *handler) ListMembers(c *gin.Context) {
 		Message: "Room members retrieved successfully",
 		Data: &PaginatedResponse[memberItem]{
 			Items: items,
-			Page:  page,
-			Limit: limit,
+			Page:  query.Page,
+			Limit: query.Limit,
 			Total: int(total),
 		},
 	})

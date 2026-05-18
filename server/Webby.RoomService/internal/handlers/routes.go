@@ -27,7 +27,6 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 			rooms.GET("/:id/members", handler.ListMembers)
 			rooms.POST("/:id/members", handler.AddMembers)
 			rooms.DELETE("/:id/members/:memberId", handler.RemoveMember)
-			rooms.PATCH("/:id/members/:memberId/points", handler.UpdatePoints)
 		}
 	}
 
