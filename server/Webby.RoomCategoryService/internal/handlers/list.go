@@ -3,30 +3,29 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 	"webby/room-category-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
+type listQuery struct {
+	Page   int    `form:"page,default=1" binding:"omitempty,min=1"`
+	Limit  int    `form:"limit,default=10" binding:"omitempty,min=1,max=100"`
+	Search string `form:"search" binding:"omitempty"`
+}
+
 func (h *handler) List(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(slog.String("operation", "handlers.list"))
+	log := logger.FromContext(ctx).With("operation", "handlers.List")
 
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	if page < 1 {
-		page = 1
+	var query listQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Debug("uri validation error", slog.Any("err", err))
+		HandleValidationError(c, err)
+		return
 	}
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if limit < 1 {
-		limit = 10
-	} else if limit > 100 {
-		limit = 100
-	}
-
-	search := c.Query("search")
-	categories, total, err := h.service.List(ctx, search, page, limit)
+	categories, total, err := h.service.List(ctx, query.Search, query.Page, query.Limit)
 	if err != nil {
 		log.Error("list categories error", slog.Any("err", err))
 		HandleAppError(c, "List categories error", err)
@@ -43,8 +42,8 @@ func (h *handler) List(c *gin.Context) {
 		Message: "Categories retrieved successfully",
 		Data: &PaginatedResponse[string]{
 			Items: items,
-			Page:  page,
-			Limit: limit,
+			Page:  query.Page,
+			Limit: query.Limit,
 			Total: int(total),
 		},
 	})
