@@ -2,6 +2,7 @@ package clients
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,13 +26,15 @@ func NewChatClient(addr string) (*ChatClient, error) {
 func (c *ChatClient) Close() error { return c.conn.Close() }
 
 func (c *ChatClient) SaveMessage(ctx context.Context, chatID, userID, content string) (string, error) {
+	const op = "grpc.ChatClient.SaveMessage"
+
 	resp, err := c.c.SaveMessage(ctx, &chatpb.SaveMessageRequest{
 		ChatId:  chatID,
 		UserId:  userID,
 		Content: content,
 	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 	return resp.GetMessageId(), nil
 }

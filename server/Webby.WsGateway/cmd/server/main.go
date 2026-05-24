@@ -56,13 +56,6 @@ func main() {
 	defer votesClient.Close()
 	_ = votesClient
 
-	roomClient, err := clients.NewRoomClient(cfg.Grpc.Room)
-	if err != nil {
-		logger.Error("room client", slog.String("err", err.Error()))
-		os.Exit(1)
-	}
-	defer roomClient.Close()
-
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     cfg.Redis.Addr,
 		Password: cfg.Redis.Password,
