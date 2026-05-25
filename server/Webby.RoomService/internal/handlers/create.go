@@ -4,9 +4,8 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"mime/multipart"
 	"net/http"
-	"strconv"
-	"strings"
 	"webby/room-service/internal/apperrors"
 	"webby/room-service/internal/models"
 	"webby/room-service/pkg/logger"
@@ -15,66 +14,42 @@ import (
 	"github.com/google/uuid"
 )
 
+type createRoomRequest struct {
+	Name         string                `form:"name" binding:"required,min=2,max=50"`
+	CategoryName string                `form:"categoryName" binding:"required"`
+	IsPrivate    bool                  `form:"isPrivate"`
+	Thumbnail    *multipart.FileHeader `form:"thumbnail"`
+}
+
 type createResponse struct {
-	Id           uuid.UUID  `json:"id"`
+	ID           uuid.UUID  `json:"id"`
 	Name         string     `json:"name"`
 	CategoryName string     `json:"categoryName"`
 	IsPrivate    bool       `json:"isPrivate"`
 	Thumbnail    string     `json:"thumbnail,omitempty"`
-	ChatId       *uuid.UUID `json:"chatId,omitempty"`
+	ChatID       *uuid.UUID `json:"chatId,omitempty"`
 }
 
 func (h *handler) Create(c *gin.Context) {
 	const maxFileSize = 2 * 1024 * 1024
 
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(slog.String("operation", "httpserver.rooms.create"))
+	log := logger.FromContext(ctx).With("operation", "handlers.Create")
 
-	if err := c.Request.ParseMultipartForm(maxFileSize); err != nil {
-		log.Debug("failed to parse multipart form", slog.String("error", err.Error()))
-		HandleAppError(c, "Validation error", apperrors.ErrInvalidInput)
+	var req createRoomRequest
+	if err := c.ShouldBind(&req); err != nil {
+		log.Debug("validation error", slog.Any("err", err))
+		HandleValidationError(c, err)
 		return
 	}
 
-	name := c.Request.FormValue("name")
-	categoryName := c.Request.FormValue("categoryName")
-	isPrivateStr := c.Request.FormValue("isPrivate")
-
-	problems := make(map[string]string)
-
-	if strings.TrimSpace(name) == "" || len(name) < 2 || len(name) > 50 {
-		problems["name"] = "must be between 2 and 50 characters and cannot be empty"
-	}
-
-	if strings.TrimSpace(categoryName) == "" {
-		problems["categoryName"] = "category name is required"
-	}
-
-	isPrivate, err := strconv.ParseBool(isPrivateStr)
-	if err != nil {
-		problems["isPrivate"] = "must be 'true' or 'false'"
-	}
-
-	if len(problems) > 0 {
-		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
-			Success: false,
-			Message: "Validation error",
-			Errors:  problems,
-		})
-		return
-	}
-
-	hostIdStr := ctx.Value("userID").(string)
-	hostId, _ := uuid.Parse(hostIdStr)
+	hostID, _ := uuid.Parse(ctx.Value("userID").(string))
 
 	var thumbnailData []byte
 	var thumbnailFilename string
 
-	file, fileHeader, err := c.Request.FormFile("thumbnail")
-	if err == nil {
-		defer file.Close()
-
-		if fileHeader.Size > int64(maxFileSize) {
+	if req.Thumbnail != nil {
+		if req.Thumbnail.Size > maxFileSize {
 			c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 				Success: false,
 				Message: "Validation error",
@@ -82,8 +57,7 @@ func (h *handler) Create(c *gin.Context) {
 			})
 			return
 		}
-
-		if fileHeader.Size == 0 {
+		if req.Thumbnail.Size == 0 {
 			c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 				Success: false,
 				Message: "Validation error",
@@ -92,24 +66,28 @@ func (h *handler) Create(c *gin.Context) {
 			return
 		}
 
-		thumbnailData, err = io.ReadAll(file)
+		file, err := req.Thumbnail.Open()
 		if err != nil {
-			log.Error("failed to read thumbnail file", slog.String("error", err.Error()))
-			HandleAppError(c, "File upload error", err)
+			log.Error("failed to open thumbnail", slog.String("error", err.Error()))
+			HandleAppError(c, "File open error", err)
 			return
 		}
-		thumbnailFilename = fileHeader.Filename
-	} else if !errors.Is(err, http.ErrMissingFile) {
-		log.Debug("unexpected file error", slog.String("error", err.Error()))
-		HandleAppError(c, "File upload error", apperrors.ErrInvalidInput)
-		return
+		defer file.Close()
+
+		thumbnailData, err = io.ReadAll(file)
+		if err != nil {
+			log.Error("failed to read thumbnail", slog.String("error", err.Error()))
+			HandleAppError(c, "File read error", err)
+			return
+		}
+		thumbnailFilename = req.Thumbnail.Filename
 	}
 
 	room, err := h.service.Create(ctx, &models.Room{
-		HostId:       hostId,
-		CategoryName: categoryName,
-		Name:         name,
-		IsPrivate:    isPrivate,
+		HostID:    hostID,
+		Category:  req.CategoryName,
+		Name:      req.Name,
+		IsPrivate: req.IsPrivate,
 	}, thumbnailData, thumbnailFilename)
 	if err != nil {
 		if errors.Is(err, apperrors.ErrInvalidInput) {
@@ -129,12 +107,12 @@ func (h *handler) Create(c *gin.Context) {
 		Success: true,
 		Message: "Room created",
 		Data: &createResponse{
-			Id:           room.Id,
+			ID:           room.ID,
 			Name:         room.Name,
-			CategoryName: room.CategoryName,
+			CategoryName: room.Category,
 			IsPrivate:    room.IsPrivate,
 			Thumbnail:    room.Thumbnail,
-			ChatId:       room.ChatId,
+			ChatID:       room.ChatID,
 		},
 	})
 }

@@ -8,6 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type updateUri struct {
+	Name string `uri:"name" binding:"required"`
+}
+
 type updateRequest struct {
 	Name string `json:"name" binding:"required,notblank,min=2,max=50"`
 }
@@ -18,18 +22,23 @@ type updateResponse struct {
 
 func (h *handler) Update(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(slog.String("operation", "httpserver.categories.update"))
+	log := logger.FromContext(ctx).With("operation", "handlers.Update")
 
-	oldName := c.Param("name")
-
-	var req updateRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Debug("validation error", slog.Any("err", err))
+	var uri updateUri
+	if err := c.ShouldBindJSON(&uri); err != nil {
+		log.Debug("uri validation error", slog.Any("err", err))
 		HandleValidationError(c, err)
 		return
 	}
 
-	if err := h.service.Update(ctx, oldName, req.Name); err != nil {
+	var req updateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Debug("body validation error", slog.Any("err", err))
+		HandleValidationError(c, err)
+		return
+	}
+
+	if err := h.service.Update(ctx, uri.Name, req.Name); err != nil {
 		log.Error("update category error", slog.Any("err", err))
 		HandleAppError(c, "Update category error", err)
 		return

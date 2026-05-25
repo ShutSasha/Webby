@@ -32,10 +32,9 @@ func (h *Handler) getWsToken(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := logger.FromContext(ctx).With(slog.String("op", op))
 
-	userIDStr := ctx.Value("userID").(string)
-	userID, _ := uuid.Parse(userIDStr)
+	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 
-	log.Debug("Get ws token", "userID", userID)
+	log = log.With("userID", userID)
 
 	token, err := h.service.GenerateToken(ctx, userID)
 	if err != nil {

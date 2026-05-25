@@ -9,9 +9,10 @@ import (
 )
 
 type Config struct {
-	Env              string `yaml:"env" env-default:"local"`
-	JwtSecret        string `yaml:"jwtSecret" env:"JWT_SECRET" env-required:"true"`
-	ConnectionString string `yaml:"connectionString"`
+	Env              string        `yaml:"env" env-default:"local"`
+	JwtSecret        string        `yaml:"jwtSecret" env:"JWT_SECRET" env-required:"true"`
+	ConnectionString string        `yaml:"connectionString"`
+	TokenTTL         time.Duration `yaml:"token_ttl" env-default:"15m"`
 
 	Http struct {
 		Host    string        `yaml:"host" env-default:"localhost"`

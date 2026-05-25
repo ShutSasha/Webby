@@ -22,7 +22,6 @@ import (
 	"webby/wsgateway/internal/repositories"
 	"webby/wsgateway/internal/services"
 	"webby/wsgateway/internal/ws"
-	"webby/wsgateway/pkg/db"
 )
 
 func main() {
@@ -32,13 +31,14 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	db, err := db.New(cfg.ConnectionString)
-	if err != nil {
-		logger.Error("database connection failed", slog.String("error", err.Error()))
-	}
-	defer db.Close()
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	defer rdb.Close()
 
-	repository := repositories.New(db)
+	repository := repositories.New(rdb, cfg.TokenTTL)
 	service := services.New(repository)
 
 	chatClient, err := clients.NewChatClient(cfg.Grpc.Chat)
@@ -54,21 +54,6 @@ func main() {
 		os.Exit(1)
 	}
 	defer votesClient.Close()
-	_ = votesClient
-
-	roomClient, err := clients.NewRoomClient(cfg.Grpc.Room)
-	if err != nil {
-		logger.Error("room client", slog.String("err", err.Error()))
-		os.Exit(1)
-	}
-	defer roomClient.Close()
-
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     cfg.Redis.Addr,
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.DB,
-	})
-	defer rdb.Close()
 
 	wsSrv := ws.NewServer(service, logger, []byte(cfg.JwtSecret), chatClient)
 	go func() {
@@ -110,7 +95,7 @@ func main() {
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_ = httpSrv.Shutdown(shutdownCtx)
+	httpSrv.Shutdown(shutdownCtx)
 
 	wg.Wait()
 	logger.Info("bye")

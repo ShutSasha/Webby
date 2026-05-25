@@ -52,7 +52,7 @@ func TestListMyRooms(t *testing.T) {
 			userID:      userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().ListMy(mock.Anything, userID, 1, 10, "", (*string)(nil)).Return([]models.Room{
-					{Id: uuid.New(), Name: "My Room", CategoryName: "Gaming", IsPrivate: false, Thumbnail: "thumb.jpg"},
+					{ID: uuid.New(), Name: "My Room", Category: "Gaming", IsPrivate: false, Thumbnail: "thumb.jpg"},
 				}, int64(1), nil).Once()
 			},
 			expectedStatus: http.StatusOK,

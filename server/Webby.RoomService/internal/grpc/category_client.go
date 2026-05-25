@@ -33,11 +33,13 @@ func (c *CategoryClient) Close() error {
 }
 
 func (c *CategoryClient) Exists(ctx context.Context, name string) (bool, error) {
+	const op = "grpc.CategoryClient.Exists"
+
 	resp, err := c.client.CategoryExists(ctx, &categorypb.CategoryExistsRequest{
 		Name: name,
 	})
 	if err != nil {
-		return false, fmt.Errorf("category exists check for %q: %w", name, err)
+		return false, fmt.Errorf("%s for %q: %w", op, name, err)
 	}
 
 	return resp.GetExists(), nil

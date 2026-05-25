@@ -3,7 +3,6 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 	"strings"
 	"webby/room-service/pkg/logger"
 
@@ -11,68 +10,65 @@ import (
 	"github.com/google/uuid"
 )
 
+type listPublicQuery struct {
+	Page     int    `form:"page,default=1" binding:"omitempty,min=1"`
+	Limit    int    `form:"limit,default=10" binding:"omitempty,min=1,max=100"`
+	Search   string `form:"search" binding:"omitempty"`
+	Category string `form:"category" binding:"omitempty"`
+}
+
+type roomListPublicItem struct {
+	ID            uuid.UUID `json:"id"`
+	Name          string    `json:"name"`
+	HostID        uuid.UUID `json:"hostId"`
+	HostUsername  string    `json:"hostUsername"`
+	HostAvatarUrl string    `json:"hostAvatarUrl"`
+	Category      string    `json:"categoryName"`
+	Thumbnail     string    `json:"thumbnail"`
+}
+
 func (h *handler) ListPublic(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(slog.String("operation", "httpserver.rooms.listPublic"))
+	log := logger.FromContext(ctx).With("operation", "handlers.ListPublic")
 
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	if page < 1 {
-		page = 1
+	var query listMyQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Debug("query validation error", slog.Any("err", err))
+		HandleValidationError(c, err)
+		return
 	}
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if limit < 1 {
-		limit = 10
-	} else if limit > 100 {
-		limit = 100
+	if strings.ToLower(query.Category) == "all" {
+		query.Category = ""
 	}
 
-	search := c.Query("search")
-
-	var categoryName *string
-	if categoryStr := c.Query("category"); categoryStr != "" {
-		if strings.ToLower(categoryStr) != "all" {
-			categoryName = &categoryStr
-		}
-	}
-
-	type roomListItem struct {
-		Id            uuid.UUID `json:"id"`
-		Name          string    `json:"name"`
-		HostId        uuid.UUID `json:"hostId"`
-		HostUsername  string    `json:"hostUsername"`
-		HostAvatarUrl string    `json:"hostAvatarUrl"`
-		CategoryName  string    `json:"categoryName"`
-		Thumbnail     string    `json:"thumbnail"`
-	}
-
-	rooms, total, err := h.service.ListPublic(ctx, page, limit, search, categoryName)
+	rooms, total, err := h.service.ListPublic(ctx, query.Page, query.Limit, query.Search, &query.Category)
 	if err != nil {
 		log.Error("list public rooms error", slog.Any("err", err))
 		HandleAppError(c, "List rooms error", err)
 		return
 	}
 
-	items := make([]roomListItem, len(rooms))
+	items := make([]roomListPublicItem, len(rooms))
 	for i, room := range rooms {
-		items[i] = roomListItem{
-			Id:            room.Id,
+		items[i] = roomListPublicItem{
+			ID:            room.ID,
 			Name:          room.Name,
-			HostId:        room.HostId,
+			HostID:        room.HostID,
 			HostUsername:  room.HostUsername,
 			HostAvatarUrl: room.HostAvatarUrl,
-			CategoryName:  room.CategoryName,
+			Category:      room.Category,
 			Thumbnail:     room.Thumbnail,
 		}
 	}
 
-	c.JSON(http.StatusOK, ApiResponse[PaginatedResponse[roomListItem]]{
+	c.JSON(http.StatusOK, ApiResponse[PaginatedResponse[roomListPublicItem]]{
 		Success: true,
 		Message: "Public rooms retrieved successfully",
-		Data: &PaginatedResponse[roomListItem]{
+		Data: &PaginatedResponse[roomListPublicItem]{
 			Items: items,
-			Page:  page,
-			Limit: limit,
+			Page:  query.Page,
+			Limit: query.Limit,
 			Total: int(total),
 		},
 	})

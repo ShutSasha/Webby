@@ -9,42 +9,35 @@ import (
 	"github.com/google/uuid"
 )
 
-type addMembersRequest struct {
-	UserIds []string `json:"userIds" binding:"required,min=1,dive,uuid"`
+type addMembersUri struct {
+	RoomID string `uri:"id" binding:"required,uuid"`
+}
+
+type addMembersBody struct {
+	UserIDs []uuid.UUID `json:"userIds" binding:"required,min=1,dive"`
 }
 
 func (h *handler) AddMembers(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(slog.String("operation", "httpserver.rooms.addMembers"))
+	log := logger.FromContext(ctx).With("operation", "handlers.AddMembers")
 
-	roomIdStr := c.Param("id")
-	roomId, err := uuid.Parse(roomIdStr)
-	if err != nil {
-		log.Debug("invalid room id", slog.String("id", roomIdStr))
-		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
-			Success: false,
-			Message: "Validation error",
-			Errors:  map[string]string{"id": "the id format is not valid"},
-		})
-		return
-	}
-
-	var req addMembersRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Debug("validation error", slog.Any("err", err))
+	var uri addMembersUri
+	if err := c.ShouldBindUri(&uri); err != nil {
+		log.Debug("uri validation error", slog.Any("err", err))
 		HandleValidationError(c, err)
 		return
 	}
 
-	memberIds := make([]uuid.UUID, len(req.UserIds))
-	for i, id := range req.UserIds {
-		memberIds[i], _ = uuid.Parse(id)
+	var body addMembersBody
+	if err := c.ShouldBindJSON(&body); err != nil {
+		log.Debug("body validation error", slog.Any("err", err))
+		HandleValidationError(c, err)
+		return
 	}
 
-	userIdStr := ctx.Value("userID").(string)
-	userId, _ := uuid.Parse(userIdStr)
-
-	if err := h.service.AddMembers(ctx, roomId, memberIds, userId); err != nil {
+	roomID, _ := uuid.Parse(uri.RoomID)
+	userID, _ := uuid.Parse(ctx.Value("userID").(string))
+	if err := h.service.AddMembers(ctx, roomID, body.UserIDs, userID); err != nil {
 		log.Error("add members error", slog.Any("err", err))
 		HandleAppError(c, "Add member error", err)
 		return
