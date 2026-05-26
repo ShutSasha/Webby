@@ -42,7 +42,7 @@ func (h *handler) Update(c *gin.Context) {
 		HandleValidationError(c, err)
 		return
 	}
-	log = log.With("room_id", uri.RoomID)
+	log = log.With("roomID", uri.RoomID)
 
 	var req updateRequest
 	if err := c.ShouldBind(&req); err != nil {
@@ -52,7 +52,7 @@ func (h *handler) Update(c *gin.Context) {
 	}
 
 	roomID, _ := uuid.Parse(uri.RoomID)
-	userID, _ := uuid.Parse(ctx.Value("userID").(string))
+	hostID, _ := uuid.Parse(ctx.Value("userID").(string))
 
 	var thumbnailData *[]byte
 	var thumbnailFilename *string
@@ -97,13 +97,9 @@ func (h *handler) Update(c *gin.Context) {
 
 	updatedRoom, err := h.service.Update(
 		ctx,
-		roomID,
-		req.Name,
-		req.Category,
-		req.IsPrivate,
-		thumbnailData,
-		thumbnailFilename,
-		userID,
+		roomID, hostID,
+		req.Name, req.Category, thumbnailFilename,
+		thumbnailData, req.IsPrivate,
 	)
 
 	if err != nil {

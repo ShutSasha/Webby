@@ -32,10 +32,6 @@ type Config struct {
 		Votes string `yaml:"votes"`
 		Room  string `yaml:"room"`
 	} `yaml:"grpc"`
-
-	Worker struct {
-		ActivityInterval time.Duration `yaml:"activityInterval" env-default:"60s"`
-	} `yaml:"worker"`
 }
 
 func MustLoad() *Config {

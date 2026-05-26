@@ -13,17 +13,8 @@ import (
 	"webby/wsgateway/internal/ws"
 )
 
-type EventType string
-
-const (
-	EventMessageCreated EventType = "MESSAGE_CREATED"
-	EventVoteUpdated    EventType = "VOTE_UPDATED"
-	EventPointsAwarded  EventType = "POINTS_AWARDED"
-	EventQueueUpdated   EventType = "QUEUE_UPDATED"
-)
-
 type Envelope struct {
-	Type    EventType       `json:"type"`
+	Type    string          `json:"type"`
 	Payload json.RawMessage `json:"payload"`
 }
 
@@ -71,19 +62,20 @@ func (s *Subscriber) handle(channel, payload string) {
 		return
 	}
 
-	switch env.Type {
-	case EventMessageCreated,
-		EventVoteUpdated,
-		EventPointsAwarded,
-		EventQueueUpdated:
-		var raw any
-		if len(env.Payload) > 0 {
-			json.Unmarshal(env.Payload, &raw)
-		}
-		s.ws.BroadcastToRoom(chatID, string(env.Type), raw)
-	default:
-		s.logger.Warn("redis: unknown event type", slog.String("type", string(env.Type)))
+	if strings.TrimSpace(env.Type) == "" {
+		s.logger.Warn("redis: empty event type")
+		return
 	}
+
+	var raw any
+	if len(env.Payload) > 0 {
+		if err := json.Unmarshal(env.Payload, &raw); err != nil {
+			s.logger.Warn("redis: bad payload json", slog.String("err", err.Error()))
+			return
+		}
+	}
+
+	s.ws.BroadcastToRoom(chatID, env.Type, raw)
 }
 
 func chatIDFromChannel(ch string) (uuid.UUID, error) {

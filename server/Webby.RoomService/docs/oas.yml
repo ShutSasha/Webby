@@ -563,6 +563,121 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/rooms/{id}/sync:
+    post:
+      tags:
+        - Rooms
+      summary: Synchronize room video playback
+      description: |
+        Initiate video synchronization for all room members. Only the room host can trigger synchronization.
+        
+        **Flow:**
+        1. Host calls this endpoint to start synchronization
+        2. Server sends `REPORT_TIMECODE` event to all room members via WebSocket
+        3. Each member receives their current video timecode and sends it via `POST /api/rooms/{id}/sync/report`
+        4. Server collects timecodes from all members (waits ~800ms)
+        5. Server broadcasts `SYNCHRONIZE` event with the furthest user's timecode (highest value)
+        6. All members receive the synchronized timecode and seek their video to that position
+      operationId: synchronizeRoom
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: Synchronization initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — only host can synchronize
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/sync/report:
+    post:
+      tags:
+        - Rooms
+      summary: Report current video timecode for synchronization
+      description: |
+        Report the current video playback timecode for synchronization.
+        
+        **Usage:**
+        1. Client receives `REPORT_TIMECODE` event via WebSocket with a `syncId`
+        2. Client gets the current video timecode (in seconds)
+        3. Client sends this endpoint with the syncId and timecode
+        4. Server collects timecodes from all members
+        5. After ~800ms, server broadcasts `SYNCHRONIZE` event with the furthest user's timecode
+      operationId: reportTimecode
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportTimecodeRequest"
+      responses:
+        "200":
+          description: Timecode reported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error or invalid timecode
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -876,3 +991,19 @@ components:
           type: integer
           description: Points delta (positive to add, negative to subtract)
           example: 10
+
+    ReportTimecodeRequest:
+      type: object
+      required:
+        - syncId
+        - timecode
+      properties:
+        syncId:
+          type: string
+          format: uuid
+          description: The synchronization session ID from the REPORT_TIMECODE event
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        timecode:
+          type: integer
+          description: Current video playback timecode in seconds
+          example: 120

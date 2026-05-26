@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ChatGrpcService_CreateChat_FullMethodName        = "/chat.ChatGrpcService/CreateChat"
-	ChatGrpcService_GetChatByRoomId_FullMethodName   = "/chat.ChatGrpcService/GetChatByRoomId"
+	ChatGrpcService_GetChatByRoomID_FullMethodName   = "/chat.ChatGrpcService/GetChatByRoomID"
 	ChatGrpcService_GetChatIDByRoomID_FullMethodName = "/chat.ChatGrpcService/GetChatIDByRoomID"
 	ChatGrpcService_AddChatMember_FullMethodName     = "/chat.ChatGrpcService/AddChatMember"
 	ChatGrpcService_SaveMessage_FullMethodName       = "/chat.ChatGrpcService/SaveMessage"
@@ -31,7 +31,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChatGrpcServiceClient interface {
 	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*ChatResponse, error)
-	GetChatByRoomId(ctx context.Context, in *GetChatByRoomIdRequest, opts ...grpc.CallOption) (*ChatResponse, error)
+	GetChatByRoomID(ctx context.Context, in *GetChatByRoomIdRequest, opts ...grpc.CallOption) (*ChatResponse, error)
 	GetChatIDByRoomID(ctx context.Context, in *GetChatIDByRoomIDRequest, opts ...grpc.CallOption) (*ChatIDByRoomIDResponse, error)
 	AddChatMember(ctx context.Context, in *AddChatMemberRequest, opts ...grpc.CallOption) (*AddChatMemberResponse, error)
 	SaveMessage(ctx context.Context, in *SaveMessageRequest, opts ...grpc.CallOption) (*SaveMessageResponse, error)
@@ -55,10 +55,10 @@ func (c *chatGrpcServiceClient) CreateChat(ctx context.Context, in *CreateChatRe
 	return out, nil
 }
 
-func (c *chatGrpcServiceClient) GetChatByRoomId(ctx context.Context, in *GetChatByRoomIdRequest, opts ...grpc.CallOption) (*ChatResponse, error) {
+func (c *chatGrpcServiceClient) GetChatByRoomID(ctx context.Context, in *GetChatByRoomIdRequest, opts ...grpc.CallOption) (*ChatResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ChatResponse)
-	err := c.cc.Invoke(ctx, ChatGrpcService_GetChatByRoomId_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ChatGrpcService_GetChatByRoomID_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (c *chatGrpcServiceClient) SaveMessage(ctx context.Context, in *SaveMessage
 // for forward compatibility.
 type ChatGrpcServiceServer interface {
 	CreateChat(context.Context, *CreateChatRequest) (*ChatResponse, error)
-	GetChatByRoomId(context.Context, *GetChatByRoomIdRequest) (*ChatResponse, error)
+	GetChatByRoomID(context.Context, *GetChatByRoomIdRequest) (*ChatResponse, error)
 	GetChatIDByRoomID(context.Context, *GetChatIDByRoomIDRequest) (*ChatIDByRoomIDResponse, error)
 	AddChatMember(context.Context, *AddChatMemberRequest) (*AddChatMemberResponse, error)
 	SaveMessage(context.Context, *SaveMessageRequest) (*SaveMessageResponse, error)
@@ -117,8 +117,8 @@ type UnimplementedChatGrpcServiceServer struct{}
 func (UnimplementedChatGrpcServiceServer) CreateChat(context.Context, *CreateChatRequest) (*ChatResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateChat not implemented")
 }
-func (UnimplementedChatGrpcServiceServer) GetChatByRoomId(context.Context, *GetChatByRoomIdRequest) (*ChatResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetChatByRoomId not implemented")
+func (UnimplementedChatGrpcServiceServer) GetChatByRoomID(context.Context, *GetChatByRoomIdRequest) (*ChatResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetChatByRoomID not implemented")
 }
 func (UnimplementedChatGrpcServiceServer) GetChatIDByRoomID(context.Context, *GetChatIDByRoomIDRequest) (*ChatIDByRoomIDResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetChatIDByRoomID not implemented")
@@ -168,20 +168,20 @@ func _ChatGrpcService_CreateChat_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ChatGrpcService_GetChatByRoomId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ChatGrpcService_GetChatByRoomID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetChatByRoomIdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ChatGrpcServiceServer).GetChatByRoomId(ctx, in)
+		return srv.(ChatGrpcServiceServer).GetChatByRoomID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ChatGrpcService_GetChatByRoomId_FullMethodName,
+		FullMethod: ChatGrpcService_GetChatByRoomID_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChatGrpcServiceServer).GetChatByRoomId(ctx, req.(*GetChatByRoomIdRequest))
+		return srv.(ChatGrpcServiceServer).GetChatByRoomID(ctx, req.(*GetChatByRoomIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -252,8 +252,8 @@ var ChatGrpcService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ChatGrpcService_CreateChat_Handler,
 		},
 		{
-			MethodName: "GetChatByRoomId",
-			Handler:    _ChatGrpcService_GetChatByRoomId_Handler,
+			MethodName: "GetChatByRoomID",
+			Handler:    _ChatGrpcService_GetChatByRoomID_Handler,
 		},
 		{
 			MethodName: "GetChatIDByRoomID",

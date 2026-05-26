@@ -44,7 +44,7 @@ func (h *handler) ListMy(c *gin.Context) {
 	rooms, total, err := h.service.ListMy(
 		ctx,
 		userID,
-		query.Page, query.Limit, query.Search, &query.Category,
+		query.Page, query.Limit, query.Search, query.Category,
 	)
 	if err != nil {
 		log.Error("list my rooms error", slog.Any("err", err))

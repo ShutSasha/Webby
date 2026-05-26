@@ -20,3 +20,8 @@ grpc:
   chatServiceAddress: "localhost:50051"
   categoryServiceAddress: "localhost:50052"
   queueServiceAddress: "localhost:50053"
+
+redis:
+  addr: "localhost:6379"
+  password: "{{RedisPassword}}"
+  db: 0

@@ -18,10 +18,12 @@ import (
 	"webby/room-service/internal/grpc/memberpb"
 	"webby/room-service/internal/grpc/roompb"
 	"webby/room-service/internal/handlers"
+	"webby/room-service/internal/publisher"
 	"webby/room-service/internal/repository"
 	"webby/room-service/internal/services"
 	"webby/room-service/pkg/slogpretty"
 
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 )
 
@@ -44,30 +46,38 @@ func run(ctx context.Context, w io.Writer) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
-	config := config.MustLoad()
-	logger := setupLogger(config.Env, w)
+	cfg := config.MustLoad()
+	logger := setupLogger(cfg.Env, w)
 
-	db, err := database.New(config.ConnectionString)
+	db, err := database.New(cfg.ConnectionString)
 	if err != nil {
 		logger.Error("database connection failed", slog.String("error", err.Error()))
 		return err
 	}
 	defer db.Close()
 
-	logger.Info("database connected successfully")
-
 	roomRepository := repository.NewRoomRepository(db)
 	roomMemberRepository := repository.NewRoomMemberRepository(db)
-	fileStorage := repository.NewFileStorage(config)
+	fileStorage := repository.NewFileStorage(cfg)
 
-	mediaClient, err := grpcClient.NewMediaClient(config.Grpc.MediaServiceAddress)
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	defer rdb.Close()
+
+	publisher := publisher.New(rdb)
+	redisRepository := repository.NewRedisRepo(rdb)
+
+	mediaClient, err := grpcClient.NewMediaClient(cfg.Grpc.MediaServiceAddress)
 	if err != nil {
 		logger.Error("media service gRPC connection failed", slog.String("error", err.Error()))
 		return err
 	}
 	defer mediaClient.Close()
 
-	chatClient, err := grpcClient.NewChatClient(config.Grpc.ChatServiceAddress)
+	chatClient, err := grpcClient.NewChatClient(cfg.Grpc.ChatServiceAddress)
 	if err != nil {
 		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
 		chatClient = nil
@@ -75,34 +85,38 @@ func run(ctx context.Context, w io.Writer) error {
 		defer chatClient.Close()
 	}
 
-	categoryClient, err := grpcClient.NewCategoryClient(config.Grpc.CategoryServiceAddress)
+	categoryClient, err := grpcClient.NewCategoryClient(cfg.Grpc.CategoryServiceAddress)
 	if err != nil {
 		logger.Error("category service gRPC connection failed", slog.String("error", err.Error()))
 		return err
 	}
 	defer categoryClient.Close()
 
-	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, chatClient, categoryClient)
+	roomService := services.NewRoomService(
+		roomRepository, roomMemberRepository, fileStorage,
+		chatClient, categoryClient,
+		publisher, redisRepository,
+	)
 
 	logger.Info("repositories initialized")
 
 	server := handlers.NewServer(
-		config,
+		cfg,
 		logger,
 		roomService,
 	)
 	httpServer := &http.Server{
-		Addr:         net.JoinHostPort(config.Http.Host, strconv.Itoa(config.Http.Port)),
-		ReadTimeout:  config.Http.Timeout,
-		WriteTimeout: config.Http.Timeout,
+		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
+		ReadTimeout:  cfg.Http.Timeout,
+		WriteTimeout: cfg.Http.Timeout,
 		Handler:      server,
 	}
 
 	go func() {
 		logger.Info(
 			"Server listening",
-			slog.String("host", config.Http.Host),
-			slog.Int("port", config.Http.Port),
+			slog.String("host", cfg.Http.Host),
+			slog.Int("port", cfg.Http.Port),
 		)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("error listening and serving", slog.Any("error", err))
@@ -111,7 +125,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	grpcListener, err := net.Listen(
 		"tcp",
-		net.JoinHostPort(config.Grpc.Host, strconv.Itoa(config.Grpc.Port)),
+		net.JoinHostPort(cfg.Grpc.Host, strconv.Itoa(cfg.Grpc.Port)),
 	)
 	if err != nil {
 		logger.Error("grpc listen failed", slog.Any("error", err))
@@ -131,8 +145,8 @@ func run(ctx context.Context, w io.Writer) error {
 	go func() {
 		logger.Info(
 			"gRPC server listening",
-			slog.String("host", config.Grpc.Host),
-			slog.Int("port", config.Grpc.Port),
+			slog.String("host", cfg.Grpc.Host),
+			slog.Int("port", cfg.Grpc.Port),
 		)
 		if err := grpcSrv.Serve(grpcListener); err != nil {
 			logger.Error("error serving grpc", slog.Any("error", err))
