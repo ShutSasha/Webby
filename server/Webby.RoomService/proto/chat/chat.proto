@@ -6,26 +6,36 @@ option go_package = "webby/room-service/internal/grpc/chatpb";
 
 service ChatGrpcService {
   rpc CreateChat(CreateChatRequest) returns (ChatResponse);
-  rpc GetChatByRoomId(GetChatByRoomIdRequest) returns (ChatResponse);
+  rpc GetChatByRoomID(GetChatByRoomIdRequest) returns (ChatResponse);
   rpc AddChatMember(AddChatMemberRequest) returns (AddChatMemberResponse);
+  rpc GetChatIDByRoomID(GetChatIDByRoomIDRequest) returns (ChatIDByRoomIDResponse);
 }
 
 message CreateChatRequest {
-  string room_id = 1;
+  string roomID = 1;
 }
 
 message GetChatByRoomIdRequest {
-  string room_id = 1;
+  string roomID = 1;
 }
 
 message AddChatMemberRequest {
-  string chat_id = 1;
-  string user_id = 2;
+  string chatID = 1;
+  string userID = 2;
 }
 
 message ChatResponse {
   string id = 1;
-  string room_id = 2;
+  string roomID = 2;
 }
 
 message AddChatMemberResponse {}
+
+message GetChatIDByRoomIDRequest {
+  string roomID = 1;
+  string userID = 2;
+}
+
+message ChatIDByRoomIDResponse {
+  string chatID = 2;
+}

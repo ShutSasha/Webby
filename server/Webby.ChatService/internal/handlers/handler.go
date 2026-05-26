@@ -10,7 +10,7 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, roomID *uuid.UUID) (*models.Chat, error)
-	GetById(ctx context.Context, chatID uuid.UUID) (*models.Chat, error)
+	GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error)
 }
 
 type handler struct {

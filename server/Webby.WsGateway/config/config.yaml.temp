@@ -1,6 +1,9 @@
 env: "local"
 jwtSecret: "MyExtraMegaSuperKeyThatYouCanUnderstand"
 connectionString: "{{UriConnectionString}}"
+
+token_ttl: 5m
+
 http:
   host: "localhost"
   port: 8090
@@ -16,6 +19,3 @@ grpc:
   chat: "localhost:50051"
   votes: "localhost:50053"
   room: "localhost:50052"
-
-worker:
-  activityInterval: 60s

@@ -11,8 +11,8 @@ import (
 
 type ChatRepo interface {
 	Create(ctx context.Context, chat *models.Chat) (uuid.UUID, error)
-	GetById(ctx context.Context, id uuid.UUID) (*models.Chat, error)
-	GetByRoomId(ctx context.Context, roomId uuid.UUID) (*models.Chat, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*models.Chat, error)
+	GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
 	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
 }
 
@@ -47,7 +47,7 @@ func NewChatService(
 
 func (s *ChatService) Create(ctx context.Context, roomID *uuid.UUID) (*models.Chat, error) {
 	if roomID != nil {
-		existing, err := s.chatRepo.GetByRoomId(ctx, *roomID)
+		existing, err := s.chatRepo.GetByRoomID(ctx, *roomID)
 		if err == nil && existing != nil {
 			return existing, nil
 		}
@@ -65,16 +65,16 @@ func (s *ChatService) Create(ctx context.Context, roomID *uuid.UUID) (*models.Ch
 	return chat, nil
 }
 
-func (s *ChatService) GetById(ctx context.Context, chatId uuid.UUID) (*models.Chat, error) {
-	chat, err := s.chatRepo.GetById(ctx, chatId)
+func (s *ChatService) GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error) {
+	chat, err := s.chatRepo.GetByID(ctx, chatID)
 	if err != nil {
 		return nil, err
 	}
 	return chat, nil
 }
 
-func (s *ChatService) GetByRoomId(ctx context.Context, roomId uuid.UUID) (*models.Chat, error) {
-	chat, err := s.chatRepo.GetByRoomId(ctx, roomId)
+func (s *ChatService) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error) {
+	chat, err := s.chatRepo.GetByRoomID(ctx, roomID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,13 +97,13 @@ func (s *ChatService) GetChatIDByRoomID(ctx context.Context, roomID, userID uuid
 	return id, nil
 }
 
-func (s *ChatService) AddMember(ctx context.Context, chatId, userId uuid.UUID) error {
-	_, err := s.chatRepo.GetById(ctx, chatId)
+func (s *ChatService) AddMember(ctx context.Context, chatID, userID uuid.UUID) error {
+	_, err := s.chatRepo.GetByID(ctx, chatID)
 	if err != nil {
 		return err
 	}
 
-	return s.chatMemberRepo.Add(ctx, chatId, userId)
+	return s.chatMemberRepo.Add(ctx, chatID, userID)
 }
 
 func (s *ChatService) RemoveMember(ctx context.Context, chatId, userId uuid.UUID) error {
@@ -114,12 +114,12 @@ func (s *ChatService) IsMember(ctx context.Context, chatId, userId uuid.UUID) (b
 	return s.chatMemberRepo.Exists(ctx, chatId, userId)
 }
 
-func (s *ChatService) ListMembers(ctx context.Context, chatId uuid.UUID) ([]uuid.UUID, error) {
-	_, err := s.chatRepo.GetById(ctx, chatId)
+func (s *ChatService) ListMembers(ctx context.Context, chatID uuid.UUID) ([]uuid.UUID, error) {
+	_, err := s.chatRepo.GetByID(ctx, chatID)
 	if err != nil {
 		return nil, err
 	}
-	return s.chatMemberRepo.ListByChat(ctx, chatId)
+	return s.chatMemberRepo.ListByChat(ctx, chatID)
 }
 
 func (s *ChatService) EnsureMember(ctx context.Context, chatId, userId uuid.UUID) error {

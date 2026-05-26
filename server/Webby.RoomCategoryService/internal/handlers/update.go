@@ -25,7 +25,7 @@ func (h *handler) Update(c *gin.Context) {
 	log := logger.FromContext(ctx).With("operation", "handlers.Update")
 
 	var uri updateUri
-	if err := c.ShouldBindJSON(&uri); err != nil {
+	if err := c.ShouldBindUri(&uri); err != nil {
 		log.Debug("uri validation error", slog.Any("err", err))
 		HandleValidationError(c, err)
 		return

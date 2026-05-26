@@ -39,8 +39,8 @@ func (r *ChatRepository) Create(ctx context.Context, chat *models.Chat) (uuid.UU
 	return chat.ID, nil
 }
 
-func (r *ChatRepository) GetById(ctx context.Context, id uuid.UUID) (*models.Chat, error) {
-	const op = "repository.ChatRepository.GetById"
+func (r *ChatRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Chat, error) {
+	const op = "repository.ChatRepository.GetByID"
 
 	if id == uuid.Nil {
 		return nil, fmt.Errorf("%s: %w: invalid chat id", op, apperrors.ErrInvalidInput)
@@ -64,10 +64,10 @@ func (r *ChatRepository) GetById(ctx context.Context, id uuid.UUID) (*models.Cha
 	return &chat, nil
 }
 
-func (r *ChatRepository) GetByRoomId(ctx context.Context, roomId uuid.UUID) (*models.Chat, error) {
+func (r *ChatRepository) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error) {
 	const op = "repository.ChatRepository.GetByRoomId"
 
-	if roomId == uuid.Nil {
+	if roomID == uuid.Nil {
 		return nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
@@ -78,10 +78,10 @@ func (r *ChatRepository) GetByRoomId(ctx context.Context, roomId uuid.UUID) (*mo
 	`
 
 	var chat models.Chat
-	err := r.db.QueryRow(ctx, query, roomId).Scan(&chat.ID, &chat.RoomID, &chat.CreatedAt)
+	err := r.db.QueryRow(ctx, query, roomID).Scan(&chat.ID, &chat.RoomID, &chat.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("%s: room %s: %w", op, roomId.String(), apperrors.ErrNotFound)
+			return nil, fmt.Errorf("%s: room %s: %w", op, roomID.String(), apperrors.ErrNotFound)
 		}
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
