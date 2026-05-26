@@ -18,6 +18,8 @@ try
     services.AddCorsPolicy("AllowApiGetaway");
     services.AddSwaggerConfig();
     services.AddDbConnection(configuration);
+    services.ConfigureRedisConnection(configuration);
+
 
     services.AddAutoMapper(cfg => { cfg.LicenseKey = configuration["AutoMapper:LicenseKey"]; }, typeof(Program));
 
@@ -27,6 +29,7 @@ try
 
     services.ConfigureGrpcConnections();
 
+    services.AddBackgroundWorkers();
     services.AddRepositories();
     services.AddServices();
     services.AddHelpers();

@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using Webby.UserService.Dtos.Achievement;
-using Webby.UserService.Helpers.Response;
-using Webby.UserService.Interfaces.Repository;
-using Webby.UserService.Interfaces.Service;
-using Webby.UserService.Models;
+using Webby.AchievementService.Dtos.Achievement;
+using Webby.AchievementService.Helpers.Response;
+using Webby.AchievementService.Interfaces.Services;
+using Webby.AchievementService.Models;
 
-namespace Webby.UserService.Controllers;
+namespace Webby.AchievementService.Controllers;
 
 [ApiController]
 [Route("api/achievements")]
@@ -58,7 +57,4 @@ public class AchievementController: ControllerBase
       await _achievementService.DeleteAchievement(achievementId);
       return Ok(ApiResponse.Ok("Successfully deleted achievement"));
    }
-
-   
-   
 }

@@ -1,12 +1,11 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Webby.UserService.Dtos.Achievement;
-using Webby.UserService.Helpers.Exception;
-using Webby.UserService.Interfaces.Repository;
-using Webby.UserService.Interfaces.Service;
-using Webby.UserService.Models;
+using Webby.AchievementService.Dtos.Achievement;
+using Webby.AchievementService.Helpers.Exception;
+using Webby.AchievementService.Interfaces.Repositories;
+using Webby.AchievementService.Interfaces.Services;
+using Webby.AchievementService.Models;
 
-namespace Webby.UserService.Services;
+namespace Webby.AchievementService.Services;
 
 public class AchievementService : IAchievementService
 {

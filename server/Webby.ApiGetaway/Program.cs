@@ -43,6 +43,7 @@ try
         c.SwaggerEndpoint("/room/swagger/v1/swagger.json", "RoomService");
         c.SwaggerEndpoint("/chat/swagger/v1/swagger.json", "ChatService");
         c.SwaggerEndpoint("/notification/swagger/v1/swagger.json", "NotificationService");
+        c.SwaggerEndpoint("/achievement/swagger/v1/swagger.json", "NotificationService");
         c.RoutePrefix = "";
         });
     }

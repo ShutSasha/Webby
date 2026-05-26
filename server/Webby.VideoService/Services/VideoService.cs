@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using UserService;
+using Webby.VideoService.Dtos.Event;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
@@ -29,10 +30,11 @@ public class VideoService : IVideoService
    private readonly IBackgroundTaskQueue _queue;
    private readonly IServiceScopeFactory _scopeFactory;
    private readonly IYouTubeSearchService _youtubeSearchService;
+   private readonly IEventPublisher _eventPublisher;
    public VideoService(IVideoRepository videoRepository, IStorageService storageService,
       ITagService tagService, IPlaylistService playlistService, UserGrpcService.UserGrpcServiceClient userClient, 
       IMapper mapper, IBackgroundTaskQueue queue,
-      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService)
+      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService, IEventPublisher eventPublisher)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
@@ -43,6 +45,7 @@ public class VideoService : IVideoService
       _queue = queue;
       _scopeFactory = scopeFactory;
       _youtubeSearchService = youtubeSearchService;
+      _eventPublisher = eventPublisher;
    }
 
    public async Task<Video> GetVideoById(Guid videoId)
@@ -147,6 +150,13 @@ public class VideoService : IVideoService
       {
          await _tagService.EnsureCreateTags(request.VideoTags, video.VideoId);
       }
+      
+      var platformEvent = new VideoPublishedEvent(userId, video.VideoId)
+      {
+         Value = await _videoRepository.GetUserVideosCount(userId)
+      };
+      
+      await _eventPublisher.PublishAsync(platformEvent);
    }
 
    public async Task DeleteVideo(Guid userId, Guid videoId)

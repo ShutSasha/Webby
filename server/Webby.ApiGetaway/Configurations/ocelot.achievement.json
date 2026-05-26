@@ -1,0 +1,91 @@
+﻿{
+   "Routes":[
+      {
+         "DownstreamPathTemplate": "/docs/achievement-service/v1/swagger.json",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/achievement/swagger/v1/swagger.json",
+         "UpstreamHttpMethod": [ "GET" ],
+         "AuthenticationOptions": {
+            "AllowAnonymous": true
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/achievements",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/achievements",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements",
+         "UpstreamHttpMethod": [
+            "POST","PUT"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/achievements/{achievementId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements/{achievementId}",
+         "UpstreamHttpMethod": [
+            "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/achievements/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      }
+   ]
+}

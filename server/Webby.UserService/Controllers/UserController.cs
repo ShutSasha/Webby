@@ -90,14 +90,6 @@ public class UserController : ControllerBase
       return Ok(ApiResponse.Ok(resultMessage));
    }
    
-   [HttpPost("achievements/unlock")]
-   [SwaggerOperation("Test unlock achievement to user")]
-   public async Task<ActionResult<ApiResponse>> UnlockUserAchievement([FromBody] UnlockUserAchievementRequest request)
-   {
-      await _userService.UnlockAchievement(request.UserId, request.AchievementId);
-      return Ok(ApiResponse.Ok("Successfully unlock user achievement"));
-   }
-   
    [HttpPost("achievements/{achievementId:guid}")]
    [SwaggerOperation("Pin user achievement","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> PinUserAchievement([FromRoute] Guid achievementId)

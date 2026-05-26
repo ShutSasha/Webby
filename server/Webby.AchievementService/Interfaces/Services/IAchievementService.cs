@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Webby.UserService.Dtos.Achievement;
-using Webby.UserService.Models;
+﻿using Webby.AchievementService.Dtos.Achievement;
+using Webby.AchievementService.Models;
 
-namespace Webby.UserService.Interfaces.Service;
+namespace Webby.AchievementService.Interfaces.Services;
 
 public interface IAchievementService
 {

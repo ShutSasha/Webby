@@ -1,8 +1,6 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using System.Text.Json.Serialization;
-using Webby.UserService.Data.Configurations;
+﻿using System.Text.Json.Serialization;
 
-namespace Webby.UserService.Models;
+namespace Webby.AchievementService.Models;
 
 public class Achievement
 {

@@ -1,0 +1,39 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "AchievementService";
+
+import "google/protobuf/wrappers.proto";
+
+enum ProcessAchievementType{
+  UNSPECIFIED = 0;
+  PIN = 1;
+  UNPIN = 2;
+}
+
+service AchievementGrpcService{
+  rpc ProcessPinAchievement (ProcessPinAchievementsRequest) returns (google.protobuf.BoolValue);
+  rpc GetPinnedAchievements (GetPinnedAchievementsRequest) returns (GetPinnedAchievementsResponse);
+}
+
+// REQUESTS
+message ProcessPinAchievementsRequest{
+  string userId = 1;
+  string achievementId = 2;
+  ProcessAchievementType processAchievementType = 3;
+}
+
+message GetPinnedAchievementsRequest{
+  string userId = 1;
+}
+
+// RESPONSES
+
+message ProfileAchievementItem{
+  string achievementId = 1;
+  string iconUrl = 2;
+  string title = 3;
+}
+
+message GetPinnedAchievementsResponse{
+  repeated  ProfileAchievementItem userAchievements = 1;
+}

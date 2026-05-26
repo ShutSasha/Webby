@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Webby.UserService.Models;
+using Webby.AchievementService.Models;
 
-namespace Webby.UserService.Data.Configurations;
+namespace Webby.AchievementService.Data.Configurations;
 
 public class AchievementConfiguration : IEntityTypeConfiguration<Achievement>
 {

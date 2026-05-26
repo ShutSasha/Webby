@@ -60,6 +60,13 @@ tasks:
         cd ./Webby.NotificationService
         dotnet run -p:WarningLevel=0
   
+  run_achievement_service:
+    desc: "Run the C# AchievementService"
+    cmds:
+      - |
+        cd ./Webby.AchievementService
+        dotnet run -p:WarningLevel=0
+  
   run_all:
     desc: "Run all services"
     deps:
@@ -71,3 +78,4 @@ tasks:
       - run_room_service
       - run_chat_service
       - run_notification_service
+      - run_achievement_service

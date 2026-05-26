@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using UserService;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Data;
@@ -93,7 +94,6 @@ public static class ApiExtension
    {
       serviceCollection.AddScoped<VideoUploadProcessor>();
       serviceCollection.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
-      serviceCollection.AddHostedService<QueuedHostedService>();
       serviceCollection.AddScoped<IPlaylistService, PlaylistService>();
       serviceCollection.AddScoped<ITagService, TagService>();
       serviceCollection.AddScoped<IVideoService,Services.VideoService>();
@@ -101,6 +101,12 @@ public static class ApiExtension
       serviceCollection.AddScoped<IStreamService, StreamService>();
       serviceCollection.AddScoped<IYouTubeSearchService,YoutubeSearchService>();
       serviceCollection.AddScoped<ITwitchSearchService, TwitchSearchService>();
+      serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
+   }
+
+   public static void AddBackgroundServices(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddHostedService<QueuedHostedService>();
    }
 
    public static void AddExternalServices(this IServiceCollection serviceCollection)
@@ -129,5 +135,11 @@ public static class ApiExtension
       {
          o.Address = new Uri("http://localhost:5004");
       });
+   }
+
+   public static void ConfigureRedisConnection(this IServiceCollection serviceCollection, IConfiguration configuration)
+   {
+      serviceCollection.AddSingleton<IConnectionMultiplexer>(sp =>
+         ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis") ?? string.Empty));
    }
 }

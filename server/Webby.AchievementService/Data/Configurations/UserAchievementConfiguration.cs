@@ -1,19 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Webby.UserService.Models;
+using Webby.AchievementService.Models;
 
-namespace Webby.UserService.Data.Configurations;
+namespace Webby.AchievementService.Data.Configurations;
 
 public class UserAchievementConfiguration : IEntityTypeConfiguration<UserAchievement>
 {
    public void Configure(EntityTypeBuilder<UserAchievement> builder)
    {
+      //TODO: Apply migration after implementing unlocking achievemnts
+      builder.ToTable("user_achievements");
+      
       builder.HasKey(ua => new { ua.AchievementId, ua.UserId });
-
-      builder.HasOne(ua => ua.User)
-         .WithMany(u => u.UserAchievements)
-         .HasForeignKey(ua => ua.UserId)
-         .OnDelete(DeleteBehavior.Cascade);
 
       builder.HasOne(ua => ua.Achievement)
          .WithMany(a => a.UserAchievements)

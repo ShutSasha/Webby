@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Webby.UserService.Data;
-using Webby.UserService.Dtos.Achievement;
-using Webby.UserService.Interfaces.Repository;
-using Webby.UserService.Models;
+using Webby.AchievementService.Data;
+using Webby.AchievementService.Dtos.Achievement;
+using Webby.AchievementService.Interfaces.Repositories;
+using Webby.AchievementService.Models;
 
-namespace Webby.UserService.Repositories;
+namespace Webby.AchievementService.Repositories;
 
 public class AchievementRepository : GenericRepository<Achievement>, IAchievementRepository
 {

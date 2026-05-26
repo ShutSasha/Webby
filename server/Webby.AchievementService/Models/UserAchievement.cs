@@ -1,4 +1,4 @@
-﻿namespace Webby.UserService.Models;
+﻿namespace Webby.AchievementService.Models;
 
 public class UserAchievement
 {
@@ -7,6 +7,5 @@ public class UserAchievement
    public DateTime UnlockedAt { get; set; }
    public bool IsPinned { get; set; }
    
-   public User User { get; set; }
    public Achievement Achievement { get; set; }
 }

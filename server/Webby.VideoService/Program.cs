@@ -23,6 +23,7 @@ try
 
     services.AddSwaggerConfig();
     services.AddDbConnection(configuration);
+    services.ConfigureRedisConnection(configuration);
 
     services.AddAutoMapper(cfg => { cfg.LicenseKey = configuration["AutoMapper:LicenseKey"]; }, typeof(Program));
 
@@ -34,6 +35,7 @@ try
     services.AddRepositories();
     services.AddServices();
     services.AddExternalServices();
+    services.AddBackgroundServices();
 
     services.ConfigureGrpcConnections();
 

@@ -1,7 +1,7 @@
-﻿using Webby.UserService.Dtos.Achievement;
-using Webby.UserService.Models;
+﻿using Webby.AchievementService.Dtos.Achievement;
+using Webby.AchievementService.Models;
 
-namespace Webby.UserService.Interfaces.Repository;
+namespace Webby.AchievementService.Interfaces.Repositories;
 
 public interface IAchievementRepository : IRepository<Achievement>
 {

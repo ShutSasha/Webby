@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Webby.UserService.Models;
+using Webby.AchievementService.Models;
 
-namespace Webby.UserService.Data.Configurations;
+namespace Webby.AchievementService.Data.Configurations;
 
 public class UserAchievementProgressConfiguration: IEntityTypeConfiguration<UserAchievementProgress>
 {
@@ -15,11 +15,6 @@ public class UserAchievementProgressConfiguration: IEntityTypeConfiguration<User
       builder.HasOne(uap => uap.Achievement)
          .WithMany(a => a.UserAchievementsProgresses)
          .HasForeignKey(uap => uap.AchievementId)
-         .OnDelete(DeleteBehavior.Cascade);
-
-      builder.HasOne(uap => uap.User)
-         .WithMany(u => u.UserAchievementProgresses)
-         .HasForeignKey(uap => uap.UserId)
          .OnDelete(DeleteBehavior.Cascade);
 
       builder.Property(uap => uap.CurrentValue)
