@@ -30,6 +30,7 @@ try
       options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
    });
    
+   services.AddHelpers();
    services.AddBackgroundWorkers();
    services.AddInterceptors();
    services.AddRepositories();

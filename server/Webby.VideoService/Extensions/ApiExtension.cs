@@ -109,6 +109,11 @@ public static class ApiExtension
       serviceCollection.AddHostedService<QueuedHostedService>();
    }
 
+   public static void AddHelpers(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
+   }
+
    public static void AddExternalServices(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddHttpClient<YoutubeSearchService>(options =>

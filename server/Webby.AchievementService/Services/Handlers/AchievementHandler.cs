@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using Webby.AchievementService.Data;
 using Webby.AchievementService.Dtos.Event;
+using Webby.AchievementService.Interfaces.Helpers.Notification;
 using Webby.AchievementService.Models;
+using Webby.NotificationService.GrpcClient;
 
 namespace Webby.AchievementService.Services.Handlers;
 
@@ -11,11 +13,14 @@ public class AchievementHandler
 {
     private readonly IDatabase _redisDb;
     private readonly AppDbContext _dbContext;
-
-    public AchievementHandler(IConnectionMultiplexer redis, AppDbContext dbContext)
+    private readonly NotificationGrpcService.NotificationGrpcServiceClient _notificationGrpcServiceClient;
+    private readonly INotificationFactory _notificationFactory;
+    public AchievementHandler(IConnectionMultiplexer redis, AppDbContext dbContext, NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient, INotificationFactory notificationFactory)
     {
         _redisDb = redis.GetDatabase();
         _dbContext = dbContext;
+        _notificationGrpcServiceClient = notificationGrpcServiceClient;
+        _notificationFactory = notificationFactory;
     }
 
     public async Task HandleEventAsync(string eventType, string payloadJson)
@@ -64,7 +69,7 @@ public class AchievementHandler
                     AchievementId = ach.AchievementId,
                     CurrentValue = (int)currentValue
                 };
-                _dbContext.UserAchievementProgresses.Add(progress);
+               await _dbContext.UserAchievementProgresses.AddAsync(progress);
             }
             else
             {
@@ -82,6 +87,27 @@ public class AchievementHandler
 
     private async Task UnlockAchievementAsync(Guid userId, Achievement achievement)
     {
-        Console.WriteLine($"Achievement unlocked: {achievement.Title} for user {userId}");
+        var userAchievement = new UserAchievement()
+        {
+            AchievementId = achievement.AchievementId,
+            IsPinned = false,
+            UnlockedAt = DateTime.UtcNow,
+            UserId = userId,
+        };
+
+        await _dbContext.UserAchievements.AddAsync(userAchievement);
+        await _dbContext.SaveChangesAsync();
+        var notificationDto = await _notificationFactory
+            .UnlockAchievementSendMessage(achievement.Title, userId, achievement.AchievementId);
+        
+        await _notificationGrpcServiceClient.SendNotificationToUserAsync(new CreateNotificationRequest
+        {
+            Message = notificationDto.Message,
+            TargetType = GrpcNotificationTargetType.Achievement,
+            TargetIdentifier = notificationDto.TargetIdentifier,
+            Title = notificationDto.Title,
+            UserId = notificationDto.UserId
+        });
+        
     }
 }

@@ -1,11 +1,7 @@
 using System.Text.Json.Serialization;
 using Amazon.S3;
-using Grpc.Net.Client.Web;
 using Serilog;
-using UserService;
-using Webby.MediaService.GrpcServer;
 using Webby.VideoService.Extensions;
-using Webby.VideoService.Helpers.Seed;
 using Webby.VideoService.Middlewares;
 using Webby.VideoService.Services.Grpc;
 
@@ -30,7 +26,8 @@ try
     services.AddSingleton<IAmazonS3>(AwsS3ClientFactory.CreateS3Client(configuration));
 
     services.ConfigureOptionDependencies(configuration);
-
+    
+    services.AddHelpers();
     services.AddGrpc(options => { options.Interceptors.Add<GrpcExceptionInterceptor>(); });
     services.AddRepositories();
     services.AddServices();

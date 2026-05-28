@@ -3,6 +3,8 @@ using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 using Webby.AchievementService.Data;
 using Webby.AchievementService.Dtos.Storage;
+using Webby.AchievementService.Helpers.Notification;
+using Webby.AchievementService.Interfaces.Helpers.Notification;
 using Webby.AchievementService.Interfaces.Repositories;
 using Webby.AchievementService.Interfaces.Services;
 using Webby.AchievementService.Middlewares;
@@ -10,6 +12,7 @@ using Webby.AchievementService.Repositories;
 using Webby.AchievementService.Services;
 using Webby.AchievementService.Services.Background;
 using Webby.AchievementService.Services.Handlers;
+using Webby.NotificationService.GrpcClient;
 
 namespace Webby.AchievementService.Extensions;
 
@@ -96,6 +99,12 @@ public static class ApiExtension
       {
          options.Interceptors.Add<GrpcExceptionInterceptor>();
       });
+
+      serviceCollection.AddGrpcClient<NotificationGrpcService.NotificationGrpcServiceClient>(options =>
+      {
+         options.Address = new Uri("http://localhost:5007");
+      });
+      
    }
 
    public static void AddBackgroundWorkers(this IServiceCollection serviceCollection)
@@ -103,6 +112,11 @@ public static class ApiExtension
       serviceCollection.AddHostedService<RedisWorker>();
    }
 
+   public static void AddHelpers(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddScoped<INotificationFactory,NotificationFactory>();
+   }
+   
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)
    {
       serviceCollection.Configure<AwsOptions>(config.GetSection(nameof(AwsOptions)));
