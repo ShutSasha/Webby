@@ -48,14 +48,14 @@ public class AchievementHandler
             string fieldKey = ach.AchievementId.ToString();
             long currentValue = 0;
 
-            if (basePayload.Operation == EventOperation.Absolute)
+            if (basePayload.IsIncrementOperation)
             {
-                await _redisDb.HashSetAsync(redisKey, fieldKey, basePayload.Value);
-                currentValue = basePayload.Value;
+                currentValue = await _redisDb.HashIncrementAsync(redisKey, fieldKey, basePayload.Value);
             }
             else
             {
-                currentValue = await _redisDb.HashIncrementAsync(redisKey, fieldKey, basePayload.Value);
+                await _redisDb.HashSetAsync(redisKey, fieldKey, basePayload.Value);
+                currentValue = basePayload.Value;
             }
 
             var progress = await _dbContext.UserAchievementProgresses

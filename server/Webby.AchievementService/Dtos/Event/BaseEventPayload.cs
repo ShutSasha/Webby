@@ -10,11 +10,5 @@ public record BaseEventPayload
    [JsonPropertyName("value")]
    public int Value { get; init; } = 1;
 
-   [JsonPropertyName("operation")] public EventOperation Operation { get; init; }
-}
-
-public enum EventOperation
-{
-   Increment = 1,
-   Absolute
+   [JsonPropertyName("is_increment_operation")] public bool IsIncrementOperation { get; init; }
 }

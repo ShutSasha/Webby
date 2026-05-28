@@ -35,7 +35,7 @@ public class EventPublisher : IEventPublisher
          var messageId = await _redisDb.StreamAddAsync(StreamName, streamEntries);
 
          _logger.LogInformation(
-            "Event type: {EventType} with id: {MessageId} addded to stream", 
+            "Event type: {EventType} with id: {MessageId} added to stream", 
             @event.EventType, messageId);
       }
       catch (Exception ex)
