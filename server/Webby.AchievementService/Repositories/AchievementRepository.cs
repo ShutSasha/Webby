@@ -67,8 +67,14 @@ public class AchievementRepository : GenericRepository<Achievement>, IAchievemen
             IconUrl = a.IconUrl,
             Title = a.Title,
             Description = a.Description,
+            AchievementProgressValue =_context.UserAchievementProgresses
+               .Where(ua => ua.AchievementId == a.AchievementId && ua.UserId == userId)
+               .Select(uap => uap.CurrentValue)
+               .FirstOrDefault(),
+            TargetValue = a.TargetValue,
             IsUnlocked = _context.UserAchievements
                .Any(ua => ua.UserId == userId && ua.AchievementId == a.AchievementId)
+            
          })
          .ToListAsync();
    }

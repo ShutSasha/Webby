@@ -41,6 +41,14 @@ public class AchievementController: ControllerBase
       var achievementCreationResult = await _achievementService.CreateAchievement(request);
       return Ok(ApiResponse<Achievement>.Ok("Successfully create achievement", achievementCreationResult));
    }
+
+   [HttpPost("{achievementId:guid}/users/{userId:guid}/unlock")]
+   [SwaggerOperation("Unlock user achievement", "MODERATION ROLE CLAIM REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> UnlockUserAchievement([FromRoute] Guid achievementId, Guid userId)
+   {
+      await _achievementService.AddUserAchievement(userId, achievementId);
+      return Ok(ApiResponse.Ok("Successfully unlock achievement"));
+   }
    
    [HttpPut]
    [SwaggerOperation("Update achievement","MODERATION ROLE CLAIM REQUIRED")]

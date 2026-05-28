@@ -27,6 +27,8 @@ try
 
     services.ConfigureOptionDependencies(configuration);
 
+    
+    services.AddInterceptors();
     services.ConfigureGrpcConnections();
 
     services.AddBackgroundWorkers();

@@ -5,6 +5,7 @@ using Webby.AchievementService.Data;
 using Webby.AchievementService.Dtos.Storage;
 using Webby.AchievementService.Interfaces.Repositories;
 using Webby.AchievementService.Interfaces.Services;
+using Webby.AchievementService.Middlewares;
 using Webby.AchievementService.Repositories;
 using Webby.AchievementService.Services;
 using Webby.AchievementService.Services.Background;
@@ -64,6 +65,11 @@ public static class ApiExtension
       return services;
    }
 
+   public static void AddInterceptors(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddTransient<GrpcExceptionInterceptor>();
+   }
+
    public static void AddDbConnection(this IServiceCollection serviceCollection, IConfiguration configuration)
    {
       serviceCollection.AddDbContext<AppDbContext>(options =>
@@ -75,7 +81,6 @@ public static class ApiExtension
    public static void AddRepositories(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IAchievementRepository, AchievementRepository>();
-      
    }
 
    public static void AddServices(this IServiceCollection serviceCollection)
@@ -85,11 +90,18 @@ public static class ApiExtension
       serviceCollection.AddScoped<AchievementHandler>();
    }
 
+   public static void ConfigureGrpcConnection(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddGrpc(options =>
+      {
+         options.Interceptors.Add<GrpcExceptionInterceptor>();
+      });
+   }
+
    public static void AddBackgroundWorkers(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddHostedService<RedisWorker>();
    }
-   
 
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)
    {

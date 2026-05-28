@@ -1,10 +1,8 @@
 using System.Text.Json.Serialization;
-using AchievementService;
 using Amazon.S3;
 using Serilog;
 using Webby.AchievementService.Extensions;
 using Webby.AchievementService.Middlewares;
-using Webby.AchievementService.Services.Grpc;
 using AchievementGrpcService = Webby.AchievementService.Services.Grpc.AchievementGrpcService;
 
 try
@@ -32,12 +30,13 @@ try
       options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
    });
    
+   services.AddBackgroundWorkers();
+   services.AddInterceptors();
    services.AddRepositories();
    services.AddServices();
-   services.AddGrpc(options =>
-   {
-      options.Interceptors.Add<GrpcExceptionInterceptor>();
-   });
+   
+   services.ConfigureGrpcConnection();
+
    
    var app = builder.Build();
    

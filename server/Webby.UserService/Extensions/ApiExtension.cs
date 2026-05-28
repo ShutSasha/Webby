@@ -76,6 +76,12 @@ public static class ApiExtension
       });
    }
 
+   public static void AddInterceptors(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddTransient<GrpcExceptionInterceptor>();
+      serviceCollection.AddTransient<GrpcClientExceptionInterceptor>();
+   }
+
    public static void AddRepositories(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IUserRepository, UserRepository>();

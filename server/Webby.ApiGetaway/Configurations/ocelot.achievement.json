@@ -6,7 +6,7 @@
          "DownstreamHostAndPorts": [
             {
                "Host": "localhost",
-               "Port": 5002
+               "Port": 5008
             }
          ],
          "UpstreamPathTemplate": "/achievement/swagger/v1/swagger.json",
@@ -22,7 +22,7 @@
          "DownstreamHostAndPorts": [
             {
                "Host": "localhost",
-               "Port": 5002
+               "Port": 5008
             }
          ],
          "UpstreamPathTemplate": "/api/achievements",
@@ -37,7 +37,7 @@
          "DownstreamHostAndPorts": [
             {
                "Host": "localhost",
-               "Port": 5002
+               "Port": 5008
             }
          ],
          "UpstreamPathTemplate": "/api/achievements",
@@ -58,7 +58,7 @@
          "DownstreamHostAndPorts": [
             {
                "Host": "localhost",
-               "Port": 5002
+               "Port": 5008
             }
          ],
          "UpstreamPathTemplate": "/api/achievements/{achievementId}",
@@ -79,13 +79,34 @@
          "DownstreamHostAndPorts": [
             {
                "Host": "localhost",
-               "Port": 5002
+               "Port": 5008
             }
          ],
          "UpstreamPathTemplate": "/api/achievements/{userId}",
          "UpstreamHttpMethod": [
             "GET"
          ]
+      },
+      
+      {
+         "DownstreamPathTemplate": "/api/achievements/{achievementId}/users/{userId}/unlock",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5008
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements/{achievementId}/users/{userId}/unlock",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
       }
    ]
 }

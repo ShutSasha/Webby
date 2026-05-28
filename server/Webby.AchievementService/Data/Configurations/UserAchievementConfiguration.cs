@@ -8,8 +8,8 @@ public class UserAchievementConfiguration : IEntityTypeConfiguration<UserAchieve
 {
    public void Configure(EntityTypeBuilder<UserAchievement> builder)
    {
-      //TODO: Apply migration after implementing unlocking achievemnts
-      builder.ToTable("user_achievements");
+      //TODO: rename to 'user_achievements' after implementing achievement system logic
+      builder.ToTable("UserAchievements");
       
       builder.HasKey(ua => new { ua.AchievementId, ua.UserId });
 
