@@ -110,6 +110,7 @@ public static class ApiExtension
    public static void AddBackgroundWorkers(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddHostedService<RedisWorker>();
+      serviceCollection.AddHostedService<StreamCleanupWorker>();
    }
 
    public static void AddHelpers(this IServiceCollection serviceCollection)

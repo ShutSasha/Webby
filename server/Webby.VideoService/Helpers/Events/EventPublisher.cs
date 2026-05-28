@@ -1,12 +1,13 @@
 ﻿using System.Text.Json;
 using StackExchange.Redis;
+using Webby.VideoService.Constants;
 using Webby.VideoService.Interfaces.Helpers;
 
 public class EventPublisher : IEventPublisher
 {
    private readonly IDatabase _redisDb;
    private readonly ILogger<EventPublisher> _logger;
-   private const string StreamName = "events:platform";
+
 
    public EventPublisher(
       IConnectionMultiplexer redis, 
@@ -32,11 +33,8 @@ public class EventPublisher : IEventPublisher
             new NameValueEntry("timestamp", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
          };
          
-         var messageId = await _redisDb.StreamAddAsync(StreamName, streamEntries);
-
-         _logger.LogInformation(
-            "Event type: {EventType} with id: {MessageId} added to stream", 
-            @event.EventType, messageId);
+         await _redisDb.StreamAddAsync(RedisConstants.StreamName, streamEntries);
+         
       }
       catch (Exception ex)
       {

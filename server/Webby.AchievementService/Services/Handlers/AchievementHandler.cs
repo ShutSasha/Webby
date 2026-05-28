@@ -37,15 +37,23 @@ public class AchievementHandler
             .Where(a => a.EventType == eventType)
             .ToListAsync();
 
-        if (!achievements.Any())
+        if (achievements.Count == 0)
         {
             return;
         }
 
         foreach (var ach in achievements)
         {
-            string redisKey = $"user:{basePayload.UserId}:progress";
-            string fieldKey = ach.AchievementId.ToString();
+            var alreadyUnlocked = await _dbContext.UserAchievements
+                .AnyAsync(ua => ua.UserId == basePayload.UserId && ua.AchievementId == ach.AchievementId);
+
+            if (alreadyUnlocked)
+            {
+                continue;
+            }
+                
+            var redisKey = $"user:{basePayload.UserId}:progress";
+            var fieldKey = ach.AchievementId.ToString();
             long currentValue = 0;
 
             if (basePayload.IsIncrementOperation)
@@ -81,6 +89,10 @@ public class AchievementHandler
             if (currentValue >= ach.TargetValue)
             {
                 await UnlockAchievementAsync(basePayload.UserId, ach);
+
+                await _redisDb.HashDeleteAsync(redisKey, fieldKey);
+                
+                _dbContext.UserAchievementProgresses.Remove(progress);
             }
         }
     }
@@ -95,8 +107,9 @@ public class AchievementHandler
             UserId = userId,
         };
 
-        await _dbContext.UserAchievements.AddAsync(userAchievement);
+        _dbContext.UserAchievements.Add(userAchievement);
         await _dbContext.SaveChangesAsync();
+        
         var notificationDto = await _notificationFactory
             .UnlockAchievementSendMessage(achievement.Title, userId, achievement.AchievementId);
         
