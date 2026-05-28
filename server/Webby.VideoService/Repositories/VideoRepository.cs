@@ -22,12 +22,10 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
          .FirstAsync(v => v.VideoId == videoId);
    }
 
-   public async Task<int> GetUserVideosCount(Guid userId)
+   public async Task<int> CountUserVideos(Guid userId)
    {
        return await _context.Videos
-           .Where(v => v.UserId == userId &&
-                       !v.IsPrivate &&
-                       v.IsPublished)
+           .Where(v => v.UserId == userId)
            .CountAsync();
    }
 

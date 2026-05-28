@@ -13,16 +13,17 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	"webby-chat/internal/config"
-	"webby-chat/internal/database"
-	grpcserver "webby-chat/internal/grpc"
-	"webby-chat/internal/grpc/chatpb"
-	httpserver "webby-chat/internal/handlers"
-	"webby-chat/internal/repository"
-	"webby-chat/internal/services"
-	"webby-chat/internal/ws"
-	"webby-chat/pkg/slogpretty"
+	"webby/chat-service/internal/config"
+	"webby/chat-service/internal/database"
+	grpcserver "webby/chat-service/internal/grpc"
+	"webby/chat-service/internal/grpc/chatpb"
+	handlers "webby/chat-service/internal/handlers"
+	"webby/chat-service/internal/repository"
+	"webby/chat-service/internal/services"
+	"webby/chat-service/internal/ws"
+	"webby/chat-service/pkg/slogpretty"
 
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 )
 
@@ -32,11 +33,6 @@ const (
 	envProd  = "prod"
 )
 
-// @Version 1.0
-// @Title Webby.ChatService
-// @Description This API provides endpoints for real-time chat in rooms via Socket.IO and REST.
-// @Security BearerAuth
-// @SecurityScheme BearerAuth http bearer Enter your JWT token
 func main() {
 	ctx := context.Background()
 
@@ -62,14 +58,34 @@ func run(ctx context.Context, w io.Writer) error {
 
 	logger.Info("database connected successfully")
 
+	roomMemberClient, err := grpcserver.NewMemberClient(
+		cfg.Grpc.RoomServiceAddress,
+	)
+	if err != nil {
+		logger.Error(
+			"room service gRPC connection failed",
+			slog.String("error", err.Error()),
+		)
+		return err
+	}
+	defer roomMemberClient.Close()
+
 	// Repositories
 	chatRepo := repository.NewChatRepository(db)
 	chatMemberRepo := repository.NewChatMemberRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 
 	// Services
-	chatService := services.NewChatService(chatRepo, chatMemberRepo)
+	chatService := services.NewChatService(chatRepo, chatMemberRepo, roomMemberClient)
 	messageService := services.NewMessageService(messageRepo, chatMemberRepo)
+
+	// Redis publisher for event dispatch
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	defer rdb.Close()
 
 	// WebSocket
 	hubManager := ws.NewHubManager()
@@ -82,7 +98,7 @@ func run(ctx context.Context, w io.Writer) error {
 	defer socketServer.Close()
 
 	// HTTP server
-	server := httpserver.NewServer(cfg, logger, chatService, socketServer)
+	server := handlers.NewServer(cfg, logger, chatService, socketServer)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
 		ReadTimeout:  cfg.Http.Timeout,
@@ -102,7 +118,8 @@ func run(ctx context.Context, w io.Writer) error {
 
 	// gRPC server
 	grpcSrv := grpc.NewServer()
-	chatGrpcServer := grpcserver.NewChatGrpcServer(chatService, logger)
+	redisPublisher := grpcserver.NewRedisPublisher(rdb)
+	chatGrpcServer := grpcserver.NewChatGrpcServer(chatService, messageService, redisPublisher, logger)
 	chatpb.RegisterChatGrpcServiceServer(grpcSrv, chatGrpcServer)
 
 	grpcListener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Grpc.Port))

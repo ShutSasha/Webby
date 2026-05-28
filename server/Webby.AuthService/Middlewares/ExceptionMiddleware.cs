@@ -22,9 +22,17 @@ public class ExceptionMiddleware
       }
       catch (ApiException ex)
       {
-         _logger.LogWarning("API Exception: {Message} (StatusCode: {StatusCode})", ex.Message, ex.StatusCode);
+         _logger.LogWarning(
+            "API Exception (StatusCode: {StatusCode}) Message: {Message} Errors: {@Errors}",
+            ex.StatusCode,
+            ex.Message,
+            ex.Errors
+         );
 
-         var errorResponse = ApiResponse.Fail(ex.Message, ex.Errors);
+         var errorResponse = ApiResponse.Fail(
+            ex.Message,
+            ex.Errors ?? new Dictionary<string, string>()
+         );
 
          context.Response.StatusCode = ex.StatusCode;
          context.Response.ContentType = "application/json";

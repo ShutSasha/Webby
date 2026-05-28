@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 
 import { usePlayerPlayStore, usePlayerStore } from '@/stores/player.store'
 
+import { clog } from '../utils/general.utils'
+
 type PlayerState = {
   pip: boolean
   light: boolean
@@ -29,14 +31,15 @@ export const useCustomPlayerLogic = (
   const settingsContainerRef = useRef<HTMLDivElement>(null)
 
   const [isFullScreen, setIsFullScreen] = useState(false)
-  const [prevVolume, setPrevVolume] = useState(1)
   const [showCustomControls, setShowCustomControls] = useState(true)
 
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const toggleThrottleRef = useRef<NodeJS.Timeout | null>(null)
 
+  const prevVolume = usePlayerStore(state => state.prevVolume)
   const baseUserVolume = usePlayerStore(state => state.baseVolume)
   const setBaseUserVolume = usePlayerStore(state => state.setBaseVolume)
+  const setPrevUserVolume = usePlayerStore(state => state.setPrevVolume)
 
   const triggerEnded = usePlayerPlayStore(state => state.triggerEnded)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
@@ -202,15 +205,28 @@ export const useCustomPlayerLogic = (
   const handleVolumeChange = (event: React.SyntheticEvent<HTMLInputElement>) => {
     const inputTarget = event.target as HTMLInputElement
     const volume = Number.parseFloat(inputTarget.value)
+
     setBaseUserVolume(volume)
+    setState(prev => ({ ...prev, muted: volume === 0 }))
+
+    if (volume > 0) {
+      setPrevUserVolume(volume)
+    }
   }
 
   const toggleMute = () => {
-    if (baseUserVolume > 0) {
-      setPrevVolume(baseUserVolume)
+    const isCurrentlyMuted = state.muted || baseUserVolume === 0
+
+    if (!isCurrentlyMuted) {
+      if (baseUserVolume > 0) {
+        setPrevUserVolume(baseUserVolume)
+      }
       setBaseUserVolume(0)
+      setState(prev => ({ ...prev, muted: true }))
     } else {
-      setBaseUserVolume(prevVolume)
+      const volToRestore = prevVolume > 0 ? prevVolume : 1
+      setBaseUserVolume(volToRestore)
+      setState(prev => ({ ...prev, muted: false }))
     }
   }
 
@@ -244,15 +260,51 @@ export const useCustomPlayerLogic = (
     }
   }
 
-  const handleReactPlayerVolumeChange = (e: any) => {
-    if (typeof e === 'number') {
-      setBaseUserVolume(e)
+  const handleReactPlayerVolumeChange = (e: any, isPlatformMode: boolean) => {
+    const target = e?.target
+    if (!target) return
+
+    const isNativeMuted = target.muted
+    const nativeVolume = target.volume
+
+    clog(
+      `[Vol Event] isPlatform: ${isPlatformMode} | NativeMuted: ${isNativeMuted} | NativeVol: ${nativeVolume} | StateMuted: ${state.muted} | StateVol: ${baseUserVolume}`,
+    )
+
+    if (state.muted === isNativeMuted && baseUserVolume === nativeVolume) {
       return
     }
 
-    const volume = e.target?.volume
-    if (typeof volume === 'number') {
-      setBaseUserVolume(volume)
+    if (isNativeMuted && !state.muted) {
+      if (baseUserVolume > 0) {
+        setPrevUserVolume(baseUserVolume)
+      }
+
+      setState(prev => ({ ...prev, muted: true }))
+      return
+    }
+
+    if (!isNativeMuted && state.muted) {
+      if (isPlatformMode && nativeVolume <= 0.05) {
+        const volToRestore = prevVolume > 0 ? prevVolume : 1
+        setBaseUserVolume(volToRestore)
+      } else {
+        setBaseUserVolume(nativeVolume)
+        if (nativeVolume > 0) {
+          setPrevUserVolume(nativeVolume)
+        }
+      }
+      setState(prev => ({ ...prev, muted: false }))
+      return
+    }
+
+    if (typeof nativeVolume === 'number') {
+      setBaseUserVolume(nativeVolume)
+      setState(prev => ({ ...prev, muted: isNativeMuted }))
+
+      if (nativeVolume > 0) {
+        setPrevUserVolume(nativeVolume)
+      }
     }
   }
 

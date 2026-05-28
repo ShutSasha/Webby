@@ -1,0 +1,359 @@
+{
+   "Routes":[
+      {
+         "DownstreamPathTemplate": "/docs/user-service/v1/swagger.json",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/user/swagger/v1/swagger.json",
+         "UpstreamHttpMethod": [ "GET" ],
+         "AuthenticationOptions": {
+            "AllowAnonymous": true
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/is-following/{targetId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/is-following/{targetId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/",
+         "UpstreamHttpMethod": [
+            "PATCH"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/update-user-avatar/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/update-user-avatar/{userId}",
+         "UpstreamHttpMethod": [
+            "PATCH"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/{followId}/follow",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{followId}/follow",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/achievements/unlock",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/achievements/unlock",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/achievements/{achievementId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/achievements/{achievementId}",
+         "UpstreamHttpMethod": [
+            "POST", "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/{userId}/follows",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{userId}/follows",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/{userId}/followers",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{userId}/followers",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/achievements",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/achievements",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements",
+         "UpstreamHttpMethod": [
+            "POST","PUT"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/achievements/{achievementId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements/{achievementId}",
+         "UpstreamHttpMethod": [
+            "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/achievements/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/achievements/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+
+      {
+         "DownstreamPathTemplate": "/api/complaints/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/complaints/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RoleClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/complaints",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/complaints",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/payments",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/payments",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+      
+      {
+         "DownstreamPathTemplate": "/api/payments/callback",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/payments/callback",
+         "UpstreamHttpMethod": [
+            "POST"
+         ]
+      },
+      
+      {
+         "DownstreamPathTemplate": "/api/payments/subscriptions/{paymentId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/payments/subscriptions/{paymentId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/subscription/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/subscription/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      }
+   ]
+}

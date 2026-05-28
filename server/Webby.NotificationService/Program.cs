@@ -53,17 +53,13 @@ try
     app.UseCors("AllowApiGateway");
     app.UseAuthentication();
     app.UseAuthorization();
-
-
-    if (app.Environment.IsDevelopment())
+    
+    app.UseSwagger(c => { c.RouteTemplate = "/docs/notification-service/{documentName}/swagger.json"; });
+    app.UseSwaggerUI(c =>
     {
-        app.UseSwagger(c => { c.RouteTemplate = "/docs/notification-service/{documentName}/swagger.json"; });
-
-        app.UseSwaggerUI(c =>
-        {
-            c.SwaggerEndpoint("/docs/notification-service/v1/swagger.json", "Notification Service API");
-        });
-    }
+        c.SwaggerEndpoint("/docs/notification-service/v1/swagger.json", "Notification Service API");
+        c.RoutePrefix = "docs/notification-service";
+    });
 
     app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
     app.MapGrpcService<NotificationGrpcService>().EnableGrpcWeb();

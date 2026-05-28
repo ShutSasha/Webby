@@ -51,7 +51,6 @@ input::-ms-reveal {
 }
 
 html {
-  scrollbar-gutter: stable;
   background-color: #171717;
 }
 

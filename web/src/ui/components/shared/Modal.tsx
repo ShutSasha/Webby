@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 
 import { createPortal } from 'react-dom'
+import { RemoveScroll } from 'react-remove-scroll'
 
 interface Props {
   isOpen: boolean
@@ -10,41 +11,49 @@ interface Props {
   modalClasses?: string
 }
 
-export default function Modal({ isOpen, onClose, children, modalClasses }: Props) {
+export default function Modal({ isOpen, onClose, children, modalClasses = '' }: Props) {
   const [mounted, setMounted] = useState(false)
+
+  const [shouldRender, setShouldRender] = useState(isOpen)
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
+      setShouldRender(true)
     } else {
-      document.body.style.overflow = 'unset'
+      const timer = setTimeout(() => setShouldRender(false), 400)
+      return () => clearTimeout(timer)
     }
   }, [isOpen])
 
-  if (!mounted) return null
+  if (!mounted || !shouldRender) return null
 
   return createPortal(
-    <div
-      className={`fixed inset-0 z-100 flex items-center justify-center p-4 transition-all duration-400 ${
-        isOpen ? 'visible' : 'invisible'
-      }`}
-    >
+    <RemoveScroll enabled={shouldRender}>
       <div
-        className={`absolute inset-0 bg-black/70 transition-opacity duration-400 ease-in-out ${
-          isOpen ? 'opacity-100' : 'opacity-0'
+        className={`fixed inset-0 z-100 flex items-center justify-center transition-all duration-400 ${
+          isOpen ? 'visible' : 'invisible'
         }`}
-        onClick={onClose}
-      />
-
-      <div
-        className={`relative w-full max-w-[440px] border border-neutral-800 bg-neutral-900 shadow-2xl p-6 rounded-2xl
-          transition-all duration-400 ease-out ${modalClasses}
-          ${isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8'}`}
       >
-        <div className="text-neutral-300">{children}</div>
+        <div
+          className={`absolute inset-0 bg-black/70 transition-opacity duration-400 ease-in-out ${
+            isOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={onClose}
+        />
+
+        <div
+          className={`relative w-full max-w-[440px] border border-neutral-800 bg-neutral-900 shadow-2xl p-6 rounded-2xl
+            transition-all duration-400 ease-out ${modalClasses}
+            ${isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8'}`}
+        >
+          <div className="text-neutral-300">{children}</div>
+        </div>
       </div>
-    </div>,
+    </RemoveScroll>,
     document.body,
   )
 }

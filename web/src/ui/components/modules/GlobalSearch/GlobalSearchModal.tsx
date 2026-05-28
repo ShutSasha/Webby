@@ -10,6 +10,7 @@ import XIcon from '@/assets/icons/shared/x.svg'
 import { useSearchPlaylistsQuery } from '@/lib/hooks/api/playlist/useSearchPlaylists'
 import { usePublicRoomsQuery } from '@/lib/hooks/api/room/usePublicRoomsQuery'
 import { useSearchStreamsQuery } from '@/lib/hooks/api/stream/useSearchStreams'
+import { useSearchUsersQuery } from '@/lib/hooks/api/user/useSearchUsers'
 import { useSearchVideosQuery } from '@/lib/hooks/api/video/useSearchVideos'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import EmptyState from '@/ui/components/shared/EmptyState'
@@ -54,7 +55,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="p-1 hover:bg-neutral-800 rounded-full transition-colors shrink-0 ml-2"
+                className="hover:bg-neutral-800 rounded-full transition-colors shrink-0 ml-2"
               >
                 <XIcon className="w-4 h-4 text-neutral-400 hover:text-neutral-200" />
               </button>
@@ -67,9 +68,8 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
         </div>
 
         <div
-          className="flex-1 min-h-0 overflow-y-auto pb-6 relative [&::-webkit-scrollbar]:w-1.5
-            [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-800
-            [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-neutral-700"
+          className="flex-1 min-h-0 overflow-y-auto pb-6 relative scrollbar-thin scrollbar-track-red-400
+            scrollbar-thumb-white hover:scrollbar-thumb-neutral-300"
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -80,11 +80,11 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
               transition={{ duration: 0.2 }}
               className="flex flex-col gap-1"
             >
-              {activeTab === 'Videos' && <VideosTab query={appliedQuery} />}
-              {activeTab === 'Rooms' && <RoomsTab query={appliedQuery} />}
-              {activeTab === 'Playlists' && <PlaylistsTab query={appliedQuery} />}
-              {activeTab === 'Streams' && <StreamsTab query={appliedQuery} />}
-              {activeTab === 'Users' && <UsersTab query={appliedQuery} />}
+              {activeTab === 'Videos' && <VideosTab query={appliedQuery} onCloseSearchModal={onClose} />}
+              {activeTab === 'Rooms' && <RoomsTab query={appliedQuery} onCloseSearchModal={onClose} />}
+              {activeTab === 'Playlists' && <PlaylistsTab query={appliedQuery} onCloseSearchModal={onClose} />}
+              {activeTab === 'Streams' && <StreamsTab query={appliedQuery} onCloseSearchModal={onClose} />}
+              {activeTab === 'Users' && <UsersTab query={appliedQuery} onCloseSearchModal={onClose} />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -93,7 +93,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
   )
 }
 
-function VideosTab({ query }: { query: string }) {
+function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearchModal: () => void }) {
   const [webbyExpanded, setWebbyExpanded] = useState(false)
   const [ytExpanded, setYtExpanded] = useState(false)
 
@@ -122,7 +122,7 @@ function VideosTab({ query }: { query: string }) {
   const displayWebby = webbyExpanded ? webbyVideos : webbyVideos.slice(0, 3)
   const displayYT = ytExpanded ? ytVideos : ytVideos.slice(0, 3)
 
-  if (webbyLoading || ytLoading) return <Skeletons count={6} />
+  if (webbyLoading || ytLoading) return <Skeletons count={7} />
   if (webbyVideos.length === 0 && ytVideos.length === 0) return <EmptyState title="No videos found" />
 
   return (
@@ -139,6 +139,7 @@ function VideosTab({ query }: { query: string }) {
                 subtitle={`Webby • ${video.views.toLocaleString()} views • by ${video.user.username}`}
                 thumbnail={video.previewUrl}
                 type="Video"
+                onCloseSearchModal={onCloseSearchModal}
               />
             ))}
           </div>
@@ -175,7 +176,8 @@ function VideosTab({ query }: { query: string }) {
                 title={video.name}
                 subtitle={`YouTube • ${video.views.toLocaleString()} views • by ${video.user.username}`}
                 thumbnail={video.previewUrl}
-                type="Video"
+                type="YouTube"
+                onCloseSearchModal={onCloseSearchModal}
               />
             ))}
           </div>
@@ -204,13 +206,13 @@ function VideosTab({ query }: { query: string }) {
   )
 }
 
-function RoomsTab({ query }: { query: string }) {
+function RoomsTab({ query, onCloseSearchModal }: { query: string; onCloseSearchModal: () => void }) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = usePublicRoomsQuery(query)
   const rawRooms = data?.pages.flatMap(p => p.data?.items || []) || []
   const rooms = Array.from(new Map(rawRooms.map(r => [r.id, r])).values())
   const lastElementRef = useInfiniteScroll({ isLoading, isFetchingNextPage, hasNextPage, fetchNextPage })
 
-  if (isLoading && rooms.length === 0) return <Skeletons count={12} />
+  if (isLoading && rooms.length === 0) return <Skeletons count={7} />
   if (rooms.length === 0) return <EmptyState title="No rooms found" />
 
   return (
@@ -225,6 +227,7 @@ function RoomsTab({ query }: { query: string }) {
             subtitle={`${room.categoryName} • Hosted by ${room.hostUsername}`}
             thumbnail={room.thumbnail}
             type="Room"
+            onCloseSearchModal={onCloseSearchModal}
           />
         )
         return isLast ? (
@@ -240,14 +243,14 @@ function RoomsTab({ query }: { query: string }) {
   )
 }
 
-function PlaylistsTab({ query }: { query: string }) {
+function PlaylistsTab({ query, onCloseSearchModal }: { query: string; onCloseSearchModal: () => void }) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchPlaylistsQuery(query)
   const rawPlaylists = data?.pages.flatMap(p => p.data?.items || []) || []
   const playlists = Array.from(new Map(rawPlaylists.map(pl => [pl.playlistId, pl])).values())
 
   const lastElementRef = useInfiniteScroll({ isLoading, isFetchingNextPage, hasNextPage, fetchNextPage })
 
-  if (isLoading && playlists.length === 0) return <Skeletons count={12} />
+  if (isLoading && playlists.length === 0) return <Skeletons count={7} />
   if (playlists.length === 0) return <EmptyState title="No playlists found" />
 
   return (
@@ -262,6 +265,7 @@ function PlaylistsTab({ query }: { query: string }) {
             subtitle={`${pl.isPrivate ? 'Private' : 'Public'} • ${pl.countOfVideos} videos`}
             thumbnail={pl.playlistCover}
             type="Playlist"
+            onCloseSearchModal={onCloseSearchModal}
           />
         )
         return isLast ? (
@@ -277,13 +281,13 @@ function PlaylistsTab({ query }: { query: string }) {
   )
 }
 
-function StreamsTab({ query }: { query: string }) {
+function StreamsTab({ query, onCloseSearchModal }: { query: string; onCloseSearchModal: () => void }) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchStreamsQuery(query)
   const rawStreams = data?.pages.flatMap(p => p.data?.items || []) || []
   const streams = Array.from(new Map(rawStreams.map(s => [s.streamId, s])).values())
   const lastElementRef = useInfiniteScroll({ isLoading, isFetchingNextPage, hasNextPage, fetchNextPage })
 
-  if (isLoading && streams.length === 0) return <Skeletons count={12} />
+  if (isLoading && streams.length === 0) return <Skeletons count={7} />
   if (streams.length === 0) return <EmptyState title="No streams found" />
 
   return (
@@ -298,6 +302,7 @@ function StreamsTab({ query }: { query: string }) {
             subtitle={`Twitch • ${stream.viewers.toLocaleString()} viewers • ${stream.user.username}`}
             thumbnail={stream.previewUrl}
             type="Stream"
+            onCloseSearchModal={onCloseSearchModal}
           />
         )
         return isLast ? (
@@ -313,41 +318,43 @@ function StreamsTab({ query }: { query: string }) {
   )
 }
 
-function UsersTab({ query }: { query: string }) {
-  const mockUsers = [
-    {
-      id: '1',
-      username: 'guuuntersteam',
-      role: 'Admin',
-      avatar:
-        'https://webby-watch-platform-bucket.s3.eu-north-1.amazonaws.com/user_data/019cbcd6-163d-7868-bb60-7af9665e27b6/18:15:59thumbnail.jpg',
-    },
-    {
-      id: '2',
-      username: 'qwerty123123',
-      role: 'User',
-      avatar:
-        'https://webby-watch-platform-bucket.s3.eu-north-1.amazonaws.com/user_data/019cde7f-add6-7c2f-8e3a-eff25292b5c3/00:22:01avatar.png',
-    },
-  ]
+function UsersTab({ query, onCloseSearchModal }: { query: string; onCloseSearchModal: () => void }) {
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchUsersQuery(query)
 
-  const filtered = mockUsers.filter(u => u.username.toLowerCase().includes(query.toLowerCase()))
+  const rawUsers = data?.pages.flatMap(p => p.data?.items || []) || []
+  const users = Array.from(new Map(rawUsers.map(u => [u.userId, u])).values())
 
-  if (filtered.length === 0) return <EmptyState title="No users found" />
+  const lastElementRef = useInfiniteScroll({ isLoading, isFetchingNextPage, hasNextPage, fetchNextPage })
+
+  if (isLoading && users.length === 0) return <Skeletons count={7} isUser />
+  if (users.length === 0) return <EmptyState title="No users found" />
 
   return (
     <div className="flex flex-col gap-1 px-1">
-      {filtered.map(user => (
-        <GlobalSearchCard
-          key={user.id}
-          id={user.id}
-          title={user.username}
-          subtitle={user.role}
-          thumbnail={user.avatar}
-          type="User"
-          showAddButton={false}
-        />
-      ))}
+      {users.map((user, index) => {
+        const isLast = users.length === index + 1
+        const card = (
+          <GlobalSearchCard
+            key={user.userId}
+            id={user.userId}
+            title={user.username}
+            subtitle={user.role}
+            thumbnail={user.avatarUrl}
+            type="User"
+            showAddButton={false}
+            onCloseSearchModal={onCloseSearchModal}
+          />
+        )
+
+        return isLast ? (
+          <div key={`last-${user.userId}`} ref={lastElementRef}>
+            {card}
+          </div>
+        ) : (
+          card
+        )
+      })}
+      {isFetchingNextPage && <LoadingSpinner />}
     </div>
   )
 }

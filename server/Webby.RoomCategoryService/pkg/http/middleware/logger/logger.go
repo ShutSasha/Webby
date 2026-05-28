@@ -2,6 +2,9 @@ package logger
 
 import (
 	"log/slog"
+
+	ctxlogger "webby/room-category-service/pkg/logger"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +18,9 @@ func Logger(log *slog.Logger) gin.HandlerFunc {
 			slog.String("path", c.Request.URL.Path),
 			slog.String("request_id", reqID),
 		)
+
+		ctx := ctxlogger.ToContext(c.Request.Context(), log)
+		c.Request = c.Request.WithContext(ctx)
 
 		c.Next()
 	}

@@ -46,7 +46,7 @@ public class PlaylistController : ControllerBase
       var checkVideoExistResult = await _playlistService.CheckIfVideoExistInPlaylist(playlistId, videoId);
       return Ok(ApiResponse<bool>.Ok("Successfully retrieve information",checkVideoExistResult));
    }
-
+   
    [HttpGet("{playlistId:guid}/details")]
    [SwaggerOperation("Get playlist information")]
    public async Task<ActionResult<ApiResponse<GetPlaylistResponse>>> GetPlaylistInformation([FromRoute] Guid playlistId)
@@ -81,7 +81,7 @@ public class PlaylistController : ControllerBase
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
       
-      await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoItems, requestUserId.Value);
+      await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds, requestUserId.Value);
       return Ok(ApiResponse.Ok("Successfully update playlist"));
    }
 

@@ -3,7 +3,7 @@
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { Achievement } from '@/types/achivement.types'
-import { BaseServerResponse } from '@/types/general.types'
+import { BaseServerResponse, PaginatedData } from '@/types/general.types'
 import { User, UserFolowStats } from '@/types/user.types'
 
 const endpoint = '/users'
@@ -12,6 +12,7 @@ export type GetUserResponse = {
   user: User
   userFollowStats: UserFolowStats
   pinnedUserAchievements: Achievement[]
+  isPremiumUser: boolean
 }
 
 type GetUserFollowsResponse = {
@@ -158,6 +159,37 @@ export async function updateAboutField(
     serverLog('UPDATE_ABOUT_ERROR', error, true)
     return {
       success: false,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export type SearchUsersResponse = PaginatedData<User>
+
+export async function searchUsers(
+  query: string,
+  page: number = 1,
+  pageSize: number = 20,
+): Promise<BaseServerResponse<SearchUsersResponse>> {
+  try {
+    const params = new URLSearchParams()
+    if (query) params.append('searchText', query)
+
+    params.append('page', page.toString())
+    params.append('pageSize', pageSize.toString())
+
+    const { data: response } = await $api.get<BaseServerResponse<SearchUsersResponse>>(
+      `${endpoint}/search?${params.toString()}`,
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_USERS_SEARCH_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve users',
       errors: parseAxiosError(error),
     }
   }

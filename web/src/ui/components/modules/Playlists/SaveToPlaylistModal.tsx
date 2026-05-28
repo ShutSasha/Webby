@@ -30,6 +30,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId }
     query,
     videoId,
     isOpen,
+    true,
   )
 
   const playlists = data?.pages.flatMap(page => page?.data?.items || []) || []

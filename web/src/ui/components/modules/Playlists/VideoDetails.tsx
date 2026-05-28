@@ -37,7 +37,7 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
     return <VideoNotFound />
   }
 
-  const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate, videoTags } = video.data
+  const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate, videoTags, source } = video.data
   const isOwner = currentUserId === user.userId
 
   if (isPrivate && !isOwner) {
@@ -58,35 +58,43 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
           )}
         </div>
       </div>
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-3">
-          <Link href={`/profile/${user.userId}`} className="flex items-center gap-3">
-            <Image
-              src={user.avatarUrl}
-              className="size-9 object-cover rounded-full"
-              alt=""
-              width={50}
-              height={50}
-              loading="lazy"
-              placeholder="blur"
-              blurDataURL={BLUR_DATA_URLS['neutral900']}
-            />
-            <p className="text-[16px] font-medium">{user.username}</p>
-          </Link>
-          {!isOwner && (
-            <FollowButton
-              targetUserId={user.userId}
-              initialIsFollowing={user.isFollowed}
-              currentUserId={currentUserId}
-            />
-          )}
-        </div>
-        <div className="flex gap-3 items-center">
-          {currentUserId && <SaveToPlaylistButton userId={currentUserId} videoId={videoId} />}
+      {source === 'Webby' && (
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-3">
+            <Link href={`/profile/${user.userId}`} className="flex items-center gap-3">
+              <Image
+                src={user.avatarUrl}
+                className="size-9 object-cover rounded-full"
+                alt=""
+                width={50}
+                height={50}
+                loading="lazy"
+                placeholder="blur"
+                blurDataURL={BLUR_DATA_URLS['neutral900']}
+              />
+              <p className="text-[16px] font-medium">{user.username}</p>
+            </Link>
+            {!isOwner && (
+              <FollowButton
+                targetUserId={user.userId}
+                initialIsFollowing={user.isFollowed}
+                currentUserId={currentUserId}
+              />
+            )}
+          </div>
+          <div className="flex gap-3 items-center">
+            {currentUserId && <SaveToPlaylistButton userId={currentUserId} videoId={videoId} />}
 
-          <ComplaintButton authorId={currentUserId} targetId={videoId} targetType="Video" />
+            {/* slice cuts the id's prefixt wb_ */}
+            <ComplaintButton authorId={currentUserId} targetId={videoId.slice(3)} targetType="Video" />
+          </div>
         </div>
-      </div>
+      )}
+      {currentUserId && source !== 'Webby' && (
+        <div className="flex flex-row-reverse">
+          <SaveToPlaylistButton userId={currentUserId} videoId={v} />
+        </div>
+      )}
       <VideoDescription text={description ?? ''} views={views} date={createdAt} videoTags={videoTags} />
     </div>
   )

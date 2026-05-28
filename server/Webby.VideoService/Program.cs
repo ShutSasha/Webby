@@ -34,7 +34,7 @@ try
     services.AddExternalServices();
     services.AddBackgroundServices();
 
-    services.ConfigureGrpcConnections();
+    services.ConfigureGrpcConnections(configuration);
 
     services.AddControllers().AddJsonOptions(options =>
     {
@@ -47,13 +47,13 @@ try
 
     app.UseMiddleware<ExceptionMiddleware>();
     app.UseMiddleware<ValidationExceptionMiddleware>();
-
-    if (app.Environment.IsDevelopment())
+    
+    app.UseSwagger(c => { c.RouteTemplate = "docs/video-service/{documentName}/swagger.json"; });
+    app.UseSwaggerUI(c =>
     {
-        app.UseSwagger(c => { c.RouteTemplate = "docs/video-service/{documentName}/swagger.json"; });
-
-        app.UseSwaggerUI(c => { c.SwaggerEndpoint("/docs/video-service/v1/swagger.json", "Video Service API"); });
-    }
+        c.SwaggerEndpoint("/docs/video-service/v1/swagger.json", "Video Service API");
+        c.RoutePrefix = "docs/video-service";
+    });
 
     app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
     app.MapGrpcService<VideoGrpcService>().EnableGrpcWeb();

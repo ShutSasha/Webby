@@ -5,9 +5,9 @@ import (
 	"errors"
 	"log/slog"
 	"time"
-	"webby-chat/internal/models"
-	"webby-chat/internal/services"
-	"webby-chat/pkg/http/middleware/auth"
+	"webby/chat-service/internal/models"
+	"webby/chat-service/internal/services"
+	"webby/chat-service/pkg/http/middleware/auth"
 
 	"github.com/google/uuid"
 	socketio "github.com/googollee/go-socket.io"
@@ -37,9 +37,9 @@ type PaginatedMessages struct {
 
 func toMessageResponse(msg *models.Message) MessageResponse {
 	return MessageResponse{
-		Id:        msg.Id,
-		SenderId:  msg.SenderId,
-		ChatId:    msg.ChatId,
+		Id:        msg.ID,
+		SenderId:  msg.SenderID,
+		ChatId:    msg.ChatID,
 		Content:   msg.Content,
 		IsEdited:  msg.IsEdited,
 		EditedAt:  msg.EditedAt,
@@ -60,7 +60,7 @@ func SetupSocketIO(
 		u := s.URL()
 		token := u.Query().Get("token")
 		if token == "" {
-			return errors.New("authorization failed") 
+			return errors.New("authorization failed")
 		}
 
 		userIdStr, err := auth.ParseUserIDFromToken(jwtSecret, token)
@@ -204,7 +204,7 @@ func SetupSocketIO(
 
 		resp := toMessageResponse(msg)
 
-		server.BroadcastToRoom("/", msg.ChatId.String(), "messages:edited", resp)
+		server.BroadcastToRoom("/", msg.ChatID.String(), "messages:edited", resp)
 
 		return ""
 	})
@@ -230,10 +230,10 @@ func SetupSocketIO(
 
 		resp := DeletedMessageResponse{
 			Id:     messageId,
-			ChatId: msg.ChatId,
+			ChatId: msg.ChatID,
 		}
 
-		server.BroadcastToRoom("/", msg.ChatId.String(), "messages:deleted", resp)
+		server.BroadcastToRoom("/", msg.ChatID.String(), "messages:deleted", resp)
 
 		return ""
 	})

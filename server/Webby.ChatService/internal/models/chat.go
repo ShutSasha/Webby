@@ -7,7 +7,7 @@ import (
 )
 
 type Chat struct {
-	Id        uuid.UUID
-	RoomId    *uuid.UUID
+	ID        uuid.UUID
+	RoomID    *uuid.UUID
 	CreatedAt time.Time
 }

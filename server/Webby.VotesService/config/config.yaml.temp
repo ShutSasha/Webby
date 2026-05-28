@@ -1,0 +1,12 @@
+env: "local"
+connectionString: "{{UriConnectionString}}"
+jwtSecret: "{{JwtAccessSecretKey}}"
+http:
+  host: "localhost"
+  port: 8084
+  timeout: 10s
+grpc:
+  host: "localhost"
+  port: 50055
+  roomServiceAddress: "localhost:50054"
+  queueServiceAddress: "localhost:50053"

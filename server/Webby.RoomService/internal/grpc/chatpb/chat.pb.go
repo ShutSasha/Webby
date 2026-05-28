@@ -23,7 +23,7 @@ const (
 
 type CreateChatRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	RoomId        string                 `protobuf:"bytes,1,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	RoomID        string                 `protobuf:"bytes,1,opt,name=roomID,proto3" json:"roomID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -58,16 +58,16 @@ func (*CreateChatRequest) Descriptor() ([]byte, []int) {
 	return file_proto_chat_chat_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *CreateChatRequest) GetRoomId() string {
+func (x *CreateChatRequest) GetRoomID() string {
 	if x != nil {
-		return x.RoomId
+		return x.RoomID
 	}
 	return ""
 }
 
 type GetChatByRoomIdRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	RoomId        string                 `protobuf:"bytes,1,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	RoomID        string                 `protobuf:"bytes,1,opt,name=roomID,proto3" json:"roomID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -102,17 +102,17 @@ func (*GetChatByRoomIdRequest) Descriptor() ([]byte, []int) {
 	return file_proto_chat_chat_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetChatByRoomIdRequest) GetRoomId() string {
+func (x *GetChatByRoomIdRequest) GetRoomID() string {
 	if x != nil {
-		return x.RoomId
+		return x.RoomID
 	}
 	return ""
 }
 
 type AddChatMemberRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ChatId        string                 `protobuf:"bytes,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	ChatID        string                 `protobuf:"bytes,1,opt,name=chatID,proto3" json:"chatID,omitempty"`
+	UserID        string                 `protobuf:"bytes,2,opt,name=userID,proto3" json:"userID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -147,16 +147,16 @@ func (*AddChatMemberRequest) Descriptor() ([]byte, []int) {
 	return file_proto_chat_chat_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *AddChatMemberRequest) GetChatId() string {
+func (x *AddChatMemberRequest) GetChatID() string {
 	if x != nil {
-		return x.ChatId
+		return x.ChatID
 	}
 	return ""
 }
 
-func (x *AddChatMemberRequest) GetUserId() string {
+func (x *AddChatMemberRequest) GetUserID() string {
 	if x != nil {
-		return x.UserId
+		return x.UserID
 	}
 	return ""
 }
@@ -164,7 +164,7 @@ func (x *AddChatMemberRequest) GetUserId() string {
 type ChatResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	RoomId        string                 `protobuf:"bytes,2,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	RoomID        string                 `protobuf:"bytes,2,opt,name=roomID,proto3" json:"roomID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -206,9 +206,9 @@ func (x *ChatResponse) GetId() string {
 	return ""
 }
 
-func (x *ChatResponse) GetRoomId() string {
+func (x *ChatResponse) GetRoomID() string {
 	if x != nil {
-		return x.RoomId
+		return x.RoomID
 	}
 	return ""
 }
@@ -249,27 +249,129 @@ func (*AddChatMemberResponse) Descriptor() ([]byte, []int) {
 	return file_proto_chat_chat_proto_rawDescGZIP(), []int{4}
 }
 
+type GetChatIDByRoomIDRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoomID        string                 `protobuf:"bytes,1,opt,name=roomID,proto3" json:"roomID,omitempty"`
+	UserID        string                 `protobuf:"bytes,2,opt,name=userID,proto3" json:"userID,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetChatIDByRoomIDRequest) Reset() {
+	*x = GetChatIDByRoomIDRequest{}
+	mi := &file_proto_chat_chat_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetChatIDByRoomIDRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetChatIDByRoomIDRequest) ProtoMessage() {}
+
+func (x *GetChatIDByRoomIDRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_chat_chat_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetChatIDByRoomIDRequest.ProtoReflect.Descriptor instead.
+func (*GetChatIDByRoomIDRequest) Descriptor() ([]byte, []int) {
+	return file_proto_chat_chat_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetChatIDByRoomIDRequest) GetRoomID() string {
+	if x != nil {
+		return x.RoomID
+	}
+	return ""
+}
+
+func (x *GetChatIDByRoomIDRequest) GetUserID() string {
+	if x != nil {
+		return x.UserID
+	}
+	return ""
+}
+
+type ChatIDByRoomIDResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ChatID        string                 `protobuf:"bytes,2,opt,name=chatID,proto3" json:"chatID,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChatIDByRoomIDResponse) Reset() {
+	*x = ChatIDByRoomIDResponse{}
+	mi := &file_proto_chat_chat_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatIDByRoomIDResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatIDByRoomIDResponse) ProtoMessage() {}
+
+func (x *ChatIDByRoomIDResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_chat_chat_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatIDByRoomIDResponse.ProtoReflect.Descriptor instead.
+func (*ChatIDByRoomIDResponse) Descriptor() ([]byte, []int) {
+	return file_proto_chat_chat_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ChatIDByRoomIDResponse) GetChatID() string {
+	if x != nil {
+		return x.ChatID
+	}
+	return ""
+}
+
 var File_proto_chat_chat_proto protoreflect.FileDescriptor
 
 const file_proto_chat_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/chat/chat.proto\x12\x04chat\",\n" +
-	"\x11CreateChatRequest\x12\x17\n" +
-	"\aroom_id\x18\x01 \x01(\tR\x06roomId\"1\n" +
-	"\x16GetChatByRoomIdRequest\x12\x17\n" +
-	"\aroom_id\x18\x01 \x01(\tR\x06roomId\"H\n" +
-	"\x14AddChatMemberRequest\x12\x17\n" +
-	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"7\n" +
+	"\x15proto/chat/chat.proto\x12\x04chat\"+\n" +
+	"\x11CreateChatRequest\x12\x16\n" +
+	"\x06roomID\x18\x01 \x01(\tR\x06roomID\"0\n" +
+	"\x16GetChatByRoomIdRequest\x12\x16\n" +
+	"\x06roomID\x18\x01 \x01(\tR\x06roomID\"F\n" +
+	"\x14AddChatMemberRequest\x12\x16\n" +
+	"\x06chatID\x18\x01 \x01(\tR\x06chatID\x12\x16\n" +
+	"\x06userID\x18\x02 \x01(\tR\x06userID\"6\n" +
 	"\fChatResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\aroom_id\x18\x02 \x01(\tR\x06roomId\"\x17\n" +
-	"\x15AddChatMemberResponse2\xdb\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06roomID\x18\x02 \x01(\tR\x06roomID\"\x17\n" +
+	"\x15AddChatMemberResponse\"J\n" +
+	"\x18GetChatIDByRoomIDRequest\x12\x16\n" +
+	"\x06roomID\x18\x01 \x01(\tR\x06roomID\x12\x16\n" +
+	"\x06userID\x18\x02 \x01(\tR\x06userID\"0\n" +
+	"\x16ChatIDByRoomIDResponse\x12\x16\n" +
+	"\x06chatID\x18\x02 \x01(\tR\x06chatID2\xae\x02\n" +
 	"\x0fChatGrpcService\x129\n" +
 	"\n" +
 	"CreateChat\x12\x17.chat.CreateChatRequest\x1a\x12.chat.ChatResponse\x12C\n" +
-	"\x0fGetChatByRoomId\x12\x1c.chat.GetChatByRoomIdRequest\x1a\x12.chat.ChatResponse\x12H\n" +
-	"\rAddChatMember\x12\x1a.chat.AddChatMemberRequest\x1a\x1b.chat.AddChatMemberResponseB\x1cZ\x1awebby/internal/grpc/chatpbb\x06proto3"
+	"\x0fGetChatByRoomID\x12\x1c.chat.GetChatByRoomIdRequest\x1a\x12.chat.ChatResponse\x12H\n" +
+	"\rAddChatMember\x12\x1a.chat.AddChatMemberRequest\x1a\x1b.chat.AddChatMemberResponse\x12Q\n" +
+	"\x11GetChatIDByRoomID\x12\x1e.chat.GetChatIDByRoomIDRequest\x1a\x1c.chat.ChatIDByRoomIDResponseB)Z'webby/room-service/internal/grpc/chatpbb\x06proto3"
 
 var (
 	file_proto_chat_chat_proto_rawDescOnce sync.Once
@@ -283,23 +385,27 @@ func file_proto_chat_chat_proto_rawDescGZIP() []byte {
 	return file_proto_chat_chat_proto_rawDescData
 }
 
-var file_proto_chat_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_chat_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_chat_chat_proto_goTypes = []any{
-	(*CreateChatRequest)(nil),      // 0: chat.CreateChatRequest
-	(*GetChatByRoomIdRequest)(nil), // 1: chat.GetChatByRoomIdRequest
-	(*AddChatMemberRequest)(nil),   // 2: chat.AddChatMemberRequest
-	(*ChatResponse)(nil),           // 3: chat.ChatResponse
-	(*AddChatMemberResponse)(nil),  // 4: chat.AddChatMemberResponse
+	(*CreateChatRequest)(nil),        // 0: chat.CreateChatRequest
+	(*GetChatByRoomIdRequest)(nil),   // 1: chat.GetChatByRoomIdRequest
+	(*AddChatMemberRequest)(nil),     // 2: chat.AddChatMemberRequest
+	(*ChatResponse)(nil),             // 3: chat.ChatResponse
+	(*AddChatMemberResponse)(nil),    // 4: chat.AddChatMemberResponse
+	(*GetChatIDByRoomIDRequest)(nil), // 5: chat.GetChatIDByRoomIDRequest
+	(*ChatIDByRoomIDResponse)(nil),   // 6: chat.ChatIDByRoomIDResponse
 }
 var file_proto_chat_chat_proto_depIdxs = []int32{
 	0, // 0: chat.ChatGrpcService.CreateChat:input_type -> chat.CreateChatRequest
-	1, // 1: chat.ChatGrpcService.GetChatByRoomId:input_type -> chat.GetChatByRoomIdRequest
+	1, // 1: chat.ChatGrpcService.GetChatByRoomID:input_type -> chat.GetChatByRoomIdRequest
 	2, // 2: chat.ChatGrpcService.AddChatMember:input_type -> chat.AddChatMemberRequest
-	3, // 3: chat.ChatGrpcService.CreateChat:output_type -> chat.ChatResponse
-	3, // 4: chat.ChatGrpcService.GetChatByRoomId:output_type -> chat.ChatResponse
-	4, // 5: chat.ChatGrpcService.AddChatMember:output_type -> chat.AddChatMemberResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	5, // 3: chat.ChatGrpcService.GetChatIDByRoomID:input_type -> chat.GetChatIDByRoomIDRequest
+	3, // 4: chat.ChatGrpcService.CreateChat:output_type -> chat.ChatResponse
+	3, // 5: chat.ChatGrpcService.GetChatByRoomID:output_type -> chat.ChatResponse
+	4, // 6: chat.ChatGrpcService.AddChatMember:output_type -> chat.AddChatMemberResponse
+	6, // 7: chat.ChatGrpcService.GetChatIDByRoomID:output_type -> chat.ChatIDByRoomIDResponse
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -316,7 +422,7 @@ func file_proto_chat_chat_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_chat_chat_proto_rawDesc), len(file_proto_chat_chat_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

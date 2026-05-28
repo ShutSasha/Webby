@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package room;
+
+option go_package = "webby/wsgateway/internal/grpc/roompb";
+
+service RoomGrpcService {
+  // AwardActiveUsers tells RoomService which users are currently online in which rooms,
+  // so it can award room_points and emit POINTS_AWARDED events into Redis.
+  rpc AwardActiveUsers(AwardActiveUsersRequest) returns (AwardActiveUsersResponse);
+}
+
+message AwardActiveUsersRequest {
+  repeated RoomActivity rooms = 1;
+}
+
+message RoomActivity {
+  string room_id = 1;
+  repeated string user_ids = 2;
+}
+
+message AwardActiveUsersResponse {}

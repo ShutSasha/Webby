@@ -31,6 +31,10 @@
     
    "AutoMapper":{
       "LicenseKey": "{{AutoMapperLicenseKey}}"
+   },
+   
+   "GrpcClients": {
+     "UserServiceUrl": "http://localhost:5004"
    }
   
 }

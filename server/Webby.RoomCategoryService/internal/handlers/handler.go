@@ -2,8 +2,7 @@ package handlers
 
 import (
 	"context"
-	"log/slog"
-	"webby/internal/models"
+	"webby/room-category-service/internal/models"
 )
 
 type Service interface {
@@ -15,12 +14,10 @@ type Service interface {
 
 type handler struct {
 	service Service
-	logger  *slog.Logger
 }
 
-func New(service Service, logger *slog.Logger) handler {
+func New(service Service) handler {
 	return handler{
 		service: service,
-		logger:  logger,
 	}
 }

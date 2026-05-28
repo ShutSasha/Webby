@@ -9,6 +9,8 @@ export type VideoUser = {
 
 export type UploadStatus = 'Ready' | 'Uploading' | 'Failed' | 'Canceled'
 
+export type VideoSource = 'YouTube' | 'Webby'
+
 export type Video = {
   videoId: string
   videoUrl: string
@@ -22,9 +24,23 @@ export type Video = {
   description: string | null
   duration: number
   videotags: string[]
+  source: VideoSource
   videoUploadStatus: UploadStatus
   user: VideoUser
 }
+
+export type RecommendedVideo = {
+  videoId: string
+  name: string
+  previewUrl: string
+  views: number
+  isPrivate: boolean
+  createdAt: string
+  duration: number
+  user: VideoUser
+}
+
+export type GetRecommendationsResponse = PaginatedData<RecommendedVideo>
 
 export type UploadVideoResponse = {
   videoId: string

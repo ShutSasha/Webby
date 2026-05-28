@@ -30,7 +30,7 @@ public class YoutubeSearchService : IYouTubeSearchService
         var url = BuildUrl(searchText, pageSize, nextPageToken);
         var response = await _httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
-
+        
         var initialData = await response.Content.ReadFromJsonAsync<YouTubeVideoResponse>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
@@ -46,15 +46,42 @@ public class YoutubeSearchService : IYouTubeSearchService
         }).Where(id => !string.IsNullOrEmpty(id)).ToList();
         
         var detailsUrl = DefaultLinks.BaseYouTubeVideosLink +
-                         $"?part=snippet,contentDetails,statistics" +
+                         $"?part=snippet,contentDetails,statistics,status" +
                          $"&id={string.Join(",", videoIds)}" +
                          $"&key={_apiKey}";
 
         var detailsResponse = await _httpClient.GetAsync(detailsUrl);
         detailsResponse.EnsureSuccessStatusCode();
-
+        
+        var rawJson = await detailsResponse.Content.ReadAsStringAsync();
+        
         var fullData = await detailsResponse.Content.ReadFromJsonAsync<YouTubeVideoResponse>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        if (fullData?.Items != null)
+        {
+            fullData.Items = fullData.Items.Where(v => 
+                v.Status != null &&
+                v.Status.PrivacyStatus == "public" && 
+                v.Status.Embeddable == true &&
+                (string.IsNullOrEmpty(v.Snippet?.LiveBroadcastContent) || v.Snippet.LiveBroadcastContent == "none") &&
+                (v.ContentDetails?.RegionRestriction?.Blocked == null || !v.ContentDetails.RegionRestriction.Blocked.Any()) &&
+                !string.IsNullOrEmpty(v.Statistics?.ViewCount) && v.Statistics.ViewCount != "0"
+
+            ).Take(pageSize).ToList();
+        }
+
+        if (fullData?.Items == null || !fullData.Items.Any())
+        {
+            return new PagedResponse<VideoDto>
+            {
+                Items = new List<VideoDto>(),
+                NextPageToken = initialData.NextPageToken,
+                PageSize = pageSize,
+                TotalCount = initialData.PageInfo.TotalResults,
+                Page = page
+            };
+        }
         
         var channelIds = fullData.Items.Select(i => i.Snippet.ChannelId).Distinct().ToList();
         var channelAvatars = new Dictionary<string, string>();
@@ -81,7 +108,7 @@ public class YoutubeSearchService : IYouTubeSearchService
 
         var videoDtos = fullData.Items.Select(item => new VideoDto
         {
-            VideoId = item.Id?.ToString(),
+            VideoId = PlatformPrefixesConstants.YouTubePrefix + item.Id?.ToString(),
             Name = item.Snippet.Title,
             Description = item.Snippet.Description,
             Source = "YouTube",
@@ -113,11 +140,11 @@ public class YoutubeSearchService : IYouTubeSearchService
         {
             Items = videoDtos,
             NextPageToken = initialData.NextPageToken,
-            PageSize = initialData.PageInfo.ResultsPerPage,
+            PageSize = pageSize,
             TotalCount = initialData.PageInfo.TotalResults,
             Page = page
         };
-    }   
+    }
 
     public async Task<VideoDto> FindById(string videoId)
     {
@@ -260,8 +287,8 @@ public class YoutubeSearchService : IYouTubeSearchService
     private string BuildUrl(string? searchText, int pageSize, string? nextPageToken)
     {
         var hasSearch = !string.IsNullOrWhiteSpace(searchText);
-        
-        string part = "id"; 
+    
+        string part = "id";
         string url;
 
         if (hasSearch)
@@ -276,11 +303,13 @@ public class YoutubeSearchService : IYouTubeSearchService
         }
         else
         {
+            int fetchSize = pageSize + 5; 
+
             url = DefaultLinks.BaseYouTubeVideosLink +
                   $"?part={part}" +
                   "&chart=mostPopular" +
                   "&regionCode=US" + 
-                  $"&maxResults={pageSize}" +
+                  $"&maxResults={fetchSize}" +
                   $"&key={_apiKey}";
         }
 
@@ -296,7 +325,7 @@ public class YoutubeSearchService : IYouTubeSearchService
     {
         return new VideoDto()
         {
-            VideoId = item.Id?.ToString(),
+            VideoId = PlatformPrefixesConstants.YouTubePrefix + item.Id?.ToString(),
             Name = item.Snippet.Title,
             Description = item.Snippet.Description,
             Source = "YouTube",

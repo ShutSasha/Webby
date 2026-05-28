@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"webby-chat/internal/apperrors"
-	"webby-chat/internal/models"
+	"webby/chat-service/internal/apperrors"
+	"webby/chat-service/internal/models"
 
 	"github.com/google/uuid"
 )
@@ -50,8 +50,8 @@ func (s *MessageService) Send(ctx context.Context, chatId, senderId uuid.UUID, c
 	}
 
 	msg := &models.Message{
-		SenderId: senderId,
-		ChatId:   chatId,
+		SenderID: senderId,
+		ChatID:   chatId,
 		Content:  content,
 	}
 
@@ -91,7 +91,7 @@ func (s *MessageService) Edit(ctx context.Context, messageId, userId uuid.UUID, 
 		return nil, err
 	}
 
-	if msg.SenderId != userId {
+	if msg.SenderID != userId {
 		return nil, fmt.Errorf("%w: only the sender can edit this message", apperrors.ErrForbidden)
 	}
 
@@ -112,7 +112,7 @@ func (s *MessageService) Delete(ctx context.Context, messageId, userId uuid.UUID
 		return nil, fmt.Errorf("get message: %w", err)
 	}
 
-	if msg.SenderId != userId {
+	if msg.SenderID != userId {
 		return nil, fmt.Errorf("%w: only the sender can delete this message", apperrors.ErrForbidden)
 	}
 

@@ -9,9 +9,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"webby/internal/handlers"
-	handlermocks "webby/internal/handlers/mocks"
-	"webby/internal/models"
+	"webby/room-category-service/internal/handlers"
+	handlermocks "webby/room-category-service/internal/handlers/mocks"
+	"webby/room-category-service/internal/models"
+	"webby/room-category-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +21,7 @@ import (
 
 func TestListCategories(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	tests := []struct {
 		name           string
@@ -264,7 +265,7 @@ func TestListCategories(t *testing.T) {
 			mockService := handlermocks.NewMockService(t)
 			tt.mockSetup(mockService)
 
-			h := handlers.New(mockService, logger)
+			h := handlers.New(mockService)
 
 			queryString := ""
 			if len(tt.queryParams) > 0 {
@@ -278,6 +279,10 @@ func TestListCategories(t *testing.T) {
 			}
 
 			req := httptest.NewRequest(http.MethodGet, "/api/categories"+queryString, nil)
+
+			ctx := logger.ToContext(req.Context(), log)
+			req = req.WithContext(ctx)
+
 			w := httptest.NewRecorder()
 
 			c, _ := gin.CreateTestContext(w)

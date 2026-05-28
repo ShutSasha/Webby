@@ -1,5 +1,3 @@
-import Image from 'next/image'
-
 import MailIcon from '@/assets/icons/ic_mail.svg'
 import { checkFollowing, getUser } from '@/lib/actions/user.actions'
 import { cn } from '@/lib/utils/general.utils'
@@ -13,6 +11,7 @@ import FollowButton from './FollowButton'
 import ActionButton from '../../shared/ActionButton'
 import ComplaintButton from '../../shared/ComplaintButton'
 import EmptyState from '../../shared/EmptyState'
+import SafeImage from '../../shared/SafeImage'
 
 export default async function UserProfileInfo({ id }: { id: string }) {
   const userData = await getUser(id)
@@ -37,9 +36,9 @@ export default async function UserProfileInfo({ id }: { id: string }) {
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between">
           <div className="flex gap-4">
-            <Image
+            <SafeImage
               src={userData.user.avatarUrl}
-              alt=""
+              alt="User image"
               width={300}
               height={300}
               placeholder="blur"
@@ -51,6 +50,7 @@ export default async function UserProfileInfo({ id }: { id: string }) {
               )}
               preload
               loading="eager"
+              fallbackType="user"
             />
 
             <UserBioSection userId={id} initialUserData={userData} />

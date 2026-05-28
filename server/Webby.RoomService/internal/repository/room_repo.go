@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"webby/internal/apperrors"
-	"webby/internal/models"
+	"webby/room-service/internal/apperrors"
+	"webby/room-service/internal/models"
+	"webby/room-service/pkg/logger"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -27,7 +28,7 @@ func (r *RoomRepository) Create(ctx context.Context, room *models.Room) (uuid.UU
 		return uuid.Nil, fmt.Errorf("%s: %w: room cannot be nil", op, apperrors.ErrInvalidInput)
 	}
 
-	room.Id = uuid.New()
+	room.ID = uuid.New()
 
 	query := `
 		INSERT INTO rooms (id, host_id, category_id, name, thumbnail, is_private)
@@ -38,9 +39,9 @@ func (r *RoomRepository) Create(ctx context.Context, room *models.Room) (uuid.UU
 	err := r.db.QueryRow(
 		ctx,
 		query,
-		room.Id,
-		room.HostId,
-		room.CategoryName,
+		room.ID,
+		room.HostID,
+		room.Category,
 		room.Name,
 		room.Thumbnail,
 		room.IsPrivate,
@@ -50,7 +51,7 @@ func (r *RoomRepository) Create(ctx context.Context, room *models.Room) (uuid.UU
 		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
-	return room.Id, nil
+	return room.ID, nil
 }
 
 func (r *RoomRepository) Delete(ctx context.Context, id uuid.UUID) error {
@@ -74,8 +75,8 @@ func (r *RoomRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *RoomRepository) GetById(ctx context.Context, id uuid.UUID) (*models.Room, error) {
-	const op = "repository.RoomRepository.GetById"
+func (r *RoomRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Room, error) {
+	const op = "repository.RoomRepository.GetByID"
 
 	if id == uuid.Nil {
 		return nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
@@ -90,9 +91,9 @@ func (r *RoomRepository) GetById(ctx context.Context, id uuid.UUID) (*models.Roo
 
 	var room models.Room
 	err := r.db.QueryRow(ctx, query, id).Scan(
-		&room.Id,
-		&room.HostId,
-		&room.CategoryName,
+		&room.ID,
+		&room.HostID,
+		&room.Category,
 		&room.Name,
 		&room.Thumbnail,
 		&room.IsPrivate,
@@ -109,10 +110,10 @@ func (r *RoomRepository) GetById(ctx context.Context, id uuid.UUID) (*models.Roo
 	return &room, nil
 }
 
-func (r *RoomRepository) ListMy(ctx context.Context, userId uuid.UUID, page int, limit int, search string, categoryName *string) ([]models.Room, int64, error) {
+func (r *RoomRepository) ListMy(ctx context.Context, userID uuid.UUID, page, limit int, search, categoryName string) ([]models.Room, int64, error) {
 	const op = "repository.RoomRepository.ListMy"
 
-	if userId == uuid.Nil {
+	if userID == uuid.Nil {
 		return nil, 0, fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
 	}
 
@@ -129,7 +130,7 @@ func (r *RoomRepository) ListMy(ctx context.Context, userId uuid.UUID, page int,
 	offset := (page - 1) * limit
 
 	whereClause := "WHERE r.host_id = $1"
-	countArgs := []any{userId}
+	countArgs := []any{userID}
 	paramN := 2
 
 	if search != "" {
@@ -138,9 +139,9 @@ func (r *RoomRepository) ListMy(ctx context.Context, userId uuid.UUID, page int,
 		paramN++
 	}
 
-	if categoryName != nil {
+	if categoryName != "" {
 		whereClause += fmt.Sprintf(" AND c.name = $%d", paramN)
-		countArgs = append(countArgs, *categoryName)
+		countArgs = append(countArgs, categoryName)
 		paramN++
 	}
 
@@ -172,9 +173,9 @@ func (r *RoomRepository) ListMy(ctx context.Context, userId uuid.UUID, page int,
 	for rows.Next() {
 		var room models.Room
 		err := rows.Scan(
-			&room.Id,
-			&room.HostId,
-			&room.CategoryName,
+			&room.ID,
+			&room.HostID,
+			&room.Category,
 			&room.Name,
 			&room.Thumbnail,
 			&room.IsPrivate,
@@ -193,8 +194,9 @@ func (r *RoomRepository) ListMy(ctx context.Context, userId uuid.UUID, page int,
 	return rooms, total, nil
 }
 
-func (r *RoomRepository) ListPublic(ctx context.Context, page int, limit int, search string, categoryName *string) ([]models.PublicRoom, int64, error) {
+func (r *RoomRepository) ListPublic(ctx context.Context, page, limit int, search, category string) ([]models.PublicRoom, int64, error) {
 	const op = "repository.RoomRepository.ListPublic"
+	log := logger.FromContext(ctx).With("op", op)
 
 	if page < 1 {
 		page = 1
@@ -218,9 +220,9 @@ func (r *RoomRepository) ListPublic(ctx context.Context, page int, limit int, se
 		paramN++
 	}
 
-	if categoryName != nil {
+	if category != "" {
 		whereClause += fmt.Sprintf(" AND c.name = $%d", paramN)
-		countArgs = append(countArgs, *categoryName)
+		countArgs = append(countArgs, category)
 		paramN++
 	}
 
@@ -230,6 +232,8 @@ func (r *RoomRepository) ListPublic(ctx context.Context, page int, limit int, se
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
+
+	log.Debug("after query Count", "total", total)
 
 	query := fmt.Sprintf(`
 		SELECT r.id, r.host_id, u."Username", u."AvatarUrl", c.name, r.name, r.thumbnail, r.is_private, r.created_at
@@ -248,16 +252,17 @@ func (r *RoomRepository) ListPublic(ctx context.Context, page int, limit int, se
 		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
 	defer rows.Close()
+	log.Debug("after query select", "rows", rows)
 
 	rooms := []models.PublicRoom{}
 	for rows.Next() {
 		var room models.PublicRoom
 		err := rows.Scan(
-			&room.Id,
-			&room.HostId,
+			&room.ID,
+			&room.HostID,
 			&room.HostUsername,
 			&room.HostAvatarUrl,
-			&room.CategoryName,
+			&room.Category,
 			&room.Name,
 			&room.Thumbnail,
 			&room.IsPrivate,
@@ -279,7 +284,7 @@ func (r *RoomRepository) ListPublic(ctx context.Context, page int, limit int, se
 func (r *RoomRepository) Update(ctx context.Context, room *models.Room) (uuid.UUID, error) {
 	const op = "repository.RoomRepository.Update"
 
-	if room == nil || room.Id == uuid.Nil {
+	if room == nil || room.ID == uuid.Nil {
 		return uuid.Nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
@@ -292,11 +297,11 @@ func (r *RoomRepository) Update(ctx context.Context, room *models.Room) (uuid.UU
 	tag, err := r.db.Exec(
 		ctx,
 		query,
-		room.CategoryName,
+		room.Category,
 		room.Name,
 		room.Thumbnail,
 		room.IsPrivate,
-		room.Id,
+		room.ID,
 	)
 
 	if err != nil {
@@ -304,8 +309,8 @@ func (r *RoomRepository) Update(ctx context.Context, room *models.Room) (uuid.UU
 	}
 
 	if tag.RowsAffected() == 0 {
-		return uuid.Nil, fmt.Errorf("%s: room %s: %w", op, room.Id.String(), apperrors.ErrNotFound)
+		return uuid.Nil, fmt.Errorf("%s: room %s: %w", op, room.ID.String(), apperrors.ErrNotFound)
 	}
 
-	return room.Id, nil
+	return room.ID, nil
 }

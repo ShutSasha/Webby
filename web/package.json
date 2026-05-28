@@ -6,7 +6,9 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@microsoft/signalr": "^10.0.0",
@@ -15,6 +17,8 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.25.0",
     "input-otp": "^1.4.2",
+    "linkify-react": "^4.3.2",
+    "linkifyjs": "^4.3.2",
     "next": "16.0.1",
     "next-auth": "5.0.0-beta.30",
     "react": "19.2.0",
@@ -22,6 +26,7 @@
     "react-hook-form": "^7.71.1",
     "react-image-crop": "^11.0.10",
     "react-player": "^3.4.0",
+    "react-remove-scroll": "^2.7.2",
     "tailwind-merge": "^3.4.0",
     "use-debounce": "^10.1.0",
     "zod": "^4.1.13",
@@ -39,6 +44,7 @@
     "@types/react-dom": "^19",
     "@types/webpack": "^5.28.5",
     "@typescript-eslint/parser": "^8.44.1",
+    "@vitejs/plugin-react": "^6.0.1",
     "baseline-browser-mapping": "^2.10.10",
     "eslint": "^9.36.0",
     "eslint-config-next": "15.5.4",
@@ -46,10 +52,12 @@
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.6.2",
     "prettier-plugin-classnames": "^0.8.6",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.5"
   }
 }

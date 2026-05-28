@@ -5,7 +5,7 @@ namespace Webby.VideoService.Interfaces.Repositories;
 public interface IVideoRepository : IRepository<Video>
 {
    Task<Video> GetVideoInformationById(Guid videoId);
-   Task<int> GetUserVideosCount(Guid userId);
+   Task<int> CountUserVideos(Guid userId);
    
    Task<(List<Video>, int)> GetPaginatedUserVideos(Guid userId,bool isOwner, int page, int pageSize, bool shouldShowDrafts);
    Task<bool> CheckVideosCount(List<Guid> videoIds);

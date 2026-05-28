@@ -1,0 +1,632 @@
+openapi: 3.0.3
+info:
+  title: Webby - Room Queue Service
+  description: |
+    The Room Queue Service manages the playback queue for rooms on the Webby platform.
+    Each room has an ordered queue of videos that members can add to, view, and remove from.
+
+    **Position Management**
+
+    Queue items are ordered by sequential positions starting from 1.
+    When an item is deleted, all items with a higher position have their position decremented by 1,
+    maintaining a continuous sequence.
+
+    **Authentication**
+
+    All endpoints require a valid JWT Bearer token issued by the AuthService.
+    The authenticated user must be a member of the target room.
+  version: 1.0.0
+  contact:
+    name: Webby Platform Team
+
+tags:
+  - name: Queue
+    description: |
+      Endpoints for managing a room's playback queue.
+      All operations require authentication and room membership.
+
+paths:
+  /api/rooms/{id}/queue:
+    post:
+      tags:
+        - Queue
+      summary: Add item to queue
+      description: |
+        Add a video to the room's playback queue.
+        The item is appended to the end of the queue with the next available position.
+
+        Only room members can add items.
+
+        After adding to a queue - sends `QUEUE_UPDATED` event through the WS Socket.IO.
+        Read the `WsGateway` for the event explanation.
+
+        **Requires authentication and room membership.**
+      operationId: addToQueue
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Room ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddQueueItemRequest"
+            example:
+              videoId: "wb_b8bdc077-92c6-4026-9616-4b19fa10fc27"
+      responses:
+        "201":
+          description: Item successfully added to queue.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueItemCreatedResponse"
+              example:
+                success: true
+                message: Item added to queue
+                data:
+                  id: "660e8400-e29b-41d4-a716-446655440001"
+                  position: 3
+                errors: null
+        "400":
+          description: Validation error (invalid room ID or video ID).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidRoomId:
+                  summary: Invalid room ID
+                  value:
+                    success: false
+                    message: Validation error
+                    data: null
+                    errors:
+                      id: the room id format is not valid
+                missingVideoId:
+                  summary: Missing videoId
+                  value:
+                    success: false
+                    message: Validation error
+                    data: null
+                    errors:
+                      videoId: this field is required
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Unauthorized
+                data: null
+                errors:
+                  message: token is missing or invalid
+        "403":
+          description: User is not a member of the room.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Add to queue error
+                data: null
+                errors:
+                  message: forbidden
+        "404":
+          description: Video or playlist not found in the Video Service.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Add to queue error
+                data: null
+                errors:
+                  message: "resource not found: video not found"
+        "500":
+          description: An unexpected server-side error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      tags:
+        - Queue
+      summary: Get room queue
+      description: |
+        Retrieve the playback queue for a room with media data (titles, thumbnails, video URLs).
+
+        Pagination is based on queue item count.
+
+        **Requires authentication and room membership.**
+      operationId: getQueue
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Room ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+        - name: page
+          in: query
+          description: Page number (1-based). Defaults to 1.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - name: limit
+          in: query
+          description: Items per page. Clamped to [1, 100]. Defaults to 10.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+            example: 10
+      responses:
+        "200":
+          description: Queue retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueListResponse"
+              example:
+                success: true
+                message: Queue retrieved successfully
+                data:
+                  items:
+                    - id: "660e8400-e29b-41d4-a716-446655440001"
+                      videoId: "wb_550e8400-e29b-41d4-a716-446655440000"
+                      title: "Fears to Fathom: Ironbark Lookout"
+                      thumbnail: "https://example.com/thumb.jpg"
+                      videoUrl: "https://example.com/video.mp4"
+                      isActive: true
+                      position: 1
+                    - id: "660e8400-e29b-41d4-a716-446655440002"
+                      videoId: "wb_770e8400-e29b-41d4-a716-446655440000"
+                      title: "Another Video"
+                      thumbnail: "https://example.com/thumb2.jpg"
+                      videoUrl: "https://example.com/video2.mp4"
+                      isActive: false
+                      position: 2
+                  page: 1
+                  pageSize: 10
+                  totalCount: 2
+                errors: null
+        "400":
+          description: Invalid room ID format.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Validation error
+                data: null
+                errors:
+                  id: the room id format is not valid
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a member of the room.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: An unexpected server-side error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/queue/{itemId}:
+    delete:
+      tags:
+        - Queue
+      summary: Remove item from queue
+      description: |
+        Remove a video from the room's playback queue.
+        When an item is deleted, all items with a higher position have their position decremented by 1,
+        ensuring positions remain sequential.
+
+        Only room members can remove items.
+
+        After deleting from a queue - sends `QUEUE_UPDATED` event through the WS Socket.IO.
+        Read the `WsGateway` for the event explanation.
+
+        **Requires authentication and room membership.**
+      operationId: deleteFromQueue
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Room ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+        - name: itemId
+          in: path
+          description: Queue Item ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "660e8400-e29b-41d4-a716-446655440001"
+      responses:
+        "200":
+          description: Item successfully removed from queue.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+              example:
+                success: true
+                message: Item removed from queue
+                data: null
+                errors: null
+        "400":
+          description: Invalid UUID format.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Validation error
+                data: null
+                errors:
+                  itemId: the item id format is not valid
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a member of the room.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Queue item not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Delete from queue error
+                data: null
+                errors:
+                  message: resource not found
+        "500":
+          description: An unexpected server-side error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/queue/{itemId}/activate:
+    patch:
+      tags:
+        - Queue
+      summary: Activate queue item
+      description: |
+        Set a video in the queue as the currently playing item (active).
+        Only one item can be active in a queue at a time.
+        This operation automatically deactivates any previously active item.
+
+        Only room members can activate items.
+
+        After activating video in a queue - sends `QUEUE_UPDATED` event through the WS Socket.IO.
+        Read the `WsGateway` for the event explanation.
+
+        **Requires authentication and room membership.**
+      operationId: activateQueueItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Room ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+        - name: itemId
+          in: path
+          description: Queue Item ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "660e8400-e29b-41d4-a716-446655440001"
+      responses:
+        "200":
+          description: Item successfully activated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+              example:
+                success: true
+                message: Item set as active
+                data: null
+                errors: null
+        "400":
+          description: Invalid UUID format.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Validation error
+                data: null
+                errors:
+                  itemId: the item id format is not valid
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a member of the room.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Queue item not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: An unexpected server-side error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/queue/deactivate:
+    post:
+      tags:
+        - Queue
+      summary: Deactivate queue
+      description: |
+        Deactivate all items in the room's queue.
+        No item will be marked as active after this operation.
+
+        Only room members can deactivate the queue.
+
+        After deactivating a queue - sends `QUEUE_UPDATED` event through the WS Socket.IO.
+        Read the `WsGateway` for the event explanation.
+
+        **Requires authentication and room membership.**
+      operationId: deactivateQueue
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Room ID (UUID v4 format).
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        "200":
+          description: Queue successfully deactivated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+              example:
+                success: true
+                message: Queue deactivated
+                data: null
+                errors: null
+        "400":
+          description: Invalid room ID format.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Validation error
+                data: null
+                errors:
+                  roomId: the room id format is not valid
+        "401":
+          description: Missing or invalid JWT token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a member of the room.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: An unexpected server-side error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        JWT access token issued by the Webby AuthService.
+        Pass it in the Authorization Bearer header.
+
+  schemas:
+    AddQueueItemRequest:
+      type: object
+      description: Payload for adding an item to the room queue.
+      required:
+        - videoId
+      properties:
+        videoId:
+          type: string
+          description: Video identifier (presigned URL or video ID).
+          example: "wb_b8bdc077-92c6-4026-9616-4b19fa10fc27"
+
+    QueueItemCreated:
+      type: object
+      description: A newly created queue item.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique queue item ID.
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        position:
+          type: integer
+          description: Ordinal position in the queue.
+          example: 3
+
+    QueueItemDetail:
+      type: object
+      description: Queue item with media metadata.
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        videoId:
+          type: string
+          example: "wb_550e8400-e29b-41d4-a716-446655440000"
+          description: Video identifier (presigned URL or video ID).
+        title:
+          type: string
+          description: Title from the Video Service.
+          example: "Fears to Fathom: Ironbark Lookout"
+        thumbnail:
+          type: string
+          description: Thumbnail URL.
+          example: "https://example.com/thumb.jpg"
+        videoUrl:
+          type: string
+          description: Direct video URL.
+          example: "https://example.com/video.mp4"
+        isActive:
+          type: boolean
+          example: true
+        position:
+          type: integer
+          example: 1
+
+    PaginatedQueue:
+      type: object
+      description: A paginated list of enriched queue items.
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/QueueItemDetail"
+        page:
+          type: integer
+          description: Current page number (1-based).
+          example: 1
+        pageSize:
+          type: integer
+          description: Maximum items per page.
+          example: 10
+        totalCount:
+          type: integer
+          description: Total video count across all queue items.
+          example: 6
+
+    ApiResponse:
+      type: object
+      description: Generic API envelope used by all endpoints.
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          nullable: true
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+
+    QueueItemCreatedResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        data:
+          $ref: "#/components/schemas/QueueItemCreated"
+
+    QueueListResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        data:
+          $ref: "#/components/schemas/PaginatedQueue"
+
+    SuccessResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        data:
+          nullable: true
+          example: null
+
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      properties:
+        success:
+          example: false
+        data:
+          nullable: true
+          example: null
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            message: something went wrong

@@ -3,6 +3,7 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
+	"webby/room-category-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,7 @@ type createResponse struct {
 
 func (h *handler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := h.logger.With(slog.String("operation", "httpserver.categories.create"))
+	log := logger.FromContext(ctx).With("operation", "handlers.Сreate")
 
 	var req createRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -35,8 +36,6 @@ func (h *handler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, ApiResponse[createResponse]{
 		Success: true,
 		Message: "Category created",
-		Data: &createResponse{
-			Name: req.Name,
-		},
+		Data:    &createResponse{Name: req.Name},
 	})
 }

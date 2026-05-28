@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "webby/wsgateway/internal/grpc/chatpb";
+
+service ChatGrpcService {
+  rpc SaveMessage(SaveMessageRequest) returns (SaveMessageResponse);
+}
+
+message SaveMessageRequest {
+  string chat_id = 1;
+  string user_id = 2;
+  string content = 3;
+}
+
+message SaveMessageResponse {
+  string message_id = 1;
+}

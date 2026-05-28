@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package media;
+
+option go_package = "webby/room-queue-service/internal/grpc/mediapb";
+
+service MediaService {
+  rpc GetVideo(GetVideoRequest) returns (VideoResponse);
+  rpc GetVideosBatch(GetVideosBatchRequest) returns (GetVideosBatchResponse);
+}
+
+message GetVideoRequest {
+  string id = 1;
+}
+
+message VideoResponse {
+  string id = 1;
+  string title = 2;
+  string thumbnail = 3;
+  string videoUrl = 4;
+}
+
+message GetVideosBatchRequest {
+  repeated string ids = 1;
+}
+
+message GetVideosBatchResponse {
+  repeated VideoResponse videos = 1;
+  repeated string unavailableVideoIds = 2;
+}

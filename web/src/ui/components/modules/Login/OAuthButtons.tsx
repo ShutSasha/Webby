@@ -3,13 +3,13 @@ import { MouseEvent } from 'react'
 
 import { signIn } from 'next-auth/react'
 
-import GithubIcon from '@/assets/auth/ic_github.svg'
+// import GithubIcon from '@/assets/auth/ic_github.svg'
 import GoogleIcon from '@/assets/auth/ic_google.svg'
 import { cn } from '@/lib/utils/general.utils'
 
 const OAUTH_PROVIDERS = [
   { id: 'google', label: 'Google', Icon: GoogleIcon },
-  { id: 'github', label: 'GitHub', Icon: GithubIcon },
+  // { id: 'github', label: 'GitHub', Icon: GithubIcon },
 ] as const
 
 type OAuthProviderId = (typeof OAUTH_PROVIDERS)[number]['id']

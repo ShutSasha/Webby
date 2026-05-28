@@ -1,66 +1,48 @@
-package httpserver
+package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby/internal/config"
-	"webby/internal/handlers/roomqueues"
-	"webby/internal/handlers/rooms"
-	addMember "webby/internal/handlers/rooms/add_member"
-	"webby/internal/handlers/rooms/create"
-	"webby/internal/handlers/rooms/delete"
-	"webby/internal/handlers/rooms/get"
-	listMembers "webby/internal/handlers/rooms/list_members"
-	listMy "webby/internal/handlers/rooms/list_my"
-	listPublic "webby/internal/handlers/rooms/list_public"
-	removeMember "webby/internal/handlers/rooms/remove_member"
-	"webby/internal/handlers/rooms/update"
-	updatePoints "webby/internal/handlers/rooms/update_points"
-	"webby/internal/handlers/votes"
+	"webby/room-service/docs"
+	"webby/room-service/internal/config"
+	"webby/room-service/pkg/http/middleware/auth"
+
+	"github.com/gin-gonic/gin"
 )
 
-type RoomService interface {
-	create.Creator
-	listMy.MyLister
-	listPublic.PublicLister
-	get.Getter
-	update.Updater
-	delete.Deleter
-	listMembers.MemberLister
-	addMember.MemberAdder
-	removeMember.MemberRemover
-	updatePoints.PointsUpdater
+func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
+	requireAuth := auth.AuthMiddleware([]byte(cfg.JwtSecret))
+
+	api := router.Group("/api")
+	{
+		api.GET("/rooms/public", handler.ListPublic)
+
+		rooms := api.Group("/rooms")
+		rooms.Use(requireAuth)
+		{
+			rooms.POST("", handler.Create)
+			rooms.GET("/my", handler.ListMy)
+			rooms.GET("/:id", handler.Get)
+			rooms.PUT("/:id", handler.Update)
+			rooms.DELETE("/:id", handler.Delete)
+			rooms.POST("/:id/sync", handler.Synchronize)
+			rooms.POST("/:id/sync/report", handler.ReportTimecode)
+			rooms.GET("/:id/members", handler.ListMembers)
+			rooms.POST("/:id/members", handler.AddMembers)
+			rooms.DELETE("/:id/members/:memberId", handler.RemoveMember)
+		}
+	}
+
+	router.GET("/swagger", swaggerUI)
+	router.GET("/swagger/", swaggerUI)
+	router.GET("/swagger/index.html", swaggerUI)
+	router.GET("/swagger/doc.yaml", swaggerSpec)
 }
 
-type QueueItemService interface {
-	roomqueues.QueueItemService
+func swaggerUI(c *gin.Context) {
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(docs.SwaggerUIHTML))
 }
 
-type VoteService interface {
-	votes.VoteService
-}
-
-func addRoutes(
-	mux *http.ServeMux,
-	cfg *config.Config,
-	logger *slog.Logger,
-	roomService RoomService,
-	queueItemService QueueItemService,
-	voteService VoteService,
-) {
-	mux.Handle("/api/", http.NotFoundHandler())
-
-	rooms.RegisterRooms(mux, []byte(cfg.JwtSecret), logger, roomService)
-	roomqueues.RegisterRoomQueue(mux, []byte(cfg.JwtSecret), logger, queueItemService)
-	votes.RegisterVotes(mux, []byte(cfg.JwtSecret), logger, voteService)
-
-	mux.HandleFunc("GET /swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		http.ServeFile(w, r, "./docs/oas.json")
-	})
-
-	mux.HandleFunc("GET /swagger/doc.yaml", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/x-yaml")
-		http.ServeFile(w, r, "./docs/oas.yml")
-	})
+func swaggerSpec(c *gin.Context) {
+	c.Header("Content-Type", "application/x-yaml")
+	c.File("./docs/oas.yml")
 }

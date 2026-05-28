@@ -113,15 +113,15 @@ public static class ApiExtension
       serviceCollection.Configure<PaymentSettings>(config.GetSection("PaymentOptions"));
    }
    
-   public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection)
+   public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection, IConfiguration configuration)
    {
       serviceCollection.AddGrpcClient<VideoGrpcService.VideoGrpcServiceClient>(o =>
       {
-         o.Address = new Uri("http://localhost:5005");
+         o.Address = new Uri(configuration["GrpcClients:VideoServiceUrl"]);
       });
       serviceCollection.AddGrpcClient<NotificationService.GrpcClient.NotificationGrpcService.NotificationGrpcServiceClient>(o =>
       {
-         o.Address = new Uri("http://localhost:5007");
+         o.Address = new Uri(configuration["GrpcClients:NotificationServiceUrl"]);
       });
       serviceCollection.AddGrpcClient<AchievementGrpcService.AchievementGrpcServiceClient>(o =>
       {

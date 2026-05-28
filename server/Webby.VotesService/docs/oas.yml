@@ -1,0 +1,550 @@
+openapi: 3.0.3
+info:
+  title: Webby - Vote Service
+  description: |
+    The Vote Service manages polls and voting within rooms on the Webby platform.
+    Room hosts can create votes with multiple choices, and room members can cast their votes.
+
+    Two vote types are supported:
+    - **poll** — a general-purpose poll with custom choices
+    - **next_video** — a vote to decide the next video to play; choices may reference queue items
+
+    **Vote Lifecycle**
+
+    Each vote has a configurable duration (60–604800 seconds). Once expired, the vote
+    becomes read-only and a winner is determined by the choice with the most votes.
+
+    For `next_video` votes, the winning choice's queue item is automatically moved to the
+    top of the queue when the vote expires.
+
+    **Authentication**
+
+    All endpoints require a valid JWT Bearer token issued by the AuthService.
+    The authenticated user must be a member of the target room.
+    Only the room host can create and delete votes.
+  version: 1.0.0
+  contact:
+    name: Webby Platform Team
+
+tags:
+  - name: Votes
+    description: |
+      Endpoints for managing votes within a room.
+      All operations require authentication and room membership.
+
+paths:
+  /api/rooms/{id}/votes:
+    post:
+      tags:
+        - Votes
+      summary: Create a vote
+      description: |
+        Create a new poll or next_video vote in the room.
+
+        Only the room host can create votes. Each vote must have between 2 and 20 choices
+        and a duration between 60 and 604800 seconds.
+
+        **Requires authentication and host privileges.**
+      operationId: createVote
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVoteRequest"
+            example:
+              type: poll
+              voteText: "What should we do next?"
+              durationSeconds: 3600
+              choices:
+                - name: "Option A"
+                - name: "Option B"
+      responses:
+        "201":
+          description: Vote created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteResponse"
+        "400":
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not the room host.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    get:
+      tags:
+        - Votes
+      summary: List votes in a room
+      description: |
+        Retrieve all votes for a room. Each vote includes its choices with vote counts,
+        percentages, and the authenticated user's vote (if any).
+
+        **Requires authentication and room membership.**
+      operationId: listVotes
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: List of votes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteListResponse"
+        "400":
+          description: Invalid room ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not a room member.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/rooms/{id}/votes/{voteId}:
+    get:
+      tags:
+        - Votes
+      summary: Get a vote
+      description: |
+        Retrieve a single vote by ID, including choices with counts and the user's vote.
+
+        **Requires authentication and room membership.**
+      operationId: getVote
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+        - $ref: "#/components/parameters/VoteId"
+      responses:
+        "200":
+          description: Vote details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteResponse"
+        "400":
+          description: Invalid vote ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not a room member.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vote not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    delete:
+      tags:
+        - Votes
+      summary: Delete a vote
+      description: |
+        Delete a vote and all its choices and user votes.
+
+        Only the room host can delete votes.
+
+        **Requires authentication and host privileges.**
+      operationId: deleteVote
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+        - $ref: "#/components/parameters/VoteId"
+      responses:
+        "200":
+          description: Vote deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+              example:
+                success: true
+                message: Vote deleted
+                data: null
+                errors: null
+        "400":
+          description: Invalid vote ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not the room host.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vote not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/rooms/{id}/votes/{voteId}/cast:
+    post:
+      tags:
+        - Votes
+      summary: Cast a vote
+      description: |
+        Cast a vote for a specific choice. Each user can only vote once per vote.
+        The vote must not be expired.
+
+        **Requires authentication and room membership.**
+      operationId: castVote
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+        - $ref: "#/components/parameters/VoteId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CastVoteRequest"
+            example:
+              choiceId: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        "200":
+          description: Vote cast successfully. Returns updated vote details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteResponse"
+        "400":
+          description: Validation error (invalid IDs or missing choice).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not a room member or vote is expired.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vote or choice not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User has already voted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    delete:
+      tags:
+        - Votes
+      summary: Remove user's vote
+      description: |
+        Remove the authenticated user's vote from a vote (unvote).
+        The vote must not be expired.
+
+        **Requires authentication and room membership.**
+      operationId: removeVote
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+        - $ref: "#/components/parameters/VoteId"
+      responses:
+        "200":
+          description: Vote removed. Returns updated vote details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteResponse"
+        "400":
+          description: Invalid vote ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not a room member or vote is expired.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User has not voted on this vote.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    RoomId:
+      name: id
+      in: path
+      description: Room ID (UUID v4 format).
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+    VoteId:
+      name: voteId
+      in: path
+      description: Vote ID (UUID v4 format).
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "660e8400-e29b-41d4-a716-446655440001"
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid JWT token.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: Unauthorized
+            data: null
+            errors:
+              message: token is missing or invalid
+    InternalError:
+      description: An unexpected server-side error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    CreateVoteRequest:
+      type: object
+      required:
+        - type
+        - voteText
+        - durationSeconds
+        - choices
+      properties:
+        type:
+          type: string
+          enum: [poll, next_video]
+          description: Vote type.
+        voteText:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: The question or text for the vote.
+        durationSeconds:
+          type: integer
+          minimum: 60
+          maximum: 604800
+          description: Duration in seconds before the vote expires.
+        choices:
+          type: array
+          minItems: 2
+          maxItems: 20
+          items:
+            $ref: "#/components/schemas/ChoiceInput"
+
+    ChoiceInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Choice display text.
+        isCorrect:
+          type: boolean
+          default: false
+          description: Whether this choice is the "correct" answer (for poll type).
+        queueItemId:
+          type: string
+          format: uuid
+          description: Queue item ID (for next_video type).
+
+    CastVoteRequest:
+      type: object
+      required:
+        - choiceId
+      properties:
+        choiceId:
+          type: string
+          format: uuid
+          description: The ID of the choice to vote for.
+
+    VoteDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [poll, next_video]
+        voteText:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        durationSeconds:
+          type: integer
+        expiresAt:
+          type: string
+          format: date-time
+        isExpired:
+          type: boolean
+        totalVotes:
+          type: integer
+        userVotedChoiceId:
+          type: string
+          format: uuid
+          nullable: true
+        winnerId:
+          type: string
+          format: uuid
+          nullable: true
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/VoteChoiceDetail"
+
+    VoteChoiceDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        votes:
+          type: integer
+        percentage:
+          type: number
+          format: double
+        isCorrect:
+          type: boolean
+        queueItemId:
+          type: string
+          format: uuid
+          nullable: true
+
+    VoteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/VoteDetail"
+        errors:
+          type: object
+          nullable: true
+
+    VoteListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/VoteDetail"
+        errors:
+          type: object
+          nullable: true
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          nullable: true
+        errors:
+          type: object
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          nullable: true
+        errors:
+          type: object
+          additionalProperties:
+            type: string

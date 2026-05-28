@@ -4,7 +4,7 @@ namespace Webby.VideoService.Dtos.Video;
 
 public class UploadVideoResponse
 {
-   public Guid VideoId { get; set; }
+   public string VideoId { get; set; }
    public Guid UserId { get; set; }
    public required string Name { get; set; }
    public VideoStatus VideoUploadStatus { get; set; }

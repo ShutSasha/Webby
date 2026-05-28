@@ -71,7 +71,7 @@ export default function CustomPlayer({ videoUrl, videoId, isRoom = false }: Play
         onProgress={actions.handleProgress}
         onTimeUpdate={actions.handleTimeUpdate}
         onDurationChange={actions.handleDurationChange}
-        onVolumeChange={actions.handleReactPlayerVolumeChange}
+        onVolumeChange={(e)=>actions.handleReactPlayerVolumeChange(e, isPlatformMode)}
         onReady={actions.handleReactPlayerReady}
         onPlay={actions.handleReactPlayerPlay}
         onPause={actions.handleReactPlayerPause}
@@ -79,7 +79,7 @@ export default function CustomPlayer({ videoUrl, videoId, isRoom = false }: Play
         onError={actions.handleReactPlayerError}
       />
 
-      <PlayerLoader isReady={state.isReady} buffering={state.buffering} />
+      {!isPlatformMode && <PlayerLoader isReady={state.isReady} buffering={state.buffering} />}
 
       {/* Overlay */}
       {state.isReady && !isPlatformMode && (

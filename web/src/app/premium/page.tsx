@@ -1,12 +1,27 @@
 'use client'
 
+import { useInitializePayment } from '@/lib/hooks/api/payment/useInitializePayment'
 import { PREMIUM_FEATURES } from '@/lib/placeholder-data/premium'
 import { cn } from '@/lib/utils/general.utils'
 import Button from '@/ui/components/shared/Button'
 
 export default function PremiumPage() {
+  const { mutate: initializePayment, isPending } = useInitializePayment()
+
+  const handleGetPremium = () => {
+    initializePayment(undefined, {
+      onSuccess: checkoutUrl => {
+        window.open(checkoutUrl, '_blank')
+      },
+      onError: error => {
+        console.error('Payment initialization failed:', error.message)
+      },
+    })
+  }
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden pb-32 rounded-2xl">
+     
       <div
         className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-500/10 blur-[120px]
           pointer-events-none"
@@ -26,10 +41,20 @@ export default function PremiumPage() {
           </p>
           <Button
             viewType="confirm"
+            onClick={handleGetPremium}
+            disabled={isPending}
             className="rounded-xl px-10 py-3.5 text-lg font-bold bg-emerald-500 hover:bg-emerald-400 text-neutral-900
-              shadow-lg shadow-emerald-500/20 transition-all hover:scale-105"
+              shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 disabled:opacity-70
+              disabled:hover:scale-100"
           >
-            Get Premium
+            {isPending ? (
+              <span className="flex items-center gap-2">
+                <div className="size-5 border-2 border-neutral-900/30 border-t-neutral-900 rounded-full animate-spin" />
+                Processing...
+              </span>
+            ) : (
+              'Get Premium'
+            )}
           </Button>
         </section>
 
@@ -75,9 +100,11 @@ export default function PremiumPage() {
 
                   <Button
                     viewType="confirm"
-                    className="rounded-xl px-8 py-3 font-semibold shadow-md shadow-emerald-500/10"
+                    onClick={handleGetPremium}
+                    disabled={isPending}
+                    className="rounded-xl px-8 py-3 font-semibold shadow-md shadow-emerald-500/10 disabled:opacity-70"
                   >
-                    Get Premium
+                    {isPending ? 'Processing...' : 'Get Premium'}
                   </Button>
                 </div>
 
