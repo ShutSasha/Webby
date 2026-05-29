@@ -6,7 +6,8 @@
     }
   },
   "ConnectionStrings": {
-    "AppDbContext": "{{DatabaseConnectionString}}"
+    "AppDbContext": "{{DatabaseConnectionString}}",
+    "Redis": "{{RedisDbConnectionString}}"
   },
   
     "AwsOptions": {

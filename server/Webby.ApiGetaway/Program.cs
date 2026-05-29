@@ -47,6 +47,7 @@ try
         c.SwaggerEndpoint("/chat/swagger/v1/swagger.json", "ChatService");
         c.SwaggerEndpoint("/ws/swagger/v1/swagger.json", "WsGateway");
         c.SwaggerEndpoint("/notification/swagger/v1/swagger.json", "NotificationService");
+        c.SwaggerEndpoint("/achievement/swagger/v1/swagger.json", "AchievementService");
         c.RoutePrefix = "";
         });
     });

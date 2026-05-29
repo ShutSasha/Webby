@@ -17,7 +17,5 @@ public class User
    
    public ICollection<Complaint> Complaints { get; set; }
    public ICollection<UserFollower> Followers { get; set; }
-   public ICollection<UserAchievement> UserAchievements { get; set; }
    public ICollection<UserFollower> Following { get; set; }
-   public ICollection<UserAchievementProgress> UserAchievementProgresses { get; set; }
 }

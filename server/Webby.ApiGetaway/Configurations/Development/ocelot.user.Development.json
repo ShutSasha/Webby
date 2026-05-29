@@ -104,24 +104,6 @@
       },
 
       {
-         "DownstreamPathTemplate": "/api/users/achievements/unlock",
-         "DownstreamScheme": "http",
-         "DownstreamHostAndPorts": [
-            {
-               "Host": "localhost",
-               "Port": 5002
-            }
-         ],
-         "UpstreamPathTemplate": "/api/users/achievements/unlock",
-         "UpstreamHttpMethod": [
-            "POST"
-         ],
-         "AuthenticationOptions": {
-            "AuthenticationProviderKey": "Bearer"
-         }
-      },
-
-      {
          "DownstreamPathTemplate": "/api/users/achievements/{achievementId}",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
@@ -173,78 +155,6 @@
          "AuthenticationOptions": {
             "AuthenticationProviderKey": "Bearer"
          }
-      },
-
-      {
-         "DownstreamPathTemplate": "/api/achievements",
-         "DownstreamScheme": "http",
-         "DownstreamHostAndPorts": [
-            {
-               "Host": "localhost",
-               "Port": 5002
-            }
-         ],
-         "UpstreamPathTemplate": "/api/achievements",
-         "UpstreamHttpMethod": [
-            "GET"
-         ]
-      },
-
-      {
-         "DownstreamPathTemplate": "/api/achievements",
-         "DownstreamScheme": "http",
-         "DownstreamHostAndPorts": [
-            {
-               "Host": "localhost",
-               "Port": 5002
-            }
-         ],
-         "UpstreamPathTemplate": "/api/achievements",
-         "UpstreamHttpMethod": [
-            "POST","PUT"
-         ],
-         "AuthenticationOptions": {
-            "AuthenticationProviderKey": "Bearer"
-         },
-         "RouteClaimsRequirement": {
-            "Role": "Moderator"
-         }
-      },
-
-      {
-         "DownstreamPathTemplate": "/api/achievements/{achievementId}",
-         "DownstreamScheme": "http",
-         "DownstreamHostAndPorts": [
-            {
-               "Host": "localhost",
-               "Port": 5002
-            }
-         ],
-         "UpstreamPathTemplate": "/api/achievements/{achievementId}",
-         "UpstreamHttpMethod": [
-            "DELETE"
-         ],
-         "AuthenticationOptions": {
-            "AuthenticationProviderKey": "Bearer"
-         },
-         "RouteClaimsRequirement": {
-            "Role": "Moderator"
-         }
-      },
-
-      {
-         "DownstreamPathTemplate": "/api/achievements/{userId}",
-         "DownstreamScheme": "http",
-         "DownstreamHostAndPorts": [
-            {
-               "Host": "localhost",
-               "Port": 5002
-            }
-         ],
-         "UpstreamPathTemplate": "/api/achievements/{userId}",
-         "UpstreamHttpMethod": [
-            "GET"
-         ]
       },
 
 
