@@ -4,14 +4,12 @@ The Achievement Service is responsible for tracking user progress and unlocking 
 
 ## 🐳 Infrastructure Initialization (Redis)
 
-To start the Redis message broker locally without Docker Compose, ensure your Docker daemon is running and execute the following command in your terminal. This will spin up a lightweight Redis container in detached mode and expose the default port (no password required).
+To start the Redis message broker locally without Docker Compose, ensure your Docker daemon is running and execute the following command in your terminal. 
+
+Replace `YOUR_SECURE_PASSWORD` with the actual password used in the project's environment.
 
 ```bash
-docker run -d \
-  --name platform-redis \
-  -p 6379:6379 \
-  redis:7.2-alpine \
-  redis-server --appendonly yes
+docker run -d --name webby-redis  -p 6379:6379  -v redis-data:/data  redis:7-alpine redis-server --requirepass "YOUR_SECURE_PASSWORD"
 ```
 
 ## Event-Driven Architecture (Redis Streams)
