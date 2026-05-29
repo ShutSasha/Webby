@@ -16,5 +16,5 @@
       "SecretKey": "{{AwsSecretKey}}",
       "BucketName": "{{AwsBucketName}}",
       "Region": "{{AwsRegion}}"
-    },
+    }
 }

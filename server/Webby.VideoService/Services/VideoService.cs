@@ -35,10 +35,11 @@ public class VideoService : IVideoService
    private readonly IServiceScopeFactory _scopeFactory;
    private readonly IYouTubeSearchService _youtubeSearchService;
    private readonly ITwitchSearchService _twitchSearchService;
+   private readonly IEventPublisher _eventPublisher;
    public VideoService(IVideoRepository videoRepository, IStorageService storageService,
       ITagService tagService, UserGrpcService.UserGrpcServiceClient userClient, 
       IMapper mapper, IBackgroundTaskQueue queue,
-      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService, ITwitchSearchService twitchSearchService)
+      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService, ITwitchSearchService twitchSearchService, IEventPublisher eventPublisher)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
@@ -49,6 +50,7 @@ public class VideoService : IVideoService
       _scopeFactory = scopeFactory;
       _youtubeSearchService = youtubeSearchService;
       _twitchSearchService = twitchSearchService;
+      _eventPublisher = eventPublisher;
    }
 
    public async Task<Video> GetVideoById(Guid videoId)
@@ -183,7 +185,7 @@ public class VideoService : IVideoService
       
       var platformEvent = new VideoPublishedEvent(userId, video.VideoId)
       {
-         Value = await _videoRepository.GetUserVideosCount(userId)
+         Value = await _videoRepository.CountUserVideos(userId)
       };
       
       await _eventPublisher.PublishAsync(platformEvent);

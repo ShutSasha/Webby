@@ -8,7 +8,6 @@ public class StreamCleanupWorker : BackgroundService
    private readonly IConnectionMultiplexer _redis;
    private readonly ILogger<StreamCleanupWorker> _logger;
 
-
    public StreamCleanupWorker(IConnectionMultiplexer redis, ILogger<StreamCleanupWorker> logger)
    {
       _redis = redis;
@@ -17,33 +16,42 @@ public class StreamCleanupWorker : BackgroundService
 
    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
    {
-      using var timer = new PeriodicTimer(TimeSpan.FromHours(1));
-      var db = _redis.GetDatabase();
-
-      try
+      while (!stoppingToken.IsCancellationRequested)
       {
-         while (await timer.WaitForNextTickAsync(stoppingToken))
+         try
          {
-            _logger.LogInformation("Cleaning events in {StreamName}...", RedisConstants.SteamName);
-            
-            var trimmedCount = await db.StreamTrimAsync(
-               key: RedisConstants.SteamName, 
-               maxLength: RedisConstants.MaxStreamLength, 
-               useApproximateMaxLength: true);
+            var db = _redis.GetDatabase();
+            using var timer = new PeriodicTimer(TimeSpan.FromHours(1));
 
-            if (trimmedCount > 0)
+            while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-               _logger.LogInformation("Stream clean is finished");
+               _logger.LogInformation("Cleaning events in {StreamName}...", RedisConstants.SteamName);
+                    
+               var trimmedCount = await db.StreamTrimAsync(
+                  key: RedisConstants.SteamName, 
+                  maxLength: RedisConstants.MaxStreamLength, 
+                  useApproximateMaxLength: true);
+
+               if (trimmedCount > 0)
+               {
+                  _logger.LogInformation("Stream clean is finished");
+               }
             }
          }
-      }
-      catch (OperationCanceledException)
-      {
-         _logger.LogInformation("Redis stream worker is stopped.");
-      }
-      catch (Exception ex)
-      {
-         _logger.LogError(ex, "Redis Stream error");
+         catch (RedisConnectionException)
+         {
+            _logger.LogWarning("Redis connection lost. Timeout {Timeout} ms",RedisConstants.RedisConnectionTimeout);
+            await Task.Delay(RedisConstants.RedisConnectionTimeout, stoppingToken);
+         }
+         catch (OperationCanceledException)
+         {
+            break;
+         }
+         catch (Exception ex)
+         {
+            _logger.LogError(ex, "Redis Stream error. Timeout {Timeout}",RedisConstants.RedisConnectionTimeout);
+            await Task.Delay(RedisConstants.RedisConnectionTimeout, stoppingToken);
+         }
       }
    }
 }

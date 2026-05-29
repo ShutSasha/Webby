@@ -39,7 +39,6 @@ public class EventPublisher : IEventPublisher
       catch (Exception ex)
       {
          _logger.LogError(ex, "Error sending event with type: {EventType}", @event.EventType);
-         throw; 
       }
    }
 }

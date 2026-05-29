@@ -29,7 +29,7 @@ try
 
     
     services.AddInterceptors();
-    services.ConfigureGrpcConnections();
+    services.ConfigureGrpcConnections(configuration);
 
     services.AddBackgroundWorkers();
     services.AddRepositories();
