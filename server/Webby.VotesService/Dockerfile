@@ -1,9 +1,12 @@
 FROM golang:1.25-alpine AS build
 WORKDIR /src
 COPY Webby.VotesService/go.mod Webby.VotesService/go.sum ./
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod,id=votes-go-mod \
+    go mod download
 COPY Webby.VotesService/ .
-RUN CGO_ENABLED=0 go build -o /app ./cmd/server
+RUN --mount=type=cache,target=/go/pkg/mod,id=votes-go-mod \
+    --mount=type=cache,target=/root/.cache/go-build,id=votes-go-build \
+    CGO_ENABLED=0 go build -o /app ./cmd/server
 
 FROM alpine:3.21
 RUN apk add --no-cache ca-certificates

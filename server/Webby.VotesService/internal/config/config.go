@@ -9,24 +9,24 @@ import (
 )
 
 type Config struct {
-	Env              string     `yaml:"env" env-default:"local"`
-	ConnectionString string     `yaml:"connectionString"`
-	JwtSecret        string     `yaml:"jwtSecret"`
+	Env              string     `yaml:"env" env-default:"local" env:"ENV"`
+	ConnectionString string     `yaml:"connectionString" env:"CONNECTION_STRING"`
+	JwtSecret        string     `yaml:"jwtSecret" env:"JWT_SECRET"`
 	Http             HttpConfig `yaml:"http"`
 	Grpc             GrpcConfig `yaml:"grpc"`
 }
 
 type HttpConfig struct {
-	Host    string        `yaml:"host"`
-	Port    int           `yaml:"port"`
-	Timeout time.Duration `yaml:"timeout"`
+	Host    string        `yaml:"host" env-default:"localhost" env:"HTTP_HOST"`
+	Port    int           `yaml:"port" env-default:"5050" env:"HTTP_PORT"`
+	Timeout time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
 }
 
 type GrpcConfig struct {
-	Host                string `yaml:"host"`
-	Port                int    `yaml:"port"`
-	RoomServiceAddress  string `yaml:"roomServiceAddress"`
-	QueueServiceAddress string `yaml:"queueServiceAddress"`
+	Host                string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
+	Port                int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
+	RoomServiceAddress  string `yaml:"roomServiceAddress" env-default:"localhost:5006" env:"GRPC_ROOM_SERVICE_ADDRESS"`
+	QueueServiceAddress string `yaml:"queueServiceAddress" env-default:"localhost:5007" env:"GRPC_QUEUE_SERVICE_ADDRESS"`
 }
 
 func MustLoad() *Config {

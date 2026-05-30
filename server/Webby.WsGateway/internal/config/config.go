@@ -9,28 +9,28 @@ import (
 )
 
 type Config struct {
-	Env              string        `yaml:"env" env-default:"local"`
+	Env              string        `yaml:"env" env-default:"local" env:"ENV"`
 	JwtSecret        string        `yaml:"jwtSecret" env:"JWT_SECRET" env-required:"true"`
-	ConnectionString string        `yaml:"connectionString"`
-	TokenTTL         time.Duration `yaml:"token_ttl" env-default:"15m"`
+	ConnectionString string        `yaml:"connectionString" env:"CONNECTION_STRING"`
+	TokenTTL         time.Duration `yaml:"token_ttl" env-default:"15m" env:"TOKEN_TTL"`
 
 	Http struct {
-		Host    string        `yaml:"host" env-default:"localhost"`
-		Port    int           `yaml:"port" env-default:"8090"`
-		Timeout time.Duration `yaml:"timeout" env-default:"10s"`
+		Host    string        `yaml:"host" env-default:"localhost" env:"HTTP_HOST"`
+		Port    int           `yaml:"port" env-default:"8090" env:"HTTP_PORT"`
+		Timeout time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
 	} `yaml:"http"`
 
 	Redis struct {
-		Addr     string `yaml:"addr" env-default:"localhost:6379"`
-		Password string `yaml:"password" env-default:""`
-		DB       int    `yaml:"db" env-default:"0"`
-		Pattern  string `yaml:"pattern" env-default:"room:*"`
+		Addr     string `yaml:"addr" env-default:"localhost:6379" env:"REDIS_ADDR"`
+		Password string `yaml:"password" env-default:"" env:"REDIS_PASSWORD"`
+		DB       int    `yaml:"db" env-default:"0" env:"REDIS_DB"`
+		Pattern  string `yaml:"pattern" env-default:"room:*" env:"REDIS_PATTERN"`
 	} `yaml:"redis"`
 
 	Grpc struct {
-		Chat  string `yaml:"chat"`
-		Votes string `yaml:"votes"`
-		Room  string `yaml:"room"`
+		Chat  string `yaml:"chat" env:"GRPC_CHAT"`
+		Votes string `yaml:"votes" env:"GRPC_VOTES"`
+		Room  string `yaml:"room" env:"GRPC_ROOM"`
 	} `yaml:"grpc"`
 }
 
