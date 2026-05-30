@@ -17,7 +17,7 @@ import (
 
 	"webby/wsgateway/internal/config"
 	clients "webby/wsgateway/internal/grpc"
-	handlers "webby/wsgateway/internal/handers"
+	"webby/wsgateway/internal/handlers"
 	redisbus "webby/wsgateway/internal/redis"
 	"webby/wsgateway/internal/repositories"
 	"webby/wsgateway/internal/services"
