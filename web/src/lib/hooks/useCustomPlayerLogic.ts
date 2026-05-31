@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { usePlayerPlayStore, usePlayerStore } from '@/stores/player.store'
+import { useRoomStore } from '@/stores/room.store'
 
-import { clog } from '../utils/general.utils'
+import { reportTimecodeAction } from '../actions/room.actions'
 
 type PlayerState = {
   pip: boolean
@@ -25,6 +26,7 @@ export const useCustomPlayerLogic = (
   videoUrl: string,
   isPlatformMode: boolean,
   trackViewProgress?: (playedSeconds: number, duration: number) => void,
+  roomId?: string,
 ) => {
   const playerRef = useRef<HTMLVideoElement>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
@@ -64,6 +66,47 @@ export const useCustomPlayerLogic = (
   }
 
   const [state, setState] = useState<PlayerState>(initialState)
+
+  const syncTriggerId = useRoomStore(state => state.syncTriggerId)
+  const syncTargetTimecode = useRoomStore(state => state.syncTargetTimecode)
+  const setSyncTriggerId = useRoomStore(state => state.setSyncTriggerId)
+  const setSyncTargetTimecode = useRoomStore(state => state.setSyncTargetTimecode)
+
+  useEffect(() => {
+    if (!syncTriggerId || !roomId) return
+
+    const reportCurrentTime = async () => {
+      const player = playerRef.current
+      if (!player) return
+
+      const currentTime = Math.floor(player.currentTime || 0)
+
+      await reportTimecodeAction(roomId, syncTriggerId, currentTime)
+
+      setSyncTriggerId(null)
+    }
+
+    reportCurrentTime()
+  }, [syncTriggerId, roomId, setSyncTriggerId])
+
+  useEffect(() => {
+    if (syncTargetTimecode === null) return
+
+    const player = playerRef.current
+    if (player) {
+      const newTimeFraction = state.duration ? syncTargetTimecode / state.duration : 0
+
+      setState(prevState => ({
+        ...prevState,
+        played: newTimeFraction,
+        playedSeconds: syncTargetTimecode,
+      }))
+
+      player.currentTime = syncTargetTimecode
+    }
+
+    setSyncTargetTimecode(null)
+  }, [syncTargetTimecode, setSyncTargetTimecode, state.duration])
 
   useEffect(() => {
     setState(prev => ({
@@ -266,10 +309,6 @@ export const useCustomPlayerLogic = (
 
     const isNativeMuted = target.muted
     const nativeVolume = target.volume
-
-    clog(
-      `[Vol Event] isPlatform: ${isPlatformMode} | NativeMuted: ${isNativeMuted} | NativeVol: ${nativeVolume} | StateMuted: ${state.muted} | StateVol: ${baseUserVolume}`,
-    )
 
     if (state.muted === isNativeMuted && baseUserVolume === nativeVolume) {
       return

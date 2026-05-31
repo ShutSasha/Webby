@@ -28,7 +28,7 @@ export default function DesktopNav() {
 
   return (
     <>
-      <aside className="hidden lg:block h-screen sticky top-0 shrink-0 z-50">
+      <aside className="block h-screen sticky top-0 shrink-0 z-50">
         <nav
           className={cn(
             `flex flex-col h-full bg-[#0A0A0A] border-r border-neutral-800/50 py-3 px-3 xl:py-3 xl:px-3 2xl:py-4

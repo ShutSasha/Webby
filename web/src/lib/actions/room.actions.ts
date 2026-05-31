@@ -126,3 +126,56 @@ export async function updateRoomAction(roomId: string, formData: FormData): Prom
     }
   }
 }
+
+export async function initiateSyncAction(roomId: string | undefined): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/${roomId}/sync`)
+    return response
+  } catch (error: unknown) {
+    serverLog('INITIATE_SYNC_ERROR', error, true)
+    return { data: null, success: false, message: 'Failed to initiate sync', errors: parseAxiosError(error) }
+  }
+}
+
+export async function reportTimecodeAction(
+  roomId: string,
+  syncId: string,
+  timecode: number,
+): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/${roomId}/sync/report`, {
+      syncId,
+      timecode,
+    })
+    return response
+  } catch (error: unknown) {
+    serverLog('REPORT_TIMECODE_ERROR', error, true)
+    return { data: null, success: false, message: 'Failed to report timecode', errors: parseAxiosError(error) }
+  }
+}
+
+export async function getWsTokenAction(): Promise<BaseServerResponse<string>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<string>>(`/ws-token`)
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_WS_TOKEN_ERROR', error, true)
+    return { data: null, success: false, message: 'Failed to get WS token', errors: parseAxiosError(error) }
+  }
+}
+
+export async function getRoomById(roomId: string): Promise<BaseServerResponse<Room>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<Room>>(`${endpoint}/${roomId}`)
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_ROOM_BY_ID_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to retrieve room details`,
+      errors: parseAxiosError(error),
+    }
+  }
+}

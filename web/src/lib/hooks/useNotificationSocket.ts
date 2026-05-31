@@ -50,7 +50,6 @@ export const useNotificationSocket = () => {
         connectionRef.current = connection
 
         await connection.start()
-        console.log('SignalR Connected Successfully with One-Time Ticket.')
 
         connection.on('ReceiveNotification', (notification: Notification) => {
           addPopup(notification)
