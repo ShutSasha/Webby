@@ -55,7 +55,8 @@ func (s *RoomService) Synchronize(ctx context.Context, userID, roomID uuid.UUID)
 	go func(asyncCtx context.Context, rID uuid.UUID, sID uuid.UUID, chatTopic string) {
 		bgLog := logger.FromContext(asyncCtx).With(slog.String("op", op+"_async"))
 
-		time.Sleep(3 * time.Second)
+		skipTime := 1 * time.Second
+		time.Sleep(skipTime)
 
 		timecodes, err := s.timecodesRepo.RetrieveTimecodes(asyncCtx, rID, sID)
 		if err != nil {
@@ -68,7 +69,7 @@ func (s *RoomService) Synchronize(ctx context.Context, userID, roomID uuid.UUID)
 		synchEnvelope := EventEnvelope[SynchronizePayload]{
 			Type: EventTypeSynchronize,
 			Payload: SynchronizePayload{
-				Timecode: timecode,
+				Timecode: timecode + int(skipTime.Seconds()),
 			},
 		}
 		if err := s.publisher.Publish(asyncCtx, chatTopic, synchEnvelope); err != nil {
