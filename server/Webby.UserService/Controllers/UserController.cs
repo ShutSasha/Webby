@@ -124,7 +124,17 @@ public class UserController : ControllerBase
 
       return Ok(ApiResponse<UserDto>.Ok("Successfully update user icon", updateUserIconResult));
    }
-   
+
+   [HttpDelete("me")]
+   [SwaggerOperation("Delete user account", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<Guid>>> DeleteUserAccount()
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+
+      var deleteUserId = await _userService.DeleteUser(userId.Value);
+
+      return Ok(ApiResponse<Guid>.Ok("Successfully delete user profile", deleteUserId));
+   }
    
    [HttpDelete("achievements/{achievementId:guid}")]
    [SwaggerOperation("Unpin user achievement","AUTH REQUIRED")]

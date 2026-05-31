@@ -17,11 +17,11 @@ public class UserFollowerConfiguration : IEntityTypeConfiguration<UserFollower>
       builder.HasOne(uf => uf.FollowedUser)
          .WithMany(u => u.Followers)
          .HasForeignKey(uf => uf.UserId)
-         .OnDelete(DeleteBehavior.Restrict);
+         .OnDelete(DeleteBehavior.Cascade);
 
       builder.HasOne(uf => uf.FollowerUser)
          .WithMany(u => u.Following)
          .HasForeignKey(uf => uf.FollowerId)
-         .OnDelete(DeleteBehavior.Restrict);
+         .OnDelete(DeleteBehavior.Cascade);
    }
 }

@@ -276,6 +276,14 @@ public class UserService : IUserService
       };
    }
 
+   public async Task<Guid> DeleteUser(Guid userId)
+   {
+      var user = await _userRepository.FindById(userId) ??
+                 throw new ApiException("Delete user error", 404, "User wasn't found");
+
+      return await _userRepository.DeleteAsync(userId);
+   }
+
    private async Task SendNotification(SendNotificationDto notificationDto) 
       => await _notificationGrpcServiceClient.SendNotificationToUserAsync(new CreateNotificationRequest
       {

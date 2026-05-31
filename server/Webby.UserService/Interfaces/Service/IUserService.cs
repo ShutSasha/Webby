@@ -20,6 +20,6 @@ public interface IUserService
    Task<UserFollowingResponse> IsUserFollowing(Guid userId, Guid targetId);
    Task<GetUserSubscriptionResponse?> GetUserSubscription(Guid userId, bool isOwner);
    Task<PagedResponse<UserDto>> SearchUsers(SearchOptions searchOptions);
+   Task<Guid> DeleteUser(Guid userId);
    
-
 }
