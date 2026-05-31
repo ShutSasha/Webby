@@ -1,0 +1,151 @@
+import asyncio
+import uuid
+from dataclasses import dataclass
+from typing import Dict, Any, Optional
+
+import httpx
+import socketio
+
+
+@dataclass
+class AppConfig:
+    auth_url: str = "http://localhost:5000/api/auth"
+    user_url: str = "http://localhost:5000/api/users"
+    room_url: str = "http://localhost:5000/api/rooms"
+    ws_api_url: str = "http://localhost:5000/api"
+    ws_url: str = "http://localhost:5000"
+
+
+class ApiClient:
+    def __init__(self, base_url: str):
+        self._client = httpx.AsyncClient(base_url=base_url)
+
+    def set_auth(self, token: str) -> None:
+        self._client.headers["Authorization"] = f"Bearer {token}"
+
+    async def post(self, path: str, json: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        response = await self._client.post(path, json=json)
+        response.raise_for_status()
+        return response.json()
+
+    async def get(self, path: str) -> Dict[str, Any]:
+        response = await self._client.get(path)
+        response.raise_for_status()
+        return response.json()
+
+    async def delete(self, path: str) -> Dict[str, Any]:
+        response = await self._client.delete(path)
+        response.raise_for_status()
+        return response.json()
+
+    async def close(self) -> None:
+        await self._client.aclose()
+
+
+class UserSession:
+    def __init__(self, config: AppConfig, email: str, password: str):
+        self.email = email
+        self.password = password
+        self.config = config
+        self.auth_client = ApiClient(config.auth_url)
+        self.user_client = ApiClient(config.user_url)
+        self.room_client = ApiClient(config.room_url)
+        self.ws_api_client = ApiClient(config.ws_api_url)
+        self.sio = socketio.AsyncClient()
+        self.sync_completed = asyncio.Event()
+        self.received_timecode = 0.0
+
+    async def setup(self) -> None:
+        await self.auth_client.post("/sign-up", {
+            "email": self.email,
+            "password": self.password,
+            "username": self.email.split("@")[0]
+        })
+        
+        auth_data = await self.auth_client.post("/sign-in", {
+            "email": self.email,
+            "password": self.password
+        })
+        token = auth_data["data"]["accessToken"]
+
+        self.auth_client.set_auth(token)
+        self.room_client.set_auth(token)
+        self.ws_api_client.set_auth(token)
+
+    async def get_ws_token(self) -> str:
+        res = await self.ws_api_client.get("/ws-token")
+        return res["data"]
+
+    async def connect_ws(self, chat_id: str, room_id: str, report_value: float) -> None:
+        ws_token = await self.get_ws_token()
+
+        @self.sio.on("report_timecode")
+        async def on_report_timecode(data: Dict[str, Any]) -> None:
+            sync_id = data.get("syncId", data.get("sync_id"))
+            await self.room_client.post(f"/{room_id}/sync/report", {
+                "syncId": sync_id,
+                "timecode": report_value
+            })
+
+        @self.sio.on("synchronize")
+        async def on_synchronize(data: Dict[str, Any]) -> None:
+            self.received_timecode = data.get("timecode", 0)
+            self.sync_completed.set()
+
+        url = f"{self.config.ws_url}?token={ws_token}&chat_id={chat_id}"
+        await self.sio.connect(url, transports=["websocket"])
+
+    async def cleanup(self) -> None:
+        if self.sio.connected:
+            await self.sio.disconnect()
+        
+        try:
+            await self.user_client.delete("/me")
+        except Exception:
+            pass
+        
+        await self.auth_client.close()
+        await self.room_client.close()
+        await self.ws_api_client.close()
+
+
+async def run_e2e_test() -> None:
+    config = AppConfig()
+    
+    user1 = UserSession(config, f"user1_{uuid.uuid4().hex[:8]}@test.com", "Str0ngPass1!")
+    user2 = UserSession(config, f"user2_{uuid.uuid4().hex[:8]}@test.com", "Str0ngPass2!")
+
+    try:
+        await user1.setup()
+        await user2.setup()
+
+        room_res = await user1.room_client.post("", {
+            "name": "E2E Test Room",
+            "categoryId": "Education"
+        })
+        room_id = room_res["data"]["id"]
+
+        room_info = await user1.room_client.get(f"/{room_id}")
+        chat_id = room_info["data"]["chatId"]
+
+        await user1.connect_ws(chat_id, room_id, 100)
+        await user2.connect_ws(chat_id, room_id, 200)
+
+        await user1.room_client.post(f"/{room_id}/sync")
+
+        await asyncio.gather(
+            asyncio.wait_for(user1.sync_completed.wait(), timeout=10),
+            asyncio.wait_for(user2.sync_completed.wait(), timeout=10)
+        )
+
+        assert user1.received_timecode == 200
+        assert user2.received_timecode == 200
+
+        await user1.room_client.delete(f"/{room_id}")
+
+    finally:
+        await user1.cleanup()
+        await user2.cleanup()
+
+if __name__ == "__main__":
+    asyncio.run(run_e2e_test())
