@@ -50,7 +50,7 @@ func (s *RoomService) Synchronize(ctx context.Context, userID, roomID uuid.UUID)
 		log.Error("failed to publish queue report", slog.Any("err", err))
 	}
 
-	time.Sleep(800 * time.Millisecond)
+	time.Sleep(3 * time.Second)
 
 	timecodes, err := s.timecodesRepo.RetrieveTimecodes(ctx, roomID, syncID)
 	if err != nil {
