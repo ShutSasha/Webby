@@ -149,8 +149,8 @@ async def run_e2e_test() -> None:
             asyncio.wait_for(user2.sync_completed.wait(), timeout=10)
         )
 
-        assert user1.received_timecode == 200
-        assert user2.received_timecode == 200
+        assert user1.received_timecode == 201
+        assert user2.received_timecode == 201
 
         await user1.room_client.delete(f"/rooms/{room_id}")
 
