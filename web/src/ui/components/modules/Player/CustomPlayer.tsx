@@ -17,16 +17,22 @@ import PlayerSettingsMenu from './PlayerSettingsMenu'
 type PlayerProps = {
   videoUrl: string
   videoId?: string
+  roomId?: string
   isRoom?: boolean
 }
 
-export default function CustomPlayer({ videoUrl, videoId, isRoom = false }: PlayerProps) {
+export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false }: PlayerProps) {
   const isMounted = useIsClient()
   const isPlatformMode = usePlayerControls(videoUrl)
 
   const trackViewProgress = useVideoViewTracker(videoId)
 
-  const { refs, state, setState, uiState, actions } = useCustomPlayerLogic(videoUrl, isPlatformMode, trackViewProgress)
+  const { refs, state, setState, uiState, actions } = useCustomPlayerLogic(
+    videoUrl,
+    isPlatformMode,
+    trackViewProgress,
+    roomId,
+  )
 
   usePlayerHotkeys({
     playerRef: refs.playerRef,
@@ -71,7 +77,7 @@ export default function CustomPlayer({ videoUrl, videoId, isRoom = false }: Play
         onProgress={actions.handleProgress}
         onTimeUpdate={actions.handleTimeUpdate}
         onDurationChange={actions.handleDurationChange}
-        onVolumeChange={(e)=>actions.handleReactPlayerVolumeChange(e, isPlatformMode)}
+        onVolumeChange={e => actions.handleReactPlayerVolumeChange(e, isPlatformMode)}
         onReady={actions.handleReactPlayerReady}
         onPlay={actions.handleReactPlayerPlay}
         onPause={actions.handleReactPlayerPause}

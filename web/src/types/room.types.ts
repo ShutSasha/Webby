@@ -10,6 +10,7 @@ export type Room = {
   hostAvatarUrl: string
   thumbnail: string
   token: string
+  chatId: string
 }
 
 export type GetPublicRooms = PaginatedData<Room>
