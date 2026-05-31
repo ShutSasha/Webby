@@ -76,6 +76,13 @@ tasks:
         CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
         ./server.exe --config ./config/config.yaml
   
+  run_achievement_service:
+    desc: "Run the C# AchievementService"
+    cmds:
+      - |
+        cd ./Webby.AchievementService
+        dotnet run -p:WarningLevel=0
+  
   run_ws_gateway:
     desc: "Run the Go WsGateway"
     cmds:
@@ -96,5 +103,6 @@ tasks:
       - run_room_service
       - run_chat_service
       - run_notification_service
+      - run_achievement_service
       - run_vote_service
       - run_room_queue_service

@@ -1,8 +1,7 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
+using UserService.AchievementGrpcClient;
 using Webby.UserService.Clients;
 using Webby.UserService.Data;
 using Webby.UserService.Dtos.Storage;
@@ -11,7 +10,7 @@ using Webby.UserService.Helpers.Payment;
 using Webby.UserService.Interfaces.Helpers;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
-using Webby.UserService.Models;
+using Webby.UserService.Middlewares;
 using Webby.UserService.Repositories;
 using Webby.UserService.Services;
 
@@ -77,11 +76,16 @@ public static class ApiExtension
       });
    }
 
+   public static void AddInterceptors(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddTransient<GrpcExceptionInterceptor>();
+      serviceCollection.AddTransient<GrpcClientExceptionInterceptor>();
+   }
+
    public static void AddRepositories(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IUserRepository, UserRepository>();
       serviceCollection.AddScoped<IComplaintRepository, ComplaintRepository>();
-      serviceCollection.AddScoped<IAchievementRepository, AchievementRepository>();
       serviceCollection.AddScoped<IPaymentRepository, PaymentRepository>();
       serviceCollection.AddScoped<IUserPremiumRepository, UserPremiumRepository>();
    }
@@ -90,9 +94,12 @@ public static class ApiExtension
    {
       serviceCollection.AddScoped<IStorageService,StorageService>();
       serviceCollection.AddScoped<IUserService,Services.UserService>();
-      serviceCollection.AddScoped<IAchievementService, AchievementService>();
       serviceCollection.AddScoped<IComplaintService, ComplaintService>();
       serviceCollection.AddScoped<IPaymentService, PaymentService>();
+   }
+
+   public static void AddBackgroundWorkers(this IServiceCollection serviceCollection)
+   {
    }
    
    public static void AddHelpers(this IServiceCollection serviceCollection)
@@ -116,5 +123,17 @@ public static class ApiExtension
       {
          o.Address = new Uri(configuration["GrpcClients:NotificationServiceUrl"]);
       });
+      serviceCollection.AddGrpcClient<AchievementGrpcService.AchievementGrpcServiceClient>(o =>
+      {
+         o.Address = new Uri("http://localhost:5009");
+      }).AddInterceptor<GrpcClientExceptionInterceptor>();
+      
    }
+   
+   public static void ConfigureRedisConnection(this IServiceCollection serviceCollection, IConfiguration configuration)
+   {
+      serviceCollection.AddSingleton<IConnectionMultiplexer>(sp =>
+         ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis") ?? string.Empty));
+   }
+   
 }

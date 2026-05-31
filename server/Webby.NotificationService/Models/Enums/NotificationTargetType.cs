@@ -6,5 +6,6 @@ public enum NotificationTargetType
    Video,
    Playlist,
    Room,
-   User
+   User,
+   Achievement,
 }

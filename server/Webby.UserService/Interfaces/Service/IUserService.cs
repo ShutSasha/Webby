@@ -12,7 +12,6 @@ public interface IUserService
    Task<UserDto> UpdateUserInformation(UpdateUserRequest request);
    Task<UserDto> EditUserIcon(Guid id, string fileName, Stream fileStream, string contentType);
    Task<string> ProcessFollow(UserFollowRequest request);
-   Task UnlockAchievement(Guid userId, Guid achievementId);
    Task PinUserAchievement(Guid userId, Guid achievementId);
    Task UnpinUserAchievement(Guid userId, Guid achievementId);
    Task<List<UserFollowersDto>> GetUserFollowers(Guid userId);
@@ -21,6 +20,6 @@ public interface IUserService
    Task<UserFollowingResponse> IsUserFollowing(Guid userId, Guid targetId);
    Task<GetUserSubscriptionResponse?> GetUserSubscription(Guid userId, bool isOwner);
    Task<PagedResponse<UserDto>> SearchUsers(SearchOptions searchOptions);
+   Task<Guid> DeleteUser(Guid userId);
    
-
 }

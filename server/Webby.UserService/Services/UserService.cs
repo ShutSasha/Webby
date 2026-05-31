@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http.Features;
+using Grpc.Core;
+using UserService.AchievementGrpcClient;
 using Webby.NotificationService.GrpcClient;
 using Webby.UserService.Consts;
+using Webby.UserService.Dtos.Achievement;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Dtos.Notification;
 using Webby.UserService.Dtos.Search;
@@ -18,26 +20,27 @@ public class UserService : IUserService
 {
    private readonly IUserRepository _userRepository;
    private readonly IStorageService _storageService;
-   private readonly IAchievementService _achievementService;
    private readonly IUserPremiumRepository _userPremiumRepository;
-   private readonly NotificationService.GrpcClient.NotificationGrpcService.NotificationGrpcServiceClient
-      _notificationGrpcServiceClient;
-
+   private readonly NotificationGrpcService.NotificationGrpcServiceClient _notificationGrpcServiceClient;
+   private readonly AchievementGrpcService.AchievementGrpcServiceClient _achievementGrpcServiceClient;
    private readonly INotificationFactory _notificationFactory;
+   private readonly ILogger<UserService> _logger;
    
    
    private readonly IMapper _mapper;
    public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService,
-      IAchievementService achievementService, IUserPremiumRepository userPremiumRepository,
-      NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient, INotificationFactory notificationFactory)
+      IUserPremiumRepository userPremiumRepository, NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient,
+      INotificationFactory notificationFactory,AchievementGrpcService.AchievementGrpcServiceClient achievementGrpcServiceClient,
+      ILogger<UserService> logger)
    {
       _userRepository = userRepository;
       _mapper = mapper;
       _storageService = storageService;
-      _achievementService = achievementService;
       _userPremiumRepository = userPremiumRepository;
       _notificationGrpcServiceClient = notificationGrpcServiceClient;
       _notificationFactory = notificationFactory;
+      _achievementGrpcServiceClient = achievementGrpcServiceClient;
+      _logger = logger;
    }
    
    public async Task<UserProfileResponse> GetUserInformation(Guid userId)
@@ -49,12 +52,34 @@ public class UserService : IUserService
       {
          throw new ApiException("Get user information error", 404, "User wasn't found");
       }
-      var followBlock = await _userRepository.GetUserFollowBlock(userId);
+      
+      var followBlockTask = _userRepository.GetUserFollowBlock(userId);
+      
 
       response.User = _mapper.Map<UserDto>(user);
-      response.UserFollowStats = followBlock;
-      response.PinnedUserAchievements = await _achievementService.GetPinnedAchievements(userId);
-      response.IsPremiumUser = await _userPremiumRepository.HasUserValidSubscription(userId);
+
+      try
+      {
+         var userAchievements = await _achievementGrpcServiceClient
+            .GetPinnedAchievementsAsync(new GetPinnedAchievementsRequest { UserId = userId.ToString() });
+
+         response.PinnedUserAchievements = userAchievements.UserAchievements
+            .Select(ua => new ProfileAchievementDto
+            {
+               AchievementId = Guid.Parse(ua.AchievementId),
+               IconUrl = ua.IconUrl,
+               Title = ua.Title
+
+            }).ToList();
+      }
+      catch (RpcException ex)
+      {
+         _logger.LogWarning(ex, "Failed to fetch pinned achievements via gRPC for user {UserId}. Status: {StatusCode}", userId, ex.StatusCode);
+         response.PinnedUserAchievements = [];
+      }
+
+      response.UserFollowStats = await followBlockTask;
+      
       return response;
    }
 
@@ -129,74 +154,42 @@ public class UserService : IUserService
       
    }
 
-   public async Task UnlockAchievement(Guid userId, Guid achievementId)
-   {
-      var user = await _userRepository.FindById(userId);
-
-      if (user == null)
-      {
-         throw new ApiException("Unlock achievement error", 404, "User wasn't found");
-      }
-
-      var achievement = await _achievementService.FindById(achievementId);
-
-      if (achievement == null)
-      {
-         throw new ApiException("Unlock achievement error", 404, "Achievement wasn't found");
-      }
-
-      await _achievementService.AddUserAchievement(userId, achievementId);
-      
-   }
-
    public async Task PinUserAchievement(Guid userId, Guid achievementId)
    {
       var user = await _userRepository.FindById(userId);
-
+   
       if (user == null)
       {
          throw new ApiException("Pin achievement error", 404, "User wasn't found");
       }
       
-      var achievement = await _achievementService.FindById(achievementId);
-
-      if (achievement == null)
+      var request = new ProcessPinAchievementsRequest
       {
-         throw new ApiException("Pin achievement error", 404, "Achievement wasn't found");
-      }
-      
-      var userAchievement = await _achievementService.GetUserAchievement(userId,achievementId);
+         UserId = userId.ToString(),
+         AchievementId = achievementId.ToString(),
+         ProcessAchievementType = ProcessAchievementType.Pin
+      };
 
-      if (await _achievementService.GetPinnedAchievementsCount(user.UserId) >= 3)
-      {
-         throw new ApiException("Pin user achievement error", 400, "You can't pin more than 3 achievements");
-      }
-
-      userAchievement.IsPinned = true;
-      await _achievementService.UpdateUserAchievement(userAchievement);
+      await _achievementGrpcServiceClient.ProcessPinAchievementAsync(request);
    }
-
+   
    public async Task UnpinUserAchievement(Guid userId, Guid achievementId)
    {
       var user = await _userRepository.FindById(userId);
-
+   
       if (user == null)
       {
          throw new ApiException("Unpin achievement error", 404, "User wasn't found");
       }
       
-      var achievement = await _achievementService.FindById(achievementId);
-
-      if (achievement == null)
+      var request = new ProcessPinAchievementsRequest
       {
-         throw new ApiException("Unpin achievement error", 404, "Achievement wasn't found");
-      }
+         UserId = userId.ToString(),
+         AchievementId = achievementId.ToString(),
+         ProcessAchievementType = ProcessAchievementType.Unpin
+      };
 
-      var userAchievement = await _achievementService.GetUserAchievement(userId,achievementId);
-
-      userAchievement.IsPinned = false;
-      await _achievementService.UpdateUserAchievement(userAchievement);
-      
+      await _achievementGrpcServiceClient.ProcessPinAchievementAsync(request);
    }
 
    public async Task<List<UserFollowersDto>> GetUserFollowers(Guid userId)
@@ -281,6 +274,14 @@ public class UserService : IUserService
          Page = searchOptions.Page,
          PageSize = searchOptions.PageSize
       };
+   }
+
+   public async Task<Guid> DeleteUser(Guid userId)
+   {
+      var user = await _userRepository.FindById(userId) ??
+                 throw new ApiException("Delete user error", 404, "User wasn't found");
+
+      return await _userRepository.DeleteAsync(userId);
    }
 
    private async Task SendNotification(SendNotificationDto notificationDto) 

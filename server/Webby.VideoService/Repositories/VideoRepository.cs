@@ -25,7 +25,7 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
    public async Task<int> CountUserVideos(Guid userId)
    {
        return await _context.Videos
-           .Where(v => v.UserId == userId)
+           .Where(v => v.UserId == userId && !v.IsPrivate)
            .CountAsync();
    }
 

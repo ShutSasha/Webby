@@ -90,14 +90,6 @@ public class UserController : ControllerBase
       return Ok(ApiResponse.Ok(resultMessage));
    }
    
-   [HttpPost("achievements/unlock")]
-   [SwaggerOperation("Test unlock achievement to user")]
-   public async Task<ActionResult<ApiResponse>> UnlockUserAchievement([FromBody] UnlockUserAchievementRequest request)
-   {
-      await _userService.UnlockAchievement(request.UserId, request.AchievementId);
-      return Ok(ApiResponse.Ok("Successfully unlock user achievement"));
-   }
-   
    [HttpPost("achievements/{achievementId:guid}")]
    [SwaggerOperation("Pin user achievement","AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> PinUserAchievement([FromRoute] Guid achievementId)
@@ -132,7 +124,17 @@ public class UserController : ControllerBase
 
       return Ok(ApiResponse<UserDto>.Ok("Successfully update user icon", updateUserIconResult));
    }
-   
+
+   [HttpDelete("me")]
+   [SwaggerOperation("Delete user account", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<Guid>>> DeleteUserAccount()
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+
+      var deleteUserId = await _userService.DeleteUser(userId.Value);
+
+      return Ok(ApiResponse<Guid>.Ok("Successfully delete user profile", deleteUserId));
+   }
    
    [HttpDelete("achievements/{achievementId:guid}")]
    [SwaggerOperation("Unpin user achievement","AUTH REQUIRED")]
