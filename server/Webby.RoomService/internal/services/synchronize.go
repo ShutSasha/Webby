@@ -50,24 +50,31 @@ func (s *RoomService) Synchronize(ctx context.Context, userID, roomID uuid.UUID)
 		log.Error("failed to publish queue report", slog.Any("err", err))
 	}
 
-	time.Sleep(3 * time.Second)
+	bgCtx := context.WithoutCancel(ctx)
 
-	timecodes, err := s.timecodesRepo.RetrieveTimecodes(ctx, roomID, syncID)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
+	go func(asyncCtx context.Context, rID uuid.UUID, sID uuid.UUID, chatTopic string) {
+		bgLog := logger.FromContext(asyncCtx).With(slog.String("op", op+"_async"))
 
-	timecode := s.calculateTimecode(timecodes)
+		time.Sleep(3 * time.Second)
 
-	synchEnvelope := EventEnvelope[SynchronizePayload]{
-		Type: EventTypeSynchronize,
-		Payload: SynchronizePayload{
-			Timecode: timecode,
-		},
-	}
-	if err := s.publisher.Publish(ctx, topic, synchEnvelope); err != nil {
-		log.Error("failed to publish queue sync", slog.Any("err", err))
-	}
+		timecodes, err := s.timecodesRepo.RetrieveTimecodes(asyncCtx, rID, sID)
+		if err != nil {
+			bgLog.Error("failed to retrieve timecodes", slog.Any("err", err))
+			return
+		}
+
+		timecode := s.calculateTimecode(timecodes)
+
+		synchEnvelope := EventEnvelope[SynchronizePayload]{
+			Type: EventTypeSynchronize,
+			Payload: SynchronizePayload{
+				Timecode: timecode,
+			},
+		}
+		if err := s.publisher.Publish(asyncCtx, chatTopic, synchEnvelope); err != nil {
+			bgLog.Error("failed to publish queue sync", slog.Any("err", err))
+		}
+	}(bgCtx, roomID, syncID, topic)
 
 	return nil
 }
