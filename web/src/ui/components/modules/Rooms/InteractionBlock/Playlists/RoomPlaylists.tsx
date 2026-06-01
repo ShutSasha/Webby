@@ -1,71 +1,39 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
+
+import { useParams } from 'next/navigation'
 
 import SearchIcon from '@/assets/icons/ic_search.svg'
+import { useRoomQueueQuery } from '@/lib/hooks/api/room/useRoomQueueQuery'
+import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
+import { RoomQueueItem } from '@/types/room.types'
 
 import PlaylistItem from './PlaylistItem'
 
-interface Video {
-  id: string
-  title: string
-  thumbnail: string
-  isActive?: boolean
-  isFolder?: boolean
-  children?: Video[]
-}
-
-const mockVideos: Video[] = [
-  {
-    id: '1',
-    title: 'Fears to Fathom: Ironbark Lookout',
-    thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg',
-    isActive: true,
-  },
-  {
-    id: 'folder-1',
-    title: 'Fears to Fathom episodes',
-    thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg',
-    isFolder: true,
-    children: [
-      { id: '2-1', title: 'Episode 1: Home Alone', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
-      {
-        id: '2-2',
-        title: 'Episode 2: Norwood Hitchhike',
-        thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg',
-      },
-      { id: '2-3', title: 'Episode 3: Carson House', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
-    ],
-  },
-  {
-    id: 'folder-2',
-    title: 'Lo-Fi Chill Beats',
-    thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg',
-    isFolder: true,
-    children: [
-      { id: '3-1', title: 'Night in Tokyo', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
-      { id: '3-2', title: 'Rainy Day in Paris', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
-    ],
-  },
-  { id: '4', title: 'Gaming Highlights #42', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
-  { id: '5', title: 'How to React 2026', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
-  { id: '6', title: 'Webby Project Update', thumbnail: 'https://i.ibb.co/PGL4ymBS/thumb-1920-415519.jpg' },
-]
-
 export default function RoomPlaylists() {
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
+  const params = useParams()
+  const roomId = params?.id as string
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
+  const [search, setSearch] = useState('')
+
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useRoomQueueQuery(roomId)
+
+  const queueItems: RoomQueueItem[] = useMemo(() => {
+    return data?.pages.flatMap(page => page?.data?.items || []) || []
+  }, [data])
 
   const filteredPlaylist = useMemo(() => {
-    return mockVideos.filter(v => v.title.toLowerCase().includes(search.toLowerCase()))
-  }, [search])
+    if (!search.trim()) return queueItems
+    return queueItems.filter(v => (v?.title || '').toLowerCase().includes(search.toLowerCase()))
+  }, [queueItems, search])
 
-  if (loading) return <p className="text-center text-neutral-500 py-4">Loading queue...</p>
+  const lastElementRef = useInfiniteScroll({
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  })
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -85,9 +53,38 @@ export default function RoomPlaylists() {
       </div>
 
       <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2 pr-1 custom-scrollbar">
-        {filteredPlaylist.map(video => (
-          <PlaylistItem key={video.id} video={video} />
-        ))}
+        {isLoading && queueItems.length === 0 ? (
+          <div className="flex justify-center py-10">
+            <div className="size-6 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+          </div>
+        ) : filteredPlaylist.length === 0 ? (
+          <p className="text-neutral-500 text-center py-10 text-sm">
+            {search ? 'No videos match your search' : 'Queue is empty'}
+          </p>
+        ) : (
+          filteredPlaylist.map((video, index) => {
+            if (!video || !video.id) return null
+
+            const isLast = filteredPlaylist.length === index + 1
+            const item = <PlaylistItem key={video.id} video={video} />
+
+            if (isLast) {
+              return (
+                <div ref={lastElementRef} key={`last-${video.id}`}>
+                  {item}
+                </div>
+              )
+            }
+
+            return item
+          })
+        )}
+
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-4 shrink-0">
+            <div className="size-5 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+          </div>
+        )}
       </div>
     </div>
   )

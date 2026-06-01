@@ -3,7 +3,7 @@
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse } from '@/types/general.types'
-import { GetPublicRooms, GetUserRoomsResponse, Room } from '@/types/room.types'
+import { GetPublicRooms, GetRoomQueueResponse, GetUserRoomsResponse, Room } from '@/types/room.types'
 
 const endpoint = '/rooms'
 
@@ -175,6 +175,31 @@ export async function getRoomById(roomId: string): Promise<BaseServerResponse<Ro
       data: null,
       success: false,
       message: `Failed to retrieve room details`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function getRoomQueueAction(
+  roomId: string,
+  page: number,
+  limit: number = 20,
+): Promise<BaseServerResponse<GetRoomQueueResponse>> {
+  try {
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    params.append('limit', limit.toString())
+
+    const url = `${endpoint}/${roomId}/queue?${params.toString()}`
+
+    const { data: response } = await $api.get<BaseServerResponse<GetRoomQueueResponse>>(url)
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_ROOM_QUEUE_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve room queue',
       errors: parseAxiosError(error),
     }
   }
