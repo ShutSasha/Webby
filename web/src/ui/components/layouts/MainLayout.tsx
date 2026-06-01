@@ -1,5 +1,4 @@
 import DesktopNav from '../modules/Nav/DesktopNav'
-import MobileNav from '../modules/Nav/MobileNav'
 
 type Props = Readonly<{
   children: React.ReactNode

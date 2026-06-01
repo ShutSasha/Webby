@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 
+import { DEFAULT_USER_THUMBNAIL, DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
 import { useSearchVideosQuery } from '@/lib/hooks/api/video/useSearchVideos'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 
@@ -52,20 +53,21 @@ export default function VideosPublicSearchContainer({ query }: Props) {
     <>
       <GridCardsContainer>
         {videos.map((video, index) => {
+          if (!video.videoId) return null
           const isLast = videos.length === index + 1
 
           const item = (
             <VideoCard
               key={video.videoId}
               videoId={video.videoId}
-              title={video.name}
-              previewUrl={video.previewUrl}
-              duration={video.duration}
-              creator={video.user.username}
-              views={video.views}
-              createAt={video.createdAt}
-              userAvatar={video.user.avatarUrl}
-              currentUserId={session?.user.id}
+              title={video.name || 'Untitled Video'}
+              previewUrl={video.previewUrl || DEFAULT_VIDEO_THUMBNAIL}
+              duration={video.duration || 0}
+              creator={video.user?.username || 'Unknown User'}
+              views={video.views || 0}
+              createAt={video.createdAt || new Date().toISOString()}
+              userAvatar={video.user?.avatarUrl || DEFAULT_USER_THUMBNAIL}
+              currentUserId={session?.user?.id}
             />
           )
 
