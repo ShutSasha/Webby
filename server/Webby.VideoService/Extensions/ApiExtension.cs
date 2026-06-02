@@ -14,6 +14,7 @@ using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Repositories;
 using Webby.VideoService.Services;
 using Webby.VideoService.Services.Background;
+using Webby.VideoService.Services.Handlers;
 
 namespace Webby.VideoService.Extensions;
 
@@ -107,6 +108,7 @@ public static class ApiExtension
    public static void AddBackgroundServices(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddHostedService<QueuedHostedService>();
+      serviceCollection.AddHostedService<UserDeletedEventHandler>();
    }
 
    public static void AddHelpers(this IServiceCollection serviceCollection)
@@ -133,6 +135,7 @@ public static class ApiExtension
       serviceCollection.Configure<ExternalServicesOptions>(config.GetSection("ExternalServices"));
       
    }
+   
 
    public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection, IConfiguration configuration)
    {

@@ -97,10 +97,6 @@ public static class ApiExtension
       serviceCollection.AddScoped<IComplaintService, ComplaintService>();
       serviceCollection.AddScoped<IPaymentService, PaymentService>();
    }
-
-   public static void AddBackgroundWorkers(this IServiceCollection serviceCollection)
-   {
-   }
    
    public static void AddHelpers(this IServiceCollection serviceCollection)
    {

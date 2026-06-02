@@ -1,8 +1,8 @@
-﻿namespace Webby.AchievementService.Constants;
+﻿namespace Webby.UserService.Consts;
 
 public static class RedisConstants
 {
    public const string SteamName = "events:platform";
-   public const int MaxStreamLength = 10000;
+   public const string UserStreamName = "events:users";
    public const int RedisConnectionTimeout = 10;
 }

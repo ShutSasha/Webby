@@ -1,5 +1,7 @@
-﻿using AutoMapper;
+﻿using System.Text.Json;
+using AutoMapper;
 using Grpc.Core;
+using StackExchange.Redis;
 using UserService.AchievementGrpcClient;
 using Webby.NotificationService.GrpcClient;
 using Webby.UserService.Consts;
@@ -25,13 +27,14 @@ public class UserService : IUserService
    private readonly AchievementGrpcService.AchievementGrpcServiceClient _achievementGrpcServiceClient;
    private readonly INotificationFactory _notificationFactory;
    private readonly ILogger<UserService> _logger;
+   private readonly IDatabase _redisDb;
    
    
    private readonly IMapper _mapper;
    public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService,
       IUserPremiumRepository userPremiumRepository, NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient,
       INotificationFactory notificationFactory,AchievementGrpcService.AchievementGrpcServiceClient achievementGrpcServiceClient,
-      ILogger<UserService> logger)
+      ILogger<UserService> logger, IConnectionMultiplexer redis)
    {
       _userRepository = userRepository;
       _mapper = mapper;
@@ -41,6 +44,7 @@ public class UserService : IUserService
       _notificationFactory = notificationFactory;
       _achievementGrpcServiceClient = achievementGrpcServiceClient;
       _logger = logger;
+      _redisDb = redis.GetDatabase();
    }
    
    public async Task<UserProfileResponse> GetUserInformation(Guid userId)
@@ -281,7 +285,17 @@ public class UserService : IUserService
       var user = await _userRepository.FindById(userId) ??
                  throw new ApiException("Delete user error", 404, "User wasn't found");
 
-      return await _userRepository.DeleteAsync(userId);
+      await _userRepository.DeleteAsync(user.UserId);
+      
+      var eventPayload = JsonSerializer.Serialize(new { UserId = userId, DeletedAt = DateTime.UtcNow });
+      
+      await _redisDb.StreamAddAsync(RedisConstants.UserStreamName, new[]
+      {
+         new NameValueEntry("EventType", "user_deleted"),
+         new NameValueEntry("Payload", eventPayload)
+      });
+
+      return user.UserId;
    }
 
    private async Task SendNotification(SendNotificationDto notificationDto) 

@@ -30,14 +30,12 @@ try
     
     services.AddInterceptors();
     services.ConfigureGrpcConnections(configuration);
-
-    services.AddBackgroundWorkers();
+    
     services.AddRepositories();
     services.AddServices();
     services.AddHelpers();
     services.AddGrpc();
-
-
+    
     services.AddControllers().AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());

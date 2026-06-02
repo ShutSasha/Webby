@@ -63,8 +63,8 @@ public class RedisWorker : BackgroundService
             }
             catch (RedisConnectionException ex)
             {
-                _logger.LogWarning("Redis connection lost. Timeout {Timeout} ms", RedisConstants.RedisConnectionTimeout);
-                await Task.Delay(RedisConstants.RedisConnectionTimeout, stoppingToken);
+                _logger.LogWarning("Redis connection lost. Timeout {Timeout}s", RedisConstants.RedisConnectionTimeout);
+                await Task.Delay(TimeSpan.FromSeconds(RedisConstants.RedisConnectionTimeout), stoppingToken);
             }
             catch (OperationCanceledException)
             {
