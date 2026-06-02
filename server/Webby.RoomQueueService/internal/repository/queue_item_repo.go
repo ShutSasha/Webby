@@ -33,13 +33,16 @@ func (r *QueueItemRepository) Create(
 	}
 
 	query := `
-		INSERT INTO queue_items (room_id, video_id, position)
-		VALUES ($1, $2, (SELECT COALESCE(MAX(position), 0) + 1
-			FROM queue_items WHERE room_id = $1))
-		RETURNING id, position
+		INSERT INTO queue_items (room_id, video_id, position, is_active)
+		VALUES (
+			$1, 
+			$2, 
+			(SELECT COALESCE(MAX(position), 0) + 1 FROM queue_items WHERE room_id = $1),
+			(CASE WHEN (SELECT MAX(position) FROM queue_items WHERE room_id = $1) IS NULL THEN true ELSE false END)
+		)
+		RETURNING id, position, is_active
 	`
-
-	err := r.db.QueryRow(ctx, query, item.RoomID, item.VideoID).Scan(&item.ID, &item.Position)
+	err := r.db.QueryRow(ctx, query, item.RoomID, item.VideoID).Scan(&item.ID, &item.Position, &item.IsActive)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -70,9 +73,11 @@ func (r *QueueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, er
 
 	var roomID uuid.UUID
 	var position int
+	var isActive bool
+
 	err = tx.QueryRow(
-		ctx, `SELECT room_id, position FROM queue_items WHERE id = $1`, id,
-	).Scan(&roomID, &position)
+		ctx, `SELECT room_id, position, is_active FROM queue_items WHERE id = $1`, id,
+	).Scan(&roomID, &position, &isActive)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return -1, fmt.Errorf(
@@ -90,10 +95,35 @@ func (r *QueueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, er
 	if _, err = tx.Exec(
 		ctx,
 		`UPDATE queue_items SET position = position - 1
-		 WHERE room_id = $1 AND position > $2`,
+         WHERE room_id = $1 AND position > $2`,
 		roomID, position,
 	); err != nil {
 		return -1, fmt.Errorf("%s: shift positions: %w", op, err)
+	}
+
+	if isActive {
+		cmdTag, err := tx.Exec(
+			ctx,
+			`UPDATE queue_items SET is_active = true WHERE room_id = $1 AND position = $2`,
+			roomID, position,
+		)
+		if err != nil {
+			return -1, fmt.Errorf("%s: set active to next: %w", op, err)
+		}
+
+		if cmdTag.RowsAffected() == 0 {
+			_, err = tx.Exec(
+				ctx,
+				`UPDATE queue_items SET is_active = true
+                 WHERE room_id = $1 AND position = (
+                     SELECT MAX(position) FROM queue_items WHERE room_id = $1
+                 )`,
+				roomID,
+			)
+			if err != nil {
+				return -1, fmt.Errorf("%s: set active to last: %w", op, err)
+			}
+		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
@@ -314,27 +344,4 @@ func (r *QueueItemRepository) ActivateVideo(
 	}
 
 	return prevPosition, currPosition, nil
-}
-
-func (r *QueueItemRepository) DeactivateQueue(ctx context.Context, roomID uuid.UUID) (int, error) {
-	const op = "repository.QueueItemRepository.DeactivateQueue"
-
-	if roomID == uuid.Nil {
-		return -1, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
-
-	query := `
-		UPDATE queue_items
-		SET is_active = FALSE
-		WHERE room_id = $1 AND is_active = TRUE
-		RETURNING position
-	`
-	position := -1
-	if err := r.db.QueryRow(ctx, query, roomID).Scan(&position); err != nil {
-		if !errors.Is(err, pgx.ErrNoRows) {
-			return -1, fmt.Errorf("%s: deactivate queue failed: %w", op, err)
-		}
-	}
-
-	return position, nil
 }
