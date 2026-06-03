@@ -66,7 +66,7 @@ export default function RoomPlaylists() {
             if (!video || !video.id) return null
 
             const isLast = filteredPlaylist.length === index + 1
-            const item = <PlaylistItem key={video.id} video={video} />
+            const item = <PlaylistItem key={video.id} roomId={roomId} video={video} />
 
             if (isLast) {
               return (

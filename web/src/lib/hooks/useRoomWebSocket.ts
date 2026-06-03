@@ -1,15 +1,17 @@
 import { useEffect, useRef } from 'react'
 
+import { useQueryClient } from '@tanstack/react-query'
 import io from 'socket.io-client'
 
 import { getWsTokenAction } from '@/lib/actions/room.actions'
 import { useRoomStore } from '@/stores/room.store'
 
-export const useRoomWebSocket = (chatId: string | undefined) => {
+export const useRoomWebSocket = (roomId: string | undefined, chatId: string | undefined) => {
   const socketRef = useRef<SocketIOClient.Socket | null>(null)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
-    if (!chatId) return
+    if (!chatId || !roomId) return
 
     let isMounted = true
 
@@ -48,6 +50,10 @@ export const useRoomWebSocket = (chatId: string | undefined) => {
         if (payload?.timecode !== undefined) {
           useRoomStore.getState().setSyncTargetTimecode(payload.timecode)
         }
+      })
+
+      socket.on('QUEUE_UPDATED', (payload: { position: number[] }) => {
+        queryClient.invalidateQueries({ queryKey: ['room-queue', roomId] })
       })
     }
 

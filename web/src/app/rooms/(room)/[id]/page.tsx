@@ -30,7 +30,7 @@ export default async function RoomPage({ params }: Props) {
 
   return (
     <div className="flex flex-col">
-      <RoomWebSocketManager chatId={room.chatId} />
+      <RoomWebSocketManager roomId={id} chatId={room.chatId} />
       <div className="flex gap-5">
         <CustomPlayer videoUrl={testVideoUrl} isRoom roomId={id} />
 

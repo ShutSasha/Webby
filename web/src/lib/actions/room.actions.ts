@@ -204,3 +204,20 @@ export async function getRoomQueueAction(
     }
   }
 }
+
+export async function activateQueueItemAction(roomId: string, itemId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.patch<BaseServerResponse<null>>(
+      `${endpoint}/${roomId}/queue/${itemId}/activate`,
+    )
+    return response
+  } catch (error: unknown) {
+    serverLog('ACTIVATE_QUEUE_ITEM_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to activate queue item',
+      errors: parseAxiosError(error),
+    }
+  }
+}
