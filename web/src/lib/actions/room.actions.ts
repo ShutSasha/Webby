@@ -236,3 +236,18 @@ export async function removeQueueItemAction(roomId: string, itemId: string): Pro
     }
   }
 }
+
+export async function addQueueItemAction(roomId: string, videoId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/${roomId}/queue`, { videoId })
+    return response
+  } catch (error: unknown) {
+    serverLog('ADD_QUEUE_ITEM_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to add item to queue',
+      errors: parseAxiosError(error),
+    }
+  }
+}

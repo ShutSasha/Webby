@@ -19,7 +19,7 @@ interface RoomState {
 }
 
 export const useRoomStore = create<RoomState>(set => ({
-  tab: 'chat',
+  tab: 'playlist',
   setTab: tab => set({ tab: tab }),
 
   syncTriggerId: null,

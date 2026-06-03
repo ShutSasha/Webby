@@ -1,6 +1,5 @@
 import ShareIcon from '@/assets/icons/Profile/ic_user_plus.svg'
 import { getRoomById } from '@/lib/actions/room.actions'
-import { testVideoUrls } from '@/lib/placeholder-data/player'
 import RoomInteractionContainer from '@/ui/components/modules/Rooms/InteractionBlock/RoomInteractionContainer'
 import RoomPlayerContainer from '@/ui/components/modules/Rooms/RoomPlayerContainer'
 import RoomWebSocketManager from '@/ui/components/modules/Rooms/RoomWebSocketManager'
