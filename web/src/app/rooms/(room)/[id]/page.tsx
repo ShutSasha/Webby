@@ -1,8 +1,8 @@
 import ShareIcon from '@/assets/icons/Profile/ic_user_plus.svg'
 import { getRoomById } from '@/lib/actions/room.actions'
 import { testVideoUrls } from '@/lib/placeholder-data/player'
-import CustomPlayer from '@/ui/components/modules/Player/CustomPlayer'
 import RoomInteractionContainer from '@/ui/components/modules/Rooms/InteractionBlock/RoomInteractionContainer'
+import RoomPlayerContainer from '@/ui/components/modules/Rooms/RoomPlayerContainer'
 import RoomWebSocketManager from '@/ui/components/modules/Rooms/RoomWebSocketManager'
 import ActionButton from '@/ui/components/shared/ActionButton'
 import EmptyState from '@/ui/components/shared/EmptyState'
@@ -17,9 +17,6 @@ export default async function RoomPage({ params }: Props) {
   const roomResponse = await getRoomById(id)
   const room = roomResponse.data
 
-  const testVideoUrl =
-    testVideoUrls.find(it => it.type === 'mp4')?.link ?? 'https://www.youtube.com/watch?v=Zmrj90wYt4c'
-
   if (!room) {
     return (
       <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
@@ -32,7 +29,7 @@ export default async function RoomPage({ params }: Props) {
     <div className="flex flex-col">
       <RoomWebSocketManager roomId={id} chatId={room.chatId} />
       <div className="flex gap-5">
-        <CustomPlayer videoUrl={testVideoUrl} isRoom roomId={id} />
+        <RoomPlayerContainer roomId={id} />
 
         <RoomInteractionContainer />
       </div>

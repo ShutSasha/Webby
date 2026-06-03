@@ -5,10 +5,9 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
 import TrashIcon from '@/assets/icons/ic_trash.svg'
-import PauseIcon from '@/assets/icons/Player/pause.svg'
-import PlayIcon from '@/assets/icons/Player/play.svg'
 import { activateQueueItemAction } from '@/lib/actions/room.actions'
 import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { useRemoveQueueItemMutation } from '@/lib/hooks/api/room/useRemoveQueueItem'
 import { cn } from '@/lib/utils/general.utils'
 import { useRoomStore } from '@/stores/room.store'
 
@@ -33,7 +32,8 @@ export default function PlaylistItem({ roomId, video, isChild = false }: Props) 
   const optimisticPendingId = useRoomStore(state => state.optimisticPendingId)
   const setOptimisticPendingId = useRoomStore(state => state.setOptimisticPendingId)
 
-  // TODO: think about some memo
+  const { mutate: removeQueueItem, isPending: isRemoving } = useRemoveQueueItemMutation()
+
   useEffect(() => {
     if (optimisticPendingId === video.id && video.isActive) {
       setOptimisticPendingId(null)
@@ -44,7 +44,7 @@ export default function PlaylistItem({ roomId, video, isChild = false }: Props) 
   const thumbnail = video.thumbnail || DEFAULT_VIDEO_THUMBNAIL
 
   const handleActivate = async () => {
-    if (!roomId || !video.id || video.isActive || video.isFolder) return
+    if (!roomId || !video.id || video.isActive || video.isFolder || isRemoving) return
     setOptimisticPendingId(video.id)
     const res = await activateQueueItemAction(roomId, video.id)
 
@@ -53,6 +53,13 @@ export default function PlaylistItem({ roomId, video, isChild = false }: Props) 
         setOptimisticPendingId(null)
       }
     }
+  }
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!roomId || !video.id || isRemoving) return
+
+    removeQueueItem({ roomId, itemId: video.id })
   }
 
   const isPending = optimisticPendingId === video.id
@@ -68,6 +75,7 @@ export default function PlaylistItem({ roomId, video, isChild = false }: Props) 
           isVisuallyActive && !isPending && 'border-emerald-500 bg-neutral-900',
           isPending && 'border-amber-500 bg-neutral-900',
           video.isFolder && 'hover:bg-neutral-800/40',
+          isRemoving && 'opacity-50 pointer-events-none',
         )}
       >
         <div className="flex items-center gap-3 overflow-hidden">
@@ -94,27 +102,21 @@ export default function PlaylistItem({ roomId, video, isChild = false }: Props) 
         </div>
 
         <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-          <button className="p-1.5 group/play hover:bg-neutral-300/10 rounded-full cursor-pointer">
-            {isVisuallyActive ? (
-              <PauseIcon
-                className={`size-4 stroke-[1.5px] ${isVisuallyActive ? 'text-neutral-300' : 'text-neutral-500'}
-                  group-hover/play:text-neutral-300`}
-              />
-            ) : (
-              <PlayIcon
-                className={`size-4 stroke-[1.5px] ${isVisuallyActive ? 'text-neutral-300' : 'text-neutral-500'}
-                  group-hover/play:text-neutral-300`}
-              />
-            )}
-          </button>
-
           <button
-            className="group/trash p-1.5 text-neutral-500 hover:text-red-500 transition-colors hover:bg-red-500/10
-              cursor-pointer rounded-full"
+            onClick={handleDelete}
+            disabled={isRemoving}
+            className={cn(
+              'group/trash p-1.5 text-neutral-500 transition-colors cursor-pointer rounded-full',
+              !isRemoving && 'hover:text-red-500 hover:bg-red-500/10',
+            )}
           >
             <TrashIcon
-              className={`size-4 stroke-[1.5px] transition-colors
-                ${isVisuallyActive ? 'text-neutral-300' : 'text-neutral-500'} group-hover/trash:text-red-500`}
+              className={cn(
+                'size-4 stroke-[1.5px] transition-colors',
+                isVisuallyActive ? 'text-neutral-300' : 'text-neutral-500',
+                !isRemoving && 'group-hover/trash:text-red-500',
+                isRemoving && 'animate-pulse',
+              )}
             />
           </button>
 

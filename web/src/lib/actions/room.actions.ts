@@ -221,3 +221,18 @@ export async function activateQueueItemAction(roomId: string, itemId: string): P
     }
   }
 }
+
+export async function removeQueueItemAction(roomId: string, itemId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(`${endpoint}/${roomId}/queue/${itemId}`)
+    return response
+  } catch (error: unknown) {
+    serverLog('REMOVE_QUEUE_ITEM_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to remove item from queue',
+      errors: parseAxiosError(error),
+    }
+  }
+}
