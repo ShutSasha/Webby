@@ -5,8 +5,10 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 
 import DotsIcon from '@/assets/icons/shared/more-horizontal.svg'
+import { DEFAULT_USER_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { RoomMember } from '@/types/room.types'
 
-export default function UserItem({ user }: { user: any }) {
+export default function UserItem({ user }: { user: RoomMember }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -26,19 +28,29 @@ export default function UserItem({ user }: { user: any }) {
         duration-300 relative"
     >
       <div className="flex items-center gap-3">
-        <Image src={user.avatar} alt={user.name} width={50} height={50} className="object-cover w-8 h-8 rounded-full" />
+        <Image
+          src={user.avatarUrl || DEFAULT_USER_THUMBNAIL}
+          alt={user.username}
+          width={50}
+          height={50}
+          className="object-cover w-8 h-8 rounded-full"
+        />
 
-        <span className="text-sm font-medium text-neutral-300 group-hover:text-white transition-colors">
-          {user.name}
+        <span
+          className="text-sm font-medium text-neutral-300 group-hover:text-white transition-colors truncate
+            max-w-[120px]"
+        >
+          {user.username}
         </span>
       </div>
 
-      <div className="relative" ref={menuRef}>
+      <div className="relative shrink-0" ref={menuRef}>
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-1 hover:bg-neutral-800 rounded-md text-neutral-500 hover:text-white transition-all"
+          className="p-1 hover:bg-neutral-800 rounded-md text-neutral-500 hover:text-white transition-all
+            cursor-pointer"
         >
-          <DotsIcon className="w-5 h-5 cursor-pointer" />
+          <DotsIcon className="w-5 h-5" />
         </button>
 
         {isMenuOpen && (

@@ -2,27 +2,43 @@
 
 import { useState, useMemo } from 'react'
 
+import { useDebounce } from 'use-debounce'
+
 import SearchIcon from '@/assets/icons/ic_search.svg'
+import { useRoomMembersQuery } from '@/lib/hooks/api/room/useRoomMembersQuery'
+import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
+import { RoomMember } from '@/types/room.types'
 
 import UserItem from './UserItem'
 
-interface User {
-  id: number
-  name: string
-  avatar: string
+type Props = {
+  roomId: string
 }
 
-export default function UserList({ initialUsers }: { initialUsers: User[] }) {
+export default function UserList({ roomId }: Props) {
   const [search, setSearch] = useState('')
 
-  const filteredUsers = useMemo(() => {
-    return initialUsers.filter(u => u.name.toLowerCase().includes(search.toLowerCase()))
-  }, [search, initialUsers])
+  const [debouncedSearch] = useDebounce(search, 500)
+
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useRoomMembersQuery(
+    roomId,
+    debouncedSearch,
+  )
+
+  const members: RoomMember[] = useMemo(() => {
+    return data?.pages.flatMap(page => page?.data?.items || []) || []
+  }, [data])
+
+  const lastElementRef = useInfiniteScroll({
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  })
 
   return (
     <>
-      {/* Search Bar */}
-      <div className="relative group mb-2">
+      <div className="relative group mb-2 shrink-0">
         <SearchIcon
           className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500
             group-focus-within:text-emerald-500 transition-colors stroke-[1.5px]"
@@ -43,9 +59,32 @@ export default function UserList({ initialUsers }: { initialUsers: User[] }) {
           [&::-webkit-scrollbar-thumb]:border-0 [&::-webkit-scrollbar-thumb]:rounded-full
           hover:[&::-webkit-scrollbar-thumb]:bg-neutral-800"
       >
-        {filteredUsers.map(user => (
-          <UserItem key={user.id} user={user} />
-        ))}
+        {isLoading && members.length === 0 ? (
+          <p className="text-center text-neutral-500 py-4 text-sm">Loading users...</p>
+        ) : members.length === 0 ? (
+          <p className="text-center text-neutral-500 py-4 text-sm">No users found</p>
+        ) : (
+          members.map((user, index) => {
+            const isLast = members.length === index + 1
+            const item = <UserItem key={user.userId} user={user} />
+
+            if (isLast) {
+              return (
+                <div ref={lastElementRef} key={`last-${user.userId}`}>
+                  {item}
+                </div>
+              )
+            }
+
+            return item
+          })
+        )}
+
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-4 shrink-0">
+            <div className="size-5 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+          </div>
+        )}
       </div>
     </>
   )

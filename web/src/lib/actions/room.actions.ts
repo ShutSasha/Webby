@@ -3,7 +3,13 @@
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse } from '@/types/general.types'
-import { GetPublicRooms, GetRoomQueueResponse, GetUserRoomsResponse, Room } from '@/types/room.types'
+import {
+  GetPublicRooms,
+  GetRoomMembersResponse,
+  GetRoomQueueResponse,
+  GetUserRoomsResponse,
+  Room,
+} from '@/types/room.types'
 
 const endpoint = '/rooms'
 
@@ -247,6 +253,36 @@ export async function addQueueItemAction(roomId: string, videoId: string): Promi
       data: null,
       success: false,
       message: 'Failed to add item to queue',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function getRoomMembersAction(
+  roomId: string,
+  page: number,
+  limit: number = 10,
+  search: string = '',
+): Promise<BaseServerResponse<GetRoomMembersResponse>> {
+  try {
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    params.append('limit', limit.toString())
+
+    if (search) {
+      params.append('search', search)
+    }
+
+    const { data: response } = await $api.get<BaseServerResponse<GetRoomMembersResponse>>(
+      `${endpoint}/${roomId}/members?${params.toString()}`,
+    )
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_ROOM_MEMBERS_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve room members',
       errors: parseAxiosError(error),
     }
   }

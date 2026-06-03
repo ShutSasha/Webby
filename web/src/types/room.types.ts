@@ -40,3 +40,12 @@ export type RoomQueueItem = {
 }
 
 export type GetRoomQueueResponse = PaginatedData<RoomQueueItem>
+
+export type RoomMember = {
+  userId: string
+  username: string
+  avatarUrl: string
+  roomPoints: number
+}
+
+export type GetRoomMembersResponse = PaginatedData<RoomMember>

@@ -34,7 +34,7 @@ export default async function RoomPage({ params }: Props) {
       </div>
       <div className="flex gap-5">
         <div className="w-full flex justify-between items-center mt-3 mb-2">
-          <p className="text-neutral-300 text-[20px] font-bold">Room name</p>
+          <p className="text-neutral-300 text-[20px] font-bold">{room.name}</p>
           <ActionButton label="send an invite">
             <ShareIcon className="size-4 stroke-[1.5px]" />
           </ActionButton>
