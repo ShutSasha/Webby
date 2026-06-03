@@ -15,13 +15,15 @@ public class MediaGrpcService : MediaService.GrpcServer.MediaService.MediaServic
    private readonly IVideoService _videoService;
    private readonly IYouTubeSearchService _youtubeSearchService;
    private readonly ITwitchSearchService _twitchSearchService;
+   private readonly ILogger<MediaGrpcService> _logger;
 
    public MediaGrpcService(IVideoService videoService,ITwitchSearchService twitchSearchService,
-      IYouTubeSearchService youtubeSearchService)
+      IYouTubeSearchService youtubeSearchService, ILogger<MediaGrpcService> logger)
    {
       _videoService = videoService;
       _twitchSearchService = twitchSearchService;
       _youtubeSearchService = youtubeSearchService;
+      _logger = logger;
    }
 
 
@@ -71,7 +73,10 @@ public class MediaGrpcService : MediaService.GrpcServer.MediaService.MediaServic
          case SystemPlatforms.Twitch:
          {
             var stream = await _twitchSearchService.FindById(actualId);
-
+            
+            _logger.LogInformation("Stream Id {id}, stream thumbnail {thumbnail} steam title {title} url {url}",
+               stream.StreamId, stream.PreviewUrl,stream.Name,stream.StreamUrl);
+            
             return new VideoResponse()
             {
                Id = stream.StreamId,
