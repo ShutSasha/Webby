@@ -340,9 +340,10 @@ paths:
         - Queue
       summary: Activate queue item
       description: |
-        Set a video in the queue as the currently playing item (active).
+        Mark a video in the queue as the active (selected) item.
         Only one item can be active in a queue at a time.
-        This operation automatically deactivates any previously active item.
+        An active item can be playing or paused.
+        Setting a new item as active will mark the previously active item as inactive.
 
         Only room members can activate items.
 
@@ -419,76 +420,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /api/rooms/{id}/queue/deactivate:
-    post:
-      tags:
-        - Queue
-      summary: Deactivate queue
-      description: |
-        Deactivate all items in the room's queue.
-        No item will be marked as active after this operation.
-
-        Only room members can deactivate the queue.
-
-        After deactivating a queue - sends `QUEUE_UPDATED` event through the WS Socket.IO.
-        Read the `WsGateway` for the event explanation.
-
-        **Requires authentication and room membership.**
-      operationId: deactivateQueue
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          description: Room ID (UUID v4 format).
-          required: true
-          schema:
-            type: string
-            format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440000"
-      responses:
-        "200":
-          description: Queue successfully deactivated.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-              example:
-                success: true
-                message: Queue deactivated
-                data: null
-                errors: null
-        "400":
-          description: Invalid room ID format.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                success: false
-                message: Validation error
-                data: null
-                errors:
-                  roomId: the room id format is not valid
-        "401":
-          description: Missing or invalid JWT token.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: User is not a member of the room.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: An unexpected server-side error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
 components:
   securitySchemes:
     bearerAuth:
@@ -551,6 +482,7 @@ components:
           example: "https://example.com/video.mp4"
         isActive:
           type: boolean
+          description: Whether this item is currently selected (active). An active item can be playing or paused.
           example: true
         position:
           type: integer

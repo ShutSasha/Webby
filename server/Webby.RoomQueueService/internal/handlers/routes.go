@@ -19,7 +19,6 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 		api.GET("", handler.List)
 		api.DELETE("/:itemID", handler.Delete)
 		api.PATCH("/:itemID/activate", handler.Activate)
-		api.POST("/deactivate", handler.Deactivate)
 	}
 
 	router.GET("/swagger", swaggerUI)

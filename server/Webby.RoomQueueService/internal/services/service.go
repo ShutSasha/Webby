@@ -34,7 +34,6 @@ type QueueItemRepository interface {
 	) ([]models.QueueItem, int, error)
 	MoveToTop(ctx context.Context, id uuid.UUID) error
 	ActivateVideo(ctx context.Context, roomID, itemID uuid.UUID) (int, int, error)
-	DeactivateQueue(ctx context.Context, roomID uuid.UUID) (int, error)
 }
 
 type MediaClient interface {
@@ -261,40 +260,6 @@ func (s *Service) ActivateVideo(ctx context.Context, itemID, userID uuid.UUID) e
 			Type: EventTypeQueueUpdated,
 			Payload: QueueUpdatedEvent{
 				Positions: updatedPositions,
-			},
-		}
-		topic := fmt.Sprintf("chat:%s", chatID.String())
-		if err := s.publisher.Publish(ctx, topic, envelope); err != nil {
-			log.Error("failed to publish queue update", slog.Any("err", err))
-		}
-	}
-
-	return nil
-}
-
-func (s *Service) DeactivateQueue(ctx context.Context, roomID, userID uuid.UUID) error {
-	const op = "services.DeactivateQueue"
-	log := logger.FromContext(ctx).With(slog.String("op", op))
-
-	if err := s.isMember(ctx, roomID, userID); err != nil {
-		return fmt.Errorf("%s: failed ensure user is room member: %w", op, err)
-	}
-
-	chatID, err := s.chatClient.GetChatIDByRoomID(ctx, roomID, userID)
-	if err != nil {
-		return fmt.Errorf("%s: failed to get chat id: %w", op, err)
-	}
-
-	position, err := s.repo.DeactivateQueue(ctx, roomID)
-	if err != nil {
-		return fmt.Errorf("%s: failed to deactivate queue in db: %w", op, err)
-	}
-
-	if position != -1 {
-		envelope := EventEnvelope{
-			Type: EventTypeQueueUpdated,
-			Payload: QueueUpdatedEvent{
-				Positions: []int{position},
 			},
 		}
 		topic := fmt.Sprintf("chat:%s", chatID.String())
