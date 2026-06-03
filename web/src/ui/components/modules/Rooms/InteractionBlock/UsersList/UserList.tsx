@@ -66,7 +66,7 @@ export default function UserList({ roomId }: Props) {
         ) : (
           members.map((user, index) => {
             const isLast = members.length === index + 1
-            const item = <UserItem key={user.userId} user={user} />
+            const item = <UserItem key={user.userId} user={user} roomId={roomId} />
 
             if (isLast) {
               return (

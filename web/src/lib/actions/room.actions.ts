@@ -287,3 +287,18 @@ export async function getRoomMembersAction(
     }
   }
 }
+
+export async function removeRoomMemberAction(roomId: string, memberId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(`${endpoint}/${roomId}/members/${memberId}`)
+    return response
+  } catch (error: unknown) {
+    serverLog('REMOVE_ROOM_MEMBER_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to remove member from room',
+      errors: parseAxiosError(error),
+    }
+  }
+}

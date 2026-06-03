@@ -297,7 +297,7 @@ function StreamsTab({ query, onCloseSearchModal }: { query: string; onCloseSearc
         const card = (
           <GlobalSearchCard
             key={stream.streamId}
-            id={stream.streamId}
+            id={stream.user.userId}
             title={stream.name}
             subtitle={`Twitch • ${stream.viewers.toLocaleString()} viewers • ${stream.user.username}`}
             thumbnail={stream.previewUrl}

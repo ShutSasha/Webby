@@ -3,14 +3,21 @@
 import { useState, useRef, useEffect } from 'react'
 
 import Image from 'next/image'
+import Link from 'next/link'
 
 import DotsIcon from '@/assets/icons/shared/more-horizontal.svg'
 import { DEFAULT_USER_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { useRemoveRoomMemberMutation } from '@/lib/hooks/api/room/useRemoveRoomMember'
+import { extractServerMessage } from '@/lib/utils/general.utils'
+import { useToastStore } from '@/stores/toast-store'
 import { RoomMember } from '@/types/room.types'
 
-export default function UserItem({ user }: { user: RoomMember }) {
+export default function UserItem({ user, roomId }: { user: RoomMember; roomId: string }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const addToast = useToastStore(state => state.addToast)
+
+  const { mutate: removeMember, isPending } = useRemoveRoomMemberMutation()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -22,10 +29,32 @@ export default function UserItem({ user }: { user: RoomMember }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isMenuOpen])
 
+  const handleKickOut = () => {
+    if (isPending) return
+
+    removeMember(
+      { roomId, memberId: user.userId },
+      {
+        onSuccess: res => {
+          if (res.success) {
+            setIsMenuOpen(false)
+            addToast('User removed successfully', 'success')
+          } else {
+            const errorMessage = extractServerMessage(res.errors)
+            addToast(errorMessage || 'An unexpected error occurred', 'error')
+          }
+        },
+        onError: error => {
+          addToast(error.message || 'An unexpected error occurred', 'error')
+        },
+      },
+    )
+  }
+
   return (
     <div
-      className="flex items-center justify-between p-2 rounded-lg hover:bg-neutral-900 group transition-colors
-        duration-300 relative"
+      className={`flex items-center justify-between p-2 rounded-lg hover:bg-neutral-900 group transition-colors
+        duration-300 relative ${isPending ? 'opacity-50 pointer-events-none' : ''}`}
     >
       <div className="flex items-center gap-3">
         <Image
@@ -58,18 +87,20 @@ export default function UserItem({ user }: { user: RoomMember }) {
             className="absolute right-0 top-full mt-3 w-40 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl
               z-50 py-1 animate-in fade-in zoom-in duration-150"
           >
-            <button className="w-full text-left px-3 py-2 text-xs hover:bg-neutral-800 transition-colors cursor-pointer">
+            <Link
+              href={`/profile/${user.userId}`}
+              className="block w-full text-left px-3 py-2 text-xs hover:bg-neutral-800 transition-colors cursor-pointer"
+            >
               View Profile
-            </button>
-            <button className="w-full text-left px-3 py-2 text-xs hover:bg-neutral-800 transition-colors cursor-pointer">
-              Mention
-            </button>
+            </Link>
             <div className="h-px bg-neutral-800 my-1" />
             <button
+              onClick={handleKickOut}
+              disabled={isPending}
               className="w-full text-left px-3 py-2 text-xs hover:bg-red-500/20 text-red-500 transition-colors
-                cursor-pointer"
+                cursor-pointer disabled:opacity-50"
             >
-              Mute User
+              {isPending ? 'Kicking...' : 'Kick Out'}
             </button>
           </div>
         )}
