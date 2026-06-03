@@ -203,6 +203,20 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
            .ToListAsync();
    }
 
+   public async Task DeleteVideosAsync(List<Video>? videos)
+   {
+       if (videos == null || videos.Count == 0)
+       {
+           return;
+       }
+       
+       var videoIds = videos.Select(v => v.VideoId).ToList();
+       
+       await _context.Videos
+           .Where(v => videoIds.Contains(v.VideoId))
+           .ExecuteDeleteAsync();
+   }
+
    public async Task<(List<Video> Items, int Total, int Seed)> GetRecommendedVideosAsync(
     Guid? currentVideoId,
     List<string> currentTags,

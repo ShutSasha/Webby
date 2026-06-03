@@ -429,7 +429,10 @@ public class PlaylistService : IPlaylistService
       var (_, actualId) = parseResult.Value;
       return await _playlistRepository.CheckIsVideoAdded(actualId, playlistId);
    }
-      
+
+   public async Task ClearPlaylists(Guid userId) 
+      => await _playlistRepository.DeleteUserPlaylists(userId);
+
 
    private async Task<PlaylistDto> MapToPlaylistDto(Playlist playlist, Guid? requestUserId)
    {

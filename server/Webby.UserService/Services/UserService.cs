@@ -282,6 +282,11 @@ public class UserService : IUserService
 
    public async Task<Guid> DeleteUser(Guid userId)
    {
+      if (!_redisDb.Multiplexer.IsConnected)
+      {
+         throw new ApiException("Delete user error", 500, "Queue service not available to delete user");
+      }
+      
       var user = await _userRepository.FindById(userId) ??
                  throw new ApiException("Delete user error", 404, "User wasn't found");
 

@@ -174,4 +174,12 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
    
       return ids.ToHashSet();
    }
+
+   public async Task DeleteUserPlaylists(Guid userId)
+   {
+      await _context.Playlists
+         .Where(p => p.UserId == userId)
+         .ExecuteDeleteAsync();
+      
+   }
 }

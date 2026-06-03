@@ -13,6 +13,7 @@ public interface IVideoService
    Task<UploadVideoResponse> UploadVideoFile(Guid userId, UploadVideoRequest request);
    Task CreateVideo(Guid userId, CreateVideoRequest request);
    Task DeleteVideo(Guid userId, string videoId);
+   Task ClearUserVideos(Guid userId);
    Task<VideoDto> GetVideoInformation(string videoId, Guid? userId);
    Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId, Guid? requestedUserId, GetUserVideosRequest request);
    Task UpdateVideoInformation(Guid userId, UpdateVideoRequest request);

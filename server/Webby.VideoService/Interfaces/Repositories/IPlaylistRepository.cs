@@ -13,6 +13,6 @@ public interface IPlaylistRepository : IRepository<Playlist>
    Task<(List<Playlist>, int)> GetPaginatedUserPlaylists(bool shouldShowPrivate, Guid userId, int page, int pageSize);
    Task<(List<Playlist> Items, int Total)> SearchPlaylistsAsync(string? searchText, int skip, int take);
    Task<bool> CheckIsVideoAdded(string videoId, Guid playlistId);
-
    Task<HashSet<Guid>> GetPlaylistIdsContainingVideo(string videoId, List<Guid> playlistIds);
+   Task DeleteUserPlaylists(Guid userId);
 }

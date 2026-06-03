@@ -17,5 +17,6 @@ public interface IPlaylistService
    Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<string> videoIds, Guid requestUserId);
    Task<PagedResponse<SearchPlaylistDto>> SearchPlaylists(Guid? requestUserId, SearchOptions searchOptions);
    Task<bool> CheckIfVideoExistInPlaylist(Guid playlistId, string videoId);
+   Task ClearPlaylists(Guid userId);
 
 }

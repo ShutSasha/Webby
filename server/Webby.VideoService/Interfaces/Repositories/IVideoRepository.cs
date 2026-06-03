@@ -25,5 +25,6 @@ public interface IVideoRepository : IRepository<Video>
       List<Guid> subscribedIds, List<string> historyTags, int skip, int pageSize, int contentSeed = 0);
 
    Task<List<string>> GetRecentUserViewTagsAsync(Guid userId, int limit = 30);
+   Task DeleteVideosAsync(List<Video>? videos);
 
 }

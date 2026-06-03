@@ -1,27 +1,26 @@
 ﻿using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using Webby.VideoService.Constants;
-using Webby.VideoService.Data;
 using Webby.VideoService.Dtos.Event;
+using Webby.VideoService.Interfaces.Services;
 
 namespace Webby.VideoService.Services.Handlers;
 
 public class UserDeletedEventHandler : BackgroundService
 {
     private readonly IDatabase _redisDatabase;
-    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<UserDeletedEventHandler> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
     private bool _isGroupCreated;
-
+    
     public UserDeletedEventHandler(
         IConnectionMultiplexer redis, 
-        IServiceProvider serviceProvider,
-        ILogger<UserDeletedEventHandler> logger)
+        ILogger<UserDeletedEventHandler> logger,
+        IServiceScopeFactory scopeFactory)
     {
         _redisDatabase = redis.GetDatabase();
-        _serviceProvider = serviceProvider;
         _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -62,15 +61,17 @@ public class UserDeletedEventHandler : BackgroundService
 
                         if (data != null)
                         {
-                            using var scope = _serviceProvider.CreateScope();
-                            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                            using var scope = _scopeFactory.CreateScope();
+                            
+                            var videoService = scope.ServiceProvider.GetRequiredService<IVideoService>();
+                            var playlistService = scope.ServiceProvider.GetRequiredService<IPlaylistService>();
 
-                            await dbContext.Videos.Where(v => v.UserId == data.UserId).ExecuteDeleteAsync(stoppingToken);
-                            await dbContext.Playlists.Where(p => p.UserId == data.UserId).ExecuteDeleteAsync(stoppingToken);
+                            await videoService.ClearUserVideos(data.UserId);
+                            await playlistService.ClearPlaylists(data.UserId);
                         }
                     }
-
-                    await _redisDatabase.StreamAcknowledgeAsync(RedisConstants.StreamName, "video-service-group", message.Id);
+                    
+                    await _redisDatabase.StreamAcknowledgeAsync(RedisConstants.UserStreamName, "video-service-group", message.Id);
                 }
                 else
                 {
@@ -79,7 +80,7 @@ public class UserDeletedEventHandler : BackgroundService
             }
             catch (Exception)
             {
-                _logger.LogWarning( "Failed to connect to Redis or process stream. Retrying in {Timeout}s",RedisConstants.RedisConnectionTimeout);
+                _logger.LogWarning("Failed to connect to Redis or process stream. Retrying in {Timeout}s", RedisConstants.RedisConnectionTimeout);
                 await Task.Delay(TimeSpan.FromSeconds(RedisConstants.RedisConnectionTimeout), stoppingToken);
             }
         }

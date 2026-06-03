@@ -36,10 +36,11 @@ public class VideoService : IVideoService
    private readonly IYouTubeSearchService _youtubeSearchService;
    private readonly ITwitchSearchService _twitchSearchService;
    private readonly IEventPublisher _eventPublisher;
+   private readonly ILogger<VideoService> _logger;
    public VideoService(IVideoRepository videoRepository, IStorageService storageService,
       ITagService tagService, UserGrpcService.UserGrpcServiceClient userClient, 
       IMapper mapper, IBackgroundTaskQueue queue,
-      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService, ITwitchSearchService twitchSearchService, IEventPublisher eventPublisher)
+      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService, ITwitchSearchService twitchSearchService, IEventPublisher eventPublisher, ILogger<VideoService> logger)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
@@ -51,6 +52,7 @@ public class VideoService : IVideoService
       _youtubeSearchService = youtubeSearchService;
       _twitchSearchService = twitchSearchService;
       _eventPublisher = eventPublisher;
+      _logger = logger;
    }
 
    public async Task<Video> GetVideoById(Guid videoId)
@@ -214,6 +216,38 @@ public class VideoService : IVideoService
       }
       
       await _videoRepository.DeleteAsync(video.VideoId);
+   }
+
+   public async Task ClearUserVideos(Guid userId)
+   {
+      var videos = await _videoRepository.GetByPredicate(v => v.UserId == userId);
+    
+      if (!videos.Any()) 
+         return;
+      
+      var filesToDelete = new List<string>();
+      foreach (var video in videos)
+      {
+         if (!string.IsNullOrEmpty(video.PreviewUrl))
+            filesToDelete.Add(video.PreviewUrl);
+            
+         if (!string.IsNullOrEmpty(video.VideoUrl))
+            filesToDelete.Add(video.VideoUrl);
+      }
+      
+      foreach (var fileUrl in filesToDelete)
+      {
+         try
+         {
+            await _storageService.DeleteFileAsync(fileUrl);
+         }
+         catch (Exception ex)
+         {
+            _logger.LogWarning(ex, "Failed to delete file {FileUrl}", fileUrl);
+         }
+      }
+      
+      await _videoRepository.DeleteVideosAsync(videos.ToList()); 
    }
 
    public async Task<VideoDto> GetVideoInformation(string videoId, Guid? userId)
