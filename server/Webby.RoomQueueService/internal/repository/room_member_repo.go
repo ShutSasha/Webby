@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"webby/room-queue-service/internal/apperrors"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -34,13 +35,17 @@ func (r *RoomMemberRepository) Exists(
 		)
 	}
 
-	query := `SELECT EXISTS(
-		SELECT 1 FROM room_members
-		WHERE room_id = $1 AND user_id = $2
-	)`
+	query := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Select("EXISTS(SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2)")
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return false, fmt.Errorf("%s: build query: %w", op, err)
+	}
 
 	var exists bool
-	err := r.db.QueryRow(ctx, query, roomId, userId).Scan(&exists)
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("%s: query failed: %w", op, err)
 	}
