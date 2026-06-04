@@ -50,36 +50,23 @@ func (r *Repository) Create(ctx context.Context, name string) error {
 func (r *Repository) List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int64, error) {
 	const op = "repository.List"
 
-	searchParam := ""
-	if search != "" {
-		searchParam = "%" + search + "%"
-	}
-
-	ctePrefix := `WITH filtered_cats AS (
-		SELECT id, name 
-		FROM categories 
-		WHERE (? = '' OR name ILIKE ?)
-	),
-	total_count AS (
-		SELECT count(*) AS total FROM filtered_cats
-	) `
-
-	query := sq.Select("f.id", "f.name", "t.total").
-		From("filtered_cats f, total_count t").
-		OrderBy("f.name ASC").
+	query := sq.Select("id", "name", "COUNT(*) OVER() AS total").
+		From("categories").
+		OrderBy("name ASC").
 		Limit(uint64(limit)).
 		Offset(uint64(offset)).
-		Prefix(ctePrefix).
 		PlaceholderFormat(sq.Dollar)
 
-	sql, args, err := query.ToSql()
+	if search != "" {
+		query = query.Where(sq.ILike{"name": "%" + search + "%"})
+	}
+
+	sqlStr, args, err := query.ToSql()
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: query building failed: %w", op, err)
 	}
 
-	allArgs := append([]interface{}{searchParam, searchParam}, args...)
-
-	rows, err := r.db.Query(ctx, sql, allArgs...)
+	rows, err := r.db.Query(ctx, sqlStr, args...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: query failed: %w", op, err)
 	}
