@@ -9,35 +9,34 @@ user-invocable: true
 
 This skill helps you generate end-to-end tests for specific backend functionality, strictly following the project's established testing architecture.
 
-## When to use this skill
-
-Use this skill when you need to:
-- Create new end-to-end tests for API endpoints.
-- Write integration tests involving single or multiple user sessions.
-- Scaffold WebSocket event testing scenarios (only if explicitly required by the flow).
-
 ## Reference Template
+Before generating code, carefully review the [reference template](./synchronize.py) to understand the expected `ApiClient` and `UserSession` implementations.
 
-Before generating code, carefully review the [reference template](./synchronize.py) to understand the required structure, client wrappers, and session management. Adapt the template based on whether WebSockets are actually needed for the requested test.
+## Implementation Checklist & Rules
 
-## Architectural Requirements
+When writing an e2e test, you MUST execute the generation by following these exact sequential steps:
 
-Whenever you write an e2e test, you MUST strictly follow these rules:
+### Step A: Environment & Initialization
+1. Load variables from `.env.test.local` using `python-dotenv`.
+2. **Strict Env Naming:** Use explicitly named variables like `USER1_EMAIL`, `USER1_PASSWORD`, `USER2_EMAIL`, etc., up to the number of users required by the flow.
+3. **Fail-Fast:** If any required variable is missing, raise a RuntimeError listing them.
+   *(Example: `raise RuntimeError(f"Missing env vars: {missing}")`)*.
 
-1. **Environment & Auth Setup:** Always load variables from `.env.test.local` using `python-dotenv`. When authentication is required for the flow, you MUST extract test user credentials (e.g., emails, passwords) exclusively from these environment variables for however many users are needed. Fail early if required variables are missing.
-2. **Client Wrappers:** - ALWAYS use `httpx.AsyncClient` for HTTP REST requests.
-   - *OPTIONAL:* Only use `socketio.AsyncClient` if the specific test scenario involves WebSockets. Do not include it by default.
-3. **Session Isolation:** Encapsulate user state within a `UserSession` class. Each actor (e.g., User1, User2) must have its own isolated instance containing its own clients and tokens.
-4. **Lifecycle Hooks:** - Implement `async def setup()` to handle authentication and set Bearer tokens on the HTTP clients.
-   - Implement `async def cleanup()` to close all HTTP clients and disconnect WebSockets (if they were initialized). 
-5. **Strict Execution Flow & Infrastructure Cleanup (The Finally Block):** - The main `run_e2e_test()` function MUST use a `try...finally` block.
-   - **Resource Teardown (Anti-Spam):** Inside the `try` block, track all infrastructure resources created during the test (e.g., `room_id`, `chat_id`). You MUST explicitly call the corresponding DELETE endpoints (or cleanup API methods) to completely remove these created resources from the system before the test ends.
-   - **Connection Teardown:** You MUST guarantee that the `cleanup()` method for every initialized user session is called inside the `finally` block, ensuring network connections are freed regardless of assertion failures.
-6. **Async Coordination:** If WebSockets are used, use `asyncio.Event()` for waiting on specific events.
+### Step B: Session & Client Configuration
+1. **Timeouts:** Instantiate `httpx.AsyncClient` with an explicit timeout to prevent hanging tests *(Example: `timeout=httpx.Timeout(30.0, connect=10.0)`)*.
+2. **Socket.IO Rule:** ONLY include `socketio.AsyncClient` and WebSocket event logic IF the user explicitly mentions real-time events, socket messages, or WebSocket endpoints. Otherwise, omit them entirely.
+3. **UserSession API:** Ensure the `UserSession` class contains distinct `setup()` and `cleanup()` methods, managing its own token injection for its HTTP clients.
 
-## Process
+### Step C: Test Execution (The `try` block)
+1. The main logic MUST reside inside a `try` block.
+2. **Resource Tracking:** When a POST request creates a resource (e.g., room, category), store its ID in a variable (e.g., `created_room_id = response["data"]["id"]`) so it can be accessed in the `finally` block later.
+3. **API Response Envelope (Strict Parsing):** ALL backend endpoints return a standard envelope. You MUST NOT assume the raw entity is at the root level.
+   - For general requests, the payload is ALWAYS inside the `"data"` key.
+   - For paginated requests, the array is ALWAYS inside `"data"]["items"]`.
+4. **Diagnostic Assertions:** When asserting success, include the full response in the error message to aid debugging.
+   *(Example: `assert response["success"] is True, f"API error: {response}"`)*.
 
-1. Identify the target functionality and user flow described by the developer.
-2. Determine how many isolated user sessions are required and whether WebSockets are necessary for this specific flow.
-3. Generate a complete, self-contained Python script implementing the scenario.
-4. Ensure all test logic and assertions (`assert`) are placed securely in the `try` block, and all cleanups are strictly in the `finally` block.
+### Step D: Teardown & Cleanup (The `finally` block)
+1. The `finally` block MUST handle both infrastructure cleanup (database entities) and connection teardown.
+2. **Idempotent Resource Deletion:** For every resource ID tracked in Step C, execute a DELETE HTTP request. Wrap each DELETE call in its own `try...except httpx.HTTPStatusError: pass` block so a failure in one does not prevent others from deleting.
+3. **Session Teardown:** Finally, call `.cleanup()` on every initialized `UserSession` object. Wrap each cleanup call in its own `try...except Exception: pass` block to guarantee all clients are closed.
