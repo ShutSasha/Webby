@@ -20,7 +20,7 @@ func (h *handler) Activate(c *gin.Context) {
 
 	var uri activateUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("invalid uri params", slog.Any("err", err))
+		log.Debug("invalid uri params", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -28,7 +28,7 @@ func (h *handler) Activate(c *gin.Context) {
 	itemID, _ := uuid.Parse(uri.ItemID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	if err := h.service.ActivateVideo(ctx, itemID, userID); err != nil {
-		log.Error("activate queue item", slog.Any("err", err))
+		log.Error("activate queue item", slog.String("err", err.Error()))
 		HandleAppError(c, "Set queue item active error", err)
 		return
 	}

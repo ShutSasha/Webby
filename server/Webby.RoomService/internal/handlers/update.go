@@ -38,7 +38,7 @@ func (h *handler) Update(c *gin.Context) {
 
 	var uri updateUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -46,7 +46,7 @@ func (h *handler) Update(c *gin.Context) {
 
 	var req updateRequest
 	if err := c.ShouldBind(&req); err != nil {
-		log.Debug("form validation error", slog.Any("err", err))
+		log.Debug("form validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -103,7 +103,7 @@ func (h *handler) Update(c *gin.Context) {
 	)
 
 	if err != nil {
-		log.Error("update room error", slog.Any("err", err))
+		log.Error("update room error", slog.String("err", err.Error()))
 		HandleAppError(c, "Update room error", err)
 		return
 	}

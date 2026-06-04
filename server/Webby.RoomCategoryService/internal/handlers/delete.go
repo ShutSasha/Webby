@@ -18,13 +18,13 @@ func (h *handler) Delete(c *gin.Context) {
 
 	var uri deleteUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	if err := h.service.Delete(ctx, uri.Name); err != nil {
-		log.Error("delete category error", slog.Any("err", err))
+		log.Error("delete category error", slog.String("err", err.Error()))
 		HandleAppError(c, "Delete category error", err)
 		return
 	}

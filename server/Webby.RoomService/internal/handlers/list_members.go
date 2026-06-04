@@ -32,14 +32,14 @@ func (h *handler) ListMembers(c *gin.Context) {
 
 	var uri listMembersUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	var query listMembersQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		log.Debug("query validation error", slog.Any("err", err))
+		log.Debug("query validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -47,7 +47,7 @@ func (h *handler) ListMembers(c *gin.Context) {
 	roomID, _ := uuid.Parse(uri.RoomID)
 	members, total, err := h.service.ListMembers(ctx, roomID, query.Page, query.Limit, query.Search)
 	if err != nil {
-		log.Error("list members error", slog.Any("err", err))
+		log.Error("list members error", slog.String("err", err.Error()))
 		HandleAppError(c, "List room members error", err)
 		return
 	}

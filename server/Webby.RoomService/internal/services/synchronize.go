@@ -47,7 +47,7 @@ func (s *RoomService) Synchronize(ctx context.Context, userID, roomID uuid.UUID)
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
 	if err := s.publisher.Publish(ctx, topic, reportEnvelope); err != nil {
-		log.Error("failed to publish queue report", slog.Any("err", err))
+		log.Error("failed to publish queue report", slog.String("err", err.Error()))
 	}
 
 	bgCtx := context.WithoutCancel(ctx)
@@ -60,7 +60,7 @@ func (s *RoomService) Synchronize(ctx context.Context, userID, roomID uuid.UUID)
 
 		timecodes, err := s.timecodesRepo.RetrieveTimecodes(asyncCtx, rID, sID)
 		if err != nil {
-			bgLog.Error("failed to retrieve timecodes", slog.Any("err", err))
+			bgLog.Error("failed to retrieve timecodes", slog.String("err", err.Error()))
 			return
 		}
 
@@ -73,7 +73,7 @@ func (s *RoomService) Synchronize(ctx context.Context, userID, roomID uuid.UUID)
 			},
 		}
 		if err := s.publisher.Publish(asyncCtx, chatTopic, synchEnvelope); err != nil {
-			bgLog.Error("failed to publish queue sync", slog.Any("err", err))
+			bgLog.Error("failed to publish queue sync", slog.String("err", err.Error()))
 		}
 	}(bgCtx, roomID, syncID, topic)
 

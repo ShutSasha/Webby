@@ -24,14 +24,14 @@ func (h *handler) ReportTimecode(c *gin.Context) {
 
 	var uri reportTimecodeUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	var body reportTimecodeBody
 	if err := c.ShouldBindJSON(&body); err != nil {
-		log.Debug("body validation error", slog.Any("err", err))
+		log.Debug("body validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -39,7 +39,7 @@ func (h *handler) ReportTimecode(c *gin.Context) {
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	if err := h.service.ReportTimecode(ctx, userID, roomID, body.SyncID, body.Timecode); err != nil {
-		log.Error("sync error", slog.Any("err", err))
+		log.Error("sync error", slog.String("err", err.Error()))
 		HandleAppError(c, "Synchronization error", err)
 		return
 	}

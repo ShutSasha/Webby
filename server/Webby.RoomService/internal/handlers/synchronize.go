@@ -19,7 +19,7 @@ func (h *handler) Synchronize(c *gin.Context) {
 
 	var uri synchronizeUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -27,7 +27,7 @@ func (h *handler) Synchronize(c *gin.Context) {
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	if err := h.service.Synchronize(ctx, userID, roomID); err != nil {
-		log.Error("sync error", slog.Any("err", err))
+		log.Error("sync error", slog.String("err", err.Error()))
 		HandleAppError(c, "Synchronization error", err)
 		return
 	}

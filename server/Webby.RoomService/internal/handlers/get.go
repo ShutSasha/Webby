@@ -29,7 +29,7 @@ func (h *handler) Get(c *gin.Context) {
 
 	var uri getUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}

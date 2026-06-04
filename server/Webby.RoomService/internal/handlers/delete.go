@@ -19,7 +19,7 @@ func (h *handler) Delete(c *gin.Context) {
 
 	var uri deleteUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -27,7 +27,7 @@ func (h *handler) Delete(c *gin.Context) {
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	if err := h.service.Delete(ctx, roomID, userID); err != nil {
-		log.Error("delete room error", slog.Any("err", err))
+		log.Error("delete room error", slog.String("err", err.Error()))
 		HandleAppError(c, "Delete room error", err)
 		return
 	}

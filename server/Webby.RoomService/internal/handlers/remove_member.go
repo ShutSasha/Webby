@@ -20,7 +20,7 @@ func (h *handler) RemoveMember(c *gin.Context) {
 
 	var uri removeMemberUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -29,7 +29,7 @@ func (h *handler) RemoveMember(c *gin.Context) {
 	memberID, _ := uuid.Parse(uri.MemberID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	if err := h.service.RemoveMember(ctx, roomID, memberID, userID); err != nil {
-		log.Error("remove member error", slog.Any("err", err))
+		log.Error("remove member error", slog.String("err", err.Error()))
 		HandleAppError(c, "Remove member error", err)
 		return
 	}

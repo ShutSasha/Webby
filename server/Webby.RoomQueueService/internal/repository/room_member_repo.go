@@ -37,7 +37,7 @@ func (r *RoomMemberRepository) Exists(
 
 	query := sq.StatementBuilder.
 		PlaceholderFormat(sq.Dollar).
-		Select("EXISTS(SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2)")
+		Select("EXISTS(SELECT 1 FROM room_members WHERE room_id = ? AND user_id = ?)")
 
 	sql, args, err := query.ToSql()
 	if err != nil {

@@ -31,7 +31,7 @@ func (h *handler) ListMy(c *gin.Context) {
 
 	var query listMyQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		log.Debug("query validation error", slog.Any("err", err))
+		log.Debug("query validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -47,7 +47,7 @@ func (h *handler) ListMy(c *gin.Context) {
 		query.Page, query.Limit, query.Search, query.Category,
 	)
 	if err != nil {
-		log.Error("list my rooms error", slog.Any("err", err))
+		log.Error("list my rooms error", slog.String("err", err.Error()))
 		HandleAppError(c, "List rooms error", err)
 		return
 	}

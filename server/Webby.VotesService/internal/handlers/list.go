@@ -19,7 +19,7 @@ func (h *handler) List(c *gin.Context) {
 	roomIdStr := c.Param("id")
 	roomId, err := uuid.Parse(roomIdStr)
 	if err != nil {
-		log.Debug("invalid room id", slog.Any("err", err))
+		log.Debug("invalid room id", slog.String("err", err.Error()))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 			Success: false,
 			Message: "Validation error",
@@ -35,7 +35,7 @@ func (h *handler) List(c *gin.Context) {
 
 	votes, err := h.service.ListVotes(ctx, roomId, userId)
 	if err != nil {
-		log.Error("list votes error", slog.Any("err", err))
+		log.Error("list votes error", slog.String("err", err.Error()))
 		HandleAppError(c, "List votes error", err)
 		return
 	}

@@ -38,7 +38,7 @@ func (h *handler) Create(c *gin.Context) {
 
 	var req createRoomRequest
 	if err := c.ShouldBind(&req); err != nil {
-		log.Debug("validation error", slog.Any("err", err))
+		log.Debug("validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -98,7 +98,7 @@ func (h *handler) Create(c *gin.Context) {
 			})
 			return
 		}
-		log.Error("create room error", slog.Any("err", err))
+		log.Error("create room error", slog.String("err", err.Error()))
 		HandleAppError(c, "Create room error", err)
 		return
 	}

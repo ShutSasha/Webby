@@ -40,8 +40,8 @@ func (r *QueueItemRepository) Create(
 		Values(
 			item.RoomID,
 			item.VideoID,
-			sq.Expr("(SELECT COALESCE(MAX(position), 0) + 1 FROM queue_items WHERE room_id = $1)", item.RoomID),
-			sq.Expr("(CASE WHEN (SELECT MAX(position) FROM queue_items WHERE room_id = $1) IS NULL THEN true ELSE false END)", item.RoomID),
+			sq.Expr("(SELECT COALESCE(MAX(position), 0) + 1 FROM queue_items WHERE room_id = ?)", item.RoomID),
+			sq.Expr("(CASE WHEN (SELECT MAX(position) FROM queue_items WHERE room_id = ?) IS NULL THEN true ELSE false END)", item.RoomID),
 		).
 		Suffix("RETURNING id, position, is_active")
 
@@ -164,7 +164,7 @@ func (r *QueueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, er
 				Set("is_active", true).
 				Where(sq.And{
 					sq.Eq{"room_id": roomID},
-					sq.Expr("position = (SELECT MAX(position) FROM queue_items WHERE room_id = $1)", roomID),
+					sq.Expr("position = (SELECT MAX(position) FROM queue_items WHERE room_id = ?)", roomID),
 				})
 
 			sql, args, err = maxPosQuery.ToSql()

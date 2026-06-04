@@ -23,14 +23,14 @@ func (h *handler) AddMembers(c *gin.Context) {
 
 	var uri addMembersUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	var body addMembersBody
 	if err := c.ShouldBindJSON(&body); err != nil {
-		log.Debug("body validation error", slog.Any("err", err))
+		log.Debug("body validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -38,7 +38,7 @@ func (h *handler) AddMembers(c *gin.Context) {
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	if err := h.service.AddMembers(ctx, roomID, userID, body.UserIDs); err != nil {
-		log.Error("add members error", slog.Any("err", err))
+		log.Error("add members error", slog.String("err", err.Error()))
 		HandleAppError(c, "Add member error", err)
 		return
 	}
