@@ -67,14 +67,19 @@ public class AchievementRepository : GenericRepository<Achievement>, IAchievemen
             IconUrl = a.IconUrl,
             Title = a.Title,
             Description = a.Description,
-            AchievementProgressValue =_context.UserAchievementProgresses
-               .Where(ua => ua.AchievementId == a.AchievementId && ua.UserId == userId)
-               .Select(uap => uap.CurrentValue)
-               .FirstOrDefault(),
             TargetValue = a.TargetValue,
+            UnlockedAt = _context.UserAchievements.Where(uap => uap.AchievementId == a.AchievementId && uap.UserId == userId)
+               .Select(uap => uap.UnlockedAt)
+               .FirstOrDefault(),
             IsUnlocked = _context.UserAchievements
-               .Any(ua => ua.UserId == userId && ua.AchievementId == a.AchievementId)
-            
+               .Any(ua => ua.UserId == userId && ua.AchievementId == a.AchievementId),
+            AchievementProgressValue = _context.UserAchievements
+               .Any(ua => ua.UserId == userId && ua.AchievementId == a.AchievementId) 
+               ? a.TargetValue 
+               : _context.UserAchievementProgresses
+                  .Where(uap => uap.AchievementId == a.AchievementId && uap.UserId == userId)
+                  .Select(uap => uap.CurrentValue)
+                  .FirstOrDefault()
          })
          .ToListAsync();
    }

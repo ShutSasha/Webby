@@ -185,7 +185,7 @@ public class AchievementService : IAchievementService
             .GetAchievementsWithUserStatus(userId);
         
         getUserAchievementsResponse.PinnedAchievements = pinnedAchievements.Select(
-            ua => _mapper.Map<AchievementDto>(ua.Achievement)).ToList();
+            ua => _mapper.Map<AchievementDto>(ua)).ToList();
 
         getUserAchievementsResponse.Achievements = achievementsWithUserStatus;
 
