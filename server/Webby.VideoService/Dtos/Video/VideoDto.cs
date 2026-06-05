@@ -13,13 +13,13 @@ public class VideoDto : IVideoDtoWithUser
    public string VideoId { get; set; }
    public required string Name { get; set; }
    public string? Description { get; set; }
-   
-   public string Source { get; set; } = SearchVideoPlatforms.Webby.ToString();
+   public string Source { get; set; } = SystemPlatforms.Webby.ToString();
    public int Views { get; set; }
    public required string PreviewUrl { get; set; }
    public required bool IsPrivate { get; set; }
    public DateTime CreatedAt { get; set; }
    public VideoStatus VideoUploadStatus { get; set; }
+   public MediaType MediaType { get; set; }
    public bool IsPublished { get; set; } = false;
    public long Duration { get; set; }
    public string? VideoUrl { get; set; }

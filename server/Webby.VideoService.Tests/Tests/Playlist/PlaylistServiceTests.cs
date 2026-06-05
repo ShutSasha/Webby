@@ -6,6 +6,7 @@ using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Helpers.Exception;
+using Webby.VideoService.Interfaces.Helpers;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
@@ -23,6 +24,7 @@ public class PlaylistServiceTests
    private readonly IVideoRepository _videoRepositoryMock;
    private readonly IYouTubeSearchService _youtubeSearchServiceMock;
    private readonly ITwitchSearchService _twitchSearchServiceMock;
+   private readonly IExternalContentFetcher _externalContentFetcherMock;
    
    private readonly PlaylistService _sut;
 
@@ -34,6 +36,7 @@ public class PlaylistServiceTests
       _videoRepositoryMock = Substitute.For<IVideoRepository>();
       _youtubeSearchServiceMock = Substitute.For<IYouTubeSearchService>();
       _twitchSearchServiceMock = Substitute.For<ITwitchSearchService>();
+      _externalContentFetcherMock = Substitute.For<IExternalContentFetcher>();
       
       _sut = new PlaylistService(
          _playlistRepositoryMock,
@@ -41,7 +44,8 @@ public class PlaylistServiceTests
          _userClientMock,
          _videoRepositoryMock,
          _youtubeSearchServiceMock,
-         _twitchSearchServiceMock
+         _twitchSearchServiceMock,
+         _externalContentFetcherMock
       );
    }
    

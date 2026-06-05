@@ -11,6 +11,7 @@ using Webby.VideoService.Helpers.Converters;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.Playlist;
 using Webby.VideoService.Helpers.Response;
+using Webby.VideoService.Interfaces.Helpers;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
@@ -26,10 +27,11 @@ public class PlaylistService : IPlaylistService
    private readonly IVideoRepository _videoRepository;
    private readonly IYouTubeSearchService _youtubeSearchService;
    private readonly ITwitchSearchService _twitchSearchService;
+   private readonly IExternalContentFetcher _externalContentFetcher;
 
    public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper,
       UserGrpcService.UserGrpcServiceClient userClient, IVideoRepository videoRepository,
-      IYouTubeSearchService youtubeSearchService, ITwitchSearchService twitchSearchService)
+      IYouTubeSearchService youtubeSearchService, ITwitchSearchService twitchSearchService, IExternalContentFetcher externalContentFetcher)
    {
       _playlistRepository = playlistRepository;
       _mapper = mapper;
@@ -37,6 +39,7 @@ public class PlaylistService : IPlaylistService
       _videoRepository = videoRepository;
       _youtubeSearchService = youtubeSearchService;
       _twitchSearchService = twitchSearchService;
+      _externalContentFetcher = externalContentFetcher;
    }
 
    public async Task<Playlist> GetPlaylistById(Guid playlistId)
@@ -170,28 +173,11 @@ public class PlaylistService : IPlaylistService
 
       var playlistDto = await MapToPlaylistDto(playlist, requestedUserId);
 
-      var youtubeIds = playlist.PlaylistVideos
-         .Where(pv => pv is { MediaType: MediaType.Video, Platform: SystemPlatforms.YouTube } && !string.IsNullOrEmpty(pv.ExternalContentId))
-         .Select(pv => pv.ExternalContentId!)
-         .ToList();
-
-      var twitchIds = playlist.PlaylistVideos
-         .Where(pv => pv is { MediaType: MediaType.LiveStream, Platform: SystemPlatforms.Twitch } && !string.IsNullOrEmpty(pv.ExternalContentId))
-         .Select(pv => pv.ExternalContentId!)
-         .ToList();
-
-      var youtubeVideosDict = new Dictionary<string, VideoDto>();
-      var twitchStreamsDict = new Dictionary<string, StreamDto>();
-
-      await FetchExternalContentAsync(MediaType.Video, SystemPlatforms.YouTube, youtubeIds, youtubeVideosDict, null);
-      await FetchExternalContentAsync(MediaType.LiveStream, SystemPlatforms.Twitch, twitchIds, null, twitchStreamsDict);
-
-      var unavailableExternalCount = (youtubeIds.Count - youtubeVideosDict.Count) + (twitchIds.Count - twitchStreamsDict.Count);
+      var externalData = await _externalContentFetcher.FetchExternalContentAsync(playlist.PlaylistVideos);
 
       var visiblePlaylistVideos = playlist.PlaylistVideos
          .Where(pv => 
-            (pv is { MediaType: MediaType.Video, Platform: SystemPlatforms.YouTube } && !string.IsNullOrEmpty(pv.ExternalContentId) && youtubeVideosDict.ContainsKey(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalContentId)) ||
-            (pv is { MediaType: MediaType.LiveStream, Platform: SystemPlatforms.Twitch } && !string.IsNullOrEmpty(pv.ExternalContentId) && twitchStreamsDict.ContainsKey(PlatformPrefixesConstants.TwitchPrefix + pv.ExternalContentId)) ||
+            _externalContentFetcher.IsExternalContentAvailable(pv, externalData) ||
             (pv is { Platform: SystemPlatforms.Webby, Video: not null } && (!pv.Video.IsPrivate || pv.Video.UserId == requestedUserId)))
          .ToList();
 
@@ -206,6 +192,7 @@ public class PlaylistService : IPlaylistService
          if (playlistVideo is { Platform: SystemPlatforms.Webby, Video: not null })
          {
             var video = playlistVideo.Video;
+            
             videoDto = new VideoDto
             {
                VideoId = PlatformPrefixesConstants.WebbyPrefix + video.VideoId.ToString(),
@@ -214,6 +201,7 @@ public class PlaylistService : IPlaylistService
                CreatedAt = video.CreatedAt,
                PreviewUrl = video.PreviewUrl,
                IsPrivate = video.IsPrivate,
+               VideoUrl = video.VideoUrl
             };
 
             if (video.UserId != Guid.Empty)
@@ -250,28 +238,20 @@ public class PlaylistService : IPlaylistService
             }
             break;
          }
-         else if (playlistVideo.MediaType == MediaType.Video && playlistVideo.Platform == SystemPlatforms.YouTube && !string.IsNullOrEmpty(playlistVideo.ExternalContentId))
+         else if (playlistVideo.Platform == SystemPlatforms.YouTube)
          {
-            if (youtubeVideosDict.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + playlistVideo.ExternalContentId, out var ytVideo))
+            if (externalData.YoutubeVideos.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + playlistVideo.ExternalContentId, out var ytVideo))
             {
                videoDto = ytVideo;
                break;
             }
          }
-         else if (playlistVideo.MediaType == MediaType.LiveStream && playlistVideo.Platform == SystemPlatforms.Twitch && !string.IsNullOrEmpty(playlistVideo.ExternalContentId))
+         else if (playlistVideo.Platform == SystemPlatforms.Twitch)
          {
-            if (!twitchStreamsDict.TryGetValue(PlatformPrefixesConstants.TwitchPrefix + playlistVideo.ExternalContentId,
-                   out var twitchStream)) continue;
-            
-            videoDto = new VideoDto
-            {
-               VideoId =  twitchStream.StreamerId,
-               Name = twitchStream.Name ?? "Live Stream",
-               Views = twitchStream.Viewers,
-               CreatedAt = playlistVideo.CreatedAt,
-               PreviewUrl = twitchStream.PreviewUrl,
-               IsPrivate = false
-            };
+            if (!externalData.TwitchStreams.TryGetValue(PlatformPrefixesConstants.TwitchPrefix + playlistVideo.ExternalContentId, out var twitchStream)) 
+                continue;
+
+            videoDto = _mapper.Map<VideoDto>(twitchStream);
             break;
          }
       }
@@ -283,7 +263,7 @@ public class PlaylistService : IPlaylistService
       {
          Playlist = playlistDto,
          FirstVideo = videoDto,
-         HiddenVideosCount = unavailableWebbyCount + unavailableExternalCount
+         HiddenVideosCount = unavailableWebbyCount + externalData.UnavailableCount
       };
    }
    
@@ -349,7 +329,7 @@ public class PlaylistService : IPlaylistService
        var updatedPlaylist = await _playlistRepository.GetPlaylistDetails(playlistId);
 
        return await MapToPlaylistDto(updatedPlaylist!, requestUserId);
-}
+   }
    
    public async Task<PlaylistDto> AttachStreamToPlaylist(Guid playlistId, List<string> streamIds, Guid requestUserId)
    {
@@ -449,7 +429,7 @@ public class PlaylistService : IPlaylistService
 
    public async Task<bool> CheckIfVideoExistInPlaylist(Guid playlistId, string videoId)
    {
-      var parseResult = PlatformPrefixToPlatformConverter.ParseVideoPlatform(videoId);
+      var parseResult = PlatformPrefixToPlatformConverter.ParseSystemPlatform(videoId);
 
       if (parseResult == null)
       {
@@ -524,64 +504,31 @@ public class PlaylistService : IPlaylistService
    private async Task<Dictionary<Guid, string>> GetPlaylistsCoversAsync(IEnumerable<Playlist> playlists, Guid? requestUserId)
    {
        var covers = new Dictionary<Guid, string>();
-       var youtubeIdsToFetch = new HashSet<string>();
-       var twitchIdsToFetch = new HashSet<string>();
-       
+
+       var allPlaylistVideos = playlists
+           .Where(p => p.PlaylistVideos != null)
+           .SelectMany(p => p.PlaylistVideos!)
+           .ToList();
+
+       var externalData = await _externalContentFetcher.FetchExternalContentAsync(allPlaylistVideos);
+
        foreach (var playlist in playlists)
        {
-           if (playlist.PlaylistVideos == null) continue;
-
-           var youtubeVideos = playlist.PlaylistVideos
-               .Where(pv => pv.MediaType == MediaType.Video && pv.Platform == SystemPlatforms.YouTube && !string.IsNullOrEmpty(pv.ExternalContentId))
-               .Select(pv => pv.ExternalContentId!);
-
-           foreach (var id in youtubeVideos)
-           {
-               youtubeIdsToFetch.Add(id);
-           }
-
-           var twitchStreams = playlist.PlaylistVideos
-               .Where(pv => pv is { MediaType: MediaType.LiveStream, Platform: SystemPlatforms.Twitch } && !string.IsNullOrEmpty(pv.ExternalContentId))
-               .Select(pv => pv.ExternalContentId!);
-
-           foreach (var id in twitchStreams)
-           {
-               twitchIdsToFetch.Add(id);
-           }
-       }
-       
-       var youtubeVideosDict = new Dictionary<string, VideoDto>();
-       if (youtubeIdsToFetch.Count != 0)
-       {
-           var ytList = await _youtubeSearchService.GetList(youtubeIdsToFetch.ToList());
-           youtubeVideosDict = ytList.ToDictionary(v => v.VideoId!);
-       }
-
-       var twitchStreamsDict = new Dictionary<string, StreamDto>();
-       if (twitchIdsToFetch.Count != 0)
-       {
-           var twitchList = await _twitchSearchService.GetList(twitchIdsToFetch.ToList());
-           twitchStreamsDict = twitchList.ToDictionary(s => s.StreamerId!);
-       }
-       
-       foreach (var playlist in playlists)
-       {
-           string coverUrl = DefaultLinks.PlaylistEmptyLink;
+           var coverUrl = DefaultLinks.PlaylistEmptyLink;
 
            var availableItems = playlist.PlaylistVideos?
                .Where(pv =>
-                   (pv.MediaType == MediaType.Video && pv.Platform == SystemPlatforms.YouTube) ||
-                   (pv.MediaType == MediaType.LiveStream && pv.Platform == SystemPlatforms.Twitch) ||
-                   (pv.MediaType == MediaType.Video && pv.Platform == SystemPlatforms.Webby && pv.Video != null && (!pv.Video.IsPrivate || pv.Video.UserId == requestUserId))
+                   _externalContentFetcher.IsExternalContentAvailable(pv, externalData) ||
+                   (pv is { Platform: SystemPlatforms.Webby, Video: not null } && (!pv.Video.IsPrivate || pv.Video.UserId == requestUserId))
                )
                .OrderByDescending(pv => pv.CreatedAt)
                .ToList();
 
-           if (availableItems != null && availableItems.Any())
+           if (availableItems != null && availableItems.Count != 0)
            {
                foreach (var pv in availableItems)
                {
-                   if (pv is { MediaType: MediaType.Video, Platform: SystemPlatforms.Webby })
+                   if (pv.Platform == SystemPlatforms.Webby)
                    {
                        var localCover = pv.Video!.PreviewUrl;
                        if (!string.IsNullOrEmpty(localCover))
@@ -590,18 +537,18 @@ public class PlaylistService : IPlaylistService
                            break;
                        }
                    }
-                   else if (pv is { MediaType: MediaType.Video, Platform: SystemPlatforms.YouTube } && !string.IsNullOrEmpty(pv.ExternalContentId))
+                   else if (pv.Platform == SystemPlatforms.YouTube)
                    {
-                       if (youtubeVideosDict.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalContentId, out var ytVideo) &&
+                       if (externalData.YoutubeVideos.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalContentId, out var ytVideo) &&
                            !string.IsNullOrEmpty(ytVideo.PreviewUrl))
                        {
                            coverUrl = ytVideo.PreviewUrl;
                            break;
                        }
                    }
-                   else if (pv.MediaType == MediaType.LiveStream && pv.Platform == SystemPlatforms.Twitch && !string.IsNullOrEmpty(pv.ExternalContentId))
+                   else if (pv.Platform == SystemPlatforms.Twitch)
                    {
-                       if (twitchStreamsDict.TryGetValue(PlatformPrefixesConstants.TwitchPrefix + pv.ExternalContentId, out var twitchStream) &&
+                       if (externalData.TwitchStreams.TryGetValue(PlatformPrefixesConstants.TwitchPrefix + pv.ExternalContentId, out var twitchStream) &&
                            !string.IsNullOrEmpty(twitchStream.PreviewUrl))
                        {
                            coverUrl = twitchStream.PreviewUrl;
@@ -615,37 +562,6 @@ public class PlaylistService : IPlaylistService
        }
 
        return covers;
-   }
-   
-   private async Task FetchExternalContentAsync(
-      MediaType mediaType, 
-      SystemPlatforms platform, 
-      List<string> ids, 
-      Dictionary<string, VideoDto>? youtubeDict, 
-      Dictionary<string, StreamDto>? twitchDict)
-   {
-      if (ids.Count == 0) return;
-
-      switch (mediaType, platform)
-      {
-         case (MediaType.Video, SystemPlatforms.YouTube):
-            var ytList = await _youtubeSearchService.GetList(ids);
-            if (youtubeDict != null)
-            {
-               foreach (var item in ytList)
-                  youtubeDict[item.VideoId!] = item;
-            }
-            break;
-
-         case (MediaType.LiveStream, SystemPlatforms.Twitch):
-            var twitchList = await _twitchSearchService.GetList(ids);
-            if (twitchDict != null)
-            {
-               foreach (var item in twitchList)
-                  twitchDict[item.StreamerId!] = item;
-            }
-            break;
-      }
    }
    
 }

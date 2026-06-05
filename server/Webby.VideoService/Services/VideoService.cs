@@ -250,27 +250,18 @@ public class VideoService : IVideoService
       });
 
       var videoTagsNames = await _tagService.GetTagNames(video.VideoTags?.ToList());
-
-      return new VideoDto()
+      var videoDto = _mapper.Map<VideoDto>(video);
+      
+      videoDto.VideoTags = videoTagsNames;
+      videoDto.User = new UserVideoDto()
       {
-         VideoId = PlatformPrefixesConstants.WebbyPrefix + videoIdGuid.ToString(),
-         Name = video.Name,
-         Views = video.Views,
-         Description = video.Description,
-         CreatedAt = video.CreatedAt,
-         Duration = video.Duration,
-         VideoUrl = video.VideoUrl,
-         PreviewUrl = video.PreviewUrl,
-         IsPrivate = video.IsPrivate,
-         VideoTags = videoTagsNames,
-         User = new UserVideoDto
-         {
-            UserId = userResponse.UserId,
-            Username = userResponse.Username,
-            AvatarUrl = userResponse.AvatarUrl,
-            IsFollowed = userResponse.IsFollowed
-         }
+         UserId = userResponse.UserId,
+         Username = userResponse.Username,
+         AvatarUrl = userResponse.AvatarUrl,
+         IsFollowed = userResponse.IsFollowed
       };
+      
+      return videoDto;
    }
 
    public async Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId, Guid? requestedUserId, GetUserVideosRequest request)
@@ -472,16 +463,8 @@ public class VideoService : IVideoService
            {
                if (twitchStreamsDict.TryGetValue(PlatformPrefixesConstants.TwitchPrefix + pv.ExternalContentId, out var twitchStream))
                {
-                   var streamAsVideo = new VideoDto
-                   {
-                       VideoId = twitchStream.StreamerId,
-                       Name = twitchStream.Name ?? "Live Stream",
-                       Views = twitchStream.Viewers,
-                       CreatedAt = pv.CreatedAt,
-                       PreviewUrl = twitchStream.PreviewUrl,
-                       IsPrivate = false
-                   };
-
+                  var streamAsVideo = _mapper.Map<VideoDto>(twitchStream);
+                  streamAsVideo.CreatedAt = pv.CreatedAt;
                    if (hasSearch)
                    {
                        if (streamAsVideo.Name != null && streamAsVideo.Name.Contains(searchText!, StringComparison.OrdinalIgnoreCase))
@@ -710,7 +693,7 @@ public class VideoService : IVideoService
          {
             foreach (var stream in twitchVideos)
             {
-               var video = ParseStreamToVideoDto(stream);
+               var video = _mapper.Map<VideoDto>(stream);
                fetchedVideosDict[video.VideoId] = video;
             }
          }
@@ -840,33 +823,6 @@ public class VideoService : IVideoService
 
       return (platform, actualId);
       
-   }
-   
-   private VideoDto ParseStreamToVideoDto(StreamDto stream)
-   {
-      if (stream == null) 
-         return null;
-
-      return new VideoDto
-      {
-         VideoId = stream.StreamerId,
-         Name = stream.Name,
-         Views = stream.Viewers,
-         CreatedAt = stream.StartedAt,
-         VideoUrl = stream.StreamUrl,
-         PreviewUrl = stream.PreviewUrl,
-         User = new UserVideoDto
-         {
-            Username = stream.StreamerInformation.Username,
-            AvatarUrl = stream.StreamerInformation.AvatarUrl,
-            IsFollowed = false,
-            UserId = stream.StreamerId
-         },
-         Description = string.Empty,
-         Duration = 0,
-         IsPrivate = false,
-         VideoTags = new List<string>()
-      };
    }
    
 }

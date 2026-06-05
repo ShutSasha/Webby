@@ -117,6 +117,7 @@ public class YoutubeSearchService : IYouTubeSearchService
             CreatedAt = item.Snippet.PublishedAt,
             IsPrivate = false,
             VideoUploadStatus = VideoStatus.Ready,
+            MediaType = MediaType.Video,
 
             Duration = !string.IsNullOrEmpty(item.ContentDetails?.Duration) 
                 ? (long)Math.Round(System.Xml.XmlConvert.ToTimeSpan(item.ContentDetails.Duration).TotalSeconds) 
@@ -334,6 +335,7 @@ public class YoutubeSearchService : IYouTubeSearchService
             CreatedAt = item.Snippet.PublishedAt,
             IsPrivate = false,
             VideoUploadStatus = VideoStatus.Ready,
+            MediaType = MediaType.Video,
 
             Duration = !string.IsNullOrEmpty(item.ContentDetails?.Duration)
                 ? (long)Math.Round(System.Xml.XmlConvert.ToTimeSpan(item.ContentDetails.Duration).TotalSeconds)

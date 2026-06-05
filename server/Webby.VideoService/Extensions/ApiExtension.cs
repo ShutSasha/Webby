@@ -112,6 +112,7 @@ public static class ApiExtension
    public static void AddHelpers(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
+      serviceCollection.AddScoped<IExternalContentFetcher, ExternalContentFetcher>();
    }
 
    public static void AddExternalServices(this IServiceCollection serviceCollection)
