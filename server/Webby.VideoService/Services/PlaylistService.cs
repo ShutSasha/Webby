@@ -1,10 +1,10 @@
-﻿using System.Net.NetworkInformation;
-using AutoMapper;
+﻿using AutoMapper;
 using Grpc.Core;
 using UserService;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.Search;
+using Webby.VideoService.Dtos.Stream;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Helpers.Converters;
@@ -25,14 +25,18 @@ public class PlaylistService : IPlaylistService
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
    private readonly IVideoRepository _videoRepository;
    private readonly IYouTubeSearchService _youtubeSearchService;
+   private readonly ITwitchSearchService _twitchSearchService;
+
    public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper,
-      UserGrpcService.UserGrpcServiceClient userClient, IVideoRepository videoRepository, IYouTubeSearchService youtubeSearchService)
+      UserGrpcService.UserGrpcServiceClient userClient, IVideoRepository videoRepository,
+      IYouTubeSearchService youtubeSearchService, ITwitchSearchService twitchSearchService)
    {
       _playlistRepository = playlistRepository;
       _mapper = mapper;
       _userClient = userClient;
       _videoRepository = videoRepository;
       _youtubeSearchService = youtubeSearchService;
+      _twitchSearchService = twitchSearchService;
    }
 
    public async Task<Playlist> GetPlaylistById(Guid playlistId)
@@ -167,24 +171,28 @@ public class PlaylistService : IPlaylistService
       var playlistDto = await MapToPlaylistDto(playlist, requestedUserId);
 
       var youtubeIds = playlist.PlaylistVideos
-         .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
-         .Select(pv => pv.ExternalVideoId!)
+         .Where(pv => pv is { MediaType: MediaType.Video, Platform: SystemPlatforms.YouTube } && !string.IsNullOrEmpty(pv.ExternalContentId))
+         .Select(pv => pv.ExternalContentId!)
+         .ToList();
+
+      var twitchIds = playlist.PlaylistVideos
+         .Where(pv => pv is { MediaType: MediaType.LiveStream, Platform: SystemPlatforms.Twitch } && !string.IsNullOrEmpty(pv.ExternalContentId))
+         .Select(pv => pv.ExternalContentId!)
          .ToList();
 
       var youtubeVideosDict = new Dictionary<string, VideoDto>();
-      
-      if (youtubeIds.Count != 0)
-      {
-         var ytList = await _youtubeSearchService.GetList(youtubeIds);
-         youtubeVideosDict = ytList.ToDictionary(v => v.VideoId!);
-      }
+      var twitchStreamsDict = new Dictionary<string, StreamDto>();
 
-      var unavailableYoutubeCount = youtubeIds.Count - youtubeVideosDict.Count;
+      await FetchExternalContentAsync(MediaType.Video, SystemPlatforms.YouTube, youtubeIds, youtubeVideosDict, null);
+      await FetchExternalContentAsync(MediaType.LiveStream, SystemPlatforms.Twitch, twitchIds, null, twitchStreamsDict);
+
+      var unavailableExternalCount = (youtubeIds.Count - youtubeVideosDict.Count) + (twitchIds.Count - twitchStreamsDict.Count);
 
       var visiblePlaylistVideos = playlist.PlaylistVideos
          .Where(pv => 
-            (pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId) && youtubeVideosDict.ContainsKey(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalVideoId)) ||
-            (pv is { VideoPlatform: VideoPlatform.Webby, Video: not null } && (!pv.Video.IsPrivate || pv.Video.UserId == requestedUserId)))
+            (pv is { MediaType: MediaType.Video, Platform: SystemPlatforms.YouTube } && !string.IsNullOrEmpty(pv.ExternalContentId) && youtubeVideosDict.ContainsKey(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalContentId)) ||
+            (pv is { MediaType: MediaType.LiveStream, Platform: SystemPlatforms.Twitch } && !string.IsNullOrEmpty(pv.ExternalContentId) && twitchStreamsDict.ContainsKey(PlatformPrefixesConstants.TwitchPrefix + pv.ExternalContentId)) ||
+            (pv is { Platform: SystemPlatforms.Webby, Video: not null } && (!pv.Video.IsPrivate || pv.Video.UserId == requestedUserId)))
          .ToList();
 
       playlistDto.CountOfVideos = visiblePlaylistVideos.Count;
@@ -195,7 +203,7 @@ public class PlaylistService : IPlaylistService
 
       foreach (var playlistVideo in sortedVideos)
       {
-         if (playlistVideo is { VideoPlatform: VideoPlatform.Webby, Video: not null })
+         if (playlistVideo is { Platform: SystemPlatforms.Webby, Video: not null })
          {
             var video = playlistVideo.Video;
             videoDto = new VideoDto
@@ -240,32 +248,45 @@ public class PlaylistService : IPlaylistService
                   throw new ApiException("Get playlist information error", 500, ex.Message);
                }
             }
-
             break;
          }
-         else if (playlistVideo.VideoPlatform == VideoPlatform.YouTube &&
-                  !string.IsNullOrEmpty(playlistVideo.ExternalVideoId))
+         else if (playlistVideo.MediaType == MediaType.Video && playlistVideo.Platform == SystemPlatforms.YouTube && !string.IsNullOrEmpty(playlistVideo.ExternalContentId))
          {
-            if (youtubeVideosDict.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + playlistVideo.ExternalVideoId, out var ytVideo))
+            if (youtubeVideosDict.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + playlistVideo.ExternalContentId, out var ytVideo))
             {
                videoDto = ytVideo;
                break;
             }
          }
+         else if (playlistVideo.MediaType == MediaType.LiveStream && playlistVideo.Platform == SystemPlatforms.Twitch && !string.IsNullOrEmpty(playlistVideo.ExternalContentId))
+         {
+            if (!twitchStreamsDict.TryGetValue(PlatformPrefixesConstants.TwitchPrefix + playlistVideo.ExternalContentId,
+                   out var twitchStream)) continue;
+            
+            videoDto = new VideoDto
+            {
+               VideoId =  twitchStream.StreamerId,
+               Name = twitchStream.Name ?? "Live Stream",
+               Views = twitchStream.Viewers,
+               CreatedAt = playlistVideo.CreatedAt,
+               PreviewUrl = twitchStream.PreviewUrl,
+               IsPrivate = false
+            };
+            break;
+         }
       }
 
       var unavailableWebbyCount = playlist.PlaylistVideos
-         .Count(pv => pv is { VideoPlatform: VideoPlatform.Webby, Video.IsPrivate: true } &&
-                      pv.Video.UserId != requestedUserId);
+         .Count(pv => pv is { Platform: SystemPlatforms.Webby, Video.IsPrivate: true } && pv.Video.UserId != requestedUserId);
 
       return new GetPlaylistResponse
       {
          Playlist = playlistDto,
          FirstVideo = videoDto,
-         HiddenVideosCount = unavailableWebbyCount + unavailableYoutubeCount
+         HiddenVideosCount = unavailableWebbyCount + unavailableExternalCount
       };
    }
-
+   
    public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<string> videoIds, Guid requestUserId)
    {
        if (videoIds.Count == 0)
@@ -277,66 +298,39 @@ public class PlaylistService : IPlaylistService
        if (playlist.UserId != requestUserId)
            throw new ApiException("Attach video to playlist error", 403, "You can't update this playlist");
        
-       var parsedItems = videoIds
+       var requestedVideos = videoIds
            .Select(id =>
            {
-              var result = PlatformPrefixToPlatformConverter.ParseVideoPlatform(id);
-
-              if (result == null)
-              {
-                 throw new ApiException("Attach video error", 400, "Invalid id format");
-              }
-
-              return new PlaylistItemInput(
-                 result.Value.Platform,
-                 result.Value.ActualId
-              );
+              var result = PlatformPrefixToPlatformConverter.ParseSystemPlatform(id);
+              if (result == null) throw new ApiException("Attach video error", 400, "Invalid id format");
+              return result.Value;
+           })
+           .DistinctBy(v => new { v.Platform, v.ActualId })
+           .Select(item => new PlaylistVideo
+           {
+               PlaylistVideoId = Guid.NewGuid(),
+               PlaylistId = playlistId,
+               Platform = item.Platform,
+               InternalContentId = item.Platform == SystemPlatforms.Webby ? Guid.Parse(item.ActualId) : null,
+               ExternalContentId = item.Platform != SystemPlatforms.Webby ? item.ActualId : null,
+               MediaType = MediaType.Video,
+               CreatedAt = DateTime.UtcNow,
            })
            .ToList();
-
-       var uniqueRequestedItems = parsedItems
-           .DistinctBy(v => new { v.VideoPlatform, v.ItemId })
-           .ToList();
        
-       var existingItems = playlist.PlaylistVideos
-           .Select(pv => new PlaylistItemInput(
-               pv.VideoPlatform,
-               pv.VideoPlatform == VideoPlatform.Webby
-                   ? pv.VideoId!.ToString()
-                   : pv.ExternalVideoId!
-           ))
-           .ToHashSet();
-       
-       var playlistVideosToDelete = playlist.PlaylistVideos
-           .Where(p => uniqueRequestedItems.Any(req =>
-               req.VideoPlatform == p.VideoPlatform &&
-               req.ItemId == (p.VideoPlatform == VideoPlatform.Webby
-                   ? p.VideoId!.ToString()
-                   : p.ExternalVideoId)))
+       var (itemsToAdd, itemsToDelete) = await _playlistRepository.GetPlaylistItemsDiffAsync(
+           playlistId, 
+           MediaType.Video, 
+           requestedVideos);
+
+
+       var localVideoGuids = itemsToAdd
+           .Where(v => v is { Platform: SystemPlatforms.Webby, InternalContentId: not null })
+           .Select(v => v.InternalContentId!.Value)
            .ToList();
 
-       var newItemsToAdd = uniqueRequestedItems
-           .Where(req => !existingItems.Contains(req))
-           .ToList();
-
-       
-       var localVideoIdsStrings = newItemsToAdd
-           .Where(v => v.VideoPlatform == VideoPlatform.Webby)
-           .Select(v => v.ItemId)
-           .ToList();
-
-       if (localVideoIdsStrings.Any())
+       if (localVideoGuids.Any())
        {
-           var localVideoGuids = localVideoIdsStrings
-               .Select(id =>
-               {
-                   if (!Guid.TryParse(id, out var guid))
-                       throw new ApiException("Update playlist error", 400, "Invalid local video ID format");
-
-                   return guid;
-               })
-               .ToList();
-
            var isAllVideosInDb = await _videoRepository.CheckVideosCount(localVideoGuids);
            if (!isAllVideosInDb)
                throw new ApiException("Update playlist error", 404, "Local videos weren't found");
@@ -346,26 +340,62 @@ public class PlaylistService : IPlaylistService
                throw new ApiException("Add video to playlist error", 403, "You can't add private videos");
        }
        
-       
-       var playlistVideos = newItemsToAdd.Select(item => new PlaylistVideo
-       {
-           PlaylistVideoId = Guid.NewGuid(),
-           PlaylistId = playlistId,
-           VideoPlatform = item.VideoPlatform,
-           VideoId = item.VideoPlatform == VideoPlatform.Webby ? Guid.Parse(item.ItemId) : null,
-           ExternalVideoId = item.VideoPlatform == VideoPlatform.YouTube ? item.ItemId : null,
-           CreatedAt = DateTime.UtcNow,
-       }).ToList();
+       if (itemsToAdd.Count > 0)
+           await _playlistRepository.AddPlaylistVideos(itemsToAdd);
 
-       if (playlistVideos.Count > 0)
-           await _playlistRepository.AddPlaylistVideos(playlistVideos);
-
-       if (playlistVideosToDelete.Count > 0)
-           await _playlistRepository.DeletePlaylistVideos(playlistVideosToDelete);
+       if (itemsToDelete.Count > 0)
+           await _playlistRepository.DeletePlaylistVideos(itemsToDelete);
 
        var updatedPlaylist = await _playlistRepository.GetPlaylistDetails(playlistId);
 
        return await MapToPlaylistDto(updatedPlaylist!, requestUserId);
+}
+   
+   public async Task<PlaylistDto> AttachStreamToPlaylist(Guid playlistId, List<string> streamIds, Guid requestUserId)
+   {
+      if (streamIds.Count == 0)
+         throw new ApiException("Attach stream error", 400, "No streams to add");
+
+      var playlist = await _playlistRepository.GetPlaylistDetails(playlistId)
+                     ?? throw new ApiException("Attach stream to playlist error", 404, "Playlist wasn't found");
+
+      if (playlist.UserId != requestUserId)
+         throw new ApiException("Attach stream to playlist error", 403, "You can't update this playlist");
+      
+      var requestedStreams = streamIds
+         .Select(id =>
+         {
+            var result = PlatformPrefixToPlatformConverter.ParseSystemPlatform(id);
+            if (result == null) throw new ApiException("Attach stream error", 400, "Invalid id format");
+            return result.Value;
+         })
+         .DistinctBy(s => new { s.Platform, s.ActualId })
+         .Select(item => new PlaylistVideo
+         {
+            PlaylistVideoId = Guid.NewGuid(),
+            PlaylistId = playlistId,
+            Platform = item.Platform,
+            InternalContentId = null, 
+            ExternalContentId = item.ActualId,
+            MediaType = MediaType.LiveStream,
+            CreatedAt = DateTime.UtcNow,
+         })
+         .ToList();
+      
+      var (itemsToAdd, itemsToDelete) = await _playlistRepository.GetPlaylistItemsDiffAsync(
+         playlistId, 
+         MediaType.LiveStream, 
+         requestedStreams);
+
+      if (itemsToAdd.Count > 0)
+         await _playlistRepository.AddPlaylistVideos(itemsToAdd);
+
+      if (itemsToDelete.Count > 0)
+         await _playlistRepository.DeletePlaylistVideos(itemsToDelete);
+
+      var updatedPlaylist = await _playlistRepository.GetPlaylistDetails(playlistId);
+
+      return await MapToPlaylistDto(updatedPlaylist!, requestUserId);
    }
 
    public async Task<PagedResponse<SearchPlaylistDto>> SearchPlaylists(
@@ -490,23 +520,33 @@ public class PlaylistService : IPlaylistService
          .ToList();
    }
    
+   
    private async Task<Dictionary<Guid, string>> GetPlaylistsCoversAsync(IEnumerable<Playlist> playlists, Guid? requestUserId)
    {
        var covers = new Dictionary<Guid, string>();
        var youtubeIdsToFetch = new HashSet<string>();
+       var twitchIdsToFetch = new HashSet<string>();
        
        foreach (var playlist in playlists)
        {
-           var youtubeVideos = playlist.PlaylistVideos?
-               .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
-               .Select(pv => pv.ExternalVideoId!);
+           if (playlist.PlaylistVideos == null) continue;
 
-           if (youtubeVideos != null)
+           var youtubeVideos = playlist.PlaylistVideos
+               .Where(pv => pv.MediaType == MediaType.Video && pv.Platform == SystemPlatforms.YouTube && !string.IsNullOrEmpty(pv.ExternalContentId))
+               .Select(pv => pv.ExternalContentId!);
+
+           foreach (var id in youtubeVideos)
            {
-               foreach (var id in youtubeVideos)
-               {
-                   youtubeIdsToFetch.Add(id);
-               }
+               youtubeIdsToFetch.Add(id);
+           }
+
+           var twitchStreams = playlist.PlaylistVideos
+               .Where(pv => pv is { MediaType: MediaType.LiveStream, Platform: SystemPlatforms.Twitch } && !string.IsNullOrEmpty(pv.ExternalContentId))
+               .Select(pv => pv.ExternalContentId!);
+
+           foreach (var id in twitchStreams)
+           {
+               twitchIdsToFetch.Add(id);
            }
        }
        
@@ -516,24 +556,32 @@ public class PlaylistService : IPlaylistService
            var ytList = await _youtubeSearchService.GetList(youtubeIdsToFetch.ToList());
            youtubeVideosDict = ytList.ToDictionary(v => v.VideoId!);
        }
+
+       var twitchStreamsDict = new Dictionary<string, StreamDto>();
+       if (twitchIdsToFetch.Count != 0)
+       {
+           var twitchList = await _twitchSearchService.GetList(twitchIdsToFetch.ToList());
+           twitchStreamsDict = twitchList.ToDictionary(s => s.StreamerId!);
+       }
        
        foreach (var playlist in playlists)
        {
            string coverUrl = DefaultLinks.PlaylistEmptyLink;
 
-           var availableVideos = playlist.PlaylistVideos?
+           var availableItems = playlist.PlaylistVideos?
                .Where(pv =>
-                   pv.VideoPlatform == VideoPlatform.YouTube ||
-                   (pv.VideoPlatform == VideoPlatform.Webby && pv.Video != null && (!pv.Video.IsPrivate || pv.Video.UserId == requestUserId))
+                   (pv.MediaType == MediaType.Video && pv.Platform == SystemPlatforms.YouTube) ||
+                   (pv.MediaType == MediaType.LiveStream && pv.Platform == SystemPlatforms.Twitch) ||
+                   (pv.MediaType == MediaType.Video && pv.Platform == SystemPlatforms.Webby && pv.Video != null && (!pv.Video.IsPrivate || pv.Video.UserId == requestUserId))
                )
                .OrderByDescending(pv => pv.CreatedAt)
                .ToList();
 
-           if (availableVideos != null && availableVideos.Any())
+           if (availableItems != null && availableItems.Any())
            {
-               foreach (var pv in availableVideos)
+               foreach (var pv in availableItems)
                {
-                   if (pv.VideoPlatform == VideoPlatform.Webby)
+                   if (pv is { MediaType: MediaType.Video, Platform: SystemPlatforms.Webby })
                    {
                        var localCover = pv.Video!.PreviewUrl;
                        if (!string.IsNullOrEmpty(localCover))
@@ -542,12 +590,21 @@ public class PlaylistService : IPlaylistService
                            break;
                        }
                    }
-                   else if (pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
+                   else if (pv is { MediaType: MediaType.Video, Platform: SystemPlatforms.YouTube } && !string.IsNullOrEmpty(pv.ExternalContentId))
                    {
-                       if (youtubeVideosDict.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalVideoId, out var ytVideo) &&
+                       if (youtubeVideosDict.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalContentId, out var ytVideo) &&
                            !string.IsNullOrEmpty(ytVideo.PreviewUrl))
                        {
                            coverUrl = ytVideo.PreviewUrl;
+                           break;
+                       }
+                   }
+                   else if (pv.MediaType == MediaType.LiveStream && pv.Platform == SystemPlatforms.Twitch && !string.IsNullOrEmpty(pv.ExternalContentId))
+                   {
+                       if (twitchStreamsDict.TryGetValue(PlatformPrefixesConstants.TwitchPrefix + pv.ExternalContentId, out var twitchStream) &&
+                           !string.IsNullOrEmpty(twitchStream.PreviewUrl))
+                       {
+                           coverUrl = twitchStream.PreviewUrl;
                            break;
                        }
                    }
@@ -558,6 +615,37 @@ public class PlaylistService : IPlaylistService
        }
 
        return covers;
+   }
+   
+   private async Task FetchExternalContentAsync(
+      MediaType mediaType, 
+      SystemPlatforms platform, 
+      List<string> ids, 
+      Dictionary<string, VideoDto>? youtubeDict, 
+      Dictionary<string, StreamDto>? twitchDict)
+   {
+      if (ids.Count == 0) return;
+
+      switch (mediaType, platform)
+      {
+         case (MediaType.Video, SystemPlatforms.YouTube):
+            var ytList = await _youtubeSearchService.GetList(ids);
+            if (youtubeDict != null)
+            {
+               foreach (var item in ytList)
+                  youtubeDict[item.VideoId!] = item;
+            }
+            break;
+
+         case (MediaType.LiveStream, SystemPlatforms.Twitch):
+            var twitchList = await _twitchSearchService.GetList(ids);
+            if (twitchDict != null)
+            {
+               foreach (var item in twitchList)
+                  twitchDict[item.StreamerId!] = item;
+            }
+            break;
+      }
    }
    
 }

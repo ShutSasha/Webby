@@ -9,4 +9,4 @@ public class AddVideoToPlaylistRequest
    public List<string> VideoIds { get; set; }
 }
 
-public record PlaylistItemInput(VideoPlatform VideoPlatform, string ItemId);
+public record PlaylistItemInput(SystemPlatforms VideoPlatform, string ItemId);

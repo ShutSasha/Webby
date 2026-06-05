@@ -1,12 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using UserService;
 using Webby.VideoService.Dtos.Event;
 using Webby.VideoService.Constants;
-using Webby.VideoService.Dtos.Platforms.Enums;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.Stream;
-using Webby.VideoService.Dtos.Stream.Enums;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Dtos.Video.Enums;
@@ -425,8 +422,13 @@ public class VideoService : IVideoService
        var resultItems = new List<VideoDto>();
        
        var youtubeIds = items
-           .Where(pv => pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
-           .Select(pv => pv.ExternalVideoId!)
+           .Where(pv => pv is { MediaType: MediaType.Video, Platform: SystemPlatforms.YouTube } && !string.IsNullOrEmpty(pv.ExternalContentId))
+           .Select(pv => pv.ExternalContentId!)
+           .ToList();
+
+       var twitchIds = items
+           .Where(pv => pv is { MediaType: MediaType.LiveStream, Platform: SystemPlatforms.Twitch } && !string.IsNullOrEmpty(pv.ExternalContentId))
+           .Select(pv => pv.ExternalContentId!)
            .ToList();
 
        var youtubeVideosDict = new Dictionary<string, VideoDto>();
@@ -435,16 +437,23 @@ public class VideoService : IVideoService
            var ytList = await _youtubeSearchService.GetList(youtubeIds);
            youtubeVideosDict = ytList.ToDictionary(v => v.VideoId!);
        }
+
+       var twitchStreamsDict = new Dictionary<string, StreamDto>();
+       if (twitchIds.Count != 0)
+       {
+           var twitchList = await _twitchSearchService.GetList(twitchIds);
+           twitchStreamsDict = twitchList.ToDictionary(s => s.StreamerId!);
+       }
       
        foreach (var pv in items)
        {
-           if (pv.VideoPlatform == VideoPlatform.Webby && pv.Video != null)
+           if (pv is { Platform: SystemPlatforms.Webby, Video: not null })
            {
                resultItems.Add(_mapper.Map<VideoDto>(pv.Video));
            }
-           else if (pv.VideoPlatform == VideoPlatform.YouTube && !string.IsNullOrEmpty(pv.ExternalVideoId))
+           else if (pv is { MediaType: MediaType.Video, Platform: SystemPlatforms.YouTube } && !string.IsNullOrEmpty(pv.ExternalContentId))
            {
-               if (youtubeVideosDict.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalVideoId, out var ytVideo))
+               if (youtubeVideosDict.TryGetValue(PlatformPrefixesConstants.YouTubePrefix + pv.ExternalContentId, out var ytVideo))
                {
                    if (hasSearch)
                    {
@@ -456,6 +465,33 @@ public class VideoService : IVideoService
                    else
                    {
                        resultItems.Add(ytVideo);
+                   }
+               }
+           }
+           else if (pv is { MediaType: MediaType.LiveStream, Platform: SystemPlatforms.Twitch } && !string.IsNullOrEmpty(pv.ExternalContentId))
+           {
+               if (twitchStreamsDict.TryGetValue(PlatformPrefixesConstants.TwitchPrefix + pv.ExternalContentId, out var twitchStream))
+               {
+                   var streamAsVideo = new VideoDto
+                   {
+                       VideoId = twitchStream.StreamerId,
+                       Name = twitchStream.Name ?? "Live Stream",
+                       Views = twitchStream.Viewers,
+                       CreatedAt = pv.CreatedAt,
+                       PreviewUrl = twitchStream.PreviewUrl,
+                       IsPrivate = false
+                   };
+
+                   if (hasSearch)
+                   {
+                       if (streamAsVideo.Name != null && streamAsVideo.Name.Contains(searchText!, StringComparison.OrdinalIgnoreCase))
+                       {
+                           resultItems.Add(streamAsVideo);
+                       }
+                   }
+                   else
+                   {
+                       resultItems.Add(streamAsVideo);
                    }
                }
            }
@@ -813,13 +849,19 @@ public class VideoService : IVideoService
 
       return new VideoDto
       {
-         VideoId = stream.StreamId,
+         VideoId = stream.StreamerId,
          Name = stream.Name,
          Views = stream.Viewers,
          CreatedAt = stream.StartedAt,
          VideoUrl = stream.StreamUrl,
          PreviewUrl = stream.PreviewUrl,
-         User = stream.User,
+         User = new UserVideoDto
+         {
+            Username = stream.StreamerInformation.Username,
+            AvatarUrl = stream.StreamerInformation.AvatarUrl,
+            IsFollowed = false,
+            UserId = stream.StreamerId
+         },
          Description = string.Empty,
          Duration = 0,
          IsPrivate = false,

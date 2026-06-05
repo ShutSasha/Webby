@@ -84,6 +84,17 @@ public class PlaylistController : ControllerBase
       await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds, requestUserId.Value);
       return Ok(ApiResponse.Ok("Successfully update playlist"));
    }
+   
+   [HttpPost("streams")]
+   [SwaggerOperation("Add or delete streams in playlist", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> AddStreamToPlaylist([FromBody] AddStreamToPlaylistRequest request)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      
+      await _playlistService.AttachStreamToPlaylist(request.PlaylistId,request.StreamIds, requestUserId.Value);
+      return Ok(ApiResponse.Ok("Successfully update playlist"));
+   }
+
 
    [HttpPatch]
    [SwaggerOperation("Update playlist", "AUTH REQUIRED")]

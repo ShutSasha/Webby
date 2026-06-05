@@ -91,19 +91,17 @@ public class TwitchSearchService : ITwitchSearchService
         
         var resultItems = streamData.Select(item => new StreamDto
         {
-            StreamId = PlatformPrefixesConstants.TwitchPrefix + item.Id,
+            StreamerId = PlatformPrefixesConstants.TwitchPrefix + item.UserId,
             Name = item.Title,
             StartedAt = item.StartedAt,
             PreviewUrl = item.ThumbnailUrl.Replace("{width}",_options.ThumbnailWidth).Replace("{height}", _options.ThumbnailHeight),
             StreamUrl = DefaultLinks.DefaultTwitchPlayerWatchLink + item.UserName ?? item.BroadcasterLogin!,
             Viewers = item.ViewerCount,
             Source = "Twitch",
-            User = new UserVideoDto
+            StreamerInformation =new UserStreamDto
             {
-                UserId = PlatformPrefixesConstants.TwitchPrefix + item.UserId,
                 Username = item.UserName ?? item.DisplayName ?? "Unknown",
                 AvatarUrl = avatars.GetValueOrDefault(item.UserId ?? item.Id) ?? "",
-                IsFollowed = false
             }
         }).ToList();
 
@@ -216,19 +214,17 @@ public class TwitchSearchService : ITwitchSearchService
     {
         return new StreamDto
         {
-            StreamId = PlatformPrefixesConstants.TwitchPrefix + item.Id,
+            StreamerId= PlatformPrefixesConstants.TwitchPrefix + item.UserId,
             Name = item.Title,
             StartedAt = item.StartedAt,
             PreviewUrl = item.ThumbnailUrl.Replace("{width}", _options.ThumbnailWidth).Replace("{height}", _options.ThumbnailHeight),
             StreamUrl = DefaultLinks.DefaultTwitchPlayerWatchLink + item.UserName ?? item.BroadcasterLogin!,
             Viewers = item.ViewerCount,
             Source = "Twitch",
-            User = new UserVideoDto
+            StreamerInformation= new UserStreamDto
             {
-                UserId = PlatformPrefixesConstants.TwitchPrefix + item.UserId,
                 Username = item.UserName ?? item.DisplayName ?? "Unknown",
                 AvatarUrl = avatarUrl ?? "",
-                IsFollowed = false
             }
         };
     }

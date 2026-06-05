@@ -2,6 +2,7 @@
 using Webby.VideoService.Data;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Models;
+using Webby.VideoService.Models.Enums;
 
 namespace Webby.VideoService.Repositories;
 
@@ -140,11 +141,11 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
       {
          return await _context.PlaylistVideos
             .AnyAsync(pv => pv.PlaylistId == playlistId &&
-                            (pv.VideoId == localGuid || pv.ExternalVideoId == videoId));
+                            (pv.InternalContentId == localGuid || pv.ExternalContentId == videoId));
       }
    
       return await _context.PlaylistVideos
-         .AnyAsync(pv => pv.PlaylistId == playlistId && pv.ExternalVideoId == videoId);
+         .AnyAsync(pv => pv.PlaylistId == playlistId && pv.ExternalContentId == videoId);
    }
    
    public async Task<HashSet<Guid>> GetPlaylistIdsContainingVideo(
@@ -160,18 +161,43 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
       {
          ids = await _context.PlaylistVideos
             .Where(pv => playlistIds.Contains(pv.PlaylistId) && 
-                         (pv.VideoId == localGuid || pv.ExternalVideoId == videoId))
+                         (pv.InternalContentId == localGuid || pv.ExternalContentId == videoId))
             .Select(pv => pv.PlaylistId)
             .ToListAsync();
       }
       else
       {
          ids = await _context.PlaylistVideos
-            .Where(pv => playlistIds.Contains(pv.PlaylistId) && pv.ExternalVideoId == videoId)
+            .Where(pv => playlistIds.Contains(pv.PlaylistId) && pv.ExternalContentId == videoId)
             .Select(pv => pv.PlaylistId)
             .ToListAsync();
       }
    
       return ids.ToHashSet();
+   }
+   
+   public async Task<(List<PlaylistVideo> ItemsToAdd, List<PlaylistVideo> ItemsToDelete)> GetPlaylistItemsDiffAsync(Guid playlistId, 
+      MediaType mediaType, 
+      List<PlaylistVideo> requestedItems)
+   {
+      var existingItems = await _context.PlaylistVideos
+         .Where(pv => pv.PlaylistId == playlistId && pv.MediaType == mediaType)
+         .ToListAsync();
+
+      var itemsToDelete = existingItems
+         .Where(e => requestedItems.Any(r =>
+            r.Platform == e.Platform &&
+            r.InternalContentId == e.InternalContentId &&
+            r.ExternalContentId == e.ExternalContentId))
+         .ToList();
+      
+      var itemsToAdd = requestedItems
+         .Where(r => !existingItems.Any(e =>
+            e.Platform == r.Platform &&
+            e.InternalContentId == r.InternalContentId &&
+            e.ExternalContentId == r.ExternalContentId))
+         .ToList();
+
+      return (itemsToAdd, itemsToDelete);
    }
 }

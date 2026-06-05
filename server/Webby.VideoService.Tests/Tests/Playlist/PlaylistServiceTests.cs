@@ -22,6 +22,7 @@ public class PlaylistServiceTests
    private readonly UserGrpcService.UserGrpcServiceClient _userClientMock;
    private readonly IVideoRepository _videoRepositoryMock;
    private readonly IYouTubeSearchService _youtubeSearchServiceMock;
+   private readonly ITwitchSearchService _twitchSearchServiceMock;
    
    private readonly PlaylistService _sut;
 
@@ -32,13 +33,15 @@ public class PlaylistServiceTests
       _userClientMock = Substitute.For<UserGrpcService.UserGrpcServiceClient>();
       _videoRepositoryMock = Substitute.For<IVideoRepository>();
       _youtubeSearchServiceMock = Substitute.For<IYouTubeSearchService>();
+      _twitchSearchServiceMock = Substitute.For<ITwitchSearchService>();
       
       _sut = new PlaylistService(
          _playlistRepositoryMock,
          _mapperMock,
          _userClientMock,
          _videoRepositoryMock,
-         _youtubeSearchServiceMock
+         _youtubeSearchServiceMock,
+         _twitchSearchServiceMock
       );
    }
    
@@ -304,8 +307,8 @@ public class PlaylistServiceTests
          {
             new PlaylistVideo 
             { 
-               VideoPlatform = VideoPlatform.Webby, 
-               Video = new Video(isPrivate: true, userId: otherUserId, name: null)
+               Platform =SystemPlatforms.Webby, 
+               Video =new Video(isPrivate: true, userId: otherUserId, name: null)
                // Чужое приватное видео
             }
          }
@@ -381,6 +384,6 @@ public class PlaylistServiceTests
 
       // Assert
       await _playlistRepositoryMock.Received(1).AddPlaylistVideos(Arg.Is<List<PlaylistVideo>>(list => 
-         list.Count == 1 && list[0].VideoPlatform == VideoPlatform.Webby));
+         list.Count == 1 && list[0].Platform == SystemPlatforms.Webby));
    }
 }

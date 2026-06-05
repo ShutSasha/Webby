@@ -39,7 +39,7 @@ public static class VideoQueryFilters
          },
          context => v => context.PlaylistVideos
                             .Where(pv => pv.PlaylistId == playlistId)
-                            .Select(pv => pv.VideoId)
+                            .Select(pv => pv.InternalContentId)
                             .Contains(v.VideoId)
                          && (v.UserId == requestUserId || !v.IsPrivate)
                          && (

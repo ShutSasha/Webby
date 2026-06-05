@@ -1,4 +1,4 @@
-﻿namespace Webby.VideoService.Dtos.Platforms.Enums;
+﻿namespace Webby.VideoService.Models.Enums;
 
 public enum SystemPlatforms 
 {

@@ -1,8 +1,6 @@
 ﻿using Grpc.Core;
 using Webby.MediaService.GrpcServer;
 using Webby.VideoService.Constants;
-using Webby.VideoService.Dtos.Platforms.Enums;
-using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Helpers.Converters;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Interfaces.Services;
@@ -15,15 +13,13 @@ public class MediaGrpcService : MediaService.GrpcServer.MediaService.MediaServic
    private readonly IVideoService _videoService;
    private readonly IYouTubeSearchService _youtubeSearchService;
    private readonly ITwitchSearchService _twitchSearchService;
-   private readonly ILogger<MediaGrpcService> _logger;
 
    public MediaGrpcService(IVideoService videoService,ITwitchSearchService twitchSearchService,
-      IYouTubeSearchService youtubeSearchService, ILogger<MediaGrpcService> logger)
+      IYouTubeSearchService youtubeSearchService)
    {
       _videoService = videoService;
       _twitchSearchService = twitchSearchService;
       _youtubeSearchService = youtubeSearchService;
-      _logger = logger;
    }
 
 
@@ -74,12 +70,9 @@ public class MediaGrpcService : MediaService.GrpcServer.MediaService.MediaServic
          {
             var stream = await _twitchSearchService.FindById(actualId);
             
-            _logger.LogInformation("Stream Id {id}, stream thumbnail {thumbnail} steam title {title} url {url}",
-               stream.StreamId, stream.PreviewUrl,stream.Name,stream.StreamUrl);
-            
             return new VideoResponse()
             {
-               Id = stream.StreamId,
+               Id = stream.StreamerId,
                Thumbnail = stream.PreviewUrl,
                Title = stream.Name,
                VideoUrl = stream.StreamUrl
