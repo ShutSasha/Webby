@@ -8,8 +8,10 @@ public class StreamDto
    public string Name { get; set; }
    public string Source { get; set; }
    public string PreviewUrl { get; set; }
+   public string Description { get; set; }
    public DateTime StartedAt { get; set; }
    public int Viewers { get; set; }
    public string StreamUrl { get; set; }
+   public List<string>? StreamTags { get; set; }
    public UserStreamDto? StreamerInformation { get; set; }
 }

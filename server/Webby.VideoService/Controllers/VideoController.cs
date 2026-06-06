@@ -86,7 +86,6 @@ public class VideoController: ControllerBase
          .GetRecommendationVideos(videoId, requestUserId, options.ContentSeed, options.Page, options.PageSize);
       return Ok(ApiResponse<PagedResponse<PreviewVideoDto>>.Ok("Successfully retrieved recommendation videos",getRecommendationVideoResult));
    }
-
    
    [HttpPost("upload")]
    [SwaggerOperation("Upload video file route", "AUTH REQUIRED")]

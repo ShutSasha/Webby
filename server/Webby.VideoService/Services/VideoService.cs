@@ -147,7 +147,7 @@ public class VideoService : IVideoService
 
    public async Task CreateVideo(Guid userId, CreateVideoRequest request)
    {
-      var (_, actualId) = ParseVideoPrefix(request.VideoId);
+      var (_, actualId) = ParseSystemPlatform(request.VideoId);
       
       var video = await _videoRepository.FindById(Guid.Parse(actualId))
                   ?? throw new ApiException("Create video error", 404, "Video wasn't found");
@@ -190,7 +190,7 @@ public class VideoService : IVideoService
 
    public async Task DeleteVideo(Guid userId, string videoId)
    {
-      var (_, actualId) = ParseVideoPrefix(videoId);
+      var (_, actualId) = ParseSystemPlatform(videoId);
       
       var video = await _videoRepository.FindById(Guid.Parse(actualId)) 
                   ?? throw new ApiException("Delete video error", 404, "Video wasn't found");
@@ -215,16 +215,16 @@ public class VideoService : IVideoService
 
    public async Task<VideoDto> GetVideoInformation(string videoId, Guid? userId)
    {
-      var (platform, actualId) = ParseVideoPrefix(videoId);
+      var (platform, actualId) = ParseSystemPlatform(videoId);
       
       switch (platform)
       {
-         case SearchVideoPlatforms.YouTube:
+         case SystemPlatforms.YouTube:
          {
             var youtubeVideoDto = await _youtubeSearchService.FindById(actualId);
             return youtubeVideoDto;
          }
-         case SearchVideoPlatforms.Webby:
+         case SystemPlatforms.Webby:
             break;
          default:
             throw new ApiException("Get video information error", 400, "incorrect platform type");
@@ -282,7 +282,7 @@ public class VideoService : IVideoService
 
    public async Task UpdateVideoInformation(Guid userId, UpdateVideoRequest request)
    {
-      var (_, actualId) = ParseVideoPrefix(request.VideoId);
+      var (_, actualId) = ParseSystemPlatform(request.VideoId);
       
       var video = await _videoRepository.GetVideoInformationById(Guid.Parse(actualId))
                   ?? throw new ApiException("Update video information error", 404, "Video wasn't found");
@@ -338,8 +338,8 @@ public class VideoService : IVideoService
 
       var skip = (options.Page - 1) * options.PageSize;
       
-      List<Video> videos = [];
-      var total = 0;
+      List<Video> videos;
+      int total;
       var seed = options.ContentSeed;
       
       if (string.IsNullOrWhiteSpace(options.SearchText))
@@ -426,14 +426,14 @@ public class VideoService : IVideoService
        if (youtubeIds.Count != 0)
        {
            var ytList = await _youtubeSearchService.GetList(youtubeIds);
-           youtubeVideosDict = ytList.ToDictionary(v => v.VideoId!);
+           youtubeVideosDict = ytList.ToDictionary(v => v.VideoId);
        }
 
        var twitchStreamsDict = new Dictionary<string, StreamDto>();
        if (twitchIds.Count != 0)
        {
            var twitchList = await _twitchSearchService.GetList(twitchIds);
-           twitchStreamsDict = twitchList.ToDictionary(s => s.StreamerId!);
+           twitchStreamsDict = twitchList.ToDictionary(s => s.StreamerId);
        }
       
        foreach (var pv in items)
@@ -448,7 +448,7 @@ public class VideoService : IVideoService
                {
                    if (hasSearch)
                    {
-                       if (ytVideo.Name != null && ytVideo.Name.Contains(searchText!, StringComparison.OrdinalIgnoreCase))
+                       if (ytVideo.Name.Contains(searchText!, StringComparison.OrdinalIgnoreCase))
                        {
                            resultItems.Add(ytVideo);
                        }
@@ -467,7 +467,7 @@ public class VideoService : IVideoService
                   streamAsVideo.CreatedAt = pv.CreatedAt;
                    if (hasSearch)
                    {
-                       if (streamAsVideo.Name != null && streamAsVideo.Name.Contains(searchText!, StringComparison.OrdinalIgnoreCase))
+                       if (streamAsVideo.Name.Contains(searchText!, StringComparison.OrdinalIgnoreCase))
                        {
                            resultItems.Add(streamAsVideo);
                        }
@@ -505,14 +505,14 @@ public class VideoService : IVideoService
       Guid? currentVideoGuid = null;
 
 
-      var (platform, actualId) = ParseVideoPrefix(videoId);
+      var (platform, actualId) = ParseSystemPlatform(videoId);
 
       switch (platform)
       {
-         case SearchVideoPlatforms.YouTube:
+         case SystemPlatforms.YouTube:
             watchingVideo = await _youtubeSearchService.FindById(actualId);
             break;
-         case SearchVideoPlatforms.Webby:
+         case SystemPlatforms.Webby:
             if (!Guid.TryParse(actualId, out var videoIdGuid))
             {
                throw new ApiException("Get recommendation videos error", 400, "Incorrect id format of local video");
@@ -520,6 +520,11 @@ public class VideoService : IVideoService
             
             watchingVideo = _mapper.Map<VideoDto>(await _videoRepository.GetVideoInformationById(videoIdGuid));
             break;
+         case SystemPlatforms.Twitch:
+         {
+            watchingVideo = _mapper.Map<VideoDto>(await _twitchSearchService.FindById(actualId));
+            break;
+         }
       }
 
       if (watchingVideo == null)
@@ -566,7 +571,7 @@ public class VideoService : IVideoService
 
    public async Task<bool> CheckUploadStatus(string videoId)
    {
-      var (_, actualId) = ParseVideoPrefix(videoId);
+      var (_, actualId) = ParseSystemPlatform(videoId);
       
       var video = await _videoRepository.FindById(Guid.Parse(actualId));
       
@@ -586,9 +591,9 @@ public class VideoService : IVideoService
    public async Task IncrementVideoView(Guid requestUserId, string videoId)
    {
 
-      var (platform, actualId) = ParseVideoPrefix(videoId);
+      var (platform, actualId) = ParseSystemPlatform(videoId);
 
-      if (platform == SearchVideoPlatforms.YouTube)
+      if (platform == SystemPlatforms.YouTube)
          return;
 
       if (!Guid.TryParse(actualId, out var localVideoId))
@@ -616,7 +621,7 @@ public class VideoService : IVideoService
    public async Task<(List<VideoDto>, List<string>)> GetVideoRange(List<string> ids)
    {
       
-      if (ids == null || ids.Count == 0)
+      if (ids.Count == 0)
       {
          return ([],[]);
       }
@@ -728,7 +733,7 @@ public class VideoService : IVideoService
 
    public async Task CancelVideoUploading(Guid requestUserId, string videoId)
    {
-      var (_, actualId) = ParseVideoPrefix(videoId);
+      var (_, actualId) = ParseSystemPlatform(videoId);
       
       var video = await _videoRepository.FindById(Guid.Parse(actualId))
                   ?? throw new ApiException("Cancel video uploading", 404, "Video wasn't found");
@@ -810,9 +815,9 @@ public class VideoService : IVideoService
       }).ToList();
    }
 
-   private (SearchVideoPlatforms, string) ParseVideoPrefix(string prefixedId)
+   private (SystemPlatforms, string) ParseSystemPlatform(string prefixedId)
    {
-      var parseResult = PlatformPrefixToPlatformConverter.ParseSearchVideoPlatform(prefixedId);
+      var parseResult = PlatformPrefixToPlatformConverter.ParseSystemPlatform(prefixedId);
 
       if (parseResult == null)
       {
