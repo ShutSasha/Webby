@@ -45,7 +45,7 @@ public class MappingProfiles : Profile
          .ForMember(dest => dest.VideoTags, opt => opt.MapFrom(src => src.StreamTags))
          .ForMember(dest => dest.User, opt => opt.MapFrom(src => new UserVideoDto
          {
-            UserId = src.StreamerId,
+            UserId = src.StreamerInformation.UserId,
             AvatarUrl = src.StreamerInformation.AvatarUrl,
             IsFollowed = false,
             Username = src.StreamerInformation.Username
@@ -66,6 +66,7 @@ public class MappingProfiles : Profile
          .ForMember(dest => dest.StreamTags, opt => opt.MapFrom(src => src.StreamTags))
          .ForMember(dest => dest.StreamerInformation, opt => opt.MapFrom(src => new UserStreamDto
          {
+            UserId = src.UserId,
             Username = src.UserName ?? src.DisplayName ?? "Unknown",
             AvatarUrl = "" 
          }));
