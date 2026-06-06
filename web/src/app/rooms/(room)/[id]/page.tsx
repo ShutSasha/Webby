@@ -2,6 +2,7 @@ import ShareIcon from '@/assets/icons/Profile/ic_user_plus.svg'
 import { getRoomById } from '@/lib/actions/room.actions'
 import PlayerSyncButton from '@/ui/components/modules/Player/PlayerSyncButton'
 import RoomInteractionContainer from '@/ui/components/modules/Rooms/InteractionBlock/RoomInteractionContainer'
+import RoomInviteButton from '@/ui/components/modules/Rooms/RoomInviteButton'
 import RoomPlayerContainer from '@/ui/components/modules/Rooms/RoomPlayerContainer'
 import RoomWebSocketManager from '@/ui/components/modules/Rooms/RoomWebSocketManager'
 import ActionButton from '@/ui/components/shared/ActionButton'
@@ -40,9 +41,7 @@ export default async function RoomPage({ params }: Props) {
           <div className="flex items-center gap-2">
             <PlayerSyncButton roomId={id} />
 
-            <ActionButton label="send an invite">
-              <ShareIcon className="size-4 stroke-[1.5px]" />
-            </ActionButton>
+            <RoomInviteButton roomId={id} />
           </div>
         </div>
         <div className="hidden xl:block xl:w-[300px] 2xl:w-[340px] flex-none"></div>

@@ -302,3 +302,20 @@ export async function removeRoomMemberAction(roomId: string, memberId: string): 
     }
   }
 }
+
+export async function addRoomMembersAction(roomId: string, userIds: string[]): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/${roomId}/members`, {
+      userIds,
+    })
+    return response
+  } catch (error: unknown) {
+    serverLog('ADD_ROOM_MEMBERS_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to add members to the room',
+      errors: parseAxiosError(error),
+    }
+  }
+}
