@@ -136,7 +136,7 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
                 key={video.videoId}
                 id={video.videoId}
                 title={video.name}
-                subtitle={`Webby • ${video.views.toLocaleString()} views • by ${video.user.username}`}
+                subtitle={`Webby • ${video.views.toLocaleString()} views • by ${video?.user?.username || 'Unknown Creator'}`}
                 thumbnail={video.previewUrl}
                 type="Video"
                 onCloseSearchModal={onCloseSearchModal}

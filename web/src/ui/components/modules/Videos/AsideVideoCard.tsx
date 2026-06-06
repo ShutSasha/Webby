@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
 import { formatTimeAgo } from '@/lib/utils/date.utils'
 import { formatViews } from '@/lib/utils/video.utils'
 import { RecommendedVideo } from '@/types/video.types'
@@ -11,15 +12,25 @@ type Props = {
 }
 
 export default function AsideVideoCard({ video }: Props) {
+  if (!video || !video.videoId || !video.user) {
+    return null
+  }
+
+  const title = video.name || 'Untitled Video'
+  const username = video.user?.username || 'Unknown Creator'
+  const views = video.views || 0
+  const createdAt = video.createdAt || new Date().toISOString()
+  const previewUrl = video.previewUrl || DEFAULT_VIDEO_THUMBNAIL
+
   return (
     <Link href={`/videos/${video.videoId}`} className="group flex flex-col xl:flex-row gap-3">
       <div className="overflow-hidden rounded-lg relative xl:w-[168px] h-fit shrink-0 aspect-video">
         <SafeImage
-          src={video.previewUrl}
+          src={previewUrl}
           fallbackType="video"
           width={400}
           height={400}
-          alt={video.name}
+          alt={title}
           className="aspect-video rounded-lg group-hover:scale-110 transition-transform duration-600 w-full
             object-cover"
           placeholder="blur"
@@ -29,14 +40,14 @@ export default function AsideVideoCard({ video }: Props) {
       </div>
 
       <div className="flex flex-col gap-1 flex-1 overflow-hidden">
-        <p className="text-sm line-clamp-2 text-neutral-200 font-medium" title={video.name}>
-          {video.name}
+        <p className="text-sm line-clamp-2 text-neutral-200 font-medium" title={title}>
+          {title}
         </p>
-        <p className="text-sm text-neutral-400 truncate" title={video.user.username}>
-          {video.user.username}
+        <p className="text-sm text-neutral-400 truncate" title={username}>
+          {username}
         </p>
-        <p className="text-[12px] text-neutral-400 line-clamp-1" title={`${video.views} views`}>
-          {formatViews(video.views)} views • {formatTimeAgo(video.createdAt)}
+        <p className="text-[12px] text-neutral-400 line-clamp-1" title={`${views} views`}>
+          {formatViews(views)} views • {formatTimeAgo(createdAt)}
         </p>
       </div>
     </Link>
