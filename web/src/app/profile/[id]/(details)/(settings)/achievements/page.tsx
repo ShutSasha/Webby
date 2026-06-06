@@ -62,6 +62,9 @@ export default async function AchievementsPage({ params }: Props) {
               image={achievement.iconUrl}
               isPinned={true}
               isUnlocked={true}
+              achievementProgressValue={achievement.achievementProgressValue}
+              targetValue={achievement.targetValue}
+              unlockedAt={achievement.unlockedAt}
             />
           ))}
         </div>
@@ -84,6 +87,9 @@ export default async function AchievementsPage({ params }: Props) {
                 className="w-full"
                 isPinned={false}
                 isUnlocked={achievement.isUnlocked}
+                achievementProgressValue={achievement.achievementProgressValue}
+                targetValue={achievement.targetValue}
+                unlockedAt={achievement.unlockedAt}
               />
             ))}
           </div>

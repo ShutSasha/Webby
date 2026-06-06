@@ -23,7 +23,7 @@ export default function AsideVideoCard({ video }: Props) {
   const previewUrl = video.previewUrl || DEFAULT_VIDEO_THUMBNAIL
 
   return (
-    <Link href={`/videos/${video.videoId}`} className="group flex flex-col xl:flex-row gap-3">
+    <Link href={`/videos/${video.videoId}`} className="group flex flex-col xl:flex-row gap-3 h-fit">
       <div className="overflow-hidden rounded-lg relative xl:w-[168px] h-fit shrink-0 aspect-video">
         <SafeImage
           src={previewUrl}
