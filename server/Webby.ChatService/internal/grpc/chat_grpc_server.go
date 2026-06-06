@@ -81,7 +81,7 @@ func (s *ChatGrpcServer) GetChatByRoomID(
 	ctx context.Context,
 	req *chatpb.GetChatByRoomIdRequest,
 ) (*chatpb.ChatResponse, error) {
-	const op = "grpc.ChatGrpcServer.GetChatByRoomId"
+	const op = "grpc.ChatGrpcServer.GetChatByRoomID"
 
 	roomID, err := uuid.Parse(req.GetRoomID())
 	if err != nil {
@@ -126,68 +126,6 @@ func (s *ChatGrpcServer) AddChatMember(ctx context.Context, req *chatpb.AddChatM
 	}
 
 	return &chatpb.AddChatMemberResponse{}, nil
-}
-
-func (s *ChatGrpcServer) SaveMessage(
-	ctx context.Context,
-	req *chatpb.SaveMessageRequest,
-) (*chatpb.SaveMessageResponse, error) {
-	chatID, err := uuid.Parse(req.GetChatID())
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid chat_id: %v", err)
-	}
-
-	userID, err := uuid.Parse(req.GetChatID())
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid user_id: %v", err)
-	}
-
-	chat, err := s.chatService.GetByID(ctx, chatID)
-	if err != nil {
-		s.logger.Error("gRPC SaveMessage failed to resolve chat",
-			slog.String("chatID", chatID.String()),
-			slog.String("error", err.Error()),
-		)
-		return nil, status.Errorf(codes.Internal, "failed to resolve chat: %v", err)
-	}
-
-	msg, err := s.messageService.Send(ctx, chat.ID, userID, req.GetContent())
-	if err != nil {
-		s.logger.Error("gRPC SaveMessage failed to save message",
-			slog.String("chatID", chatID.String()),
-			slog.String("userId", userID.String()),
-			slog.String("error", err.Error()),
-		)
-		return nil, status.Errorf(codes.Internal, "failed to save message: %v", err)
-	}
-
-	// TODO: MOVE TO SERVICE LAYER
-	envelope := struct {
-		Type    string `json:"type"`
-		Payload any    `json:"payload"`
-	}{
-		Type: "MESSAGE_CREATED",
-		Payload: map[string]any{
-			"id":        msg.ID.String(),
-			"senderId":  msg.SenderID.String(),
-			"chatId":    msg.ChatID.String(),
-			"content":   msg.Content,
-			"isEdited":  msg.IsEdited,
-			"editedAt":  msg.EditedAt,
-			"createdAt": msg.CreatedAt,
-		},
-	}
-
-	if err := s.publisher.Publish(ctx, "chat:"+chatID.String(), envelope); err != nil {
-		s.logger.Error("gRPC SaveMessage failed to publish redis event",
-			slog.String("chatID", chatID.String()),
-			slog.String("messageID", msg.ID.String()),
-			slog.String("error", err.Error()),
-		)
-		return nil, status.Errorf(codes.Internal, "failed to publish event: %v", err)
-	}
-
-	return &chatpb.SaveMessageResponse{MessageID: msg.ID.String()}, nil
 }
 
 func (s *ChatGrpcServer) GetChatIDByRoomID(

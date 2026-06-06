@@ -23,7 +23,14 @@ import (
 func setupUpdateRouter(mockService *handlermocks.MockService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockService)
+	creator := &handlermocks.RoomCreatorAdapter{Service: mockService}
+	updater := &handlermocks.RoomUpdaterAdapter{Service: mockService}
+	deleter := &handlermocks.RoomDeleterAdapter{Service: mockService}
+	retriever := &handlermocks.RoomDetailsRetrieverAdapter{Service: mockService}
+	lister := &handlermocks.RoomListerAdapter{Service: mockService}
+	memberMgr := &handlermocks.RoomMemberManagerAdapter{Service: mockService}
+	syncer := &handlermocks.PlaybackSynchronizerAdapter{Service: mockService}
+	h := handlers.New(creator, updater, deleter, retriever, lister, memberMgr, syncer)
 	router.PUT("/api/rooms/:id", func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "userID", c.GetHeader("X-User-ID"))
 		ctx = logger.ToContext(ctx, log)
@@ -53,7 +60,7 @@ func TestUpdateRoom(t *testing.T) {
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
 				newName := "New Name"
-				ms.EXPECT().Update(mock.Anything, roomID, &newName, (*string)(nil), (*bool)(nil), (*[]byte)(nil), (*string)(nil), userID).
+				ms.EXPECT().Update(mock.Anything, roomID, userID, &newName, (*string)(nil), (*string)(nil), (*[]byte)(nil), (*bool)(nil)).
 					Return(&models.Room{
 						ID:        roomID,
 						Name:      "New Name",
@@ -92,7 +99,7 @@ func TestUpdateRoom(t *testing.T) {
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
 				newName := "New Name"
-				ms.EXPECT().Update(mock.Anything, roomID, &newName, (*string)(nil), (*bool)(nil), (*[]byte)(nil), (*string)(nil), userID).
+				ms.EXPECT().Update(mock.Anything, roomID, userID, &newName, (*string)(nil), (*string)(nil), (*[]byte)(nil), (*bool)(nil)).
 					Return(nil, apperrors.ErrForbidden).Once()
 			},
 			expectedStatus: http.StatusForbidden,

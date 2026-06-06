@@ -45,7 +45,7 @@ func (h *handler) ListMembers(c *gin.Context) {
 	}
 
 	roomID, _ := uuid.Parse(uri.RoomID)
-	members, total, err := h.service.ListMembers(ctx, roomID, query.Page, query.Limit, query.Search)
+	members, total, err := h.roomMemberManager.ExecuteListMembers(ctx, roomID, query.Page, query.Limit, query.Search)
 	if err != nil {
 		log.Error("list members error", slog.String("err", err.Error()))
 		HandleAppError(c, "List room members error", err)

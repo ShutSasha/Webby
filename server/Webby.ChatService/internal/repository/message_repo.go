@@ -28,7 +28,6 @@ func (r *MessageRepository) Create(ctx context.Context, msg *models.Message) (*m
 		VALUES ($1, $2, $3)
 		RETURNING id, created_at
 	`
-
 	err := r.db.QueryRow(ctx, query, msg.SenderID, msg.ChatID, msg.Content).Scan(&msg.ID, &msg.CreatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("%s: execution failed: %w", op, err)

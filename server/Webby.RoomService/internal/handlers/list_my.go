@@ -1,14 +1,21 @@
 package handlers
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"strings"
+	"webby/room-service/internal/models"
 	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+type RoomLister interface {
+	ExecuteListMy(ctx context.Context, userID uuid.UUID, page, limit int, search, category string) ([]models.Room, int64, error)
+	ExecuteListPublic(ctx context.Context, page, limit int, search, category string) ([]models.PublicRoom, int64, error)
+}
 
 type listMyQuery struct {
 	Page     int    `form:"page,default=1" binding:"omitempty,min=1"`
@@ -41,7 +48,7 @@ func (h *handler) ListMy(c *gin.Context) {
 	}
 
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	rooms, total, err := h.service.ListMy(
+	rooms, total, err := h.roomLister.ExecuteListMy(
 		ctx,
 		userID,
 		query.Page, query.Limit, query.Search, query.Category,

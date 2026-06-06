@@ -23,44 +23,65 @@ type MemberChecker interface {
 	Exists(ctx context.Context, chatId, userId uuid.UUID) (bool, error)
 }
 
+type UserClient interface {
+	GetUserByID(ctx context.Context, userID uuid.UUID) (*models.Sender, error)
+}
+
 type MessageService struct {
 	messageRepo   MessageRepo
 	memberChecker MemberChecker
+	userClient    UserClient
 }
 
-func NewMessageService(messageRepo MessageRepo, memberChecker MemberChecker) *MessageService {
+func NewMessageService(messageRepo MessageRepo, memberChecker MemberChecker, userClient UserClient) *MessageService {
 	return &MessageService{
 		messageRepo:   messageRepo,
 		memberChecker: memberChecker,
+		userClient:    userClient,
 	}
 }
 
-func (s *MessageService) Send(ctx context.Context, chatId, senderId uuid.UUID, content string) (*models.Message, error) {
+func (s *MessageService) SaveMessage(ctx context.Context, chatID, senderID uuid.UUID, content string) (*models.RichMessage, error) {
+	const op = "serices.MessageService.SaveMessage"
+
 	content = strings.TrimSpace(content)
 	if content == "" {
-		return nil, fmt.Errorf("%w: message content cannot be empty", apperrors.ErrInvalidInput)
+		return nil, fmt.Errorf("%s: %w: message content cannot be empty", op, apperrors.ErrInvalidInput)
 	}
 
-	isMember, err := s.memberChecker.Exists(ctx, chatId, senderId)
+	isMember, err := s.memberChecker.Exists(ctx, chatID, senderID)
 	if err != nil {
-		return nil, fmt.Errorf("check membership: %w", err)
+		return nil, fmt.Errorf("%s: check membership: %w", op, err)
 	}
 	if !isMember {
-		return nil, fmt.Errorf("%w: user is not a member of this chat", apperrors.ErrForbidden)
+		return nil, fmt.Errorf("%s: %w: user is not a member of this chat", op, apperrors.ErrForbidden)
 	}
 
 	msg := &models.Message{
-		SenderID: senderId,
-		ChatID:   chatId,
+		SenderID: senderID,
+		ChatID:   chatID,
 		Content:  content,
 	}
-
 	created, err := s.messageRepo.Create(ctx, msg)
 	if err != nil {
-		return nil, fmt.Errorf("create message: %w", err)
+		return nil, fmt.Errorf("%s: create message: %w", op, err)
 	}
 
-	return created, nil
+	sender, err := s.userClient.GetUserByID(ctx, created.SenderID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: get sender: %w", op, err)
+	}
+
+	richMessage := &models.RichMessage{
+		ID:        created.ID,
+		Sender:    *sender,
+		ChatID:    chatID,
+		Content:   content,
+		IsEdited:  false,
+		CreatedAt: created.CreatedAt,
+	}
+
+	return richMessage, nil
 }
 
 func (s *MessageService) List(ctx context.Context, chatId, userId uuid.UUID, page, limit int) ([]models.Message, int64, error) {

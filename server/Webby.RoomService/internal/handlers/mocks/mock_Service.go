@@ -669,10 +669,116 @@ func NewMockService(t interface {
 	mock.TestingT
 	Cleanup(func())
 }) *MockService {
-	mock := &MockService{}
-	mock.Mock.Test(t)
+	m := &MockService{}
+	m.Mock.Test(t)
 
-	t.Cleanup(func() { mock.AssertExpectations(t) })
+	t.Cleanup(func() { m.AssertExpectations(t) })
 
-	return mock
+	return m
+}
+
+// ===== Interface implementations (adapters) =====
+
+// RoomCreatorAdapter implements RoomCreator interface
+type RoomCreatorAdapter struct {
+	Service *MockService
+}
+
+func (a *RoomCreatorAdapter) Execute(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string) (*models.Room, error) {
+	return a.Service.Create(ctx, room, thumbnailData, thumbnailFilename)
+}
+
+// RoomUpdaterAdapter implements RoomUpdater interface
+type RoomUpdaterAdapter struct {
+	Service *MockService
+}
+
+func (a *RoomUpdaterAdapter) Execute(ctx context.Context, roomID uuid.UUID, userID uuid.UUID, name *string, category *string, thumbnailFilename *string, thumbnailData *[]byte, isPrivate *bool) (*models.Room, error) {
+	return a.Service.Update(ctx, roomID, userID, name, category, thumbnailFilename, thumbnailData, isPrivate)
+}
+
+// RoomDeleterAdapter implements RoomDeleter interface
+type RoomDeleterAdapter struct {
+	Service *MockService
+}
+
+func (a *RoomDeleterAdapter) Execute(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) error {
+	return a.Service.Delete(ctx, roomID, userID)
+}
+
+// RoomDetailsRetrieverAdapter implements RoomDetailsRetriever interface
+type RoomDetailsRetrieverAdapter struct {
+	Service *MockService
+}
+
+func (a *RoomDetailsRetrieverAdapter) Execute(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (*models.Room, error) {
+	return a.Service.GetByID(ctx, roomID, userID)
+}
+
+// RoomListerAdapter implements RoomLister interface
+type RoomListerAdapter struct {
+	Service *MockService
+}
+
+func (a *RoomListerAdapter) ExecuteListMy(ctx context.Context, userID uuid.UUID, page int, limit int, search string, category string) ([]models.Room, int64, error) {
+	return a.Service.ListMy(ctx, userID, page, limit, search, category)
+}
+
+func (a *RoomListerAdapter) ExecuteListPublic(ctx context.Context, page int, limit int, search string, category string) ([]models.PublicRoom, int64, error) {
+	return a.Service.ListPublic(ctx, page, limit, search, category)
+}
+
+// RoomMemberManagerAdapter implements RoomMemberManager interface
+type RoomMemberManagerAdapter struct {
+	Service *MockService
+}
+
+func (a *RoomMemberManagerAdapter) ExecuteAddMembers(ctx context.Context, roomID uuid.UUID, hostID uuid.UUID, memberIDs []uuid.UUID) error {
+	return a.Service.AddMembers(ctx, roomID, hostID, memberIDs)
+}
+
+func (a *RoomMemberManagerAdapter) ExecuteRemoveMember(ctx context.Context, roomID uuid.UUID, memberID uuid.UUID, hostID uuid.UUID) error {
+	return a.Service.RemoveMember(ctx, roomID, memberID, hostID)
+}
+
+func (a *RoomMemberManagerAdapter) ExecuteListMembers(ctx context.Context, roomID uuid.UUID, page int, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
+	return a.Service.ListMembers(ctx, roomID, page, limit, search)
+}
+
+// PlaybackSynchronizerAdapter implements PlaybackSynchronizer interface
+type PlaybackSynchronizerAdapter struct {
+	Service *MockService
+}
+
+func (a *PlaybackSynchronizerAdapter) ExecuteSynchronize(ctx context.Context, userID uuid.UUID, roomID uuid.UUID) error {
+	return a.Service.Synchronize(ctx, userID, roomID)
+}
+
+func (a *PlaybackSynchronizerAdapter) ExecuteReportTimecode(ctx context.Context, userID uuid.UUID, roomID uuid.UUID, syncID uuid.UUID, timecode int) error {
+	return a.Service.ReportTimecode(ctx, userID, roomID, syncID, timecode)
+}
+
+// NewMockServiceWithAdapters creates a new MockService and returns all adapters
+func NewMockServiceWithAdapters(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) (
+	*MockService,
+	*RoomCreatorAdapter,
+	*RoomUpdaterAdapter,
+	*RoomDeleterAdapter,
+	*RoomDetailsRetrieverAdapter,
+	*RoomListerAdapter,
+	*RoomMemberManagerAdapter,
+	*PlaybackSynchronizerAdapter,
+) {
+	m := NewMockService(t)
+	return m,
+		&RoomCreatorAdapter{m},
+		&RoomUpdaterAdapter{m},
+		&RoomDeleterAdapter{m},
+		&RoomDetailsRetrieverAdapter{m},
+		&RoomListerAdapter{m},
+		&RoomMemberManagerAdapter{m},
+		&PlaybackSynchronizerAdapter{m}
 }
