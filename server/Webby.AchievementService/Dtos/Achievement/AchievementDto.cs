@@ -6,4 +6,5 @@ public class AchievementDto : ProfileAchievementDto
    public int AchievementProgressValue { get; set; }
    public int TargetValue { get; set; }
    public bool IsUnlocked { get; set; }
+   public DateTime UnlockedAt { get; set; }
 }

@@ -9,6 +9,7 @@ public static class DefaultLinks
    public const string BaseYouTubeVideosLink = "https://www.googleapis.com/youtube/v3/videos";
    public const string BaseYouTubeUserIcon = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/960px-YouTube_full-color_icon_%282017%29.svg.png";
    public const string BaseYouTubeUserChannelsLinks = "https://www.googleapis.com/youtube/v3/channels";
+   public const string BaseWatchLinkUrl = "https://www.youtube.com/watch?v=";
    
    public const string BaseExternalApiTwitchLink = "https://api.twitch.tv/helix/";
    public const string BaseTwitchStreamLink = "https://api.twitch.tv/helix/streams";
