@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"webby/room-service/internal/config"
+	"webby/room-service/internal/usecases"
 	"webby/room-service/pkg/http/middleware/cors"
 	loggerMw "webby/room-service/pkg/http/middleware/logger"
 
@@ -15,7 +16,17 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func NewServer(config *config.Config, logger *slog.Logger, service Service) http.Handler {
+func NewServer(
+	config *config.Config,
+	logger *slog.Logger,
+	roomCreator *usecases.RoomCreator,
+	roomUpdater *usecases.RoomUpdater,
+	roomDeleter *usecases.RoomDeleter,
+	roomDetailsRetriever *usecases.RoomDetailsRetriever,
+	roomLister *usecases.RoomLister,
+	roomMemberManager *usecases.RoomMemberManager,
+	playbackSynchronizer *usecases.PlaybackSynchronizer,
+) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
@@ -36,7 +47,15 @@ func NewServer(config *config.Config, logger *slog.Logger, service Service) http
 	router.Use(gin.Recovery())
 	router.Use(cors.CORS())
 
-	handler := New(service)
+	handler := New(
+		roomCreator,
+		roomUpdater,
+		roomDeleter,
+		roomDetailsRetriever,
+		roomLister,
+		roomMemberManager,
+		playbackSynchronizer,
+	)
 	addRoutes(router, config, handler)
 
 	return router

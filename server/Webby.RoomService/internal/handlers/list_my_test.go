@@ -25,7 +25,14 @@ import (
 func setupListMyRouter(mockService *handlermocks.MockService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockService)
+	creator := &handlermocks.RoomCreatorAdapter{Service: mockService}
+	updater := &handlermocks.RoomUpdaterAdapter{Service: mockService}
+	deleter := &handlermocks.RoomDeleterAdapter{Service: mockService}
+	retriever := &handlermocks.RoomDetailsRetrieverAdapter{Service: mockService}
+	lister := &handlermocks.RoomListerAdapter{Service: mockService}
+	memberMgr := &handlermocks.RoomMemberManagerAdapter{Service: mockService}
+	syncer := &handlermocks.PlaybackSynchronizerAdapter{Service: mockService}
+	h := handlers.New(creator, updater, deleter, retriever, lister, memberMgr, syncer)
 	router.GET("/api/rooms/my", func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "userID", c.GetHeader("X-User-ID"))
 		ctx = logger.ToContext(ctx, log)
@@ -51,7 +58,7 @@ func TestListMyRooms(t *testing.T) {
 			queryParams: "",
 			userID:      userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().ListMy(mock.Anything, userID, 1, 10, "", (*string)(nil)).Return([]models.Room{
+				ms.EXPECT().ListMy(mock.Anything, userID, 1, 10, "", "").Return([]models.Room{
 					{ID: uuid.New(), Name: "My Room", Category: "Gaming", IsPrivate: false, Thumbnail: "thumb.jpg"},
 				}, int64(1), nil).Once()
 			},
@@ -68,7 +75,7 @@ func TestListMyRooms(t *testing.T) {
 			queryParams: "?search=test",
 			userID:      userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().ListMy(mock.Anything, userID, 1, 10, "test", (*string)(nil)).Return([]models.Room{}, int64(0), nil).Once()
+				ms.EXPECT().ListMy(mock.Anything, userID, 1, 10, "test", "").Return([]models.Room{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -77,7 +84,7 @@ func TestListMyRooms(t *testing.T) {
 			queryParams: "",
 			userID:      userID.String(),
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().ListMy(mock.Anything, userID, 1, 10, "", (*string)(nil)).Return(nil, int64(0), fmt.Errorf("db error")).Once()
+				ms.EXPECT().ListMy(mock.Anything, userID, 1, 10, "", "").Return(nil, int64(0), fmt.Errorf("db error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody:   assertErrorResponse,

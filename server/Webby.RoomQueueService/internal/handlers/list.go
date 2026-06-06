@@ -34,7 +34,7 @@ func (h *handler) List(c *gin.Context) {
 
 	var uri listUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("invalid room id in uri", slog.Any("err", err))
+		log.Debug("invalid room id in uri", slog.String("err", err.Error()))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 			Success: false,
 			Message: "Validation error",
@@ -45,7 +45,7 @@ func (h *handler) List(c *gin.Context) {
 
 	var query listQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		log.Debug("invalid query params", slog.Any("err", err))
+		log.Debug("invalid query params", slog.String("err", err.Error()))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 			Success: false,
 			Message: "Validation error",
@@ -58,7 +58,7 @@ func (h *handler) List(c *gin.Context) {
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	items, total, err := h.service.GetQueue(ctx, roomID, userID, query.Page, query.Limit)
 	if err != nil {
-		log.Error("list queue error", slog.Any("err", err))
+		log.Error("list queue error", slog.String("err", err.Error()))
 		HandleAppError(c, "List queue error", err)
 		return
 	}

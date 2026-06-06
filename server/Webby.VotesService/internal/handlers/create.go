@@ -32,7 +32,7 @@ func (h *handler) Create(c *gin.Context) {
 	roomIdStr := c.Param("id")
 	roomId, err := uuid.Parse(roomIdStr)
 	if err != nil {
-		log.Debug("invalid room id", slog.Any("err", err))
+		log.Debug("invalid room id", slog.String("err", err.Error()))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 			Success: false,
 			Message: "Validation error",
@@ -45,7 +45,7 @@ func (h *handler) Create(c *gin.Context) {
 
 	var req createRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Debug("validation error", slog.Any("err", err))
+		log.Debug("validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -75,7 +75,7 @@ func (h *handler) Create(c *gin.Context) {
 		choices,
 	)
 	if err != nil {
-		log.Error("create vote error", slog.Any("err", err))
+		log.Error("create vote error", slog.String("err", err.Error()))
 		HandleAppError(c, "Create vote error", err)
 		return
 	}

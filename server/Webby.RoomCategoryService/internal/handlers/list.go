@@ -20,14 +20,14 @@ func (h *handler) List(c *gin.Context) {
 
 	var query listQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	categories, total, err := h.service.List(ctx, query.Search, query.Page, query.Limit)
 	if err != nil {
-		log.Error("list categories error", slog.Any("err", err))
+		log.Error("list categories error", slog.String("err", err.Error()))
 		HandleAppError(c, "List categories error", err)
 		return
 	}

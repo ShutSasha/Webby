@@ -30,7 +30,14 @@ func init() {
 func setupDeleteRouter(mockService *handlermocks.MockService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockService)
+	creator := &handlermocks.RoomCreatorAdapter{Service: mockService}
+	updater := &handlermocks.RoomUpdaterAdapter{Service: mockService}
+	deleter := &handlermocks.RoomDeleterAdapter{Service: mockService}
+	retriever := &handlermocks.RoomDetailsRetrieverAdapter{Service: mockService}
+	lister := &handlermocks.RoomListerAdapter{Service: mockService}
+	memberMgr := &handlermocks.RoomMemberManagerAdapter{Service: mockService}
+	syncer := &handlermocks.PlaybackSynchronizerAdapter{Service: mockService}
+	h := handlers.New(creator, updater, deleter, retriever, lister, memberMgr, syncer)
 	router.DELETE("/api/rooms/:id", func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "userID", c.GetHeader("X-User-ID"))
 		ctx = logger.ToContext(ctx, log)

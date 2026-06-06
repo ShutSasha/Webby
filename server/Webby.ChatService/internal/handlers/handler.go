@@ -14,9 +14,13 @@ type Service interface {
 }
 
 type handler struct {
-	service Service
+	service        Service
+	messageManager messageManager
 }
 
-func New(service Service) handler {
-	return handler{service: service}
+func New(service Service, messageManager messageManager) handler {
+	return handler{
+		service:        service,
+		messageManager: messageManager,
+	}
 }

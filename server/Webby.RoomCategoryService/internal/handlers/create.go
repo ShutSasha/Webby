@@ -22,13 +22,13 @@ func (h *handler) Create(c *gin.Context) {
 
 	var req createRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Debug("validation error", slog.Any("err", err))
+		log.Debug("validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	if err := h.service.Create(ctx, req.Name); err != nil {
-		log.Error("create category error", slog.Any("err", err))
+		log.Error("create category error", slog.String("err", err.Error()))
 		HandleAppError(c, "Create category error", err)
 		return
 	}

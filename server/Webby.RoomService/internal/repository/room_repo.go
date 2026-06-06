@@ -8,6 +8,7 @@ import (
 	"webby/room-service/internal/models"
 	"webby/room-service/pkg/logger"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -30,23 +31,24 @@ func (r *RoomRepository) Create(ctx context.Context, room *models.Room) (uuid.UU
 
 	room.ID = uuid.New()
 
-	query := `
-		INSERT INTO rooms (id, host_id, category_id, name, thumbnail, is_private)
-		VALUES ($1, $2, (SELECT id FROM categories WHERE name = $3), $4, $5, $6)
-		RETURNING created_at
-	`
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Insert("rooms").
+		Columns("id", "host_id", "category_id", "name", "thumbnail", "is_private").
+		Values(
+			room.ID,
+			room.HostID,
+			sq.Expr("(SELECT id FROM categories WHERE name = ?)", room.Category),
+			room.Name,
+			room.Thumbnail,
+			room.IsPrivate,
+		).
+		Suffix("RETURNING created_at").
+		ToSql()
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	err := r.db.QueryRow(
-		ctx,
-		query,
-		room.ID,
-		room.HostID,
-		room.Category,
-		room.Name,
-		room.Thumbnail,
-		room.IsPrivate,
-	).Scan(&room.CreatedAt)
-
+	err = r.db.QueryRow(ctx, query, args...).Scan(&room.CreatedAt)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -61,9 +63,15 @@ func (r *RoomRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		return fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
-	query := `DELETE FROM rooms WHERE id = $1`
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Delete("rooms").
+		Where(sq.Eq{"id": id}).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	tag, err := r.db.Exec(ctx, query, id)
+	tag, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -82,15 +90,26 @@ func (r *RoomRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Roo
 		return nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
-	query := `
-		SELECT r.id, r.host_id, c.name, r.name, r.thumbnail, r.is_private, r.created_at
-		FROM rooms r
-		JOIN categories c ON c.id = r.category_id
-		WHERE r.id = $1
-	`
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Select(
+			"r.id",
+			"r.host_id",
+			"c.name",
+			"r.name",
+			"r.thumbnail",
+			"r.is_private",
+			"r.created_at",
+		).
+		From("rooms r").
+		Join("categories c ON c.id = r.category_id").
+		Where(sq.Eq{"r.id": id}).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
 	var room models.Room
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err = r.db.QueryRow(ctx, query, args...).Scan(
 		&room.ID,
 		&room.HostID,
 		&room.Category,
@@ -128,42 +147,59 @@ func (r *RoomRepository) ListMy(ctx context.Context, userID uuid.UUID, page, lim
 	}
 
 	offset := (page - 1) * limit
+	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	whereClause := "WHERE r.host_id = $1"
-	countArgs := []any{userID}
-	paramN := 2
+	countBuilder := builder.
+		Select("COUNT(*)").
+		From("rooms r").
+		Join("categories c ON c.id = r.category_id").
+		Where(sq.Eq{"r.host_id": userID})
+
+	dataBuilder := builder.
+		Select(
+			"r.id",
+			"r.host_id",
+			"c.name",
+			"r.name",
+			"r.thumbnail",
+			"r.is_private",
+			"r.created_at",
+		).
+		From("rooms r").
+		Join("categories c ON c.id = r.category_id").
+		Where(sq.Eq{"r.host_id": userID}).
+		OrderBy("r.created_at DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	if search != "" {
-		whereClause += fmt.Sprintf(" AND r.name ILIKE $%d", paramN)
-		countArgs = append(countArgs, "%"+search+"%")
-		paramN++
+		pattern := "%" + search + "%"
+		countBuilder = countBuilder.Where(sq.Expr("r.name ILIKE ?", pattern))
+		dataBuilder = dataBuilder.Where(sq.Expr("r.name ILIKE ?", pattern))
 	}
 
 	if categoryName != "" {
-		whereClause += fmt.Sprintf(" AND c.name = $%d", paramN)
-		countArgs = append(countArgs, categoryName)
-		paramN++
+		countBuilder = countBuilder.Where(sq.Eq{"c.name": categoryName})
+		dataBuilder = dataBuilder.Where(sq.Eq{"c.name": categoryName})
 	}
 
-	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM rooms r JOIN categories c ON c.id = r.category_id %s`, whereClause)
+	countSQL, countArgs, err := countBuilder.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
 	var total int64
-	err := r.db.QueryRow(ctx, countQuery, countArgs...).Scan(&total)
+	err = r.db.QueryRow(ctx, countSQL, countArgs...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
 
-	query := fmt.Sprintf(`
-		SELECT r.id, r.host_id, c.name, r.name, r.thumbnail, r.is_private, r.created_at
-		FROM rooms r
-		JOIN categories c ON c.id = r.category_id
-		%s
-		ORDER BY r.created_at DESC
-		LIMIT $%d OFFSET $%d
-	`, whereClause, paramN, paramN+1)
+	dataSQL, dataArgs, err := dataBuilder.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	dataArgs := append(countArgs, limit, offset)
-
-	rows, err := r.db.Query(ctx, query, dataArgs...)
+	rows, err := r.db.Query(ctx, dataSQL, dataArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
@@ -209,45 +245,64 @@ func (r *RoomRepository) ListPublic(ctx context.Context, page, limit int, search
 	}
 
 	offset := (page - 1) * limit
+	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	whereClause := "WHERE r.is_private = false"
-	countArgs := []any{}
-	paramN := 1
+	countBuilder := builder.
+		Select("COUNT(*)").
+		From("rooms r").
+		Join("categories c ON c.id = r.category_id").
+		Where(sq.Eq{"r.is_private": false})
+
+	dataBuilder := builder.
+		Select(
+			"r.id",
+			"r.host_id",
+			"u.\"Username\"",
+			"u.\"AvatarUrl\"",
+			"c.name",
+			"r.name",
+			"r.thumbnail",
+			"r.is_private",
+			"r.created_at",
+		).
+		From("rooms r").
+		Join("\"Users\" u ON u.\"UserId\" = r.host_id").
+		Join("categories c ON c.id = r.category_id").
+		Where(sq.Eq{"r.is_private": false}).
+		OrderBy("r.created_at DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	if search != "" {
-		whereClause += fmt.Sprintf(" AND r.name ILIKE $%d", paramN)
-		countArgs = append(countArgs, "%"+search+"%")
-		paramN++
+		pattern := "%" + search + "%"
+		countBuilder = countBuilder.Where(sq.Expr("r.name ILIKE ?", pattern))
+		dataBuilder = dataBuilder.Where(sq.Expr("r.name ILIKE ?", pattern))
 	}
 
 	if category != "" {
-		whereClause += fmt.Sprintf(" AND c.name = $%d", paramN)
-		countArgs = append(countArgs, category)
-		paramN++
+		countBuilder = countBuilder.Where(sq.Eq{"c.name": category})
+		dataBuilder = dataBuilder.Where(sq.Eq{"c.name": category})
 	}
 
-	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM rooms r JOIN categories c ON c.id = r.category_id %s`, whereClause)
+	countSQL, countArgs, err := countBuilder.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
 	var total int64
-	err := r.db.QueryRow(ctx, countQuery, countArgs...).Scan(&total)
+	err = r.db.QueryRow(ctx, countSQL, countArgs...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
 
 	log.Debug("after query Count", "total", total)
 
-	query := fmt.Sprintf(`
-		SELECT r.id, r.host_id, u."Username", u."AvatarUrl", c.name, r.name, r.thumbnail, r.is_private, r.created_at
-		FROM rooms r
-		JOIN "Users" u ON u."UserId" = r.host_id
-		JOIN categories c ON c.id = r.category_id
-		%s
-		ORDER BY r.created_at DESC
-		LIMIT $%d OFFSET $%d
-	`, whereClause, paramN, paramN+1)
+	dataSQL, dataArgs, err := dataBuilder.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	dataArgs := append(countArgs, limit, offset)
-
-	rows, err := r.db.Query(ctx, query, dataArgs...)
+	rows, err := r.db.Query(ctx, dataSQL, dataArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
@@ -288,22 +343,19 @@ func (r *RoomRepository) Update(ctx context.Context, room *models.Room) (uuid.UU
 		return uuid.Nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
-	query := `
-		UPDATE rooms
-		SET category_id = (SELECT id FROM categories WHERE name = $1), name = $2, thumbnail = $3, is_private = $4
-		WHERE id = $5
-	`
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Update("rooms").
+		Set("category_id", sq.Expr("(SELECT id FROM categories WHERE name = ?)", room.Category)).
+		Set("name", room.Name).
+		Set("thumbnail", room.Thumbnail).
+		Set("is_private", room.IsPrivate).
+		Where(sq.Eq{"id": room.ID}).
+		ToSql()
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	tag, err := r.db.Exec(
-		ctx,
-		query,
-		room.Category,
-		room.Name,
-		room.Thumbnail,
-		room.IsPrivate,
-		room.ID,
-	)
-
+	tag, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}

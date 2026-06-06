@@ -103,7 +103,7 @@ func (server *Server) onConnect(c socketio.Conn) error {
 
 	userID, err := server.service.GetUserID(ctx, token)
 	if err != nil {
-		server.logger.Warn("auth failed", slog.Any("err", err))
+		server.logger.Warn("auth failed", slog.String("err", err.Error()))
 
 		if errors.Is(err, domain.ErrUserNotFound) {
 			return errors.New("unauthorized")

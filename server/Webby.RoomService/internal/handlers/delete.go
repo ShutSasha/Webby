@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"webby/room-service/pkg/logger"
@@ -8,6 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+type RoomDeleter interface {
+	Execute(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) error
+}
 
 type deleteUri struct {
 	RoomID string `uri:"id" binding:"required,uuid"`
@@ -19,15 +24,15 @@ func (h *handler) Delete(c *gin.Context) {
 
 	var uri deleteUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	if err := h.service.Delete(ctx, roomID, userID); err != nil {
-		log.Error("delete room error", slog.Any("err", err))
+	if err := h.roomDeleter.Execute(ctx, roomID, userID); err != nil {
+		log.Error("delete room error", slog.String("err", err.Error()))
 		HandleAppError(c, "Delete room error", err)
 		return
 	}

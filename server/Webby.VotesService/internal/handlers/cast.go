@@ -23,7 +23,7 @@ func (h *handler) Cast(c *gin.Context) {
 	voteIdStr := c.Param("voteId")
 	voteId, err := uuid.Parse(voteIdStr)
 	if err != nil {
-		log.Debug("invalid vote id", slog.Any("err", err))
+		log.Debug("invalid vote id", slog.String("err", err.Error()))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 			Success: false,
 			Message: "Validation error",
@@ -36,7 +36,7 @@ func (h *handler) Cast(c *gin.Context) {
 
 	var req castRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Debug("validation error", slog.Any("err", err))
+		log.Debug("validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -49,7 +49,7 @@ func (h *handler) Cast(c *gin.Context) {
 		ctx, voteId, choiceId, userId,
 	)
 	if err != nil {
-		log.Error("cast vote error", slog.Any("err", err))
+		log.Error("cast vote error", slog.String("err", err.Error()))
 		HandleAppError(c, "Cast vote error", err)
 		return
 	}

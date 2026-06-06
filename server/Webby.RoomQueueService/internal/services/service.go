@@ -128,7 +128,7 @@ func (s *Service) AddToQueue(
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
 	if err := s.publisher.Publish(ctx, topic, envelope); err != nil {
-		log.Error("failed to publish queue update", slog.Any("err", err))
+		log.Error("failed to publish queue update", slog.String("err", err.Error()))
 	}
 	return id, position, nil
 }
@@ -215,7 +215,7 @@ func (s *Service) DeleteFromQueue(ctx context.Context, itemID, userID uuid.UUID)
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
 	if err := s.publisher.Publish(ctx, topic, envelope); err != nil {
-		log.Error("failed to publish queue update", slog.Any("err", err))
+		log.Error("failed to publish queue update", slog.String("err", err.Error()))
 	}
 
 	return nil
@@ -264,7 +264,7 @@ func (s *Service) ActivateVideo(ctx context.Context, itemID, userID uuid.UUID) e
 		}
 		topic := fmt.Sprintf("chat:%s", chatID.String())
 		if err := s.publisher.Publish(ctx, topic, envelope); err != nil {
-			log.Error("failed to publish queue update", slog.Any("err", err))
+			log.Error("failed to publish queue update", slog.String("err", err.Error()))
 		}
 	}
 
