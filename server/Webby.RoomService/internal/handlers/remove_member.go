@@ -28,7 +28,7 @@ func (h *handler) RemoveMember(c *gin.Context) {
 	roomID, _ := uuid.Parse(uri.RoomID)
 	memberID, _ := uuid.Parse(uri.MemberID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	if err := h.roomMemberManager.ExecuteRemoveMember(ctx, roomID, memberID, userID); err != nil {
+	if err := h.roomMemberService.RemoveMember(ctx, roomID, memberID, userID); err != nil {
 		log.Error("remove member error", slog.String("err", err.Error()))
 		HandleAppError(c, "Remove member error", err)
 		return

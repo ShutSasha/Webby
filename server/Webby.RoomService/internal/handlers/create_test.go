@@ -25,17 +25,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupCreateRouter(mockService *handlermocks.MockService) *gin.Engine {
+func setupCreateRouter(mockRoomService *handlermocks.MockRoomService, mockMemberService *handlermocks.MockRoomMemberService, mockSyncService *handlermocks.MockSynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	creator := &handlermocks.RoomCreatorAdapter{Service: mockService}
-	updater := &handlermocks.RoomUpdaterAdapter{Service: mockService}
-	deleter := &handlermocks.RoomDeleterAdapter{Service: mockService}
-	retriever := &handlermocks.RoomDetailsRetrieverAdapter{Service: mockService}
-	lister := &handlermocks.RoomListerAdapter{Service: mockService}
-	memberMgr := &handlermocks.RoomMemberManagerAdapter{Service: mockService}
-	syncer := &handlermocks.PlaybackSynchronizerAdapter{Service: mockService}
-	h := handlers.New(creator, updater, deleter, retriever, lister, memberMgr, syncer)
+	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
 	router.POST("/api/rooms", func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "userID", c.GetHeader("X-User-ID"))
 		ctx = logger.ToContext(ctx, log)
@@ -64,7 +57,7 @@ func TestCreateRoom(t *testing.T) {
 		name           string
 		fields         map[string]string
 		userID         string
-		mockSetup      func(*handlermocks.MockService)
+		mockSetup      func(*handlermocks.MockRoomService)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
@@ -76,7 +69,7 @@ func TestCreateRoom(t *testing.T) {
 				"isPrivate":    "false",
 			},
 			userID: userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
+			mockSetup: func(ms *handlermocks.MockRoomService) {
 				ms.EXPECT().Create(mock.Anything, mock.AnythingOfType("*models.Room"), mock.Anything, mock.Anything).
 					Return(&models.Room{
 						ID:        roomID,
@@ -103,7 +96,7 @@ func TestCreateRoom(t *testing.T) {
 				"isPrivate":    "true",
 			},
 			userID: userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
+			mockSetup: func(ms *handlermocks.MockRoomService) {
 				ms.EXPECT().Create(mock.Anything, mock.AnythingOfType("*models.Room"), mock.Anything, mock.Anything).
 					Return(&models.Room{
 						ID:        roomID,
@@ -124,7 +117,7 @@ func TestCreateRoom(t *testing.T) {
 				"isPrivate":    "false",
 			},
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockRoomService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -136,7 +129,7 @@ func TestCreateRoom(t *testing.T) {
 				"isPrivate":    "false",
 			},
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockRoomService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -147,7 +140,7 @@ func TestCreateRoom(t *testing.T) {
 				"isPrivate": "false",
 			},
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockRoomService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -159,7 +152,7 @@ func TestCreateRoom(t *testing.T) {
 				"isPrivate":    "maybe",
 			},
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockRoomService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -171,7 +164,7 @@ func TestCreateRoom(t *testing.T) {
 				"isPrivate":    "false",
 			},
 			userID: userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
+			mockSetup: func(ms *handlermocks.MockRoomService) {
 				ms.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil, fmt.Errorf("category 'NonExistent': %w", apperrors.ErrInvalidInput)).Once()
 			},
@@ -191,7 +184,7 @@ func TestCreateRoom(t *testing.T) {
 				"isPrivate":    "false",
 			},
 			userID: userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
+			mockSetup: func(ms *handlermocks.MockRoomService) {
 				ms.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil, fmt.Errorf("db error")).Once()
 			},
@@ -202,10 +195,12 @@ func TestCreateRoom(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockService := handlermocks.NewMockService(t)
-			tt.mockSetup(mockService)
+			mockRoomService := handlermocks.NewMockRoomService(t)
+			mockMemberService := handlermocks.NewMockRoomMemberService(t)
+			mockSyncService := handlermocks.NewMockSynchronizeService(t)
+			tt.mockSetup(mockRoomService)
 
-			router := setupCreateRouter(mockService)
+			router := setupCreateRouter(mockRoomService, mockMemberService, mockSyncService)
 
 			body, contentType := makeMultipartForm(tt.fields)
 			req := httptest.NewRequest(http.MethodPost, "/api/rooms", body)

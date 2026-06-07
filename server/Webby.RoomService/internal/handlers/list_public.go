@@ -44,7 +44,7 @@ func (h *handler) ListPublic(c *gin.Context) {
 
 	log.Debug("Query", "page", query.Page, "limit", query.Limit, "search", query.Search, "category", query.Category)
 
-	rooms, total, err := h.roomLister.ExecuteListPublic(ctx, query.Page, query.Limit, query.Search, query.Category)
+	rooms, total, err := h.roomService.ListPublicRooms(ctx, query.Page, query.Limit, query.Search, query.Category)
 	if err != nil {
 		log.Error("list public rooms error", slog.String("err", err.Error()))
 		HandleAppError(c, "List rooms error", err)

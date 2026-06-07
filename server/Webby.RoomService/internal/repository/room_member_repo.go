@@ -21,38 +21,6 @@ func NewRoomMemberRepository(db *pgxpool.Pool) *RoomMemberRepository {
 	return &RoomMemberRepository{db: db}
 }
 
-func (r *RoomMemberRepository) Create(ctx context.Context, member *models.RoomMember) error {
-	const op = "repository.RoomMemberRepository.Create"
-
-	if member == nil {
-		return fmt.Errorf("%s: %w: member cannot be nil", op, apperrors.ErrInvalidInput)
-	}
-
-	if member.RoomId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
-
-	if member.UserId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
-	}
-
-	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Insert("room_members").
-		Columns("room_id", "user_id", "room_points").
-		Values(member.RoomId, member.UserId, member.RoomPoints).
-		ToSql()
-	if err != nil {
-		return fmt.Errorf("%s: build failed: %w", op, err)
-	}
-
-	_, err = r.db.Exec(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("%s: execution failed: %w", op, err)
-	}
-
-	return nil
-}
-
 func (r *RoomMemberRepository) Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error) {
 	const op = "repository.RoomMemberRepository.Exists"
 

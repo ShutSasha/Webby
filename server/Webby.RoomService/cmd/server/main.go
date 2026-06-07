@@ -20,7 +20,7 @@ import (
 	"webby/room-service/internal/handlers"
 	"webby/room-service/internal/publisher"
 	"webby/room-service/internal/repository"
-	"webby/room-service/internal/usecases"
+	"webby/room-service/internal/services"
 	"webby/room-service/pkg/slogpretty"
 
 	"github.com/redis/go-redis/v9"
@@ -101,27 +101,11 @@ func run(ctx context.Context, w io.Writer) error {
 
 	logger.Info("repositories initialized")
 
-	roomCreator := usecases.NewRoomCreator(roomRepository, roomMemberRepository, fileStorage, categoryClient, chatClient)
-	roomUpdater := usecases.NewRoomUpdater(roomRepository, fileStorage)
-	roomDeleter := usecases.NewRoomDeleter(roomRepository, fileStorage)
-	roomDetailsRetriever := usecases.NewRoomDetailsRetriever(roomRepository, roomMemberRepository, chatClient)
-	roomLister := usecases.NewRoomLister(roomRepository)
-	roomMemberManager := usecases.NewRoomMemberManager(roomRepository, roomMemberRepository, chatClient, notificationClient)
-	playbackSynchronizer := usecases.NewPlaybackSynchronizer(chatClient, publisher, redisRepository)
+	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, categoryClient, chatClient)
+	roomMemberService := services.NewRoomMemberService(roomRepository, roomMemberRepository, chatClient, notificationClient)
+	syncService := services.NewSynchronizeService(chatClient, publisher, redisRepository)
 
-	logger.Info("use cases initialized")
-
-	server := handlers.NewServer(
-		cfg,
-		logger,
-		roomCreator,
-		roomUpdater,
-		roomDeleter,
-		roomDetailsRetriever,
-		roomLister,
-		roomMemberManager,
-		playbackSynchronizer,
-	)
+	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
 		ReadTimeout:  cfg.Http.Timeout,

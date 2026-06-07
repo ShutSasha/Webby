@@ -32,7 +32,7 @@ func (h *handler) Synchronize(c *gin.Context) {
 
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	if err := h.playbackSynchronizer.ExecuteSynchronize(ctx, userID, roomID); err != nil {
+	if err := h.synchronizeService.Synchronize(ctx, userID, roomID); err != nil {
 		log.Error("sync error", slog.String("err", err.Error()))
 		HandleAppError(c, "Synchronization error", err)
 		return

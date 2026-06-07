@@ -1,21 +1,15 @@
 package handlers
 
 import (
-	"context"
 	"io"
 	"log/slog"
 	"mime/multipart"
 	"net/http"
-	"webby/room-service/internal/models"
 	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
-
-type RoomUpdater interface {
-	Execute(ctx context.Context, roomID, userID uuid.UUID, name, category, thumbnailFilename *string, thumbnailData *[]byte, isPrivate *bool) (*models.Room, error)
-}
 
 type updateUri struct {
 	RoomID string `uri:"id" binding:"required,uuid"`
@@ -101,7 +95,7 @@ func (h *handler) Update(c *gin.Context) {
 		thumbnailFilename = &filename
 	}
 
-	updatedRoom, err := h.roomUpdater.Execute(
+	updatedRoom, err := h.roomService.Update(
 		ctx,
 		roomID, hostID,
 		req.Name, req.Category, thumbnailFilename,

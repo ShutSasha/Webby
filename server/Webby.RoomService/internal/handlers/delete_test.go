@@ -27,17 +27,10 @@ func init() {
 	gin.SetMode(gin.TestMode)
 }
 
-func setupDeleteRouter(mockService *handlermocks.MockService) *gin.Engine {
+func setupDeleteRouter(mockRoomService *handlermocks.MockRoomService, mockMemberService *handlermocks.MockRoomMemberService, mockSyncService *handlermocks.MockSynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	creator := &handlermocks.RoomCreatorAdapter{Service: mockService}
-	updater := &handlermocks.RoomUpdaterAdapter{Service: mockService}
-	deleter := &handlermocks.RoomDeleterAdapter{Service: mockService}
-	retriever := &handlermocks.RoomDetailsRetrieverAdapter{Service: mockService}
-	lister := &handlermocks.RoomListerAdapter{Service: mockService}
-	memberMgr := &handlermocks.RoomMemberManagerAdapter{Service: mockService}
-	syncer := &handlermocks.PlaybackSynchronizerAdapter{Service: mockService}
-	h := handlers.New(creator, updater, deleter, retriever, lister, memberMgr, syncer)
+	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
 	router.DELETE("/api/rooms/:id", func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "userID", c.GetHeader("X-User-ID"))
 		ctx = logger.ToContext(ctx, log)
@@ -55,7 +48,7 @@ func TestDeleteRoom(t *testing.T) {
 		name           string
 		roomIdPath     string
 		userID         string
-		mockSetup      func(*handlermocks.MockService)
+		mockSetup      func(*handlermocks.MockRoomService)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
@@ -63,7 +56,7 @@ func TestDeleteRoom(t *testing.T) {
 			name:       "Success - Room Deleted",
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
+			mockSetup: func(ms *handlermocks.MockRoomService) {
 				ms.EXPECT().Delete(mock.Anything, roomID, userID).Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -78,7 +71,7 @@ func TestDeleteRoom(t *testing.T) {
 			name:           "Failure - Invalid UUID",
 			roomIdPath:     "not-a-uuid",
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockRoomService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -86,7 +79,7 @@ func TestDeleteRoom(t *testing.T) {
 			name:       "Failure - Room Not Found",
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
+			mockSetup: func(ms *handlermocks.MockRoomService) {
 				ms.EXPECT().Delete(mock.Anything, roomID, userID).Return(fmt.Errorf("room: %w", apperrors.ErrNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
@@ -96,7 +89,7 @@ func TestDeleteRoom(t *testing.T) {
 			name:       "Failure - Forbidden",
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
+			mockSetup: func(ms *handlermocks.MockRoomService) {
 				ms.EXPECT().Delete(mock.Anything, roomID, userID).Return(apperrors.ErrForbidden).Once()
 			},
 			expectedStatus: http.StatusForbidden,
@@ -106,7 +99,7 @@ func TestDeleteRoom(t *testing.T) {
 			name:       "Failure - Internal Error",
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
+			mockSetup: func(ms *handlermocks.MockRoomService) {
 				ms.EXPECT().Delete(mock.Anything, roomID, userID).Return(fmt.Errorf("db error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -116,10 +109,12 @@ func TestDeleteRoom(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockService := handlermocks.NewMockService(t)
-			tt.mockSetup(mockService)
+			mockRoomService := handlermocks.NewMockRoomService(t)
+			mockMemberService := handlermocks.NewMockRoomMemberService(t)
+			mockSyncService := handlermocks.NewMockSynchronizeService(t)
+			tt.mockSetup(mockRoomService)
 
-			router := setupDeleteRouter(mockService)
+			router := setupDeleteRouter(mockRoomService, mockMemberService, mockSyncService)
 
 			req := httptest.NewRequest(http.MethodDelete, "/api/rooms/"+tt.roomIdPath, nil)
 			req.Header.Set("X-User-ID", tt.userID)
@@ -133,30 +128,6 @@ func TestDeleteRoom(t *testing.T) {
 			}
 		})
 	}
-}
-
-func assertErrorResponse(t *testing.T, body string) {
-	t.Helper()
-	var resp map[string]any
-	require.NoError(t, json.Unmarshal([]byte(body), &resp))
-	assert.False(t, resp["success"].(bool))
-}
-
-// stub for use in get_test.go etc.
-func assertSuccessResponse(t *testing.T, body string) {
-	t.Helper()
-	var resp map[string]any
-	require.NoError(t, json.Unmarshal([]byte(body), &resp))
-	assert.True(t, resp["success"].(bool))
-}
-
-func assertSuccessWithData(t *testing.T, body string) map[string]any {
-	t.Helper()
-	var resp map[string]any
-	require.NoError(t, json.Unmarshal([]byte(body), &resp))
-	require.True(t, resp["success"].(bool))
-	require.NotNil(t, resp["data"])
-	return resp["data"].(map[string]any)
 }
 
 func newRoom() *models.Room {
