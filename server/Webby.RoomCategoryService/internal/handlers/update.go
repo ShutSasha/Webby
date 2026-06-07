@@ -26,20 +26,20 @@ func (h *handler) Update(c *gin.Context) {
 
 	var uri updateUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
+		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	var req updateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Debug("body validation error", slog.Any("err", err))
+		log.Debug("body validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	if err := h.service.Update(ctx, uri.Name, req.Name); err != nil {
-		log.Error("update category error", slog.Any("err", err))
+		log.Error("update category error", slog.String("err", err.Error()))
 		HandleAppError(c, "Update category error", err)
 		return
 	}

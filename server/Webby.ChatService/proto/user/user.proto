@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "webby/chat-service/internal/grpc/userpb";
+
+service UserGrpcService {
+  rpc GetUserById (GetUserRequest) returns (UserResponse);
+}
+
+message GetUserRequest {
+  string userId = 1;
+  optional string requestUserId = 2;
+}
+
+message UserResponse {
+  string userId = 1;
+  string username = 2;
+  string avatarUrl = 3;
+  bool isFollowed = 4;
+}

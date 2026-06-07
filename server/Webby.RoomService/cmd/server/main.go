@@ -20,7 +20,7 @@ import (
 	"webby/room-service/internal/handlers"
 	"webby/room-service/internal/publisher"
 	"webby/room-service/internal/repository"
-	"webby/room-service/internal/services"
+	"webby/room-service/internal/usecases"
 	"webby/room-service/pkg/slogpretty"
 
 	"github.com/redis/go-redis/v9"
@@ -92,18 +92,35 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer categoryClient.Close()
 
-	roomService := services.NewRoomService(
-		roomRepository, roomMemberRepository, fileStorage,
-		chatClient, categoryClient,
-		publisher, redisRepository,
-	)
+	notificationClient, err := grpcClient.NewNotificationClient(cfg.Grpc.NotificationServiceAddress)
+	if err != nil {
+		logger.Error("notification service gRPC connection failed", slog.String("error", err.Error()))
+		return err
+	}
+	defer notificationClient.Close()
 
 	logger.Info("repositories initialized")
+
+	roomCreator := usecases.NewRoomCreator(roomRepository, roomMemberRepository, fileStorage, categoryClient, chatClient)
+	roomUpdater := usecases.NewRoomUpdater(roomRepository, fileStorage)
+	roomDeleter := usecases.NewRoomDeleter(roomRepository, fileStorage)
+	roomDetailsRetriever := usecases.NewRoomDetailsRetriever(roomRepository, roomMemberRepository, chatClient)
+	roomLister := usecases.NewRoomLister(roomRepository)
+	roomMemberManager := usecases.NewRoomMemberManager(roomRepository, roomMemberRepository, chatClient, notificationClient)
+	playbackSynchronizer := usecases.NewPlaybackSynchronizer(chatClient, publisher, redisRepository)
+
+	logger.Info("use cases initialized")
 
 	server := handlers.NewServer(
 		cfg,
 		logger,
-		roomService,
+		roomCreator,
+		roomUpdater,
+		roomDeleter,
+		roomDetailsRetriever,
+		roomLister,
+		roomMemberManager,
+		playbackSynchronizer,
 	)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),

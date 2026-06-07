@@ -19,7 +19,7 @@ func (h *handler) Get(c *gin.Context) {
 	voteIdStr := c.Param("voteId")
 	voteId, err := uuid.Parse(voteIdStr)
 	if err != nil {
-		log.Debug("invalid vote id", slog.Any("err", err))
+		log.Debug("invalid vote id", slog.String("err", err.Error()))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 			Success: false,
 			Message: "Validation error",
@@ -35,7 +35,7 @@ func (h *handler) Get(c *gin.Context) {
 
 	detail, err := h.service.GetVote(ctx, voteId, userId)
 	if err != nil {
-		log.Error("get vote error", slog.Any("err", err))
+		log.Error("get vote error", slog.String("err", err.Error()))
 		HandleAppError(c, "Get vote error", err)
 		return
 	}

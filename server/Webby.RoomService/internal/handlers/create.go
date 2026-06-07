@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"io"
 	"log/slog"
@@ -13,6 +14,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+type RoomCreator interface {
+	Execute(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string) (*models.Room, error)
+}
 
 type createRoomRequest struct {
 	Name         string                `form:"name" binding:"required,min=2,max=50"`
@@ -38,7 +43,7 @@ func (h *handler) Create(c *gin.Context) {
 
 	var req createRoomRequest
 	if err := c.ShouldBind(&req); err != nil {
-		log.Debug("validation error", slog.Any("err", err))
+		log.Debug("validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -83,7 +88,7 @@ func (h *handler) Create(c *gin.Context) {
 		thumbnailFilename = req.Thumbnail.Filename
 	}
 
-	room, err := h.service.Create(ctx, &models.Room{
+	room, err := h.roomCreator.Execute(ctx, &models.Room{
 		HostID:    hostID,
 		Category:  req.CategoryName,
 		Name:      req.Name,
@@ -98,7 +103,7 @@ func (h *handler) Create(c *gin.Context) {
 			})
 			return
 		}
-		log.Error("create room error", slog.Any("err", err))
+		log.Error("create room error", slog.String("err", err.Error()))
 		HandleAppError(c, "Create room error", err)
 		return
 	}

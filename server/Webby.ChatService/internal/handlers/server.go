@@ -12,14 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	socketio "github.com/googollee/go-socket.io"
 )
 
 func NewServer(
 	cfg *config.Config,
 	logger *slog.Logger,
 	service Service,
-	socketServer *socketio.Server,
+	messageManager messageManager,
 ) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -41,7 +40,7 @@ func NewServer(
 	router.Use(gin.Recovery())
 	router.Use(cors.CORS())
 
-	handler := New(service)
+	handler := New(service, messageManager)
 	addRoutes(router, cfg, handler)
 
 	return router

@@ -7,6 +7,7 @@ import (
 	"webby/room-category-service/internal/apperrors"
 	"webby/room-category-service/internal/models"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -22,8 +23,17 @@ func New(db *pgxpool.Pool) *Repository {
 func (r *Repository) Create(ctx context.Context, name string) error {
 	const op = "repository.Create"
 
-	query := `INSERT INTO categories (name)	VALUES ($1)`
-	if _, err := r.db.Exec(ctx, query, name); err != nil {
+	query := sq.Insert("categories").
+		Columns("name").
+		Values(name).
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if _, err := r.db.Exec(ctx, sql, args...); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
@@ -40,27 +50,23 @@ func (r *Repository) Create(ctx context.Context, name string) error {
 func (r *Repository) List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int64, error) {
 	const op = "repository.List"
 
-	query := `
-        WITH filtered_cats AS (
-            SELECT id, name 
-            FROM categories 
-            WHERE ($1 = '' OR name ILIKE $1)
-        ),
-        total_count AS (
-            SELECT count(*) AS total FROM filtered_cats
-        )
-        SELECT f.id, f.name, t.total
-        FROM filtered_cats f, total_count t
-        ORDER BY f.name ASC
-        LIMIT $2 OFFSET $3
-    `
+	query := sq.Select("id", "name", "COUNT(*) OVER() AS total").
+		From("categories").
+		OrderBy("name ASC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset)).
+		PlaceholderFormat(sq.Dollar)
 
-	searchParam := ""
 	if search != "" {
-		searchParam = "%" + search + "%"
+		query = query.Where(sq.ILike{"name": "%" + search + "%"})
 	}
 
-	rows, err := r.db.Query(ctx, query, searchParam, limit, offset)
+	sqlStr, args, err := query.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: query building failed: %w", op, err)
+	}
+
+	rows, err := r.db.Query(ctx, sqlStr, args...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -87,8 +93,17 @@ func (r *Repository) List(ctx context.Context, search string, offset int, limit 
 func (r *Repository) Update(ctx context.Context, oldName string, newName string) error {
 	const op = "repository.CategoryRepository.Update"
 
-	query := `UPDATE categories	SET name = $1 WHERE name = $2`
-	tag, err := r.db.Exec(ctx, query, newName, oldName)
+	query := sq.Update("categories").
+		Set("name", newName).
+		Where(sq.Eq{"name": oldName}).
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: query building failed: %w", op, err)
+	}
+
+	tag, err := r.db.Exec(ctx, sql, args...)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -109,8 +124,16 @@ func (r *Repository) Update(ctx context.Context, oldName string, newName string)
 func (r *Repository) Delete(ctx context.Context, name string) error {
 	const op = "repository.CategoryRepository.Delete"
 
-	query := `DELETE FROM categories WHERE name = $1`
-	tag, err := r.db.Exec(ctx, query, name)
+	query := sq.Delete("categories").
+		Where(sq.Eq{"name": name}).
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: query building failed: %w", op, err)
+	}
+
+	tag, err := r.db.Exec(ctx, sql, args...)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -125,9 +148,19 @@ func (r *Repository) Delete(ctx context.Context, name string) error {
 func (r *Repository) Exists(ctx context.Context, name string) (bool, error) {
 	const op = "repository.CategoryRepository.Exists"
 
-	query := `SELECT EXISTS(SELECT 1 FROM categories WHERE name = $1)`
+	subQuery := sq.Select("1").
+		From("categories").
+		Where(sq.Eq{"name": name}).
+		PlaceholderFormat(sq.Dollar)
+
+	subSQL, subArgs, err := subQuery.ToSql()
+	if err != nil {
+		return false, fmt.Errorf("%s: subquery building failed: %w", op, err)
+	}
+	query := fmt.Sprintf("SELECT EXISTS(%s)", subSQL)
+
 	var exists bool
-	err := r.db.QueryRow(ctx, query, name).Scan(&exists)
+	err = r.db.QueryRow(ctx, query, subArgs...).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("%s: %w", op, err)
 	}

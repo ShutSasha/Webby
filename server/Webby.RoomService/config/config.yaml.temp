@@ -20,6 +20,7 @@ grpc:
   chatServiceAddress: "localhost:50051"
   categoryServiceAddress: "localhost:50052"
   queueServiceAddress: "localhost:50053"
+  notificationServiceAddress: "localhost:5007"
 
 redis:
   addr: "localhost:6379"

@@ -18,7 +18,7 @@ func (h *handler) Delete(c *gin.Context) {
 	voteIdStr := c.Param("voteId")
 	voteId, err := uuid.Parse(voteIdStr)
 	if err != nil {
-		log.Debug("invalid vote id", slog.Any("err", err))
+		log.Debug("invalid vote id", slog.String("err", err.Error()))
 		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
 			Success: false,
 			Message: "Validation error",
@@ -33,7 +33,7 @@ func (h *handler) Delete(c *gin.Context) {
 	userId, _ := uuid.Parse(userIdStr)
 
 	if err := h.service.DeleteVote(ctx, voteId, userId); err != nil {
-		log.Error("delete vote error", slog.Any("err", err))
+		log.Error("delete vote error", slog.String("err", err.Error()))
 		HandleAppError(c, "Delete vote error", err)
 		return
 	}

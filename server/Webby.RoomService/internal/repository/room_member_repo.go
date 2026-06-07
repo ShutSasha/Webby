@@ -7,6 +7,7 @@ import (
 	"webby/room-service/internal/apperrors"
 	"webby/room-service/internal/models"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -35,12 +36,16 @@ func (r *RoomMemberRepository) Create(ctx context.Context, member *models.RoomMe
 		return fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
 	}
 
-	query := `
-		INSERT INTO room_members (room_id, user_id, room_points)
-		VALUES ($1, $2, $3)
-	`
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Insert("room_members").
+		Columns("room_id", "user_id", "room_points").
+		Values(member.RoomId, member.UserId, member.RoomPoints).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	_, err := r.db.Exec(ctx, query, member.RoomId, member.UserId, member.RoomPoints)
+	_, err = r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -48,38 +53,56 @@ func (r *RoomMemberRepository) Create(ctx context.Context, member *models.RoomMe
 	return nil
 }
 
-func (r *RoomMemberRepository) Exists(ctx context.Context, roomId, userId uuid.UUID) (bool, error) {
+func (r *RoomMemberRepository) Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error) {
 	const op = "repository.RoomMemberRepository.Exists"
 
-	if roomId == uuid.Nil {
+	if roomID == uuid.Nil {
 		return false, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
 	}
 
-	if userId == uuid.Nil {
+	if userID == uuid.Nil {
 		return false, fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
 	}
 
-	query := `SELECT EXISTS(SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2)`
-
-	var exists bool
-	err := r.db.QueryRow(ctx, query, roomId, userId).Scan(&exists)
+	query, args, err := sq.Select("1").
+		From("room_members").
+		Where(sq.Eq{
+			"room_id": roomID,
+			"user_id": userID,
+		}).
+		Limit(1).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
 	if err != nil {
-		return false, fmt.Errorf("%s: query failed: %w", op, err)
+		return false, fmt.Errorf("%s: failed to build query: %w", op, err)
 	}
 
-	return exists, nil
+	var dummy int
+	err = r.db.QueryRow(ctx, query, args...).Scan(&dummy)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+		return false, fmt.Errorf("%s: execution failed: %w", op, err)
+	}
+
+	return true, nil
 }
 
 func (r *RoomMemberRepository) EnsureMember(ctx context.Context, roomID, userID uuid.UUID) error {
 	const op = "repository.RoomMemberRepository.EnsureMember"
 
-	query := `
-		INSERT INTO room_members (room_id, user_id, room_points)
-		VALUES ($1, $2, 0)
-		ON CONFLICT (room_id, user_id) DO NOTHING
-	`
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Insert("room_members").
+		Columns("room_id", "user_id", "room_points").
+		Values(roomID, userID, 0).
+		Suffix("ON CONFLICT (room_id, user_id) DO NOTHING").
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	_, err := r.db.Exec(ctx, query, roomID, userID)
+	_, err = r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -105,42 +128,46 @@ func (r *RoomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID,
 	}
 
 	offset := (page - 1) * limit
+	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	whereClause := `WHERE rm.room_id = $1`
-	countArgs := []any{roomId}
-	paramN := 2
+	countBuilder := builder.
+		Select("COUNT(*)").
+		From("room_members rm").
+		Join("\"Users\" u ON rm.user_id = u.\"UserId\"").
+		Where(sq.Eq{"rm.room_id": roomId})
+
+	dataBuilder := builder.
+		Select("u.\"UserId\"", "u.\"Username\"", "u.\"AvatarUrl\"", "rm.room_points").
+		From("room_members rm").
+		Join("\"Users\" u ON rm.user_id = u.\"UserId\"").
+		Where(sq.Eq{"rm.room_id": roomId}).
+		OrderBy("rm.room_points DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	if search != "" {
-		whereClause += fmt.Sprintf(` AND u."Username" ILIKE $%d`, paramN)
-		countArgs = append(countArgs, "%"+search+"%")
-		paramN++
+		pattern := "%" + search + "%"
+		countBuilder = countBuilder.Where(sq.Expr("u.\"Username\" ILIKE ?", pattern))
+		dataBuilder = dataBuilder.Where(sq.Expr("u.\"Username\" ILIKE ?", pattern))
 	}
 
-	countQuery := fmt.Sprintf(`
-		SELECT COUNT(*)
-		FROM room_members rm
-		JOIN "Users" u ON rm.user_id = u."UserId"
-		%s
-	`, whereClause)
+	countSQL, countArgs, err := countBuilder.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
 	var total int64
-	err := r.db.QueryRow(ctx, countQuery, countArgs...).Scan(&total)
+	err = r.db.QueryRow(ctx, countSQL, countArgs...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
 
-	dataQuery := fmt.Sprintf(`
-		SELECT u."UserId", u."Username", u."AvatarUrl", rm.room_points
-		FROM room_members rm
-		JOIN "Users" u ON rm.user_id = u."UserId"
-		%s
-		ORDER BY rm.room_points DESC
-		LIMIT $%d OFFSET $%d
-	`, whereClause, paramN, paramN+1)
+	dataSQL, dataArgs, err := dataBuilder.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	dataArgs := append(countArgs, limit, offset)
-
-	rows, err := r.db.Query(ctx, dataQuery, dataArgs...)
+	rows, err := r.db.Query(ctx, dataSQL, dataArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
@@ -179,9 +206,15 @@ func (r *RoomMemberRepository) Delete(ctx context.Context, roomId, userId uuid.U
 		return fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
 	}
 
-	query := `DELETE FROM room_members WHERE room_id = $1 AND user_id = $2`
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Delete("room_members").
+		Where(sq.Eq{"room_id": roomId, "user_id": userId}).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	tag, err := r.db.Exec(ctx, query, roomId, userId)
+	tag, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -204,18 +237,22 @@ func (r *RoomMemberRepository) UpdatePoints(ctx context.Context, roomId, userId 
 		return nil, fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
 	}
 
-	query := `
-		UPDATE room_members
-		SET room_points = room_points + $3
-		WHERE room_id = $1 AND user_id = $2 AND room_points + $3 >= 0
-		RETURNING (SELECT u."UserId" FROM "Users" u WHERE u."UserId" = room_members.user_id),
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Update("room_members").
+		Set("room_points", sq.Expr("room_points + ?", delta)).
+		Where(sq.Eq{"room_id": roomId, "user_id": userId}).
+		Where(sq.Expr("room_points + ? >= 0", delta)).
+		Suffix(`RETURNING (SELECT u."UserId" FROM "Users" u WHERE u."UserId" = room_members.user_id),
 			(SELECT u."Username" FROM "Users" u WHERE u."UserId" = room_members.user_id),
 			(SELECT u."AvatarUrl" FROM "Users" u WHERE u."UserId" = room_members.user_id),
-			room_points
-	`
+			room_points`).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
 	var member models.RoomMemberInfo
-	err := r.db.QueryRow(ctx, query, roomId, userId, delta).Scan(
+	err = r.db.QueryRow(ctx, query, args...).Scan(
 		&member.UserID,
 		&member.Username,
 		&member.AvatarUrl,
