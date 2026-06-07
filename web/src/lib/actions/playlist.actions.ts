@@ -2,17 +2,10 @@
 
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
-import { BaseServerResponse, Optional } from '@/types/general.types'
+import { BaseServerResponse, Optional, PaginatedData } from '@/types/general.types'
 import { Video } from '@/types/video.types'
 
 const endpoint = '/playlists'
-
-export type PaginatedData<T> = {
-  items: T[]
-  page: number
-  pageSize: number
-  totalCount: number
-}
 
 export type BasePlaylist = {
   playlistId: string

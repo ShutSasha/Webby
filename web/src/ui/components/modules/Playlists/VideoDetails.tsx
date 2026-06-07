@@ -38,6 +38,11 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
   }
 
   const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate, videoTags, source } = video.data
+
+  if (!user) {
+    return <VideoNotFound />
+  }
+
   const isOwner = currentUserId === user.userId
 
   if (isPrivate && !isOwner) {

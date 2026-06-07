@@ -24,9 +24,10 @@ export type Video = {
   description: string | null
   duration: number
   videotags: string[]
+  mediaType: string
   source: VideoSource
   videoUploadStatus: UploadStatus
-  user: VideoUser
+  user: VideoUser | null
 }
 
 export type RecommendedVideo = {
