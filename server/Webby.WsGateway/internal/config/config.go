@@ -27,12 +27,6 @@ type Config struct {
 		DB       int    `yaml:"db" env-default:"0" env:"REDIS_DB"`
 		Pattern  string `yaml:"pattern" env-default:"room:*" env:"REDIS_PATTERN"`
 	} `yaml:"redis"`
-
-	Grpc struct {
-		Chat  string `yaml:"chat" env:"GRPC_CHAT"`
-		Votes string `yaml:"votes" env:"GRPC_VOTES"`
-		Room  string `yaml:"room" env:"GRPC_ROOM"`
-	} `yaml:"grpc"`
 }
 
 func MustLoad() *Config {
