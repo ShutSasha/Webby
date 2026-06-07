@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
 
@@ -12,16 +11,11 @@ import (
 	"webby/wsgateway/pkg/http/middleware/cors"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 
 	loggerMw "webby/wsgateway/pkg/http/middleware/logger"
 )
 
-type Service interface {
-	GenerateToken(ctx context.Context, userID uuid.UUID) (string, error)
-}
-
-func NewServer(cfg *config.Config, service Service, logger *slog.Logger, wsSrv *ws.Server) http.Handler {
+func NewServer(cfg *config.Config, service tokenGenerator, logger *slog.Logger, wsSrv *ws.Server) http.Handler {
 	requireAuth := auth.AuthMiddleware([]byte(cfg.JwtSecret))
 
 	handler := NewHandler(service)

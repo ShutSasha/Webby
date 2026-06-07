@@ -1,4 +1,4 @@
-package usecases
+package services
 
 import (
 	"context"
@@ -11,34 +11,34 @@ import (
 	"github.com/google/uuid"
 )
 
-type SyncChatClient interface {
-	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (uuid.UUID, error)
+type chatIDRetriever interface {
+	GetChatIDByRoomID(ctx context.Context, roomID, userID uuid.UUID) (uuid.UUID, error)
 }
 
-type SyncEventPublisher interface {
+type eventPublisher interface {
 	Publish(ctx context.Context, channel string, payload any) error
 }
 
-type SyncTimecodesRepo interface {
+type timecodesRepository interface {
 	RetrieveTimecodes(ctx context.Context, roomID, syncID uuid.UUID) (map[string]int, error)
 	SetTimecode(ctx context.Context, userID, roomID, syncID uuid.UUID, timecode int) error
 }
 
-type PlaybackSynchronizer struct {
-	chatClient    SyncChatClient
-	publisher     SyncEventPublisher
-	timecodesRepo SyncTimecodesRepo
+type SynchronizeService struct {
+	chatIDRetriever chatIDRetriever
+	publisher       eventPublisher
+	timecodesRepo   timecodesRepository
 }
 
-func NewPlaybackSynchronizer(
-	chatClient SyncChatClient,
-	publisher SyncEventPublisher,
-	timecodesRepo SyncTimecodesRepo,
-) *PlaybackSynchronizer {
-	return &PlaybackSynchronizer{
-		chatClient:    chatClient,
-		publisher:     publisher,
-		timecodesRepo: timecodesRepo,
+func NewSynchronizeService(
+	chatClient chatIDRetriever,
+	publisher eventPublisher,
+	timecodesRepo timecodesRepository,
+) *SynchronizeService {
+	return &SynchronizeService{
+		chatIDRetriever: chatClient,
+		publisher:       publisher,
+		timecodesRepo:   timecodesRepo,
 	}
 }
 
@@ -61,11 +61,11 @@ const (
 	syncSkipDuration        = 1 * time.Second
 )
 
-func (uc *PlaybackSynchronizer) ExecuteSynchronize(ctx context.Context, userID, roomID uuid.UUID) error {
-	const op = "usecases.PlaybackSynchronizer.ExecuteSynchronize"
+func (svc *SynchronizeService) Synchronize(ctx context.Context, userID, roomID uuid.UUID) error {
+	const op = "service.SynchronizeService.Synchronize"
 	log := logger.FromContext(ctx).With(slog.String("op", op))
 
-	chatID, err := uc.chatClient.GetChatIDByRoomID(ctx, roomID, userID)
+	chatID, err := svc.chatIDRetriever.GetChatIDByRoomID(ctx, roomID, userID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -79,7 +79,7 @@ func (uc *PlaybackSynchronizer) ExecuteSynchronize(ctx context.Context, userID, 
 	}
 	// TODO: Move to Publish
 	topic := fmt.Sprintf("chat:%s", chatID.String())
-	if err := uc.publisher.Publish(ctx, topic, reportEnvelope); err != nil {
+	if err := svc.publisher.Publish(ctx, topic, reportEnvelope); err != nil {
 		log.Error("failed to publish queue report", slog.String("err", err.Error()))
 	}
 
@@ -90,13 +90,13 @@ func (uc *PlaybackSynchronizer) ExecuteSynchronize(ctx context.Context, userID, 
 
 		time.Sleep(syncSkipDuration)
 
-		timecodes, err := uc.timecodesRepo.RetrieveTimecodes(asyncCtx, rID, sID)
+		timecodes, err := svc.timecodesRepo.RetrieveTimecodes(asyncCtx, rID, sID)
 		if err != nil {
 			bgLog.Error("failed to retrieve timecodes", slog.String("err", err.Error()))
 			return
 		}
 
-		timecode := uc.selectMaxTimecode(timecodes)
+		timecode := svc.selectMaxTimecode(timecodes)
 
 		synchEnvelope := eventEnvelope[synchronizePayload]{
 			Type: eventTypeSynchronize,
@@ -104,7 +104,7 @@ func (uc *PlaybackSynchronizer) ExecuteSynchronize(ctx context.Context, userID, 
 				Timecode: timecode + int(syncSkipDuration.Seconds()),
 			},
 		}
-		if err := uc.publisher.Publish(asyncCtx, chatTopic, synchEnvelope); err != nil {
+		if err := svc.publisher.Publish(asyncCtx, chatTopic, synchEnvelope); err != nil {
 			bgLog.Error("failed to publish queue sync", slog.String("err", err.Error()))
 		}
 	}(bgCtx, roomID, syncID, topic)
@@ -112,10 +112,10 @@ func (uc *PlaybackSynchronizer) ExecuteSynchronize(ctx context.Context, userID, 
 	return nil
 }
 
-func (uc *PlaybackSynchronizer) ExecuteReportTimecode(ctx context.Context, userID, roomID, syncID uuid.UUID, timecode int) error {
-	const op = "usecases.PlaybackSynchronizer.ExecuteReportTimecode"
+func (svc *SynchronizeService) ReportTimecode(ctx context.Context, userID, roomID, syncID uuid.UUID, timecode int) error {
+	const op = "services.SynchronizeService.ReportTimecode"
 
-	err := uc.timecodesRepo.SetTimecode(ctx, userID, roomID, syncID, timecode)
+	err := svc.timecodesRepo.SetTimecode(ctx, userID, roomID, syncID, timecode)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -123,7 +123,7 @@ func (uc *PlaybackSynchronizer) ExecuteReportTimecode(ctx context.Context, userI
 	return nil
 }
 
-func (uc *PlaybackSynchronizer) selectMaxTimecode(timecodes map[string]int) int {
+func (svc *SynchronizeService) selectMaxTimecode(timecodes map[string]int) int {
 	result := 0
 
 	for _, timecode := range timecodes {

@@ -38,7 +38,7 @@ func (h *handler) ReportTimecode(c *gin.Context) {
 
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	if err := h.playbackSynchronizer.ExecuteReportTimecode(ctx, userID, roomID, body.SyncID, body.Timecode); err != nil {
+	if err := h.synchronizeService.ReportTimecode(ctx, userID, roomID, body.SyncID, body.Timecode); err != nil {
 		log.Error("sync error", slog.String("err", err.Error()))
 		HandleAppError(c, "Synchronization error", err)
 		return

@@ -13,47 +13,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type RoomMemberRepository struct {
+type roomMemberRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewRoomMemberRepository(db *pgxpool.Pool) *RoomMemberRepository {
-	return &RoomMemberRepository{db: db}
+func NewRoomMemberRepository(db *pgxpool.Pool) *roomMemberRepository {
+	return &roomMemberRepository{db: db}
 }
 
-func (r *RoomMemberRepository) Create(ctx context.Context, member *models.RoomMember) error {
-	const op = "repository.RoomMemberRepository.Create"
-
-	if member == nil {
-		return fmt.Errorf("%s: %w: member cannot be nil", op, apperrors.ErrInvalidInput)
-	}
-
-	if member.RoomId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
-
-	if member.UserId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
-	}
-
-	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Insert("room_members").
-		Columns("room_id", "user_id", "room_points").
-		Values(member.RoomId, member.UserId, member.RoomPoints).
-		ToSql()
-	if err != nil {
-		return fmt.Errorf("%s: build failed: %w", op, err)
-	}
-
-	_, err = r.db.Exec(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("%s: execution failed: %w", op, err)
-	}
-
-	return nil
-}
-
-func (r *RoomMemberRepository) Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error) {
+func (r *roomMemberRepository) Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error) {
 	const op = "repository.RoomMemberRepository.Exists"
 
 	if roomID == uuid.Nil {
@@ -89,7 +57,7 @@ func (r *RoomMemberRepository) Exists(ctx context.Context, roomID, userID uuid.U
 	return true, nil
 }
 
-func (r *RoomMemberRepository) EnsureMember(ctx context.Context, roomID, userID uuid.UUID) error {
+func (r *roomMemberRepository) EnsureMember(ctx context.Context, roomID, userID uuid.UUID) error {
 	const op = "repository.RoomMemberRepository.EnsureMember"
 
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
@@ -110,7 +78,7 @@ func (r *RoomMemberRepository) EnsureMember(ctx context.Context, roomID, userID 
 	return nil
 }
 
-func (r *RoomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
+func (r *roomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
 	const op = "repository.RoomMemberRepository.ListByRoom"
 
 	if roomId == uuid.Nil {
@@ -195,7 +163,7 @@ func (r *RoomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID,
 	return members, total, nil
 }
 
-func (r *RoomMemberRepository) Delete(ctx context.Context, roomId, userId uuid.UUID) error {
+func (r *roomMemberRepository) Delete(ctx context.Context, roomId, userId uuid.UUID) error {
 	const op = "repository.RoomMemberRepository.Delete"
 
 	if roomId == uuid.Nil {
@@ -226,7 +194,7 @@ func (r *RoomMemberRepository) Delete(ctx context.Context, roomId, userId uuid.U
 	return nil
 }
 
-func (r *RoomMemberRepository) UpdatePoints(ctx context.Context, roomId, userId uuid.UUID, delta int) (*models.RoomMemberInfo, error) {
+func (r *roomMemberRepository) UpdatePoints(ctx context.Context, roomId, userId uuid.UUID, delta int) (*models.RoomMemberInfo, error) {
 	const op = "repository.RoomMemberRepository.UpdatePoints"
 
 	if roomId == uuid.Nil {
@@ -273,4 +241,42 @@ func (r *RoomMemberRepository) UpdatePoints(ctx context.Context, roomId, userId 
 	}
 
 	return &member, nil
+}
+
+func (r *roomMemberRepository) AddPointsBulk(ctx context.Context, userIDs []uuid.UUID, pointsToAdd int) (map[uuid.UUID]int, error) {
+	const op = "repository.roomMemberRepository.AddPointsBulk"
+
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Update("room_members").
+		Set("room_points", sq.Expr("room_points + ?", pointsToAdd)).
+		Where(sq.Eq{"user_id": userIDs}).
+		Suffix("RETURNING user_id, room_points").
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: execution failed: %w", op, err)
+	}
+	defer rows.Close()
+
+	updatedTotals := make(map[uuid.UUID]int, len(userIDs))
+
+	for rows.Next() {
+		var uID uuid.UUID
+		var totalPoints int
+
+		if err := rows.Scan(&uID, &totalPoints); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		updatedTotals[uID] = totalPoints
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return updatedTotals, nil
 }

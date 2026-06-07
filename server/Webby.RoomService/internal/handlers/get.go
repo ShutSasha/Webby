@@ -1,19 +1,13 @@
 package handlers
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
-	"webby/room-service/internal/models"
 	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
-
-type RoomDetailsRetriever interface {
-	Execute(ctx context.Context, roomID, userID uuid.UUID) (*models.Room, error)
-}
 
 type getUri struct {
 	RoomID string `uri:"id" binding:"required,uuid"`
@@ -42,7 +36,7 @@ func (h *handler) Get(c *gin.Context) {
 
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	room, err := h.roomDetailsRetriever.Execute(ctx, roomID, userID)
+	room, err := h.roomService.GetDetails(ctx, roomID, userID)
 	if err != nil {
 		log.Error("retrieve room error", slog.String("err", err.Error()))
 		HandleAppError(c, "Get room error", err)

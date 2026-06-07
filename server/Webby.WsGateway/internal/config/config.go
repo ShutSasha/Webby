@@ -15,9 +15,10 @@ type Config struct {
 	TokenTTL         time.Duration `yaml:"token_ttl" env-default:"15m" env:"TOKEN_TTL"`
 
 	Http struct {
-		Host    string        `yaml:"host" env-default:"localhost" env:"HTTP_HOST"`
-		Port    int           `yaml:"port" env-default:"8090" env:"HTTP_PORT"`
-		Timeout time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
+		Host        string        `yaml:"host" env-default:"localhost" env:"HTTP_HOST"`
+		Port        int           `yaml:"port" env-default:"8090" env:"HTTP_PORT"`
+		Timeout     time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
+		CallTimeout time.Duration `yaml:"call_timeout" env-default:"5s" env:"HTTP_CALL_TIMEOUT"`
 	} `yaml:"http"`
 
 	Redis struct {
@@ -26,12 +27,6 @@ type Config struct {
 		DB       int    `yaml:"db" env-default:"0" env:"REDIS_DB"`
 		Pattern  string `yaml:"pattern" env-default:"room:*" env:"REDIS_PATTERN"`
 	} `yaml:"redis"`
-
-	Grpc struct {
-		Chat  string `yaml:"chat" env:"GRPC_CHAT"`
-		Votes string `yaml:"votes" env:"GRPC_VOTES"`
-		Room  string `yaml:"room" env:"GRPC_ROOM"`
-	} `yaml:"grpc"`
 }
 
 func MustLoad() *Config {

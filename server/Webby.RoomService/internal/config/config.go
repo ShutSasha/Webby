@@ -9,15 +9,21 @@ import (
 )
 
 type Config struct {
-	Env              string      `yaml:"env" env-default:"local" env:"ENV"`
-	ConnectionString string      `yaml:"connectionString" env:"CONNECTION_STRING"`
-	JwtSecret        string      `yaml:"jwtSecret" env:"JWT_SECRET"`
-	Http             HttpConfig  `yaml:"http"`
-	Aws              AwsConfig   `yaml:"aws"`
-	Grpc             GrpcConfig  `yaml:"grpc"`
-	Redis            RedisConfig `yaml:"redis"`
+	Env              string       `yaml:"env" env-default:"local" env:"ENV"`
+	ConnectionString string       `yaml:"connectionString" env:"CONNECTION_STRING"`
+	JwtSecret        string       `yaml:"jwtSecret" env:"JWT_SECRET"`
+	Worker           WorkerConfig `yaml:"worker"`
+	Http             HttpConfig   `yaml:"http"`
+	Aws              AwsConfig    `yaml:"aws"`
+	Grpc             GrpcConfig   `yaml:"grpc"`
+	Redis            RedisConfig  `yaml:"redis"`
 }
 
+type WorkerConfig struct {
+	PointsPerTick int           `yaml:"points_per_tick" env-default:"15" env:"POINTS_PER_TICK"`
+	Interval      time.Duration `yaml:"interval" env-default:"1m" env:"INTERVAL"`
+	ZombieTTL     time.Duration `yaml:"zombie_ttl" env-default:"2m" env:"ZOMBIE_TTL"`
+}
 type HttpConfig struct {
 	Host    string        `yaml:"host" env-default:"localhost" env:"HTTP_HOST"`
 	Port    int           `yaml:"port" env-default:"5050" env:"HTTP_PORT"`

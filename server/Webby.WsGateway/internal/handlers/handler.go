@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"webby/wsgateway/pkg/logger"
@@ -8,6 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+type tokenGenerator interface {
+	GenerateToken(ctx context.Context, userID uuid.UUID) (string, error)
+}
 
 type ApiResponse[T any] struct {
 	Success bool              `json:"success"`
@@ -17,13 +22,11 @@ type ApiResponse[T any] struct {
 }
 
 type Handler struct {
-	service Service
+	tokenGenerator tokenGenerator
 }
 
-func NewHandler(service Service) Handler {
-	return Handler{
-		service: service,
-	}
+func NewHandler(tokenGenerator tokenGenerator) Handler {
+	return Handler{tokenGenerator}
 }
 
 func (h *Handler) getWsToken(c *gin.Context) {
@@ -36,7 +39,7 @@ func (h *Handler) getWsToken(c *gin.Context) {
 
 	log = log.With("userID", userID)
 
-	token, err := h.service.GenerateToken(ctx, userID)
+	token, err := h.tokenGenerator.GenerateToken(ctx, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ApiResponse[any]{
 			Success: false,

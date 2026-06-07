@@ -10,15 +10,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type RedisRepo struct {
+type timecodesRepo struct {
 	client *redis.Client
 }
 
-func NewRedisRepo(client *redis.Client) *RedisRepo {
-	return &RedisRepo{client: client}
+func NewTimecodesRepo(client *redis.Client) *timecodesRepo {
+	return &timecodesRepo{client: client}
 }
 
-func (r *RedisRepo) RetrieveTimecodes(ctx context.Context, roomID, syncID uuid.UUID) (map[string]int, error) {
+func (r *timecodesRepo) RetrieveTimecodes(ctx context.Context, roomID, syncID uuid.UUID) (map[string]int, error) {
 	const op = "repository.RedisRepo.RetrieveTimecodes"
 
 	key := fmt.Sprintf("room:%s:sync:%s", roomID, syncID)
@@ -38,7 +38,7 @@ func (r *RedisRepo) RetrieveTimecodes(ctx context.Context, roomID, syncID uuid.U
 	return timecodes, nil
 }
 
-func (r *RedisRepo) SetTimecode(ctx context.Context, userID, roomID, syncID uuid.UUID, timecode int) error {
+func (r *timecodesRepo) SetTimecode(ctx context.Context, userID, roomID, syncID uuid.UUID, timecode int) error {
 	const op = "repository.RedisRepo.SetTimecode"
 
 	topic := fmt.Sprintf("room:%s:sync:%s", roomID.String(), syncID.String())
