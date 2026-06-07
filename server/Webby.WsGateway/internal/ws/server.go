@@ -24,21 +24,21 @@ type session struct {
 	ChatID uuid.UUID
 }
 
-type Service interface {
+type userIDRetriever interface {
 	GetUserID(ctx context.Context, token string) (uuid.UUID, error)
 }
 
 type Server struct {
 	io *socketio.Server
 
-	service     Service
+	service     userIDRetriever
 	logger      *slog.Logger
 	jwtSecret   []byte
 	chat        *clients.ChatClient
 	callTimeout time.Duration
 }
 
-func NewServer(service Service, logger *slog.Logger, jwtSecret []byte, chat *clients.ChatClient, callTimeout time.Duration) *Server {
+func NewServer(service userIDRetriever, logger *slog.Logger, jwtSecret []byte, chat *clients.ChatClient, callTimeout time.Duration) *Server {
 	s := &Server{
 		io: socketio.NewServer(&engineio.Options{
 			Transports: []transport.Transport{
