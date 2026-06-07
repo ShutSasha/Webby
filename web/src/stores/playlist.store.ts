@@ -1,20 +1,23 @@
 import { create } from 'zustand'
 
+import { MediaType } from '@/types/general.types'
+
 interface PlaylistState {
-  activeVideoId: string | null
-  activeMediaType: string | null
-  initPlaylist: (videoId: string) => void
+  activeResourceId: string | null
+  activeMediaType: MediaType | null
+
+  initResource: (id: string, type: MediaType) => void
   reset: () => void
-  setActiveVideoId: (id: string | null) => void
-  setActiveMediaType: (type: string | null) => void
+  setActiveResourceId: (id: string | null) => void
+  setActiveMediaType: (type: MediaType | null) => void
 }
 
 export const usePlaylistStore = create<PlaylistState>(set => ({
-  activeVideoId: null,
+  activeResourceId: null,
   activeMediaType: null,
 
-  initPlaylist: (videoId: string) => set({ activeVideoId: videoId, activeMediaType: null }),
-  reset: () => set({ activeVideoId: null, activeMediaType: null }),
-  setActiveVideoId: id => set({ activeVideoId: id }),
+  initResource: (id, type) => set({ activeResourceId: id, activeMediaType: type }),
+  reset: () => set({ activeResourceId: null, activeMediaType: null }),
+  setActiveResourceId: id => set({ activeResourceId: id }),
   setActiveMediaType: type => set({ activeMediaType: type }),
 }))

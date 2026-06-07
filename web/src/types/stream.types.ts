@@ -1,6 +1,7 @@
 import { PaginatedData } from './general.types'
+import { VideoSource } from './video.types'
 
-export type StreamUser = {
+export type StreamerInformation = {
   userId: string
   username: string
   avatarUrl: string
@@ -8,14 +9,16 @@ export type StreamUser = {
 }
 
 export type Stream = {
-  streamId: string
+  streamerId: string
   name: string
-  source: 'Twitch' | 'Webby' | string
+  source: VideoSource
   previewUrl: string
+  description: string | null
   startedAt: string
   viewers: number
   streamUrl: string
-  user: StreamUser
+  streamTags: string[]
+  streamerInformation: StreamerInformation
 }
 
 export type SearchStreamsResponse = PaginatedData<Stream>

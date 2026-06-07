@@ -1,4 +1,4 @@
-import { PaginatedData } from './general.types'
+import { MediaType, PaginatedData } from './general.types'
 
 export type VideoUser = {
   userId: string
@@ -24,7 +24,7 @@ export type Video = {
   description: string | null
   duration: number
   videotags: string[]
-  mediaType: string
+  mediaType: MediaType
   source: VideoSource
   videoUploadStatus: UploadStatus
   user: VideoUser | null

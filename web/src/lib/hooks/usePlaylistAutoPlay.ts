@@ -20,7 +20,7 @@ export function usePlaylistAutoPlay({
 }: UsePlaylistAutoPlayProps) {
   const endedSignal = usePlayerPlayStore(state => state.endedSignal)
 
-  const activeVideoId = usePlaylistStore(state => state.activeVideoId)
+  const activeResourceId = usePlaylistStore(state => state.activeResourceId)
 
   const latestVideos = useRef(videos)
 
@@ -29,28 +29,28 @@ export function usePlaylistAutoPlay({
   }, [videos])
 
   useEffect(() => {
-    if (!activeVideoId || videos.length === 0) return
+    if (!activeResourceId || videos.length === 0) return
     if (!hasNextQueuePage || !fetchNextQueuePage || isFetchingQueue) return
 
-    const currentIndex = videos.findIndex(v => v.videoId === activeVideoId)
+    const currentIndex = videos.findIndex(v => v.videoId === activeResourceId)
 
     if (currentIndex !== -1 && currentIndex >= videos.length - 3) {
       fetchNextQueuePage()
     }
-  }, [activeVideoId, videos.length, hasNextQueuePage, fetchNextQueuePage, isFetchingQueue, videos])
+  }, [activeResourceId, videos.length, hasNextQueuePage, fetchNextQueuePage, isFetchingQueue, videos])
 
   useEffect(() => {
     if (endedSignal === 0) return
 
     const currentVideos = latestVideos.current
 
-    const currentActiveId = usePlaylistStore.getState().activeVideoId
+    const currentActiveId = usePlaylistStore.getState().activeResourceId
     const currentIndex = currentVideos.findIndex(v => v.videoId === currentActiveId)
 
     if (currentIndex !== -1 && currentIndex < currentVideos.length - 1) {
       const nextVideoId = currentVideos[currentIndex + 1].videoId
 
-      usePlaylistStore.getState().setActiveVideoId(nextVideoId)
+      usePlaylistStore.getState().setActiveResourceId(nextVideoId)
     } else {
       const isPlaying = usePlayerPlayStore.getState().playing
       if (isPlaying) {

@@ -92,6 +92,7 @@ export default function PlaylistQueueContainer({
                   playlistId={playlistId}
                   isOwner={guestUserId === authorId}
                   userId={guestUserId || ''}
+                  mediaType={video.mediaType}
                 />
               )
 

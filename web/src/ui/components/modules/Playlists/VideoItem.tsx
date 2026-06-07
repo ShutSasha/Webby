@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils/general.utils'
 import { usePlayerPlayStore } from '@/stores/player.store'
 import { usePlaylistStore } from '@/stores/playlist.store'
 import { useToastStore } from '@/stores/toast-store'
+import { MediaType } from '@/types/general.types'
 
 interface Props {
   id: string
@@ -21,17 +22,19 @@ interface Props {
   playlistId: string
   isOwner: boolean
   userId: string
+  mediaType: MediaType
 }
 
-export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, userId }: Props) {
+export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, userId, mediaType }: Props) {
   const playing = usePlayerPlayStore(state => state.playing)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
   const addToast = useToastStore(state => state.addToast)
 
-  const activeVideoId = usePlaylistStore(state => state.activeVideoId)
-  const setActiveVideoId = usePlaylistStore(state => state.setActiveVideoId)
+  const activeResourceId = usePlaylistStore(state => state.activeResourceId)
+  const setActiveResourceId = usePlaylistStore(state => state.setActiveResourceId)
+  const setActiveMediaType = usePlaylistStore(state => state.setActiveMediaType)
 
-  const isActive = activeVideoId === id
+  const isActive = activeResourceId === id
 
   const { mutate: toggleVideo, isPending } = useTogglePlaylistVideoMutation(userId)
 
@@ -52,7 +55,8 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
     e.preventDefault()
 
     if (!isActive) {
-      setActiveVideoId(id)
+      setActiveResourceId(id)
+      setActiveMediaType(mediaType)
       if (!playing) togglePlay()
       return
     }

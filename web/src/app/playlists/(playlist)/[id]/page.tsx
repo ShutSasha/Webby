@@ -1,6 +1,6 @@
 import { getPlaylistInfo } from '@/lib/actions/playlist.actions'
+import PlaylistMediaContainer from '@/ui/components/modules/Playlists/PlaylistMediaContainer'
 import PlaylistQueueContainer from '@/ui/components/modules/Playlists/PlaylistQueueContainer/PlaylistQueueContainer'
-import PlaylistVideoContainer from '@/ui/components/modules/Playlists/PlaylistVideoContainer' // <-- Новий імпорт
 import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
@@ -27,10 +27,10 @@ export default async function PlaylistPage({ params }: Props) {
 
   return (
     <div className="flex flex-col xl:flex-row gap-5">
-      <PlaylistVideoContainer
+      <PlaylistMediaContainer
         playlistId={playlistId}
-        initialVideoId={firstVideo?.videoId}
-        currentUserId={session?.user?.id}
+        mediaType={firstVideo?.mediaType}
+        initialMediaId={firstVideo?.videoId}
       />
       <PlaylistQueueContainer
         playlistId={playlistId}
