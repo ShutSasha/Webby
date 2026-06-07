@@ -13,6 +13,10 @@
  "JwtOptions": {
     "AccessSecretKey": "{{JwtAccessSecretKey}}",
     "AccessExpiresDuration": "{{JwtAccessExpiresDuration}}"
- }
+ },
+ 
+   "GrpcClients": {
+     "UserServiceUrl": "http://localhost:5004"
+   }
  
 }

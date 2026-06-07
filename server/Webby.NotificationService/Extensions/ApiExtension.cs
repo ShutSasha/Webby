@@ -146,6 +146,15 @@ public static void AddJwtAuthorization(this IServiceCollection serviceCollection
          options.UseNpgsql(configuration.GetConnectionString(nameof(AppDbContext)));
       });
    }
+   
+   public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection, IConfiguration configuration)
+   {
+      serviceCollection.AddGrpcClient<UserGrpcClient.UserGrpcService.UserGrpcServiceClient>(o =>
+      {
+         o.Address = new Uri(configuration["GrpcClients:UserServiceUrl"]);
+      });
+      
+   }
 
    public static void AddRepositories(this IServiceCollection serviceCollection)
    {

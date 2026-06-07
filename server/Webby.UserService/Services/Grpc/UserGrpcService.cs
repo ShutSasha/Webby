@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using UserService;
 using Webby.UserService.Interfaces.Repository;
 
@@ -84,5 +85,12 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       {
          Status = status
       };
+   }
+
+   public override async Task<BoolValue> CheckIfUserExist(CheckIfUserExistsRequest request, ServerCallContext context)
+   {
+      var user = await _userRepository.FindById(Guid.Parse(request.UserId));
+
+      return user == null ? new BoolValue { Value = false } : new BoolValue { Value = true };
    }
 }
