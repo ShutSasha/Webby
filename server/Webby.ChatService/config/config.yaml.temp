@@ -15,4 +15,4 @@ redis:
 grpc:
   port: 50051
   roomServiceAddress: "localhost:50054"
-
+  userServiceAddress: "localhost:5004"

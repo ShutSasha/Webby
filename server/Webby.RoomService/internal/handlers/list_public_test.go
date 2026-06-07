@@ -24,7 +24,14 @@ import (
 func setupListPublicRouter(mockService *handlermocks.MockService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockService)
+	creator := &handlermocks.RoomCreatorAdapter{Service: mockService}
+	updater := &handlermocks.RoomUpdaterAdapter{Service: mockService}
+	deleter := &handlermocks.RoomDeleterAdapter{Service: mockService}
+	retriever := &handlermocks.RoomDetailsRetrieverAdapter{Service: mockService}
+	lister := &handlermocks.RoomListerAdapter{Service: mockService}
+	memberMgr := &handlermocks.RoomMemberManagerAdapter{Service: mockService}
+	syncer := &handlermocks.PlaybackSynchronizerAdapter{Service: mockService}
+	h := handlers.New(creator, updater, deleter, retriever, lister, memberMgr, syncer)
 	router.GET("/api/rooms/public", func(c *gin.Context) {
 		ctx := logger.ToContext(c.Request.Context(), log)
 		c.Request = c.Request.WithContext(ctx)
@@ -47,7 +54,7 @@ func TestListPublicRooms(t *testing.T) {
 			name:        "Success - Default Pagination",
 			queryParams: "",
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "", (*string)(nil)).Return([]models.PublicRoom{
+				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "", "").Return([]models.PublicRoom{
 					{ID: uuid.New(), Name: "Room 1", HostID: hostID, HostUsername: "user1", HostAvatarUrl: "https://example.com/avatar.jpg", Category: "Gaming", Thumbnail: "https://example.com/thumb.jpg"},
 				}, int64(1), nil).Once()
 			},
@@ -65,7 +72,7 @@ func TestListPublicRooms(t *testing.T) {
 			name:        "Success - With Search",
 			queryParams: "?search=test",
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "test", (*string)(nil)).Return([]models.PublicRoom{}, int64(0), nil).Once()
+				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "test", "").Return([]models.PublicRoom{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -76,8 +83,7 @@ func TestListPublicRooms(t *testing.T) {
 			name:        "Success - With Category Filter",
 			queryParams: "?category=Gaming",
 			mockSetup: func(ms *handlermocks.MockService) {
-				cat := "Gaming"
-				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "", &cat).Return([]models.PublicRoom{}, int64(0), nil).Once()
+				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "", "Gaming").Return([]models.PublicRoom{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -85,7 +91,7 @@ func TestListPublicRooms(t *testing.T) {
 			name:        "Success - Category 'all' Clears Filter",
 			queryParams: "?category=all",
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "", (*string)(nil)).Return([]models.PublicRoom{}, int64(0), nil).Once()
+				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "", "").Return([]models.PublicRoom{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -93,7 +99,7 @@ func TestListPublicRooms(t *testing.T) {
 			name:        "Success - Custom Pagination",
 			queryParams: "?page=2&limit=5",
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().ListPublic(mock.Anything, 2, 5, "", (*string)(nil)).Return([]models.PublicRoom{}, int64(0), nil).Once()
+				ms.EXPECT().ListPublic(mock.Anything, 2, 5, "", "").Return([]models.PublicRoom{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -101,7 +107,7 @@ func TestListPublicRooms(t *testing.T) {
 			name:        "Failure - Service Error",
 			queryParams: "",
 			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "", (*string)(nil)).Return(nil, int64(0), fmt.Errorf("db error")).Once()
+				ms.EXPECT().ListPublic(mock.Anything, 1, 10, "", "").Return(nil, int64(0), fmt.Errorf("db error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody:   assertErrorResponse,

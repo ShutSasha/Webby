@@ -26,6 +26,7 @@ type HttpConfig struct {
 type GrpcConfig struct {
 	Port               int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
 	RoomServiceAddress string `yaml:"roomServiceAddress" env-default:"localhost:5006" env:"GRPC_ROOM_SERVICE_ADDRESS"`
+	UserServiceAddress string `yaml:"userServiceAddress" env-default:"localhost:5004" env:"GRPC_USER_SERVICE_ADDRESS"`
 }
 
 type RedisConfig struct {

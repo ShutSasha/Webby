@@ -20,7 +20,7 @@ func (h *handler) Delete(c *gin.Context) {
 
 	var uri deleteUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("invalid uri params", slog.Any("err", err))
+		log.Debug("invalid uri params", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -28,7 +28,7 @@ func (h *handler) Delete(c *gin.Context) {
 	itemID, _ := uuid.Parse(uri.ItemID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	if err := h.service.DeleteFromQueue(ctx, itemID, userID); err != nil {
-		log.Error("delete from queue error", slog.Any("err", err))
+		log.Error("delete from queue error", slog.String("err", err.Error()))
 		HandleAppError(c, "Delete from queue error", err)
 		return
 	}

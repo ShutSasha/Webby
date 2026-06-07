@@ -16,8 +16,16 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 	{
 		chats := api.Group("/chats")
 		chats.Use(requireAuth)
-		chats.POST("", handler.Create)
-		chats.GET("/:id", handler.Get)
+		{
+			chats.POST("", handler.Create)
+			chats.GET("/:id", handler.Get)
+		}
+
+		messages := api.Group("/messages")
+		messages.Use(requireAuth)
+		{
+			messages.POST("", handler.SaveMessage)
+		}
 	}
 
 	router.GET("/swagger", swaggerUI)

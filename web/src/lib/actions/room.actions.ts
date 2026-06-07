@@ -3,7 +3,13 @@
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse } from '@/types/general.types'
-import { GetPublicRooms, GetUserRoomsResponse, Room } from '@/types/room.types'
+import {
+  GetPublicRooms,
+  GetRoomMembersResponse,
+  GetRoomQueueResponse,
+  GetUserRoomsResponse,
+  Room,
+} from '@/types/room.types'
 
 const endpoint = '/rooms'
 
@@ -175,6 +181,140 @@ export async function getRoomById(roomId: string): Promise<BaseServerResponse<Ro
       data: null,
       success: false,
       message: `Failed to retrieve room details`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function getRoomQueueAction(
+  roomId: string,
+  page: number,
+  limit: number = 20,
+): Promise<BaseServerResponse<GetRoomQueueResponse>> {
+  try {
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    params.append('limit', limit.toString())
+
+    const url = `${endpoint}/${roomId}/queue?${params.toString()}`
+
+    const { data: response } = await $api.get<BaseServerResponse<GetRoomQueueResponse>>(url)
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_ROOM_QUEUE_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve room queue',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function activateQueueItemAction(roomId: string, itemId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.patch<BaseServerResponse<null>>(
+      `${endpoint}/${roomId}/queue/${itemId}/activate`,
+    )
+    return response
+  } catch (error: unknown) {
+    serverLog('ACTIVATE_QUEUE_ITEM_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to activate queue item',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function removeQueueItemAction(roomId: string, itemId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(`${endpoint}/${roomId}/queue/${itemId}`)
+    return response
+  } catch (error: unknown) {
+    serverLog('REMOVE_QUEUE_ITEM_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to remove item from queue',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function addQueueItemAction(roomId: string, videoId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/${roomId}/queue`, { videoId })
+    return response
+  } catch (error: unknown) {
+    serverLog('ADD_QUEUE_ITEM_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to add item to queue',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function getRoomMembersAction(
+  roomId: string,
+  page: number,
+  limit: number = 10,
+  search: string = '',
+): Promise<BaseServerResponse<GetRoomMembersResponse>> {
+  try {
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    params.append('limit', limit.toString())
+
+    if (search) {
+      params.append('search', search)
+    }
+
+    const { data: response } = await $api.get<BaseServerResponse<GetRoomMembersResponse>>(
+      `${endpoint}/${roomId}/members?${params.toString()}`,
+    )
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_ROOM_MEMBERS_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve room members',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function removeRoomMemberAction(roomId: string, memberId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(`${endpoint}/${roomId}/members/${memberId}`)
+    return response
+  } catch (error: unknown) {
+    serverLog('REMOVE_ROOM_MEMBER_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to remove member from room',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function addRoomMembersAction(roomId: string, userIds: string[]): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/${roomId}/members`, {
+      userIds,
+    })
+    return response
+  } catch (error: unknown) {
+    serverLog('ADD_ROOM_MEMBERS_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to add members to the room',
       errors: parseAxiosError(error),
     }
   }

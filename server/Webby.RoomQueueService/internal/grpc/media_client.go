@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"webby/room-queue-service/internal/grpc/mediapb"
+	"webby/room-queue-service/pkg/logger"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -46,11 +47,15 @@ func (m *MediaClient) Close() error {
 
 func (m *MediaClient) GetVideo(ctx context.Context, id string) (*VideoInfo, error) {
 	const op = "grpc.media_client.GetVideo"
+	log := logger.FromContext(ctx).With("op", op)
 
 	resp, err := m.client.GetVideo(ctx, &mediapb.GetVideoRequest{Id: id})
 	if err != nil {
+		log.Error("get video from media client", "err", err)
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
+	log.Debug("get video from media flient resp", "resp", resp)
 
 	return &VideoInfo{
 		ID:        resp.Id,
@@ -62,11 +67,15 @@ func (m *MediaClient) GetVideo(ctx context.Context, id string) (*VideoInfo, erro
 
 func (m *MediaClient) GetVideosBatch(ctx context.Context, ids []string) ([]VideoInfo, error) {
 	const op = "grpc.media_client.GetVideosBatch"
+	log := logger.FromContext(ctx).With("op", op)
 
 	resp, err := m.client.GetVideosBatch(ctx, &mediapb.GetVideosBatchRequest{Ids: ids})
 	if err != nil {
+		log.Error("get videos batch from media client", "err", err)
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
+	log.Debug("get videos batch from media flient resp: %v", "resp", resp)
 
 	videoMap := make(map[string]*mediapb.VideoResponse, len(resp.GetVideos()))
 	for _, v := range resp.GetVideos() {

@@ -32,12 +32,13 @@ type AwsConfig struct {
 }
 
 type GrpcConfig struct {
-	Host                   string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
-	Port                   int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
-	MediaServiceAddress    string `yaml:"mediaServiceAddress" env-default:"localhost:5005" env:"GRPC_MEDIA_SERVICE_ADDRESS"`
-	ChatServiceAddress     string `yaml:"chatServiceAddress" env-default:"localhost:5008" env:"GRPC_CHAT_SERVICE_ADDRESS"`
-	CategoryServiceAddress string `yaml:"categoryServiceAddress" env-default:"localhost:5009" env:"GRPC_CATEGORY_SERVICE_ADDRESS"`
-	QueueServiceAddress    string `yaml:"queueServiceAddress" env-default:"localhost:5007" env:"GRPC_QUEUE_SERVICE_ADDRESS"`
+	Host                       string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
+	Port                       int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
+	MediaServiceAddress        string `yaml:"mediaServiceAddress" env-default:"localhost:5005" env:"GRPC_MEDIA_SERVICE_ADDRESS"`
+	ChatServiceAddress         string `yaml:"chatServiceAddress" env-default:"localhost:5008" env:"GRPC_CHAT_SERVICE_ADDRESS"`
+	CategoryServiceAddress     string `yaml:"categoryServiceAddress" env-default:"localhost:5009" env:"GRPC_CATEGORY_SERVICE_ADDRESS"`
+	QueueServiceAddress        string `yaml:"queueServiceAddress" env-default:"localhost:5007" env:"GRPC_QUEUE_SERVICE_ADDRESS"`
+	NotificationServiceAddress string `yaml:"notificationServiceAddress" env-default:"localhost:5007" env:"GRPC_NOTIFICATION_SERVICE_ADDRESS"`
 }
 
 type RedisConfig struct {

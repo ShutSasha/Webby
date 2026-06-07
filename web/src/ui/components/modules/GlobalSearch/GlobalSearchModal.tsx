@@ -136,7 +136,7 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
                 key={video.videoId}
                 id={video.videoId}
                 title={video.name}
-                subtitle={`Webby • ${video.views.toLocaleString()} views • by ${video.user.username}`}
+                subtitle={`Webby • ${video.views.toLocaleString()} views • by ${video?.user?.username || 'Unknown Creator'}`}
                 thumbnail={video.previewUrl}
                 type="Video"
                 onCloseSearchModal={onCloseSearchModal}
@@ -297,7 +297,7 @@ function StreamsTab({ query, onCloseSearchModal }: { query: string; onCloseSearc
         const card = (
           <GlobalSearchCard
             key={stream.streamId}
-            id={stream.streamId}
+            id={stream.user.userId}
             title={stream.name}
             subtitle={`Twitch • ${stream.viewers.toLocaleString()} viewers • ${stream.user.username}`}
             thumbnail={stream.previewUrl}

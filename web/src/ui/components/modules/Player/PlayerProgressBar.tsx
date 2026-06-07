@@ -50,12 +50,11 @@ export default function PlayerProgressBar({
       {/* Tooltip */}
       {hoverTime !== null && (
         <div
-          className="absolute bottom-4 -translate-x-1/2 bg-white text-black px-1.5 py-0.5 rounded-md text-[12px]
+          className="absolute bottom-4.5 -translate-x-1/2 bg-neutral-100 text-black px-2 py-1 rounded-md text-sm
             font-bold shadow-lg pointer-events-none transition-opacity"
           style={{ left: `${hoverX}px` }}
         >
           <Duration seconds={hoverTime} />
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45" />
         </div>
       )}
 

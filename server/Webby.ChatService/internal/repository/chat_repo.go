@@ -65,7 +65,7 @@ func (r *ChatRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Cha
 }
 
 func (r *ChatRepository) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error) {
-	const op = "repository.ChatRepository.GetByRoomId"
+	const op = "repository.ChatRepository.GetByRoomID"
 
 	if roomID == uuid.Nil {
 		return nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)

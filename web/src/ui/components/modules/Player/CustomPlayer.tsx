@@ -85,10 +85,25 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
         onError={actions.handleReactPlayerError}
       />
 
-      {!isPlatformMode && <PlayerLoader isReady={state.isReady} buffering={state.buffering} />}
+      {state.error && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 text-center px-4">
+          <svg className="w-12 h-12 text-red-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <p className="text-neutral-200 font-semibold text-lg">Playback Error</p>
+          <p className="text-neutral-400 text-sm mt-1">{state.error}</p>
+        </div>
+      )}
+
+      {!state.error && !isPlatformMode && <PlayerLoader isReady={state.isReady} buffering={state.buffering} />}
 
       {/* Overlay */}
-      {state.isReady && !isPlatformMode && (
+      {!state.error && state.isReady && !isPlatformMode && (
         <div
           className={`absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent transition-opacity
           duration-400 ease-in-out ${uiState.showCustomControls ? 'opacity-100' : 'opacity-0'}`}

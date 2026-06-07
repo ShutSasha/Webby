@@ -20,7 +20,6 @@ import (
 	handlers "webby/chat-service/internal/handlers"
 	"webby/chat-service/internal/repository"
 	"webby/chat-service/internal/services"
-	"webby/chat-service/internal/ws"
 	"webby/chat-service/pkg/slogpretty"
 
 	"github.com/redis/go-redis/v9"
@@ -58,9 +57,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	logger.Info("database connected successfully")
 
-	roomMemberClient, err := grpcserver.NewMemberClient(
-		cfg.Grpc.RoomServiceAddress,
-	)
+	roomMemberClient, err := grpcserver.NewMemberClient(cfg.Grpc.RoomServiceAddress)
 	if err != nil {
 		logger.Error(
 			"room service gRPC connection failed",
@@ -70,6 +67,16 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer roomMemberClient.Close()
 
+	userClient, err := grpcserver.NewUserClient(cfg.Grpc.UserServiceAddress)
+	if err != nil {
+		logger.Error(
+			"user service gRPC connection failed",
+			slog.String("error", err.Error()),
+		)
+		return err
+	}
+	defer userClient.Close()
+
 	// Repositories
 	chatRepo := repository.NewChatRepository(db)
 	chatMemberRepo := repository.NewChatMemberRepository(db)
@@ -77,7 +84,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	// Services
 	chatService := services.NewChatService(chatRepo, chatMemberRepo, roomMemberClient)
-	messageService := services.NewMessageService(messageRepo, chatMemberRepo)
+	messageService := services.NewMessageService(messageRepo, chatMemberRepo, userClient)
 
 	// Redis publisher for event dispatch
 	rdb := redis.NewClient(&redis.Options{
@@ -87,18 +94,8 @@ func run(ctx context.Context, w io.Writer) error {
 	})
 	defer rdb.Close()
 
-	// WebSocket
-	hubManager := ws.NewHubManager()
-	socketServer := ws.SetupSocketIO(logger, []byte(cfg.JwtSecret), hubManager, chatService, messageService)
-	go func() {
-		if err := socketServer.Serve(); err != nil {
-			logger.Error("socket.io serve error", slog.String("error", err.Error()))
-		}
-	}()
-	defer socketServer.Close()
-
 	// HTTP server
-	server := handlers.NewServer(cfg, logger, chatService, socketServer)
+	server := handlers.NewServer(cfg, logger, chatService, messageService)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
 		ReadTimeout:  cfg.Http.Timeout,

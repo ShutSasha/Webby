@@ -19,6 +19,9 @@ type AdminAchievement = BaseAchievement & {
 
 type UserAchievement = BaseAchievement & {
   isUnlocked: boolean
+  achievementProgressValue: number
+  targetValue: number
+  unlockedAt: string
 }
 
 type GetUserAchievementsResponse = {

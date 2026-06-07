@@ -20,6 +20,7 @@ type PlayerState = {
   showSettings: boolean
   buffering: boolean
   isReady: boolean
+  error: string | null
 }
 
 export const useCustomPlayerLogic = (
@@ -63,6 +64,7 @@ export const useCustomPlayerLogic = (
     showSettings: false,
     buffering: true,
     isReady: false,
+    error: null,
   }
 
   const [state, setState] = useState<PlayerState>(initialState)
@@ -116,6 +118,7 @@ export const useCustomPlayerLogic = (
       duration: 0,
       loadedSeconds: 0,
       playedSeconds: 0,
+      error: null,
     }))
 
     const hasInteracted = typeof navigator !== 'undefined' && (navigator as any).userActivation?.hasBeenActive
@@ -397,10 +400,39 @@ export const useCustomPlayerLogic = (
     const target = e?.target as HTMLVideoElement | undefined
     if (target?.error) {
       console.error('Video Media Error. Code:', target.error.code, 'Message:', target.error.message)
+
+      let errorMessage = 'An unknown error occurred while loading the video.'
+      switch (target.error.code) {
+        case 1:
+          errorMessage = 'Video loading was aborted.'
+          break
+        case 2:
+          errorMessage = 'A network error caused the video download to fail.'
+          break
+        case 3:
+          errorMessage = 'The video playback was aborted due to a corruption problem.'
+          break
+        case 4:
+          errorMessage = 'The video format is not supported or the file cannot be found.'
+          break
+      }
+
+      setState(prev => ({
+        ...prev,
+        error: errorMessage,
+        buffering: false,
+        isReady: false,
+      }))
       return
     }
 
     console.error('Unhandled ReactPlayer Error:', e)
+    setState(prev => ({
+      ...prev,
+      error: 'Failed to play video. Please try again later.',
+      buffering: false,
+      isReady: false,
+    }))
   }
 
   return {
