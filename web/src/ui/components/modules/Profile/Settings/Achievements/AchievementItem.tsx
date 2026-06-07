@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import MoreOptions from '@/assets/icons/shared/more-vertical.svg'
 import { pinAchievement, unpinAchievement } from '@/lib/actions/achievement.actions'
+import { formatDate } from '@/lib/utils/date.utils'
 import { cn } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
 import SafeImage from '@/ui/components/shared/SafeImage'
@@ -18,6 +19,9 @@ type AchievementItemProps = {
   image: string
   isPinned: boolean
   isUnlocked: boolean
+  achievementProgressValue: number
+  targetValue: number
+  unlockedAt: string
   className?: string
 }
 
@@ -28,6 +32,9 @@ export default function AchievementItem({
   image,
   isPinned,
   isUnlocked,
+  achievementProgressValue,
+  targetValue,
+  unlockedAt,
   className,
 }: AchievementItemProps) {
   const [isOpen, setOpen] = useState<boolean>(false)
@@ -40,6 +47,11 @@ export default function AchievementItem({
   const [isPending, startTransition] = useTransition()
 
   const isLoading = isFetching || isPending
+
+  const progressPercentage =
+    targetValue > 0 ? Math.min(100, Math.round((achievementProgressValue / targetValue) * 100)) : 0
+
+  const formattedDate = unlockedAt ? formatDate(unlockedAt) : ''
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -100,7 +112,7 @@ export default function AchievementItem({
   return (
     <div
       className={cn(
-        `relative rounded-[20px] border border-border px-5 py-3 flex flex-col gap-1 items-center w-[200px] size-[200px]
+        `relative rounded-[20px] border border-border px-4 py-4 flex flex-col gap-1 items-center w-[200px] min-h-[230px]
         select-none transition-all shrink-0`,
         className,
         isLoading && 'pointer-events-none',
@@ -120,20 +132,54 @@ export default function AchievementItem({
         alt=""
         width={150}
         height={150}
-        className={cn('size-[100px] object-cover rounded-full', { grayscale: !isUnlocked })}
+        className={cn('size-[90px] object-cover rounded-full mt-1', { grayscale: !isUnlocked })}
         loading="lazy"
         placeholder="blur"
         blurDataURL={BLUR_DATA_URLS['neutral800']}
       />
-      <p className="font-bold select-text">{title}</p>
+      <p className="font-bold select-text mt-1">{title}</p>
       <p className="text-neutral-500 text-sm text-center line-clamp-2" title={description}>
         {description}
       </p>
 
+      {!isUnlocked ? (
+        <div className="w-full mt-auto pt-3">
+          <div className="flex justify-between items-center text-[11px] text-neutral-400 mb-1.5 px-1 font-medium">
+            <span>
+              {achievementProgressValue} / {targetValue}
+            </span>
+            <span>{progressPercentage}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+            <div
+              className={cn(
+                'h-full rounded-full transition-all duration-500',
+                isUnlocked ? 'bg-emerald-500' : 'bg-emerald-500/60',
+              )}
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="w-full mt-auto pt-3 flex justify-center">
+          {formattedDate !== 'Unknown time' && formattedDate !== '' && (
+            <div
+              className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20
+                text-emerald-400 text-[11px] font-medium px-2.5 py-1 rounded-full"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Unlocked {formattedDate}
+            </div>
+          )}
+        </div>
+      )}
+
       {isUnlocked && (
         <MoreOptions
           ref={optionsRef}
-          className="absolute size-5 right-2 top-2.5 text-neutral-300 cursor-pointer hover:text-neutral-100
+          className="absolute size-5 right-3 top-3 text-neutral-300 cursor-pointer hover:text-neutral-100
             transition-colors z-10"
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation()

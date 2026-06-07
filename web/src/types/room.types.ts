@@ -26,3 +26,26 @@ export type UserRoom = {
 }
 
 export type GetUserRoomsResponse = PaginatedData<UserRoom>
+
+export type RoomQueueItem = {
+  id: string
+  videoId: string
+  title: string
+  thumbnail: string
+  videoUrl: string
+  isActive: boolean
+  position: number
+  isFolder?: boolean
+  children?: RoomQueueItem[]
+}
+
+export type GetRoomQueueResponse = PaginatedData<RoomQueueItem>
+
+export type RoomMember = {
+  userId: string
+  username: string
+  avatarUrl: string
+  roomPoints: number
+}
+
+export type GetRoomMembersResponse = PaginatedData<RoomMember>

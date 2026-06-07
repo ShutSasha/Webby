@@ -10,20 +10,25 @@ interface RoomState {
   syncTargetTimecode: number | null
   isSyncCooldown: boolean
 
+  optimisticPendingId: string | null
+
   setSyncTriggerId: (id: string | null) => void
   setSyncTargetTimecode: (timecode: number | null) => void
   setSyncCooldown: (isOnCooldown: boolean) => void
+  setOptimisticPendingId: (id: string | null) => void
 }
 
 export const useRoomStore = create<RoomState>(set => ({
-  tab: 'chat',
+  tab: 'playlist',
   setTab: tab => set({ tab: tab }),
 
   syncTriggerId: null,
   syncTargetTimecode: null,
   isSyncCooldown: false,
+  optimisticPendingId: null,
 
   setSyncTriggerId: id => set({ syncTriggerId: id }),
   setSyncTargetTimecode: timecode => set({ syncTargetTimecode: timecode }),
   setSyncCooldown: isOnCooldown => set({ isSyncCooldown: isOnCooldown }),
+  setOptimisticPendingId: id => set({ optimisticPendingId: id }),
 }))
