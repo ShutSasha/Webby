@@ -246,16 +246,19 @@ func (r *roomMemberRepository) UpdatePoints(ctx context.Context, roomId, userId 
 func (r *roomMemberRepository) AddPointsBulk(ctx context.Context, userIDs []uuid.UUID, pointsToAdd int) (map[uuid.UUID]int, error) {
 	const op = "repository.roomMemberRepository.AddPointsBulk"
 
-	const query = `
-		UPDATE public.room_members 
-		SET room_points = room_points + $1 
-		WHERE user_id = ANY($2)
-		RETURNING user_id, room_points
-	`
-
-	rows, err := r.db.Query(ctx, query, pointsToAdd, userIDs)
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Update("room_members").
+		Set("room_points", sq.Expr("room_points + ?", pointsToAdd)).
+		Where(sq.Expr("user_id = ANY(?)", userIDs)).
+		Suffix("RETURNING user_id, room_points").
+		ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 	defer rows.Close()
 
