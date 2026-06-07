@@ -14,8 +14,6 @@ import (
 	"github.com/googollee/go-socket.io/engineio/transport/polling"
 	"github.com/googollee/go-socket.io/engineio/transport/websocket"
 
-	clients "webby/wsgateway/internal/grpc"
-
 	"webby/wsgateway/internal/domain"
 )
 
@@ -33,12 +31,10 @@ type Server struct {
 
 	service     userIDRetriever
 	logger      *slog.Logger
-	jwtSecret   []byte
-	chat        *clients.ChatClient
 	callTimeout time.Duration
 }
 
-func NewServer(service userIDRetriever, logger *slog.Logger, jwtSecret []byte, chat *clients.ChatClient, callTimeout time.Duration) *Server {
+func NewServer(service userIDRetriever, logger *slog.Logger, callTimeout time.Duration) *Server {
 	s := &Server{
 		io: socketio.NewServer(&engineio.Options{
 			Transports: []transport.Transport{
@@ -57,8 +53,6 @@ func NewServer(service userIDRetriever, logger *slog.Logger, jwtSecret []byte, c
 
 		service:     service,
 		logger:      logger,
-		jwtSecret:   jwtSecret,
-		chat:        chat,
 		callTimeout: callTimeout,
 	}
 	s.registerHandlers()

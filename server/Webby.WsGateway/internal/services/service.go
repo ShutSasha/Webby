@@ -9,20 +9,20 @@ import (
 	"github.com/google/uuid"
 )
 
-type Repository interface {
+type tokenRepository interface {
 	SaveToken(ctx context.Context, token string, userID uuid.UUID) error
 	GetUserID(ctx context.Context, token string) (uuid.UUID, error)
 }
 
-type Service struct {
-	repository Repository
+type tokenService struct {
+	repository tokenRepository
 }
 
-func New(repository Repository) *Service {
-	return &Service{repository: repository}
+func New(repository tokenRepository) *tokenService {
+	return &tokenService{repository: repository}
 }
 
-func (svc *Service) GenerateToken(ctx context.Context, userID uuid.UUID) (string, error) {
+func (svc *tokenService) GenerateToken(ctx context.Context, userID uuid.UUID) (string, error) {
 	const op = "services.GenerateToken"
 
 	token := svc.generateToken()
@@ -33,7 +33,7 @@ func (svc *Service) GenerateToken(ctx context.Context, userID uuid.UUID) (string
 	return token, nil
 }
 
-func (svc *Service) GetUserID(ctx context.Context, token string) (uuid.UUID, error) {
+func (svc *tokenService) GetUserID(ctx context.Context, token string) (uuid.UUID, error) {
 	const op = "services.GetUserID"
 
 	userID, err := svc.repository.GetUserID(ctx, token)
@@ -44,7 +44,7 @@ func (svc *Service) GetUserID(ctx context.Context, token string) (uuid.UUID, err
 	return userID, nil
 }
 
-func (svc *Service) generateToken() string {
+func (svc *tokenService) generateToken() string {
 	b := make([]byte, 32)
 	rand.Read(b)
 

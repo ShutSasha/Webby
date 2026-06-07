@@ -16,7 +16,6 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"webby/wsgateway/internal/config"
-	clients "webby/wsgateway/internal/grpc"
 	"webby/wsgateway/internal/handlers"
 	redisbus "webby/wsgateway/internal/redis"
 	"webby/wsgateway/internal/repositories"
@@ -41,21 +40,7 @@ func main() {
 	repository := repositories.New(rdb, cfg.TokenTTL)
 	service := services.New(repository)
 
-	chatClient, err := clients.NewChatClient(cfg.Grpc.Chat)
-	if err != nil {
-		logger.Error("chat client", slog.String("err", err.Error()))
-		os.Exit(1)
-	}
-	defer chatClient.Close()
-
-	votesClient, err := clients.NewVotesClient(cfg.Grpc.Votes)
-	if err != nil {
-		logger.Error("votes client", slog.String("err", err.Error()))
-		os.Exit(1)
-	}
-	defer votesClient.Close()
-
-	wsSrv := ws.NewServer(service, logger, []byte(cfg.JwtSecret), chatClient, cfg.Http.CallTimeout)
+	wsSrv := ws.NewServer(service, logger, cfg.Http.CallTimeout)
 	go func() {
 		if err := wsSrv.Serve(); err != nil {
 			logger.Error("socket.io serve", slog.String("err", err.Error()))
