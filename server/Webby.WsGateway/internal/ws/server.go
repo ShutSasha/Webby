@@ -68,8 +68,6 @@ func (server *Server) BroadcastToRoom(chatID uuid.UUID, event string, payload an
 	server.io.BroadcastToRoom("/", chatID.String(), event, payload)
 }
 
-// --- handlers -------------------------------------------------------------
-
 func (server *Server) registerHandlers() {
 	server.io.OnConnect("/", server.onConnect)
 	server.io.OnDisconnect("/", server.onDisconnect)
@@ -83,13 +81,11 @@ func (server *Server) onConnect(c socketio.Conn) error {
 	query := url.Query()
 
 	token := query.Get("token")
-	chatIDStr := query.Get("chat_id")
-
-	if token == "" || chatIDStr == "" {
-		return errors.New("token and chat_id are required")
+	if token == "" {
+		return errors.New("token is required")
 	}
 
-	chatID, err := uuid.Parse(chatIDStr)
+	chatID, err := uuid.Parse(query.Get("chat_id"))
 	if err != nil {
 		return errors.New("invalid chat_id")
 	}
