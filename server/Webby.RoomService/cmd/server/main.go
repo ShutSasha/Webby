@@ -21,6 +21,7 @@ import (
 	"webby/room-service/internal/publisher"
 	"webby/room-service/internal/repository"
 	"webby/room-service/internal/services"
+	"webby/room-service/internal/workers"
 	"webby/room-service/pkg/slogpretty"
 
 	"github.com/redis/go-redis/v9"
@@ -153,6 +154,10 @@ func run(ctx context.Context, w io.Writer) error {
 			logger.Error("error serving grpc", slog.Any("error", err))
 		}
 	}()
+
+	worker := workers.NewPointsWorker(rdb, roomMemberRepository, publisher, logger, cfg.Interval, cfg.PointsPerTick)
+
+	go worker.Run(ctx)
 
 	var wg sync.WaitGroup
 	wg.Go(func() {

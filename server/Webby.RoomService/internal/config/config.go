@@ -9,13 +9,15 @@ import (
 )
 
 type Config struct {
-	Env              string      `yaml:"env" env-default:"local" env:"ENV"`
-	ConnectionString string      `yaml:"connectionString" env:"CONNECTION_STRING"`
-	JwtSecret        string      `yaml:"jwtSecret" env:"JWT_SECRET"`
-	Http             HttpConfig  `yaml:"http"`
-	Aws              AwsConfig   `yaml:"aws"`
-	Grpc             GrpcConfig  `yaml:"grpc"`
-	Redis            RedisConfig `yaml:"redis"`
+	Env              string        `yaml:"env" env-default:"local" env:"ENV"`
+	ConnectionString string        `yaml:"connectionString" env:"CONNECTION_STRING"`
+	JwtSecret        string        `yaml:"jwtSecret" env:"JWT_SECRET"`
+	PointsPerTick    int           `yaml:"points_per_tick" env-default:"15" env:"POINTS_PER_TICK"`
+	Interval         time.Duration `yaml:"interval" env-default:"1m" env:"INTERVAL"`
+	Http             HttpConfig    `yaml:"http"`
+	Aws              AwsConfig     `yaml:"aws"`
+	Grpc             GrpcConfig    `yaml:"grpc"`
+	Redis            RedisConfig   `yaml:"redis"`
 }
 
 type HttpConfig struct {
