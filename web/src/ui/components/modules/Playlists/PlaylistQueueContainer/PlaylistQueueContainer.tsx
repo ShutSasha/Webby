@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
-import { useSearchParams } from 'next/navigation'
 import { useDebouncedCallback } from 'use-debounce'
 
 import { useSearchPlaylistVideosQuery } from '@/lib/hooks/api/playlist/useSearchPlaylistVideos'
@@ -30,10 +29,6 @@ export default function PlaylistQueueContainer({
   authorId,
   guestUserId,
 }: Props) {
-  const searchParams = useSearchParams()
-  const currentV = searchParams.get('v')
-  const [optimisticId, setOptimisticId] = useState<string | null>(null)
-
   const [query, setQuery] = useState('')
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
@@ -68,17 +63,10 @@ export default function PlaylistQueueContainer({
 
   usePlaylistAutoPlay({
     videos: queueVideos,
-    currentV,
-    playlistId,
-    setOptimisticId,
     hasNextQueuePage,
     fetchNextQueuePage,
     isFetchingQueue,
   })
-
-  useEffect(() => {
-    setOptimisticId(null)
-  }, [currentV])
 
   return (
     <div className="w-full xl:w-[320px] 2xl:w-[388px] flex flex-col h-[90vh] shrink-0">
@@ -102,8 +90,6 @@ export default function PlaylistQueueContainer({
                   title={video.name}
                   thumbnail={video.previewUrl}
                   playlistId={playlistId}
-                  optimisticId={optimisticId}
-                  onOptimisticClick={() => setOptimisticId(video.videoId)}
                   isOwner={guestUserId === authorId}
                   userId={guestUserId || ''}
                 />

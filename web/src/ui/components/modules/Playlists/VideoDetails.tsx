@@ -1,12 +1,17 @@
+'use client'
+
+import { useEffect } from 'react'
+
 import Image from 'next/image'
 import Link from 'next/link'
 
 import LockIcon from '@/assets/icons/shared/lock.svg'
-import { checkVideoInPlaylist } from '@/lib/actions/playlist.actions'
-import { getVideoInfo } from '@/lib/actions/video.actions'
+import { useCheckPlaylistVideoQuery, useVideoInfoQuery } from '@/lib/hooks/api/video/useVideoInfoQuery'
+import { usePlaylistStore } from '@/stores/playlist.store'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import SaveToPlaylistButton from './SaveToPlaylistBtn/SaveToPlaylistButton'
+import VideoDetailsSkeleton from './VideoDetailsSkeleton'
 import ComplaintButton from '../../shared/ComplaintButton'
 import CustomPlayer from '../Player/CustomPlayer'
 import FollowButton from '../Profile/FollowButton'
@@ -14,44 +19,48 @@ import VideoDescription from '../Videos/VideoDescription'
 import VideoNotFound from '../Videos/VideoNotFound'
 
 type Props = {
-  v: string | undefined
+  videoId: string
   currentUserId: string | undefined
   playlistId?: string
 }
 
-export default async function VideoDetails({ v, currentUserId, playlistId }: Props) {
-  if (!v) {
-    return <VideoNotFound />
-  }
+export default function VideoDetails({ videoId, currentUserId, playlistId }: Props) {
+  const setActiveMediaType = usePlaylistStore(state => state.setActiveMediaType)
 
-  const [video, playlistCheck] = await Promise.all([
-    getVideoInfo(v),
-    playlistId ? checkVideoInPlaylist(playlistId, v) : Promise.resolve({ success: true, data: true }),
-  ])
+  const { data: video, isLoading: isVideoLoading } = useVideoInfoQuery(videoId)
+  const { data: isVideoInPlaylist, isLoading: isCheckLoading } = useCheckPlaylistVideoQuery(playlistId, videoId)
 
-  if (!video.success || !video.data) {
-    return <VideoNotFound />
-  }
+  useEffect(() => {
+    if (video?.mediaType) {
+      setActiveMediaType(video.mediaType)
+    }
+  }, [video?.mediaType, setActiveMediaType])
 
-  if (playlistId && !playlistCheck.data) {
-    return <VideoNotFound />
-  }
+  if (!videoId) return <VideoNotFound />
+  if (isVideoLoading || isCheckLoading) return <VideoDetailsSkeleton />
+  if (!video || (playlistId && !isVideoInPlaylist)) return <VideoNotFound />
 
-  const { videoId, description, createdAt, views, name, user, videoUrl, isPrivate, videoTags, source } = video.data
+  const {
+    videoId: fetchedVideoId,
+    description,
+    createdAt,
+    views,
+    name,
+    user,
+    videoUrl,
+    isPrivate,
+    videoTags,
+    source,
+  } = video
 
-  if (!user) {
-    return <VideoNotFound />
-  }
-
+  if (!user) return <VideoNotFound />
   const isOwner = currentUserId === user.userId
-
-  if (isPrivate && !isOwner) {
-    return <VideoNotFound />
-  }
+  if (isPrivate && !isOwner) return <VideoNotFound />
 
   return (
     <div className="h-fit min-w-0 w-full">
-      <CustomPlayer videoUrl={videoUrl} videoId={v} />
+      <CustomPlayer videoUrl={videoUrl} videoId={fetchedVideoId} />
+
       <div className="flex items-start justify-between mt-3 mb-2">
         <div className="flex flex-col gap-0.5">
           <p className="text-neutral-300 text-[20px] font-bold">{name}</p>
@@ -88,16 +97,14 @@ export default async function VideoDetails({ v, currentUserId, playlistId }: Pro
             )}
           </div>
           <div className="flex gap-3 items-center">
-            {currentUserId && <SaveToPlaylistButton userId={currentUserId} videoId={videoId} />}
-
-            {/* slice cuts the id's prefixt wb_ */}
-            <ComplaintButton authorId={currentUserId} targetId={videoId.slice(3)} targetType="Video" />
+            {currentUserId && <SaveToPlaylistButton userId={currentUserId} videoId={fetchedVideoId} />}
+            <ComplaintButton authorId={currentUserId} targetId={fetchedVideoId.slice(3)} targetType="Video" />
           </div>
         </div>
       )}
       {currentUserId && source !== 'Webby' && (
         <div className="flex flex-row-reverse">
-          <SaveToPlaylistButton userId={currentUserId} videoId={v} />
+          <SaveToPlaylistButton userId={currentUserId} videoId={fetchedVideoId} />
         </div>
       )}
       <VideoDescription text={description ?? ''} views={views} date={createdAt} videoTags={videoTags} />
