@@ -60,6 +60,7 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
         ${!isPlatformMode && !uiState.showCustomControls ? 'cursor-none' : 'cursor-default'}`}
     >
       <ReactPlayer
+        key={videoUrl}
         className="react-player"
         ref={refs.playerRef}
         playing={uiState.playing}

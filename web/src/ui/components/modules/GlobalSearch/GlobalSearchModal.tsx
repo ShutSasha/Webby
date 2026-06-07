@@ -140,6 +140,7 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
                 thumbnail={video.previewUrl}
                 type="Video"
                 onCloseSearchModal={onCloseSearchModal}
+                mediaType="Video"
               />
             ))}
           </div>
@@ -178,6 +179,7 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
                 thumbnail={video.previewUrl}
                 type="YouTube"
                 onCloseSearchModal={onCloseSearchModal}
+                mediaType="Video"
               />
             ))}
           </div>
@@ -228,6 +230,7 @@ function RoomsTab({ query, onCloseSearchModal }: { query: string; onCloseSearchM
             thumbnail={room.thumbnail}
             type="Room"
             onCloseSearchModal={onCloseSearchModal}
+            mediaType="Video"
           />
         )
         return isLast ? (
@@ -266,6 +269,7 @@ function PlaylistsTab({ query, onCloseSearchModal }: { query: string; onCloseSea
             thumbnail={pl.playlistCover}
             type="Playlist"
             onCloseSearchModal={onCloseSearchModal}
+            mediaType="Video"
           />
         )
         return isLast ? (
@@ -284,7 +288,7 @@ function PlaylistsTab({ query, onCloseSearchModal }: { query: string; onCloseSea
 function StreamsTab({ query, onCloseSearchModal }: { query: string; onCloseSearchModal: () => void }) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchStreamsQuery(query)
   const rawStreams = data?.pages.flatMap(p => p.data?.items || []) || []
-  const streams = Array.from(new Map(rawStreams.map(s => [s.streamId, s])).values())
+  const streams = Array.from(new Map(rawStreams.map(s => [s.streamerId, s])).values())
   const lastElementRef = useInfiniteScroll({ isLoading, isFetchingNextPage, hasNextPage, fetchNextPage })
 
   if (isLoading && streams.length === 0) return <Skeletons count={7} />
@@ -296,17 +300,18 @@ function StreamsTab({ query, onCloseSearchModal }: { query: string; onCloseSearc
         const isLast = streams.length === index + 1
         const card = (
           <GlobalSearchCard
-            key={stream.streamId}
-            id={stream.user.userId}
+            key={stream.streamerId}
+            id={stream.streamerId}
             title={stream.name}
-            subtitle={`Twitch • ${stream.viewers.toLocaleString()} viewers • ${stream.user.username}`}
+            subtitle={`Twitch • ${stream.viewers.toLocaleString()} viewers • ${stream.streamerInformation.username}`}
             thumbnail={stream.previewUrl}
             type="Stream"
             onCloseSearchModal={onCloseSearchModal}
+            mediaType="LiveStream"
           />
         )
         return isLast ? (
-          <div key={`last-${stream.streamId}`} ref={lastElementRef}>
+          <div key={`last-${stream.streamerId}`} ref={lastElementRef}>
             {card}
           </div>
         ) : (
@@ -343,6 +348,7 @@ function UsersTab({ query, onCloseSearchModal }: { query: string; onCloseSearchM
             type="User"
             showAddButton={false}
             onCloseSearchModal={onCloseSearchModal}
+            mediaType="Video"
           />
         )
 

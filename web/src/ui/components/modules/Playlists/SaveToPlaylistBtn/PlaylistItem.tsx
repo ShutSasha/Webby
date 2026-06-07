@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import Image from 'next/image'
 
-import { useTogglePlaylistVideoMutation } from '@/lib/hooks/api/playlist/useTogglePlaylistVideo'
+import { useTogglePlaylistMediaMutation } from '@/lib/hooks/api/playlist/useTogglePlaylistMedia'
 import { useToastStore } from '@/stores/toast-store'
+import { MediaType } from '@/types/general.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {
@@ -14,9 +15,19 @@ type Props = {
   count: number
   isVideoAdded: boolean
   userId: string
+  mediaType: MediaType | null
 }
 
-export default function PlaylistItem({ videoId, playlistId, image, name, count, isVideoAdded, userId }: Props) {
+export default function PlaylistItem({
+  videoId,
+  playlistId,
+  image,
+  name,
+  count,
+  isVideoAdded,
+  userId,
+  mediaType,
+}: Props) {
   const addToast = useToastStore(state => state.addToast)
 
   const [isAdded, setIsAdded] = useState(isVideoAdded)
@@ -27,7 +38,7 @@ export default function PlaylistItem({ videoId, playlistId, image, name, count, 
     setLocalCount(count)
   }, [isVideoAdded, count])
 
-  const { mutate: toggleVideo, isPending } = useTogglePlaylistVideoMutation(userId)
+  const { mutate: toggleMedia, isPending } = useTogglePlaylistMediaMutation(userId)
 
   const handleToggle = () => {
     if (isPending) return
@@ -36,12 +47,17 @@ export default function PlaylistItem({ videoId, playlistId, image, name, count, 
     setIsAdded(newIsAdded)
     setLocalCount(prev => (newIsAdded ? prev + 1 : prev - 1))
 
-    toggleVideo(
-      { playlistId, videoId },
+    toggleMedia(
+      {
+        playlistId,
+        mediaId: videoId,
+        mediaType: mediaType || 'Video',
+      },
       {
         onError: () => {
           setIsAdded(!newIsAdded)
           setLocalCount(prev => (!newIsAdded ? prev + 1 : prev - 1))
+
           addToast(`Failed to update "${name}"`, 'error')
         },
       },

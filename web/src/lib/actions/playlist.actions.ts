@@ -174,6 +174,26 @@ export async function togglePlaylistVideo(playlistId: string, videoId: string): 
   }
 }
 
+export async function togglePlaylistStream(playlistId: string, streamId: string): Promise<BaseServerResponse<boolean>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<boolean>>(`${endpoint}/streams`, {
+      playlistId,
+      streamIds: [streamId],
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('TOGGLE_PLAYLIST_STREAM_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to toggle stream in playlist`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
 export async function checkVideoInPlaylist(
   playlistId: string,
   videoId: string | undefined,

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
+import { usePlaylistStore } from '@/stores/playlist.store'
 import ActionButton from '@/ui/components/shared/ActionButton'
 
 import SaveToPlaylistModal from '../SaveToPlaylistModal'
@@ -13,6 +14,7 @@ type ButtonProps = {
 
 export default function SaveToPlaylistButton({ videoId, userId }: ButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const activeMediaType = usePlaylistStore(state => state.activeMediaType)
 
   return (
     <>
@@ -20,7 +22,13 @@ export default function SaveToPlaylistButton({ videoId, userId }: ButtonProps) {
         <PlusIcon className="size-4" />
       </ActionButton>
 
-      <SaveToPlaylistModal isOpen={isOpen} onClose={() => setIsOpen(false)} videoId={videoId} userId={userId} />
+      <SaveToPlaylistModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        videoId={videoId}
+        userId={userId}
+        mediaType={activeMediaType}
+      />
     </>
   )
 }
