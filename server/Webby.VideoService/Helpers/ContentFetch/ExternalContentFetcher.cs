@@ -1,13 +1,11 @@
 ﻿using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.External;
-using Webby.VideoService.Dtos.Stream;
-using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Interfaces.Helpers;
 using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
 using Webby.VideoService.Models.Enums;
 
-
+namespace Webby.VideoService.Helpers.ContentFetch;
 public class ExternalContentFetcher : IExternalContentFetcher
 {
     private readonly IYouTubeSearchService _youtubeSearchService;

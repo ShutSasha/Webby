@@ -70,6 +70,34 @@ public class MappingProfiles : Profile
             Username = src.UserName ?? src.DisplayName ?? "Unknown",
             AvatarUrl = "" 
          }));
-         
+      
+      CreateMap<YouTubeVideoResponse.Item, VideoDto>()
+         .ForMember(dest => dest.VideoId, opt => opt.MapFrom((src, dest) => PlatformPrefixesConstants.YouTubePrefix + src.Id.ToString()))
+         .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Snippet.Title))
+         .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Snippet.Description))
+         .ForMember(dest => dest.Source, opt => opt.MapFrom(src => "YouTube"))
+         .ForMember(dest => dest.VideoUrl, opt => opt.MapFrom((src, dest) => DefaultLinks.BaseWatchLinkUrl + src.Id.ToString()))
+         .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.Snippet.PublishedAt))
+         .ForMember(dest => dest.MediaType, opt => opt.MapFrom(src => MediaType.Video))
+         .ForMember(dest => dest.IsPrivate, opt => opt.MapFrom(src => false))
+         .ForMember(dest => dest.VideoUploadStatus, opt => opt.MapFrom(src => VideoStatus.Ready))
+         .ForMember(dest => dest.VideoTags, opt => opt.MapFrom(src => src.Snippet.Tags))
+         .ForMember(dest => dest.PreviewUrl, opt => opt.MapFrom(src => 
+            src.Snippet.Thumbnails.Medium != null ? src.Snippet.Thumbnails.Medium.Url : 
+            src.Snippet.Thumbnails.Default != null ? src.Snippet.Thumbnails.Default.Url : ""))         
+         .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => 
+            !string.IsNullOrEmpty(src.ContentDetails.Duration) 
+               ? (long)Math.Round(System.Xml.XmlConvert.ToTimeSpan(src.ContentDetails.Duration).TotalSeconds) 
+               : 0L))
+         .ForMember(dest => dest.Views, opt => opt.MapFrom((src, dest) => 
+            src.Statistics.ViewCount != null && int.TryParse(src.Statistics.ViewCount.ToString(), out var v) ? v : 0))
+         .ForMember(dest => dest.User, opt => opt.MapFrom(src => new UserVideoDto
+         {
+            UserId = src.Snippet.ChannelId ?? "",
+            Username = src.Snippet.ChannelTitle,
+            AvatarUrl = "",
+            IsFollowed = false
+         }));
+      
    }
 }

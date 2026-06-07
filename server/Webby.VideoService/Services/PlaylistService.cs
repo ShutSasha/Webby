@@ -364,8 +364,8 @@ public class PlaylistService : IPlaylistService
          .ToList();
       
       var (itemsToAdd, itemsToDelete) = await _playlistRepository.GetPlaylistItemsDiffAsync(
-         playlistId, 
-         MediaType.LiveStream, 
+         playlistId,
+         MediaType.LiveStream,
          requestedStreams);
 
       if (itemsToAdd.Count > 0)

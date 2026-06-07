@@ -246,46 +246,52 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
        var orderedQuery = scoredQuery
            .OrderByDescending(x => x.CurrentTagsScore + x.SubscriptionScore + x.HistoryTagsScore + x.PopularityScore)
            .ThenByDescending(x => x.Video.CreatedAt);
-
+       
        var total = await orderedQuery.CountAsync();
        var seed = contentSeed == 0 ? Guid.NewGuid().GetHashCode() : contentSeed;
-       
+    
        const int maxCandidatePoolSize = 30; 
+    
+       var pagedIds = new List<Guid>();
        
-       List<Video> items;
-
        if (skip < maxCandidatePoolSize)
        {
-           var candidateIds = await orderedQuery
+           var poolIds = await orderedQuery
                .Take(maxCandidatePoolSize)
                .Select(x => x.Video.VideoId)
                .ToListAsync();
 
            var random = new Random(seed);
+           var randomizedPool = poolIds.OrderBy(id => random.Next()).ToList();
            
-           var pagedIds = candidateIds
-               .OrderBy(id => random.Next())
-               .Skip(skip)
-               .Take(pageSize)
-               .ToList();
-           
+           var takeFromPool = Math.Min(pageSize, maxCandidatePoolSize - skip);
+           pagedIds.AddRange(randomizedPool.Skip(skip).Take(takeFromPool));
+       }
+       
+       if (pagedIds.Count < pageSize)
+       {
+           var skipFromDb = Math.Max(maxCandidatePoolSize, skip); 
+           var takeFromDb = pageSize - pagedIds.Count;
+
+           var regularIds = await orderedQuery
+               .Skip(skipFromDb)
+               .Take(takeFromDb)
+               .Select(x => x.Video.VideoId)
+               .ToListAsync();
+
+           pagedIds.AddRange(regularIds);
+       }
+       
+       List<Video> items = [];
+       if (pagedIds.Count > 0)
+       {
            var unorderedItems = await _context.Videos
                .Include(v => v.VideoTags)!
                .ThenInclude(vt => vt.Tag)
                .Where(v => pagedIds.Contains(v.VideoId))
                .ToListAsync();
-           
+        
            items = unorderedItems.OrderBy(v => pagedIds.IndexOf(v.VideoId)).ToList();
-       }
-       else
-       {
-           items = await orderedQuery
-               .Skip(skip)
-               .Take(pageSize)
-               .Select(x => x.Video)
-               .Include(v => v.VideoTags)!
-               .ThenInclude(vt => vt.Tag)
-               .ToListAsync();
        }
 
        return (items, total, seed);

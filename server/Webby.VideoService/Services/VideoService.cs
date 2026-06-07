@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Grpc.Core;
 using UserService;
 using Webby.VideoService.Dtos.Event;
 using Webby.VideoService.Constants;
@@ -18,6 +19,7 @@ using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
 using Webby.VideoService.Models.Enums;
 using Webby.VideoService.Services.Background;
+using NewsStyleUriParser = System.NewsStyleUriParser;
 
 namespace Webby.VideoService.Services;
 
@@ -33,10 +35,14 @@ public class VideoService : IVideoService
    private readonly IYouTubeSearchService _youtubeSearchService;
    private readonly ITwitchSearchService _twitchSearchService;
    private readonly IEventPublisher _eventPublisher;
+   private readonly ILogger<VideoService> _logger;
+   
    public VideoService(IVideoRepository videoRepository, IStorageService storageService,
       ITagService tagService, UserGrpcService.UserGrpcServiceClient userClient, 
       IMapper mapper, IBackgroundTaskQueue queue,
-      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService, ITwitchSearchService twitchSearchService, IEventPublisher eventPublisher)
+      IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService,
+      ITwitchSearchService twitchSearchService, IEventPublisher eventPublisher,
+      ILogger<VideoService> logger)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
@@ -48,6 +54,7 @@ public class VideoService : IVideoService
       _youtubeSearchService = youtubeSearchService;
       _twitchSearchService = twitchSearchService;
       _eventPublisher = eventPublisher;
+      _logger = logger;
    }
 
    public async Task<Video> GetVideoById(Guid videoId)
@@ -772,10 +779,26 @@ public class VideoService : IVideoService
       if (!requestUserId.HasValue)
          return ([], []);
 
-      var subscriptionsResponse = await _userClient.GetUserSubscriptionIdsAsync(
-         new GetUserSubscriptionIdsRequest { RequestUserId = requestUserId.ToString() });
-            
-      var subscribedIds = subscriptionsResponse.UserIds.Select(Guid.Parse).ToList();
+      var subscribedIds = new List<Guid>();
+
+      try
+      {
+         var response = await _userClient.GetUserSubscriptionIdsAsync(new GetUserSubscriptionIdsRequest
+            { RequestUserId = requestUserId.ToString() });
+
+         if (response.UserIds != null)
+         {
+            subscribedIds = response.UserIds
+               .Where(id => Guid.TryParse(id, out _))
+               .Select(Guid.Parse)
+               .ToList();
+         }
+      }
+      catch (RpcException ex)
+      {
+         _logger.LogWarning(ex, "Failed to fetch subscriptions for user {UserId}", requestUserId);
+      }
+
       var historyTags = await _videoRepository.GetRecentUserViewTagsAsync(requestUserId.Value);
 
       return (subscribedIds, historyTags);
