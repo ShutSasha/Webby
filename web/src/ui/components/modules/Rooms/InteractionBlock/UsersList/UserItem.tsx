@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react'
 
-import Image from 'next/image'
 import Link from 'next/link'
 
 import DotsIcon from '@/assets/icons/shared/more-horizontal.svg'
@@ -11,6 +10,7 @@ import { useRemoveRoomMemberMutation } from '@/lib/hooks/api/room/useRemoveRoomM
 import { extractServerMessage } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
 import { RoomMember } from '@/types/room.types'
+import SafeImage from '@/ui/components/shared/SafeImage'
 
 export default function UserItem({ user, roomId }: { user: RoomMember; roomId: string }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -57,12 +57,13 @@ export default function UserItem({ user, roomId }: { user: RoomMember; roomId: s
         duration-300 relative ${isPending ? 'opacity-50 pointer-events-none' : ''}`}
     >
       <div className="flex items-center gap-3">
-        <Image
+        <SafeImage
           src={user.avatarUrl || DEFAULT_USER_THUMBNAIL}
           alt={user.username}
           width={50}
           height={50}
           className="object-cover w-8 h-8 rounded-full"
+          fallbackType="user"
         />
 
         <span
