@@ -97,7 +97,7 @@ public class PlaylistService : IPlaylistService
 
       if (!string.IsNullOrEmpty(videoId) && playlistIds.Count > 0)
       {
-         var parseResult = PlatformPrefixToPlatformConverter.ParseVideoPlatform(videoId);
+         var parseResult = PlatformPrefixToPlatformConverter.ParseSystemPlatform(videoId);
 
          if (parseResult == null)
          {
