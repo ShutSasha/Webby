@@ -18,7 +18,7 @@ type tokenService struct {
 	repository tokenRepository
 }
 
-func New(repository tokenRepository) *tokenService {
+func NewTokenService(repository tokenRepository) *tokenService {
 	return &tokenService{repository: repository}
 }
 

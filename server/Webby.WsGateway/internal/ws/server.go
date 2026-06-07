@@ -17,6 +17,11 @@ import (
 	"webby/wsgateway/internal/domain"
 )
 
+type presenceManager interface {
+	AddUser(ctx context.Context, chatID, userID string) error
+	RemoveUser(ctx context.Context, chatID, userID string) error
+}
+
 type session struct {
 	UserID uuid.UUID
 	ChatID uuid.UUID
@@ -29,12 +34,13 @@ type userIDRetriever interface {
 type Server struct {
 	io *socketio.Server
 
-	service     userIDRetriever
-	logger      *slog.Logger
-	callTimeout time.Duration
+	service         userIDRetriever
+	presenceManager presenceManager
+	logger          *slog.Logger
+	callTimeout     time.Duration
 }
 
-func NewServer(service userIDRetriever, logger *slog.Logger, callTimeout time.Duration) *Server {
+func NewServer(service userIDRetriever, presenceManager presenceManager, logger *slog.Logger, callTimeout time.Duration) *Server {
 	s := &Server{
 		io: socketio.NewServer(&engineio.Options{
 			Transports: []transport.Transport{
@@ -51,9 +57,10 @@ func NewServer(service userIDRetriever, logger *slog.Logger, callTimeout time.Du
 			},
 		}),
 
-		service:     service,
-		logger:      logger,
-		callTimeout: callTimeout,
+		service:         service,
+		presenceManager: presenceManager,
+		logger:          logger,
+		callTimeout:     callTimeout,
 	}
 	s.registerHandlers()
 	return s
@@ -74,6 +81,8 @@ func (server *Server) registerHandlers() {
 }
 
 func (server *Server) onConnect(c socketio.Conn) error {
+	const op = "ws.server.onConnect"
+	log := server.logger.With("op", op)
 	ctx, cancel := context.WithTimeout(context.Background(), server.callTimeout)
 	defer cancel()
 
@@ -92,7 +101,7 @@ func (server *Server) onConnect(c socketio.Conn) error {
 
 	userID, err := server.service.GetUserID(ctx, token)
 	if err != nil {
-		server.logger.Warn("auth failed", slog.String("err", err.Error()))
+		log.Warn("auth failed", slog.String("err", err.Error()))
 
 		if errors.Is(err, domain.ErrUserNotFound) {
 			return errors.New("unauthorized")
@@ -104,7 +113,12 @@ func (server *Server) onConnect(c socketio.Conn) error {
 	c.SetContext(session{UserID: userID, ChatID: chatID})
 	c.Join(chatID.String())
 
-	server.logger.Info("ws connected",
+	err = server.presenceManager.AddUser(ctx, chatID.String(), userID.String())
+	if err != nil {
+		log.Error("failed to add presence", slog.String("err", err.Error()))
+	}
+
+	log.Info("ws connected",
 		slog.String("user_id", userID.String()),
 		slog.String("chat_id", chatID.String()),
 	)
@@ -112,11 +126,23 @@ func (server *Server) onConnect(c socketio.Conn) error {
 }
 
 func (server *Server) onDisconnect(c socketio.Conn, reason string) {
+	const op = "ws.server.onDisconnect"
+	log := server.logger.With("op", op)
+
 	sess, ok := c.Context().(session)
 	if !ok {
 		return
 	}
-	server.logger.Info("ws disconnected",
+
+	ctx, cancel := context.WithTimeout(context.Background(), server.callTimeout)
+	defer cancel()
+
+	err := server.presenceManager.RemoveUser(ctx, sess.ChatID.String(), sess.UserID.String())
+	if err != nil {
+		log.Error("failed to remove presence", slog.String("err", err.Error()))
+	}
+
+	log.Info("ws disconnected",
 		slog.String("user_id", sess.UserID.String()),
 		slog.String("chat_id", sess.ChatID.String()),
 		slog.String("reason", reason),

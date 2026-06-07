@@ -17,7 +17,7 @@ type TokenRepository struct {
 	ttl    time.Duration
 }
 
-func New(client *redis.Client, ttl time.Duration) *TokenRepository {
+func NewTokenRepository(client *redis.Client, ttl time.Duration) *TokenRepository {
 	return &TokenRepository{
 		client: client,
 		ttl:    ttl,

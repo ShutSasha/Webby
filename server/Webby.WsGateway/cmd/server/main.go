@@ -37,10 +37,13 @@ func main() {
 	})
 	defer rdb.Close()
 
-	repository := repositories.New(rdb, cfg.TokenTTL)
-	service := services.New(repository)
+	tokenRepository := repositories.NewTokenRepository(rdb, cfg.TokenTTL)
+	tokenService := services.NewTokenService(tokenRepository)
 
-	wsSrv := ws.NewServer(service, logger, cfg.Http.CallTimeout)
+	presenceRepository := repositories.NewPresenceRepository(rdb)
+	presenceService := services.NewPresenceService(presenceRepository)
+
+	wsSrv := ws.NewServer(tokenService, presenceService, logger, cfg.Http.CallTimeout)
 	go func() {
 		if err := wsSrv.Serve(); err != nil {
 			logger.Error("socket.io serve", slog.String("err", err.Error()))
@@ -50,7 +53,7 @@ func main() {
 
 	logger.Info("database connected successfully")
 
-	server := handlers.NewServer(cfg, service, logger, wsSrv)
+	server := handlers.NewServer(cfg, tokenService, logger, wsSrv)
 
 	httpSrv := &http.Server{
 		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
