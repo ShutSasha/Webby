@@ -201,7 +201,8 @@ public class PlaylistService : IPlaylistService
                CreatedAt = video.CreatedAt,
                PreviewUrl = video.PreviewUrl,
                IsPrivate = video.IsPrivate,
-               VideoUrl = video.VideoUrl
+               VideoUrl = video.VideoUrl,
+               MediaType = MediaType.Video,
             };
 
             if (video.UserId != Guid.Empty)
