@@ -69,7 +69,8 @@ func run(ctx context.Context, w io.Writer) error {
 	defer rdb.Close()
 
 	publisher := publisher.New(rdb)
-	redisRepository := repository.NewRedisRepo(rdb)
+	timecodesRepository := repository.NewTimecodesRepo(rdb)
+	roomPresenceRepository := repository.NewRedisPresenceRepository(rdb)
 
 	mediaClient, err := grpcClient.NewMediaClient(cfg.Grpc.MediaServiceAddress)
 	if err != nil {
@@ -104,7 +105,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, categoryClient, chatClient)
 	roomMemberService := services.NewRoomMemberService(roomRepository, roomMemberRepository, chatClient, notificationClient)
-	syncService := services.NewSynchronizeService(chatClient, publisher, redisRepository)
+	syncService := services.NewSynchronizeService(chatClient, publisher, timecodesRepository)
 
 	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService)
 	httpServer := &http.Server{
@@ -155,7 +156,7 @@ func run(ctx context.Context, w io.Writer) error {
 		}
 	}()
 
-	worker := workers.NewPointsWorker(rdb, roomMemberRepository, publisher, logger, cfg.Interval, cfg.PointsPerTick)
+	worker := workers.NewPointsWorker(roomPresenceRepository, roomMemberRepository, publisher, logger, cfg.Worker.Interval, cfg.Worker.PointsPerTick, cfg.Worker.ZombieTTL)
 
 	go worker.Run(ctx)
 

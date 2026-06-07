@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,14 +18,20 @@ import (
 	"webby/wsgateway/internal/domain"
 )
 
+type SessionInfo struct {
+	ChatID string
+	UserID string
+}
+
 type presenceManager interface {
 	AddUser(ctx context.Context, chatID, userID string) error
 	RemoveUser(ctx context.Context, chatID, userID string) error
+	UpdateHeartbeats(ctx context.Context, sessions []SessionInfo) error
 }
 
 type session struct {
-	UserID uuid.UUID
 	ChatID uuid.UUID
+	UserID uuid.UUID
 }
 
 type userIDRetriever interface {
@@ -38,6 +45,8 @@ type Server struct {
 	presenceManager presenceManager
 	logger          *slog.Logger
 	callTimeout     time.Duration
+
+	activeSessions sync.Map
 }
 
 func NewServer(service userIDRetriever, presenceManager presenceManager, logger *slog.Logger, callTimeout time.Duration) *Server {
@@ -113,6 +122,11 @@ func (server *Server) onConnect(c socketio.Conn) error {
 	c.SetContext(session{UserID: userID, ChatID: chatID})
 	c.Join(chatID.String())
 
+	server.activeSessions.Store(c.ID(), SessionInfo{
+		ChatID: chatID.String(),
+		UserID: userID.String(),
+	})
+
 	err = server.presenceManager.AddUser(ctx, chatID.String(), userID.String())
 	if err != nil {
 		log.Error("failed to add presence", slog.String("err", err.Error()))
@@ -137,9 +151,12 @@ func (server *Server) onDisconnect(c socketio.Conn, reason string) {
 	ctx, cancel := context.WithTimeout(context.Background(), server.callTimeout)
 	defer cancel()
 
-	err := server.presenceManager.RemoveUser(ctx, sess.ChatID.String(), sess.UserID.String())
-	if err != nil {
-		log.Error("failed to remove presence", slog.String("err", err.Error()))
+	if val, ok := server.activeSessions.LoadAndDelete(c.ID()); ok {
+		info := val.(SessionInfo)
+		err := server.presenceManager.RemoveUser(ctx, info.ChatID, info.UserID)
+		if err != nil {
+			log.Error("failed to remove presence", slog.String("err", err.Error()))
+		}
 	}
 
 	log.Info("ws disconnected",
@@ -147,4 +164,34 @@ func (server *Server) onDisconnect(c socketio.Conn, reason string) {
 		slog.String("chat_id", sess.ChatID.String()),
 		slog.String("reason", reason),
 	)
+}
+
+func (server *Server) RunHeartbeat(ctx context.Context) {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			server.syncPresence(ctx)
+		}
+	}
+}
+
+func (server *Server) syncPresence(ctx context.Context) {
+	var sessions []SessionInfo
+
+	server.activeSessions.Range(func(key, value any) bool {
+		sessions = append(sessions, value.(SessionInfo))
+		return true
+	})
+
+	if len(sessions) > 0 {
+		err := server.presenceManager.UpdateHeartbeats(ctx, sessions)
+		if err != nil {
+			server.logger.Error("failed to bulk update presence", slog.String("err", err.Error()))
+		}
+	}
 }

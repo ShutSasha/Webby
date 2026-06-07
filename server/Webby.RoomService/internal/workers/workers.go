@@ -6,8 +6,16 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 )
+
+type ActiveRoom struct {
+	ChatID  string
+	UserIDs []uuid.UUID
+}
+
+type presenceRetriever interface {
+	GetActiveRooms(ctx context.Context, minMembers int, zombieTTL time.Duration) ([]ActiveRoom, error)
+}
 
 type pointsRepository interface {
 	AddPointsBulk(ctx context.Context, userIDs []uuid.UUID, points int) (map[uuid.UUID]int, error)
@@ -18,22 +26,32 @@ type eventPublisher interface {
 }
 
 type pointsWorker struct {
-	rdb           *redis.Client
+	presenceRepo  presenceRetriever
 	repo          pointsRepository
 	pub           eventPublisher
 	logger        *slog.Logger
 	interval      time.Duration
 	pointsPerTick int
+	zombieTTL     time.Duration
 }
 
-func NewPointsWorker(rdb *redis.Client, repo pointsRepository, pub eventPublisher, logger *slog.Logger, interval time.Duration, pointsPerTick int) *pointsWorker {
+func NewPointsWorker(
+	presenceRepo presenceRetriever,
+	repo pointsRepository,
+	pub eventPublisher,
+	logger *slog.Logger,
+	interval time.Duration,
+	pointsPerTick int,
+	zombieTTL time.Duration,
+) *pointsWorker {
 	return &pointsWorker{
-		rdb:           rdb,
+		presenceRepo:  presenceRepo,
 		repo:          repo,
 		pub:           pub,
 		logger:        logger,
 		interval:      interval,
 		pointsPerTick: pointsPerTick,
+		zombieTTL:     zombieTTL,
 	}
 }
 
@@ -55,34 +73,17 @@ func (w *pointsWorker) Run(ctx context.Context) {
 func (w *pointsWorker) processPoints(ctx context.Context) {
 	const op = "workers.pointsWorker.processPoints"
 	log := w.logger.With("op", op)
-	chats, err := w.rdb.SMembers(ctx, "active_chats").Result()
+
+	rooms, err := w.presenceRepo.GetActiveRooms(ctx, 2, w.zombieTTL)
 	if err != nil {
-		log.Error("failed to get active chats", slog.String("err", err.Error()))
+		log.Error("failed to get active rooms", slog.String("err", err.Error()))
 		return
 	}
 
-	for _, chatIDStr := range chats {
-		presenceKey := "chat:" + chatIDStr + ":presence"
-
-		count, err := w.rdb.SCard(ctx, presenceKey).Result()
-		if err != nil || count < 2 {
-			continue
-		}
-
-		userIDsStr, err := w.rdb.SMembers(ctx, presenceKey).Result()
+	for _, room := range rooms {
+		updatedTotals, err := w.repo.AddPointsBulk(ctx, room.UserIDs, w.pointsPerTick)
 		if err != nil {
-			continue
-		}
-
-		userIDs := make([]uuid.UUID, len(userIDsStr))
-		for i, idStr := range userIDsStr {
-			userID, _ := uuid.Parse(idStr)
-			userIDs[i] = userID
-		}
-
-		updatedTotals, err := w.repo.AddPointsBulk(ctx, userIDs, w.pointsPerTick)
-		if err != nil {
-			log.Error("failed to add points", slog.String("err", err.Error()))
+			log.Error("failed to add points", slog.String("err", err.Error()), slog.String("chat_id", room.ChatID))
 			continue
 		}
 
@@ -91,7 +92,7 @@ func (w *pointsWorker) processPoints(ctx context.Context) {
 			totalsPayload[uid.String()] = total
 		}
 
-		w.pub.Publish(ctx, "chat:"+chatIDStr, map[string]any{
+		w.pub.Publish(ctx, "chat:"+room.ChatID, map[string]any{
 			"type": "ROOM_POINTS_UPDATED",
 			"payload": map[string]any{
 				"added_points": w.pointsPerTick,

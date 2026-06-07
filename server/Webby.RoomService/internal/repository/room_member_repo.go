@@ -249,7 +249,7 @@ func (r *roomMemberRepository) AddPointsBulk(ctx context.Context, userIDs []uuid
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Update("room_members").
 		Set("room_points", sq.Expr("room_points + ?", pointsToAdd)).
-		Where(sq.Expr("user_id = ANY(?)", userIDs)).
+		Where(sq.Eq{"user_id": userIDs}).
 		Suffix("RETURNING user_id, room_points").
 		ToSql()
 	if err != nil {
