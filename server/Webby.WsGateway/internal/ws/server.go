@@ -19,8 +19,6 @@ import (
 	"webby/wsgateway/internal/domain"
 )
 
-const callTimeout = 5 * time.Second
-
 type session struct {
 	UserID uuid.UUID
 	ChatID uuid.UUID
@@ -33,13 +31,14 @@ type Service interface {
 type Server struct {
 	io *socketio.Server
 
-	service   Service
-	logger    *slog.Logger
-	jwtSecret []byte
-	chat      *clients.ChatClient
+	service     Service
+	logger      *slog.Logger
+	jwtSecret   []byte
+	chat        *clients.ChatClient
+	callTimeout time.Duration
 }
 
-func NewServer(service Service, logger *slog.Logger, jwtSecret []byte, chat *clients.ChatClient) *Server {
+func NewServer(service Service, logger *slog.Logger, jwtSecret []byte, chat *clients.ChatClient, callTimeout time.Duration) *Server {
 	s := &Server{
 		io: socketio.NewServer(&engineio.Options{
 			Transports: []transport.Transport{
@@ -56,10 +55,11 @@ func NewServer(service Service, logger *slog.Logger, jwtSecret []byte, chat *cli
 			},
 		}),
 
-		service:   service,
-		logger:    logger,
-		jwtSecret: jwtSecret,
-		chat:      chat,
+		service:     service,
+		logger:      logger,
+		jwtSecret:   jwtSecret,
+		chat:        chat,
+		callTimeout: callTimeout,
 	}
 	s.registerHandlers()
 	return s
@@ -79,11 +79,10 @@ func (server *Server) BroadcastToRoom(chatID uuid.UUID, event string, payload an
 func (server *Server) registerHandlers() {
 	server.io.OnConnect("/", server.onConnect)
 	server.io.OnDisconnect("/", server.onDisconnect)
-	server.io.OnEvent("/", "send_message", server.onSendMessage)
 }
 
 func (server *Server) onConnect(c socketio.Conn) error {
-	ctx, cancel := context.WithTimeout(context.Background(), callTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), server.callTimeout)
 	defer cancel()
 
 	url := c.URL()

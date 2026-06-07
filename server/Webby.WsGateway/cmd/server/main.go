@@ -55,7 +55,7 @@ func main() {
 	}
 	defer votesClient.Close()
 
-	wsSrv := ws.NewServer(service, logger, []byte(cfg.JwtSecret), chatClient)
+	wsSrv := ws.NewServer(service, logger, []byte(cfg.JwtSecret), chatClient, cfg.Http.CallTimeout)
 	go func() {
 		if err := wsSrv.Serve(); err != nil {
 			logger.Error("socket.io serve", slog.String("err", err.Error()))

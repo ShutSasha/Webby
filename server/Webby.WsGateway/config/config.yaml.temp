@@ -8,6 +8,7 @@ http:
   host: "localhost"
   port: 8090
   timeout: 10s
+  call_timeout: 5s
 
 redis:
   addr: "localhost:6379"
