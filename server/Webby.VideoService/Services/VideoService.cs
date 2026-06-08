@@ -522,6 +522,7 @@ public class VideoService : IVideoService
          case SystemPlatforms.Webby:
             if (!Guid.TryParse(actualId, out var videoIdGuid))
             {
+               currentVideoGuid = videoIdGuid;
                throw new ApiException("Get recommendation videos error", 400, "Incorrect id format of local video");
             }
             
