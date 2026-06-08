@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Serilog;
@@ -12,7 +13,9 @@ try
     builder.AddCustomSerilog();
 
     builder.WebHost.ConfigureKestrel(options => { options.Limits.MaxRequestBodySize = 5L * 1024 * 1024 * 1024; });
-
+    
+    services.AddHealthChecks();
+    
     services.AddOpenApi();
     services.AddCorsPolicy("AllowWebOrigin");
     services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
@@ -54,7 +57,23 @@ try
     app.UseApiExceptionHandling();
 
     app.UseWebSockets();
-    await app.UseOcelot();
+    
+    app.MapHealthChecks("/livez", new HealthCheckOptions
+    {
+        Predicate = _ => false
+    });
+
+    app.MapHealthChecks("/readyz", new HealthCheckOptions
+    {
+        Predicate = _ => false
+    });
+    
+    app.MapWhen(
+        ctx => !ctx.Request.Path.StartsWithSegments("/livez") && 
+               !ctx.Request.Path.StartsWithSegments("/readyz"),
+        appBuilder => appBuilder.UseOcelot().Wait()
+    );
+    
     app.Run();
 }
 finally

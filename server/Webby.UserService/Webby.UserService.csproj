@@ -12,6 +12,8 @@
     <Protobuf Include="Protos\video.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\notification.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\achievement.proto" GrpcServices="Client" />
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
     <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="AWSSDK.S3" Version="4.0.18.7" />
     <PackageReference Include="Google.Protobuf" Version="3.28.3" />

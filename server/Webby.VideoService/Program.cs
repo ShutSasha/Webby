@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using Amazon.S3;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
+using Webby.VideoService.Data;
 using Webby.VideoService.Extensions;
 using Webby.VideoService.Middlewares;
 using Webby.VideoService.Services.Grpc;
@@ -11,6 +13,11 @@ try
     var services = builder.Services;
     var configuration = builder.Configuration;
     builder.AddCustomSerilog();
+    
+    services.AddHealthChecks()
+        .AddNpgSql(configuration.GetConnectionString(nameof(AppDbContext)), tags: new[] { "ready" })
+        .AddRedis(configuration.GetConnectionString("Redis"), tags: new[] { "ready" });
+    
     builder.WebHost.ConfigureKestrel(options => { options.Limits.MaxRequestBodySize = 5L * 1024 * 1024 * 1024; });
 
     services.AddEndpointsApiExplorer();
@@ -61,6 +68,16 @@ try
 
     app.UseRouting();
     app.MapControllers();
+    
+    app.MapHealthChecks("/livez", new HealthCheckOptions
+    {
+        Predicate = _ => false
+    });
+
+    app.MapHealthChecks("/readyz", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready")
+    });
 
     app.Run();
 }

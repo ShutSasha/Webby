@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
+using Webby.AuthService.Data;
 using Webby.AuthService.Extensions;
 using Webby.AuthService.Helpers.Jwt;
 using Webby.AuthService.Helpers.Mail;
@@ -12,6 +14,10 @@ try
     var configuration = builder.Configuration;
 
     builder.AddCustomSerilog();
+    services.AddHealthChecks()
+        .AddNpgSql(configuration.GetConnectionString(nameof(AppDbContext)), tags: new[] { "ready" });
+    
+    
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen();
     services.AddSwaggerConfig();
@@ -51,6 +57,17 @@ try
     app.UseRouting();
 
     app.MapControllers();
+    
+    app.MapHealthChecks("/livez", new HealthCheckOptions
+    {
+        Predicate = _ => false
+    });
+
+    app.MapHealthChecks("/readyz", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready")
+    });
+    
     app.Run();
 }
 finally

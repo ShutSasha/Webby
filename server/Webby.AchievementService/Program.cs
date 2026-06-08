@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using Amazon.S3;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
+using Webby.AchievementService.Data;
 using Webby.AchievementService.Extensions;
 using Webby.AchievementService.Middlewares;
 using AchievementGrpcService = Webby.AchievementService.Services.Grpc.AchievementGrpcService;
@@ -11,7 +13,11 @@ try
    var services = builder.Services;
    var configuration = builder.Configuration;
    builder.AddCustomSerilog();
-   
+
+   services.AddHealthChecks()
+      .AddNpgSql(configuration.GetConnectionString(nameof(AppDbContext)), tags: new[] { "ready" })
+      .AddRedis(configuration.GetConnectionString("Redis"), tags: new[] { "ready" });
+      
    services.AddEndpointsApiExplorer();
    services.AddSwaggerGen();
    
@@ -60,6 +66,16 @@ try
    app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
    app.MapGrpcService<AchievementGrpcService>();
    app.MapControllers();
+   
+   app.MapHealthChecks("/livez", new HealthCheckOptions
+   {
+      Predicate = _ => false
+   });
+
+   app.MapHealthChecks("/readyz", new HealthCheckOptions
+   {
+      Predicate = check => check.Tags.Contains("ready")
+   });
 
    app.Run(); 
 }
