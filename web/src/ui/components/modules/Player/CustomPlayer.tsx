@@ -23,9 +23,11 @@ type PlayerProps = {
 
 export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false }: PlayerProps) {
   const isMounted = useIsClient()
-  const isPlatformMode = usePlayerControls(videoUrl)
-
+  const isPlatformModeHook = usePlayerControls(videoUrl)
   const trackViewProgress = useVideoViewTracker(videoId)
+
+  const isTwitch = videoUrl.includes('twitch.tv')
+  const isPlatformMode = isPlatformModeHook || isTwitch
 
   const { refs, state, setState, uiState, actions } = useCustomPlayerLogic(
     videoUrl,
@@ -55,8 +57,8 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
       ref={refs.playerContainerRef}
       onMouseMove={actions.handleMouseMove}
       onMouseLeave={actions.handleMouseLeave}
-      className={`group relative w-full bg-transparent overflow-hidden transition-all
-        ${uiState.isFullScreen ? 'w-screen h-screen rounded-0' : 'aspect-video rounded-2xl'}
+      className={`group relative w-full bg-transparent transition-all
+        ${uiState.isFullScreen ? 'w-screen h-screen' : 'aspect-video'} ${!isTwitch ? 'rounded-2xl overflow-hidden' : ''}
         ${!isPlatformMode && !uiState.showCustomControls ? 'cursor-none' : 'cursor-default'}`}
     >
       <ReactPlayer

@@ -49,10 +49,13 @@ export const useCustomPlayerLogic = (
   const setPlaying = usePlayerPlayStore(state => state.setPlaying)
   const playing = usePlayerPlayStore(state => state.playing)
 
+  // if twitch mute player for autoplay
+  const isTwitch = videoUrl.includes('twitch.tv')
+
   const initialState: PlayerState = {
     pip: false,
     light: false,
-    muted: false,
+    muted: isTwitch,
     played: 0,
     loaded: 0,
     duration: 0,
@@ -111,6 +114,8 @@ export const useCustomPlayerLogic = (
   }, [syncTargetTimecode, setSyncTargetTimecode, state.duration])
 
   useEffect(() => {
+    const isTwitchVideo = videoUrl.includes('twitch.tv')
+
     setState(prev => ({
       ...prev,
       played: 0,
@@ -118,6 +123,8 @@ export const useCustomPlayerLogic = (
       duration: 0,
       loadedSeconds: 0,
       playedSeconds: 0,
+      muted: isTwitchVideo ? true : prev.muted,
+      isReady: false,
       error: null,
     }))
 
@@ -126,7 +133,8 @@ export const useCustomPlayerLogic = (
     if (hasInteracted === false) {
       setPlaying(false)
     } else {
-      setPlaying(true)
+      // block play for twitch, we should wait onReady event
+      setPlaying(isTwitchVideo ? false : true)
     }
   }, [videoUrl, setPlaying])
 
@@ -352,6 +360,7 @@ export const useCustomPlayerLogic = (
 
   const handleReactPlayerReady = () => {
     const videoElement = playerRef.current
+    const isTwitchVideo = videoUrl.includes('twitch.tv')
 
     if (videoElement) {
       const isActuallyLoaded = videoElement.readyState >= 3
@@ -359,13 +368,23 @@ export const useCustomPlayerLogic = (
       setState(prev => ({
         ...prev,
         buffering: !isActuallyLoaded,
-        isReady: isActuallyLoaded,
+        isReady: isActuallyLoaded || isTwitchVideo, // twitch API works another so we just force true on this event
       }))
 
       videoElement.onwaiting = () => setState(prev => ({ ...prev, buffering: true }))
       videoElement.onloadeddata = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
       videoElement.onplaying = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
       videoElement.oncanplay = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
+    } else if (isTwitchVideo) {
+      setState(prev => ({ ...prev, buffering: false, isReady: true }))
+    }
+
+    // autoplay for twitch
+    if (isTwitchVideo) {
+      const hasInteracted = typeof navigator !== 'undefined' && (navigator as any).userActivation?.hasBeenActive
+      if (hasInteracted !== false) {
+        setPlaying(true)
+      }
     }
   }
 
