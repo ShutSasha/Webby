@@ -49,8 +49,8 @@ export const useCustomPlayerLogic = (
   const setPlaying = usePlayerPlayStore(state => state.setPlaying)
   const playing = usePlayerPlayStore(state => state.playing)
 
-  // if twitch mute player for autoplay
   const isTwitch = videoUrl.includes('twitch.tv')
+  const isYoutube = videoUrl.includes('youtube.com')
 
   const initialState: PlayerState = {
     pip: false,
@@ -314,7 +314,8 @@ export const useCustomPlayerLogic = (
     }
   }
 
-  const handleReactPlayerVolumeChange = (e: any, isPlatformMode: boolean) => {
+  // each player playform must control volume its own
+  const handlePlayerVolumeChange = (e: any, isPlatformMode: boolean) => {
     const target = e?.target
     if (!target) return
 
@@ -325,36 +326,42 @@ export const useCustomPlayerLogic = (
       return
     }
 
-    if (isNativeMuted && !state.muted) {
-      if (baseUserVolume > 0) {
-        setPrevUserVolume(baseUserVolume)
-      }
-
-      setState(prev => ({ ...prev, muted: true }))
+    // ReactPlayer settings
+    if (!isPlatformMode && typeof nativeVolume === 'number') {
+      handleReactPlayerVolumeChange(nativeVolume, isNativeMuted)
       return
     }
 
-    if (!isNativeMuted && state.muted) {
-      if (isPlatformMode && nativeVolume <= 0.05) {
-        const volToRestore = prevVolume > 0 ? prevVolume : 1
-        setBaseUserVolume(volToRestore)
-      } else {
-        setBaseUserVolume(nativeVolume)
-        if (nativeVolume > 0) {
-          setPrevUserVolume(nativeVolume)
-        }
-      }
-      setState(prev => ({ ...prev, muted: false }))
+    if (isYoutube && typeof nativeVolume === 'number') {
+      handleYoutubeVolumeChange(nativeVolume, isNativeMuted)
       return
     }
 
-    if (typeof nativeVolume === 'number') {
-      setBaseUserVolume(nativeVolume)
-      setState(prev => ({ ...prev, muted: isNativeMuted }))
+    if (isTwitch && typeof nativeVolume === 'number') {
+      handleTwitchVolumeChange(nativeVolume, isNativeMuted)
+      return
+    }
+  }
 
-      if (nativeVolume > 0) {
-        setPrevUserVolume(nativeVolume)
-      }
+  const handleReactPlayerVolumeChange = (nativeVolume: number, isNativeMuted: boolean) => {
+    setState(prev => ({ ...prev, muted: isNativeMuted }))
+  }
+
+  const handleYoutubeVolumeChange = (nativeVolume: number, isNativeMuted: boolean) => {
+    setBaseUserVolume(nativeVolume)
+    setState(prev => ({ ...prev, muted: isNativeMuted }))
+
+    if (nativeVolume > 0) {
+      setPrevUserVolume(nativeVolume)
+    }
+  }
+
+  const handleTwitchVolumeChange = (nativeVolume: number, isNativeMuted: boolean) => {
+    setBaseUserVolume(nativeVolume)
+    setState(prev => ({ ...prev, muted: isNativeMuted }))
+
+    if (nativeVolume > 0) {
+      setPrevUserVolume(nativeVolume)
     }
   }
 
@@ -486,7 +493,7 @@ export const useCustomPlayerLogic = (
       toggleFullScreen,
       handleMouseMove,
       handleMouseLeave,
-      handleReactPlayerVolumeChange,
+      handlePlayerVolumeChange,
       handleReactPlayerReady,
       handleReactPlayerPlay,
       handleReactPlayerPause,

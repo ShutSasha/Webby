@@ -80,7 +80,7 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
         onProgress={actions.handleProgress}
         onTimeUpdate={actions.handleTimeUpdate}
         onDurationChange={actions.handleDurationChange}
-        onVolumeChange={e => actions.handleReactPlayerVolumeChange(e, isPlatformMode)}
+        onVolumeChange={e => actions.handlePlayerVolumeChange(e, isPlatformMode)}
         onReady={actions.handleReactPlayerReady}
         onPlay={actions.handleReactPlayerPlay}
         onPause={actions.handleReactPlayerPause}
