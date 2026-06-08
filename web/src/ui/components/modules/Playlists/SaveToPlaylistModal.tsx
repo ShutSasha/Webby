@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useDebouncedCallback } from 'use-debounce'
 
+import { useBulkTogglePlaylistMediaMutation } from '@/lib/hooks/api/playlist/useBulkTogglePlaylistMedia'
 import { useSearchUserPlaylistsQuery } from '@/lib/hooks/api/playlist/useSearchUserPlaylists'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
+import { useToastStore } from '@/stores/toast-store'
 import { MediaType } from '@/types/general.types'
 
 import PlaylistItem from './SaveToPlaylistBtn/PlaylistItem'
@@ -22,6 +24,12 @@ type ModalProps = {
 
 export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, mediaType }: ModalProps) {
   const [query, setQuery] = useState('')
+
+  const [localSelections, setLocalSelections] = useState<Map<string, boolean>>(new Map())
+
+  const addToast = useToastStore(state => state.addToast)
+
+  const { mutate: saveBulkChanges, isPending } = useBulkTogglePlaylistMediaMutation(userId as string)
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
     setQuery(value)
@@ -44,12 +52,61 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
     fetchNextPage,
   })
 
+  useEffect(() => {
+    if (!isOpen) {
+      setLocalSelections(new Map())
+      setQuery('')
+    }
+  }, [isOpen])
+
+  const handleToggle = (playlistId: string, serverState: boolean) => {
+    if (isPending) return
+
+    setLocalSelections(prev => {
+      const newMap = new Map(prev)
+
+      const currentState = newMap.has(playlistId) ? newMap.get(playlistId)! : serverState
+      const nextState = !currentState
+
+      if (nextState === serverState) {
+        newMap.delete(playlistId)
+      } else {
+        newMap.set(playlistId, nextState)
+      }
+
+      return newMap
+    })
+  }
+
+  const handleSave = () => {
+    if (localSelections.size === 0) {
+      return
+    }
+
+    saveBulkChanges(
+      {
+        playlistIds: Array.from(localSelections.keys()),
+        mediaId: videoId,
+        mediaType: mediaType || 'Video',
+      },
+      {
+        onSuccess: () => {
+          addToast('Playlists updated successfully', 'success')
+          setLocalSelections(new Map())
+        },
+        onError: error => {
+          addToast(error.message || 'Failed to update playlists', 'error')
+        },
+      },
+    )
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="flex flex-col w-full gap-4">
         <Search handleSearchChange={debouncedSearch} />
 
-        <div className="flex flex-col max-h-[400px] overflow-y-auto">
+        <div className="flex flex-col max-h-[400px] min-h-60 overflow-y-auto custom-scrollbar pr-1">
           {isLoading && playlists.length === 0 ? (
             <div className="flex justify-center py-10">
               <div className="size-6 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
@@ -61,17 +118,23 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
           ) : (
             playlists.map((playlist, index) => {
               const isLast = playlists.length === index + 1
+
+              const isActuallyAdded = localSelections.has(playlist.playlistId)
+                ? localSelections.get(playlist.playlistId)!
+                : playlist.isVideoAdded
+
+              const countDiff = isActuallyAdded === playlist.isVideoAdded ? 0 : isActuallyAdded ? 1 : -1
+              const displayCount = playlist.countOfVideos + countDiff
+
               const item = (
                 <PlaylistItem
                   key={playlist.playlistId}
                   playlistId={playlist.playlistId}
                   image={playlist.playlistCover}
                   name={playlist.name}
-                  count={playlist.countOfVideos}
-                  isVideoAdded={playlist.isVideoAdded}
-                  videoId={videoId}
-                  userId={userId as string}
-                  mediaType={mediaType}
+                  count={displayCount}
+                  isAdded={isActuallyAdded}
+                  onToggle={() => handleToggle(playlist.playlistId, playlist.isVideoAdded)}
                 />
               )
 
@@ -91,10 +154,21 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
               <div className="size-5 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
             </div>
           )}
+        </div>
 
-          {!hasNextPage && playlists.length > 0 && (
-            <p className="text-center text-xs text-neutral-600 py-4 italic">End of list</p>
-          )}
+        {/* Action Button */}
+        <div className="pt-2">
+          <button
+            onClick={handleSave}
+            disabled={isPending}
+            className={`w-full py-3 rounded-xl font-medium transition-colors ${
+              localSelections.size > 0 && !isPending
+                ? 'bg-neutral-800 hover:bg-neutral-700 text-white cursor-pointer'
+                : 'bg-neutral-900 text-neutral-500 cursor-not-allowed'
+              }`}
+          >
+            {isPending ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </div>
     </Modal>

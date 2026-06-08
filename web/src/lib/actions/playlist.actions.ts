@@ -194,6 +194,52 @@ export async function togglePlaylistStream(playlistId: string, streamId: string)
   }
 }
 
+export async function bulkTogglePlaylistsVideo(
+  playlistIds: string[],
+  videoId: string,
+): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/videos/bulk`, {
+      playlistIds,
+      videoIds: [videoId],
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('BULK_TOGGLE_VIDEOS_IN_PLAYLISTS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to update playlists`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function bulkTogglePlaylistsStream(
+  playlistIds: string[],
+  streamId: string,
+): Promise<BaseServerResponse<boolean>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<boolean>>(`${endpoint}/streams/bulk`, {
+      playlistIds,
+      streamIds: [streamId],
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('BULK_TOGGLE_STREAMS_IN_PLAYLISTS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to update playlists`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
 export async function checkVideoInPlaylist(
   playlistId: string,
   videoId: string | undefined,
