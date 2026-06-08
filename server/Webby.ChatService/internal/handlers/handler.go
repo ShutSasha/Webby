@@ -15,6 +15,9 @@ type chatService interface {
 
 type messageService interface {
 	SaveMessage(ctx context.Context, senderID, chatID uuid.UUID, content string) error
+	List(ctx context.Context, chatID, userID uuid.UUID, limit, page int) ([]models.RichMessage, int64, error)
+	Update(ctx context.Context, chatID, messageID, userID uuid.UUID, content string) error
+	Delete(ctx context.Context, chatID, messageID, userID uuid.UUID) error
 }
 
 type handler struct {

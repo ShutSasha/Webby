@@ -19,12 +19,10 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 		{
 			chats.POST("", handler.Create)
 			chats.GET("/:id", handler.Get)
-		}
-
-		messages := api.Group("/messages")
-		messages.Use(requireAuth)
-		{
-			messages.POST("/:chatId", handler.saveMessage)
+			chats.POST("/:id/messages", handler.saveMessage)
+			chats.GET("/:id/messages", handler.listMessages)
+			chats.PATCH("/:id/messages/:messageId", handler.updateMessage)
+			chats.DELETE("/:id/messages/:messageId", handler.deleteMessage)
 		}
 	}
 

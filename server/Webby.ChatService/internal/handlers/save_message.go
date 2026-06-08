@@ -10,11 +10,11 @@ import (
 )
 
 type saveMessageUri struct {
-	ChatID string `uri:"chatId" binding:"required,uuid"`
+	ChatID string `uri:"id" binding:"required,uuid"`
 }
 
 type saveMessageBody struct {
-	Content string `json:"content" binding:"required"`
+	Content string `json:"content" binding:"required,min=1"`
 }
 
 func (h *handler) saveMessage(c *gin.Context) {

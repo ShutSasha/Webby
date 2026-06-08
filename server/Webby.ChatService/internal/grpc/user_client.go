@@ -11,12 +11,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type UserClient struct {
+type userClient struct {
 	client userpb.UserGrpcServiceClient
 	conn   *grpc.ClientConn
 }
 
-func NewUserClient(address string) (*UserClient, error) {
+func NewUserClient(address string) (*userClient, error) {
 	const op = "grpc.NewUserClient"
 
 	conn, err := grpc.NewClient(
@@ -29,18 +29,18 @@ func NewUserClient(address string) (*UserClient, error) {
 
 	client := userpb.NewUserGrpcServiceClient(conn)
 
-	return &UserClient{
+	return &userClient{
 		client: client,
 		conn:   conn,
 	}, nil
 }
 
-func (u *UserClient) Close() error {
+func (u *userClient) Close() error {
 	return u.conn.Close()
 }
 
-func (u *UserClient) GetUserByID(ctx context.Context, userID uuid.UUID) (*models.Sender, error) {
-	const op = "grpc.UserClient.GetUserByID"
+func (u *userClient) GetUserByID(ctx context.Context, userID uuid.UUID) (*models.Sender, error) {
+	const op = "grpc.userClient.GetUserByID"
 
 	resp, err := u.client.GetUserById(
 		ctx, &userpb.GetUserRequest{
@@ -56,4 +56,34 @@ func (u *UserClient) GetUserByID(ctx context.Context, userID uuid.UUID) (*models
 		Username:  resp.Username,
 		AvatarURL: resp.AvatarUrl,
 	}, nil
+}
+
+func (u *userClient) GetUsersByIDs(ctx context.Context, userIDs []uuid.UUID) (map[uuid.UUID]models.Sender, error) {
+	const op = "grpc.userClient.GetUsersByIDs"
+
+	userIDsStr := make([]string, len(userIDs))
+	for i, userID := range userIDs {
+		userIDsStr[i] = userID.String()
+	}
+
+	resp, err := u.client.GetUsersByIds(ctx, &userpb.GetUsersRequest{
+		UserIds: userIDsStr,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	senders := make(map[uuid.UUID]models.Sender, len(resp.Users))
+	for i, user := range resp.Users {
+		userID := userIDs[i]
+		if _, exists := senders[userID]; !exists {
+			senders[userID] = models.Sender{
+				ID:        userID,
+				Username:  user.Username,
+				AvatarURL: user.AvatarUrl,
+			}
+		}
+	}
+
+	return senders, nil
 }
