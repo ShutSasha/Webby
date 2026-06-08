@@ -46,6 +46,21 @@
       }
     },
     {
+      "DownstreamPathTemplate": "/api/messages/{chatId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "chat-service",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/messages/{chatId}",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
       "DownstreamPathTemplate": "/socket.io/{everything}",
       "DownstreamScheme": "ws",
       "DownstreamHostAndPorts": [

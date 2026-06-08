@@ -9,128 +9,87 @@ import (
 	"github.com/google/uuid"
 )
 
-type ChatRepo interface {
+type chatReposotory interface {
 	Create(ctx context.Context, chat *models.Chat) (uuid.UUID, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Chat, error)
 	GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
 	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
 }
 
-type ChatMemberRepo interface {
-	Add(ctx context.Context, chatId, userId uuid.UUID) error
-	Remove(ctx context.Context, chatId, userId uuid.UUID) error
-	Exists(ctx context.Context, chatId, userId uuid.UUID) (bool, error)
-	ListByChat(ctx context.Context, chatId uuid.UUID) ([]uuid.UUID, error)
-}
-
-type RoomMemberClient interface {
+type roomMemberExister interface {
 	Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error)
 }
 
-type ChatService struct {
-	chatRepo         ChatRepo
-	chatMemberRepo   ChatMemberRepo
-	roomMemberClient RoomMemberClient
+type chatService struct {
+	chatRepository    chatReposotory
+	roomMemberExister roomMemberExister
 }
 
 func NewChatService(
-	chatRepo ChatRepo,
-	chatMemberRepo ChatMemberRepo,
-	roomMemberClient RoomMemberClient,
-) *ChatService {
-	return &ChatService{
-		chatRepo:         chatRepo,
-		chatMemberRepo:   chatMemberRepo,
-		roomMemberClient: roomMemberClient,
+	chatRepository chatReposotory,
+	roomMemberExister roomMemberExister,
+) *chatService {
+	return &chatService{
+		chatRepository:    chatRepository,
+		roomMemberExister: roomMemberExister,
 	}
 }
 
-func (s *ChatService) Create(ctx context.Context, roomID *uuid.UUID) (*models.Chat, error) {
+func (s *chatService) Create(ctx context.Context, roomID *uuid.UUID) (*models.Chat, error) {
+	const op = "services.chatService.Create"
 	if roomID != nil {
-		existing, err := s.chatRepo.GetByRoomID(ctx, *roomID)
+		existing, err := s.chatRepository.GetByRoomID(ctx, *roomID)
 		if err == nil && existing != nil {
 			return existing, nil
 		}
 	}
 
-	chat := &models.Chat{
-		RoomID: roomID,
-	}
-	id, err := s.chatRepo.Create(ctx, chat)
+	chat := &models.Chat{RoomID: roomID}
+	id, err := s.chatRepository.Create(ctx, chat)
 	if err != nil {
-		return nil, fmt.Errorf("create chat: %w", err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	chat.ID = id
 	return chat, nil
 }
 
-func (s *ChatService) GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error) {
-	chat, err := s.chatRepo.GetByID(ctx, chatID)
+func (s *chatService) GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error) {
+	const op = "services.chatService.GetByID"
+
+	chat, err := s.chatRepository.GetByID(ctx, chatID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
 	return chat, nil
 }
 
-func (s *ChatService) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error) {
-	chat, err := s.chatRepo.GetByRoomID(ctx, roomID)
+func (s *chatService) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error) {
+	const op = "services.chatService.GetByRoomID"
+
+	chat, err := s.chatRepository.GetByRoomID(ctx, roomID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
 	return chat, nil
 }
 
-func (s *ChatService) GetChatIDByRoomID(ctx context.Context, roomID, userID uuid.UUID) (uuid.UUID, error) {
-	const op = "WebbyChatService.ChatService.GetChatIDByRoomID"
+func (s *chatService) GetChatIDByRoomID(ctx context.Context, roomID, userID uuid.UUID) (uuid.UUID, error) {
+	const op = "services.chatService.GetChatIDByRoomID"
 
-	isMember, err := s.roomMemberClient.Exists(ctx, roomID, userID)
+	isMember, err := s.roomMemberExister.Exists(ctx, roomID, userID)
 	if err != nil || !isMember {
 		return uuid.Nil, fmt.Errorf("%s: forbidden %w", op, err)
 	}
 
-	id, err := s.chatRepo.GetChatIDByRoomID(ctx, roomID)
+	id, err := s.chatRepository.GetChatIDByRoomID(ctx, roomID)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return id, nil
-}
-
-func (s *ChatService) AddMember(ctx context.Context, chatID, userID uuid.UUID) error {
-	_, err := s.chatRepo.GetByID(ctx, chatID)
-	if err != nil {
-		return err
-	}
-
-	return s.chatMemberRepo.Add(ctx, chatID, userID)
-}
-
-func (s *ChatService) RemoveMember(ctx context.Context, chatId, userId uuid.UUID) error {
-	return s.chatMemberRepo.Remove(ctx, chatId, userId)
-}
-
-func (s *ChatService) IsMember(ctx context.Context, chatId, userId uuid.UUID) (bool, error) {
-	return s.chatMemberRepo.Exists(ctx, chatId, userId)
-}
-
-func (s *ChatService) ListMembers(ctx context.Context, chatID uuid.UUID) ([]uuid.UUID, error) {
-	_, err := s.chatRepo.GetByID(ctx, chatID)
-	if err != nil {
-		return nil, err
-	}
-	return s.chatMemberRepo.ListByChat(ctx, chatID)
-}
-
-func (s *ChatService) EnsureMember(ctx context.Context, chatId, userId uuid.UUID) error {
-	exists, err := s.chatMemberRepo.Exists(ctx, chatId, userId)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return nil
-	}
-	return s.chatMemberRepo.Add(ctx, chatId, userId)
 }
 
 func isNotFound(err error) bool {

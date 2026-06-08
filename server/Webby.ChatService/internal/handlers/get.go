@@ -34,7 +34,7 @@ func (h handler) Get(c *gin.Context) {
 		return
 	}
 
-	chat, err := h.service.GetByID(ctx, chatId)
+	chat, err := h.chatService.GetByID(ctx, chatId)
 	if err != nil {
 		log.Error("retrieve chat error", slog.String("err", err.Error()))
 		HandleAppError(c, "Get chat error", err)

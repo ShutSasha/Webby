@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserGrpcService_GetUserById_FullMethodName = "/user.UserGrpcService/GetUserById"
+	UserGrpcService_GetUserById_FullMethodName = "/UserGrpcService/GetUserById"
 )
 
 // UserGrpcServiceClient is the client API for UserGrpcService service.
@@ -108,7 +108,7 @@ func _UserGrpcService_GetUserById_Handler(srv interface{}, ctx context.Context, 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UserGrpcService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "user.UserGrpcService",
+	ServiceName: "UserGrpcService",
 	HandlerType: (*UserGrpcServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

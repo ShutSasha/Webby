@@ -37,7 +37,7 @@ func setupRequest(body string) (*gin.Context, *httptest.ResponseRecorder) {
 func TestCreateChat_Success(t *testing.T) {
 	t.Run("Create chat without roomId", func(t *testing.T) {
 		mockService := handlermocks.NewMockService(t)
-		mockMessageManager := handlermocks.NewMockmessageManager(t)
+		mockMessageManager := handlermocks.NewMockmessageService(t)
 		chatId := uuid.New()
 		chat := &models.Chat{
 			ID:        chatId,
@@ -63,7 +63,7 @@ func TestCreateChat_Success(t *testing.T) {
 
 	t.Run("Create chat with roomId", func(t *testing.T) {
 		mockService := handlermocks.NewMockService(t)
-		mockMessageManager := handlermocks.NewMockmessageManager(t)
+		mockMessageManager := handlermocks.NewMockmessageService(t)
 		chatId := uuid.New()
 		roomId := uuid.New()
 		chat := &models.Chat{
@@ -93,7 +93,7 @@ func TestCreateChat_Success(t *testing.T) {
 func TestCreateChat_ValidationErrors(t *testing.T) {
 	t.Run("Invalid roomId format", func(t *testing.T) {
 		mockService := handlermocks.NewMockService(t)
-		mockMessageManager := handlermocks.NewMockmessageManager(t)
+		mockMessageManager := handlermocks.NewMockmessageService(t)
 		mockService.On("Create", mock.Anything, mock.MatchedBy(func(id *uuid.UUID) bool {
 			return id != nil && *id == uuid.UUID{}
 		})).Return(nil, apperrors.ErrInvalidInput).Once()
@@ -114,7 +114,7 @@ func TestCreateChat_ValidationErrors(t *testing.T) {
 
 	t.Run("Invalid JSON body", func(t *testing.T) {
 		mockService := handlermocks.NewMockService(t)
-		mockMessageManager := handlermocks.NewMockmessageManager(t)
+		mockMessageManager := handlermocks.NewMockmessageService(t)
 		handler := handlers.New(mockService, mockMessageManager)
 
 		c, w := setupRequest(`{invalid}`)
@@ -128,7 +128,7 @@ func TestCreateChat_ValidationErrors(t *testing.T) {
 func TestCreateChat_ServiceErrors(t *testing.T) {
 	t.Run("Conflict error", func(t *testing.T) {
 		mockService := handlermocks.NewMockService(t)
-		mockMessageManager := handlermocks.NewMockmessageManager(t)
+		mockMessageManager := handlermocks.NewMockmessageService(t)
 		mockService.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return((*models.Chat)(nil), apperrors.ErrConflict).Once()
 
 		handler := handlers.New(mockService, mockMessageManager)
@@ -141,7 +141,7 @@ func TestCreateChat_ServiceErrors(t *testing.T) {
 
 	t.Run("Internal error", func(t *testing.T) {
 		mockService := handlermocks.NewMockService(t)
-		mockMessageManager := handlermocks.NewMockmessageManager(t)
+		mockMessageManager := handlermocks.NewMockmessageService(t)
 		mockService.On("Create", mock.Anything, (*uuid.UUID)(nil)).Return((*models.Chat)(nil), apperrors.ErrInternal).Once()
 
 		handler := handlers.New(mockService, mockMessageManager)

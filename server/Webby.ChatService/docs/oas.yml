@@ -10,7 +10,80 @@ info:
 tags:
   - name: Chats
     description: Endpoints for managing chats
+  - name: Messages
+    description: Endpoints for sending messages to chats
 paths:
+  /api/messages/{id}:
+    post:
+      tags:
+        - Messages
+      summary: Send a message to a chat
+      description: |
+        Send a new message to a specific chat. The message will be stored in the database.
+        The sender ID is automatically extracted from the JWT Bearer token.
+        
+        **Important:** The message will be broadcast to all active participants in the chat room via WebSocket 
+        using the `NEW_MESSAGE` event. See the **Webby WebSocket Gateway** documentation for details on how 
+        to receive real-time message notifications through the WebSocket connection.
+        
+        ## Integration Flow:
+        1. Client sends a message via this REST endpoint
+        2. Server extracts sender ID from the JWT token
+        3. Server stores the message in the database
+        4. Server broadcasts the message to all connected WebSocket clients via the `NEW_MESSAGE` event
+        5. Clients receive the message through WebSocket and update the UI in real-time
+        
+        ## WebSocket Event Reference:
+        For information about receiving messages in real-time, refer to the `NEW_MESSAGE` event documentation 
+        in the **Webby WebSocket Gateway** service documentation.
+      operationId: sendMessage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Chat identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '200':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendMessageResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Chat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/chats:
     post:
       tags:
@@ -114,6 +187,30 @@ components:
           format: uuid
           nullable: true
           description: Optional room UUID to reuse an existing chat
+    SendMessageRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: Message content text
+          example: "Hello, how are you?"
+    SendMessageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Message sent"
+        data:
+          type: object
+          nullable: true
+        errors:
+          type: object
+          nullable: true
     ChatResponse:
       type: object
       properties:

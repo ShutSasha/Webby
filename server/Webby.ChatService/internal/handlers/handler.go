@@ -8,19 +8,23 @@ import (
 	"github.com/google/uuid"
 )
 
-type Service interface {
+type chatService interface {
 	Create(ctx context.Context, roomID *uuid.UUID) (*models.Chat, error)
 	GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error)
 }
 
-type handler struct {
-	service        Service
-	messageManager messageManager
+type messageService interface {
+	SaveMessage(ctx context.Context, senderID, chatID uuid.UUID, content string) error
 }
 
-func New(service Service, messageManager messageManager) handler {
+type handler struct {
+	chatService    chatService
+	messageService messageService
+}
+
+func New(chatService chatService, messageService messageService) handler {
 	return handler{
-		service:        service,
-		messageManager: messageManager,
+		chatService:    chatService,
+		messageService: messageService,
 	}
 }

@@ -145,7 +145,7 @@ var File_proto_user_user_proto protoreflect.FileDescriptor
 
 const file_proto_user_user_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/user/user.proto\x12\x04user\"e\n" +
+	"\x15proto/user/user.proto\"e\n" +
 	"\x0eGetUserRequest\x12\x16\n" +
 	"\x06userId\x18\x01 \x01(\tR\x06userId\x12)\n" +
 	"\rrequestUserId\x18\x02 \x01(\tH\x00R\rrequestUserId\x88\x01\x01B\x10\n" +
@@ -156,9 +156,9 @@ const file_proto_user_user_proto_rawDesc = "" +
 	"\tavatarUrl\x18\x03 \x01(\tR\tavatarUrl\x12\x1e\n" +
 	"\n" +
 	"isFollowed\x18\x04 \x01(\bR\n" +
-	"isFollowed2J\n" +
-	"\x0fUserGrpcService\x127\n" +
-	"\vGetUserById\x12\x14.user.GetUserRequest\x1a\x12.user.UserResponseB)Z'webby/chat-service/internal/grpc/userpbb\x06proto3"
+	"isFollowed2@\n" +
+	"\x0fUserGrpcService\x12-\n" +
+	"\vGetUserById\x12\x0f.GetUserRequest\x1a\r.UserResponseB)Z'webby/chat-service/internal/grpc/userpbb\x06proto3"
 
 var (
 	file_proto_user_user_proto_rawDescOnce sync.Once
@@ -174,12 +174,12 @@ func file_proto_user_user_proto_rawDescGZIP() []byte {
 
 var file_proto_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_proto_user_user_proto_goTypes = []any{
-	(*GetUserRequest)(nil), // 0: user.GetUserRequest
-	(*UserResponse)(nil),   // 1: user.UserResponse
+	(*GetUserRequest)(nil), // 0: GetUserRequest
+	(*UserResponse)(nil),   // 1: UserResponse
 }
 var file_proto_user_user_proto_depIdxs = []int32{
-	0, // 0: user.UserGrpcService.GetUserById:input_type -> user.GetUserRequest
-	1, // 1: user.UserGrpcService.GetUserById:output_type -> user.UserResponse
+	0, // 0: UserGrpcService.GetUserById:input_type -> GetUserRequest
+	1, // 1: UserGrpcService.GetUserById:output_type -> UserResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

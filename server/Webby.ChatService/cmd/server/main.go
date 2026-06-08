@@ -77,15 +77,6 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer userClient.Close()
 
-	// Repositories
-	chatRepo := repository.NewChatRepository(db)
-	chatMemberRepo := repository.NewChatMemberRepository(db)
-	messageRepo := repository.NewMessageRepository(db)
-
-	// Services
-	chatService := services.NewChatService(chatRepo, chatMemberRepo, roomMemberClient)
-	messageService := services.NewMessageService(messageRepo, chatMemberRepo, userClient)
-
 	// Redis publisher for event dispatch
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     cfg.Redis.Addr,
@@ -93,6 +84,17 @@ func run(ctx context.Context, w io.Writer) error {
 		DB:       cfg.Redis.DB,
 	})
 	defer rdb.Close()
+
+	// Repositories
+	chatRepo := repository.NewChatRepository(db)
+	chatMemberRepo := repository.NewChatMemberRepository(db)
+	messageRepo := repository.NewMessageRepository(db)
+	redisPublisher := repository.NewRedisPublisher(rdb)
+
+	// Services
+	chatService := services.NewChatService(chatRepo, roomMemberClient)
+	chatMemberService := services.NewChatMemberService(chatRepo, chatMemberRepo)
+	messageService := services.NewMessageService(messageRepo, chatMemberRepo, userClient, redisPublisher)
 
 	// HTTP server
 	server := handlers.NewServer(cfg, logger, chatService, messageService)
@@ -115,8 +117,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	// gRPC server
 	grpcSrv := grpc.NewServer()
-	redisPublisher := grpcserver.NewRedisPublisher(rdb)
-	chatGrpcServer := grpcserver.NewChatGrpcServer(chatService, messageService, redisPublisher, logger)
+	chatGrpcServer := grpcserver.NewChatGrpcServer(chatService, chatMemberService, logger)
 	chatpb.RegisterChatGrpcServiceServer(grpcSrv, chatGrpcServer)
 
 	grpcListener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Grpc.Port))

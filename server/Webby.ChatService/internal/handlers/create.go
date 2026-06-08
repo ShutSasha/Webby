@@ -22,9 +22,7 @@ type chatResponse struct {
 
 func (h handler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(
-		slog.String("operation", "httpserver.chats.create"),
-	)
+	log := logger.FromContext(ctx).With("op", "httpserver.chats.create")
 
 	var req createRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -34,7 +32,7 @@ func (h handler) Create(c *gin.Context) {
 	}
 
 	roomID, _ := uuid.Parse(*req.RoomID)
-	chat, err := h.service.Create(ctx, &roomID)
+	chat, err := h.chatService.Create(ctx, &roomID)
 	if err != nil {
 		log.Error("create chat error", slog.String("err", err.Error()))
 		HandleAppError(c, "Create chat error", err)
