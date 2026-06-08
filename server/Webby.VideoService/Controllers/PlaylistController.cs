@@ -84,6 +84,15 @@ public class PlaylistController : ControllerBase
       await _playlistService.AttachVideoToPlaylist(request.PlaylistId,request.VideoIds, requestUserId.Value);
       return Ok(ApiResponse.Ok("Successfully update playlist"));
    }
+
+   [HttpPost("videos/bulk")]
+   [SwaggerOperation("Add or delete videos in playlists", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> AddVideoToPlaylists([FromBody] AddVideoToPlaylistsRequest request)
+   {
+      var requestedUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _playlistService.AttachVideoToPlaylists(request.PlaylistIds, request.VideoIds, requestedUserId.Value);
+      return Ok(ApiResponse.Ok("Successfully attached videos in specified playlists"));
+   }
    
    [HttpPost("streams")]
    [SwaggerOperation("Add or delete streams in playlist", "AUTH REQUIRED")]
@@ -94,7 +103,16 @@ public class PlaylistController : ControllerBase
       await _playlistService.AttachStreamToPlaylist(request.PlaylistId,request.StreamIds, requestUserId.Value);
       return Ok(ApiResponse.Ok("Successfully update playlist"));
    }
-
+   
+   [HttpPost("streams/bulk")]
+   [SwaggerOperation("Add or delete streams in playlists", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> AddStreamToPlaylists([FromBody] AddStreamToPlaylistsRequest request)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      
+      await _playlistService.AttachStreamToPlaylists(request.PlaylistIds,request.StreamIds, requestUserId.Value);
+      return Ok(ApiResponse.Ok("Successfully attached streams in specified playlists"));
+   }
 
    [HttpPatch]
    [SwaggerOperation("Update playlist", "AUTH REQUIRED")]

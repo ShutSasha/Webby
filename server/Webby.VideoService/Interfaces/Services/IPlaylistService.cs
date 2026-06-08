@@ -14,8 +14,10 @@ public interface IPlaylistService
    Task<PlaylistDto> UpdatePlaylist(Guid requestUserId, UpdatePlaylistRequest request);
    Task DeletePlaylist(Guid userId, Guid playlistId);
    Task<GetPlaylistResponse> GetPlaylistInformation(Guid playlistId, Guid? requestedUserId);
-   Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<string> videoIds, Guid requestUserId);
-   Task<PlaylistDto> AttachStreamToPlaylist(Guid playlistId, List<string> streamIds, Guid requestUserId);
+   Task AttachVideoToPlaylist(Guid playlistId, List<string> videoIds, Guid requestUserId);
+   Task AttachVideoToPlaylists(List<Guid> playlistIds, List<string> videoIds, Guid requestUserId);
+   Task AttachStreamToPlaylist(Guid playlistId, List<string> streamIds, Guid requestUserId);
+   Task AttachStreamToPlaylists(List<Guid> playlistIds, List<string> videoIds, Guid requestUserId);
    Task<PagedResponse<SearchPlaylistDto>> SearchPlaylists(Guid? requestUserId, SearchOptions searchOptions);
    Task<bool> CheckIfVideoExistInPlaylist(Guid playlistId, string videoId);
 

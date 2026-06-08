@@ -268,115 +268,60 @@ public class PlaylistService : IPlaylistService
       };
    }
    
-   public async Task<PlaylistDto> AttachVideoToPlaylist(Guid playlistId, List<string> videoIds, Guid requestUserId)
+   public async Task AttachVideoToPlaylist(Guid playlistId, List<string> videoIds, Guid requestUserId)
    {
        if (videoIds.Count == 0)
            throw new ApiException("Attach video error", 400, "No videos to add");
 
-       var playlist = await _playlistRepository.GetPlaylistDetails(playlistId)
-           ?? throw new ApiException("Attach video to playlist error", 404, "Playlist wasn't found");
+       await ValidatePlaylistsOwnership([playlistId], requestUserId, "Attach video to playlist");
 
-       if (playlist.UserId != requestUserId)
-           throw new ApiException("Attach video to playlist error", 403, "You can't update this playlist");
-       
-       var requestedVideos = videoIds
-           .Select(id =>
-           {
-              var result = PlatformPrefixToPlatformConverter.ParseSystemPlatform(id);
-              if (result == null) throw new ApiException("Attach video error", 400, "Invalid id format");
-              return result.Value;
-           })
-           .DistinctBy(v => new { v.Platform, v.ActualId })
-           .Select(item => new PlaylistVideo
-           {
-               PlaylistVideoId = Guid.NewGuid(),
-               PlaylistId = playlistId,
-               Platform = item.Platform,
-               InternalContentId = item.Platform == SystemPlatforms.Webby ? Guid.Parse(item.ActualId) : null,
-               ExternalContentId = item.Platform != SystemPlatforms.Webby ? item.ActualId : null,
-               MediaType = MediaType.Video,
-               CreatedAt = DateTime.UtcNow,
-           })
-           .ToList();
-       
-       var (itemsToAdd, itemsToDelete) = await _playlistRepository.GetPlaylistItemsDiffAsync(
-           playlistId, 
-           MediaType.Video, 
-           requestedVideos);
-
-
-       var localVideoGuids = itemsToAdd
-           .Where(v => v is { Platform: SystemPlatforms.Webby, InternalContentId: not null })
-           .Select(v => v.InternalContentId!.Value)
-           .ToList();
-
-       if (localVideoGuids.Any())
-       {
-           var isAllVideosInDb = await _videoRepository.CheckVideosCount(localVideoGuids);
-           if (!isAllVideosInDb)
-               throw new ApiException("Update playlist error", 404, "Local videos weren't found");
-
-           var hasForbiddenVideos = await _videoRepository.CheckForbiddenVideos(localVideoGuids, requestUserId);
-           if (hasForbiddenVideos)
-               throw new ApiException("Add video to playlist error", 403, "You can't add private videos");
-       }
-       
-       if (itemsToAdd.Count > 0)
-           await _playlistRepository.AddPlaylistVideos(itemsToAdd);
-
-       if (itemsToDelete.Count > 0)
-           await _playlistRepository.DeletePlaylistVideos(itemsToDelete);
-
-       var updatedPlaylist = await _playlistRepository.GetPlaylistDetails(playlistId);
-
-       return await MapToPlaylistDto(updatedPlaylist!, requestUserId);
+       var parsedIds = ParseAndValidateIds(videoIds, "Attach video");
+       await ValidateLocalVideos(parsedIds, requestUserId);
+       await ApplyPlaylistItemsDiff([playlistId], MediaType.Video, parsedIds);
    }
-   
-   public async Task<PlaylistDto> AttachStreamToPlaylist(Guid playlistId, List<string> streamIds, Guid requestUserId)
+
+   public async Task AttachVideoToPlaylists(List<Guid> playlistIds, List<string> videoIds, Guid requestUserId)
    {
-      if (streamIds.Count == 0)
-         throw new ApiException("Attach stream error", 400, "No streams to add");
-
-      var playlist = await _playlistRepository.GetPlaylistDetails(playlistId)
-                     ?? throw new ApiException("Attach stream to playlist error", 404, "Playlist wasn't found");
-
-      if (playlist.UserId != requestUserId)
-         throw new ApiException("Attach stream to playlist error", 403, "You can't update this playlist");
+      playlistIds = playlistIds.Distinct().ToList();
       
-      var requestedStreams = streamIds
-         .Select(id =>
-         {
-            var result = PlatformPrefixToPlatformConverter.ParseSystemPlatform(id);
-            if (result == null) throw new ApiException("Attach stream error", 400, "Invalid id format");
-            return result.Value;
-         })
-         .DistinctBy(s => new { s.Platform, s.ActualId })
-         .Select(item => new PlaylistVideo
-         {
-            PlaylistVideoId = Guid.NewGuid(),
-            PlaylistId = playlistId,
-            Platform = item.Platform,
-            InternalContentId = null, 
-            ExternalContentId = item.ActualId,
-            MediaType = MediaType.LiveStream,
-            CreatedAt = DateTime.UtcNow,
-         })
-         .ToList();
+       if (playlistIds.Count == 0)
+           throw new ApiException("Attach video error", 400, "No playlists provided");
+
+       if (videoIds.Count == 0)
+           throw new ApiException("Attach video error", 400, "No videos to add");
+
+       await ValidatePlaylistsOwnership(playlistIds, requestUserId, "Attach video to playlists");
+
+       var parsedIds = ParseAndValidateIds(videoIds, "Attach video");
+       await ValidateLocalVideos(parsedIds, requestUserId);
+       await ApplyPlaylistItemsDiff(playlistIds, MediaType.Video, parsedIds);
+   }
+
+   public async Task AttachStreamToPlaylist(Guid playlistId, List<string> streamIds, Guid requestUserId)
+   {
+       if (streamIds.Count == 0)
+           throw new ApiException("Attach stream error", 400, "No streams to add");
+
+       await ValidatePlaylistsOwnership([playlistId], requestUserId, "Attach stream to playlist");
+
+       var parsedIds = ParseAndValidateIds(streamIds, "Attach stream");
+       await ApplyPlaylistItemsDiff([playlistId], MediaType.LiveStream,parsedIds);
+   }
+
+   public async Task AttachStreamToPlaylists(List<Guid> playlistIds, List<string> streamIds, Guid requestUserId)
+   {
+      playlistIds = playlistIds.Distinct().ToList();
       
-      var (itemsToAdd, itemsToDelete) = await _playlistRepository.GetPlaylistItemsDiffAsync(
-         playlistId,
-         MediaType.LiveStream,
-         requestedStreams);
+       if (playlistIds.Count == 0)
+           throw new ApiException("Attach stream error", 400, "No playlists provided");
 
-      if (itemsToAdd.Count > 0)
-         await _playlistRepository.AddPlaylistVideos(itemsToAdd);
+       if (streamIds.Count == 0)
+           throw new ApiException("Attach stream error", 400, "No streams to add");
 
-      if (itemsToDelete.Count > 0)
-         await _playlistRepository.DeletePlaylistVideos(itemsToDelete);
+       await ValidatePlaylistsOwnership(playlistIds, requestUserId, "Attach stream to playlists");
 
-      var updatedPlaylist = await _playlistRepository.GetPlaylistDetails(playlistId);
-
-      return await MapToPlaylistDto(updatedPlaylist!, requestUserId);
+       var parsedIds = ParseAndValidateIds(streamIds, "Attach stream");
+       await ApplyPlaylistItemsDiff(playlistIds, MediaType.LiveStream,parsedIds);
    }
 
    public async Task<PagedResponse<SearchPlaylistDto>> SearchPlaylists(
@@ -563,6 +508,86 @@ public class PlaylistService : IPlaylistService
        }
 
        return covers;
+   }
+   
+   private List<(SystemPlatforms Platform, string ActualId)> ParseAndValidateIds(List<string> ids, string errorContext)
+   {
+      return ids
+         .Select(id =>
+         {
+            var result = PlatformPrefixToPlatformConverter.ParseSystemPlatform(id);
+            if (result == null) throw new ApiException($"{errorContext} error", 400, "Invalid id format");
+            return result.Value;
+         })
+         .DistinctBy(v => new { v.Platform, v.ActualId })
+         .Select(v => (v.Platform, v.ActualId))
+         .ToList();
+   }
+
+   private async Task ValidatePlaylistsOwnership(List<Guid> playlistIds, Guid requestUserId, string errorContext)
+   {
+      var playlists = (await _playlistRepository.GetByPredicate(p => playlistIds.Contains(p.PlaylistId))).ToList();
+
+       if (playlists.Count != playlistIds.Count)
+           throw new ApiException($"{errorContext} error", 404, "One or more playlists weren't found");
+
+       if (playlists.Any(p => p.UserId != requestUserId))
+           throw new ApiException($"{errorContext} error", 403, "You can't update one or more playlists");
+   }
+
+   private async Task ValidateLocalVideos(List<(SystemPlatforms Platform, string ActualId)> parsedIds, Guid requestUserId)
+   {
+       var localVideoGuids = parsedIds
+           .Where(v => v.Platform == SystemPlatforms.Webby)
+           .Select(v => Guid.Parse(v.ActualId))
+           .ToList();
+
+       if (!localVideoGuids.Any()) return;
+
+       var isAllVideosInDb = await _videoRepository.CheckVideosCount(localVideoGuids);
+       if (!isAllVideosInDb)
+           throw new ApiException("Update playlist error", 404, "Local videos weren't found");
+
+       var hasForbiddenVideos = await _videoRepository.CheckForbiddenVideos(localVideoGuids, requestUserId);
+       if (hasForbiddenVideos)
+           throw new ApiException("Add video to playlist error", 403, "You can't add private videos");
+   }  
+
+   private async Task ApplyPlaylistItemsDiff(List<Guid> playlistIds, MediaType mediaType, 
+      List<(SystemPlatforms Platform, string ActualId)> parsedIds)
+   {
+       var allItemsToAdd = new List<PlaylistVideo>();
+       var allItemsToDelete = new List<PlaylistVideo>();
+
+       foreach (var playlistId in playlistIds)
+       {
+           var playlistItems = parsedIds
+               .Select(item => new PlaylistVideo
+               {
+                   PlaylistVideoId = Guid.NewGuid(),
+                   PlaylistId = playlistId,
+                   Platform = item.Platform,
+                   InternalContentId = item.Platform == SystemPlatforms.Webby ? Guid.Parse(item.ActualId) : null,
+                   ExternalContentId = item.Platform != SystemPlatforms.Webby ? item.ActualId : null,
+                   MediaType = mediaType,
+                   CreatedAt = DateTime.UtcNow,
+               })
+               .ToList();
+
+           var (itemsToAdd, itemsToDelete) = await _playlistRepository.GetPlaylistItemsDiffAsync(
+               playlistId,
+               mediaType,
+               playlistItems);
+
+           allItemsToAdd.AddRange(itemsToAdd);
+           allItemsToDelete.AddRange(itemsToDelete);
+       }
+
+       if (allItemsToAdd.Count > 0)
+           await _playlistRepository.AddPlaylistVideos(allItemsToAdd);
+
+       if (allItemsToDelete.Count > 0)
+           await _playlistRepository.DeletePlaylistVideos(allItemsToDelete);
    }
    
 }
