@@ -8,15 +8,18 @@ type Props = {
   name: string
   count: number
   isAdded: boolean
+  disabled?: boolean
   onToggle: (playlistId: string) => void
 }
 
-export default function PlaylistItem({ playlistId, image, name, count, isAdded, onToggle }: Props) {
+export default function PlaylistItem({ playlistId, image, name, count, isAdded, disabled, onToggle }: Props) {
   return (
     <div
-      className="flex items-center justify-between py-2 px-2.5 mr-1 transition-all duration-300 ease-in-out rounded-xl
-        group cursor-pointer hover:bg-neutral-800/50"
-      onClick={() => onToggle(playlistId)}
+      className={`flex items-center justify-between py-2 px-2.5 mr-1 transition-all duration-300 ease-in-out rounded-xl
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'group cursor-pointer hover:bg-neutral-800/50'} `}
+      onClick={() => {
+        if (!disabled) onToggle(playlistId)
+      }}
     >
       <div className="flex gap-4">
         <Image

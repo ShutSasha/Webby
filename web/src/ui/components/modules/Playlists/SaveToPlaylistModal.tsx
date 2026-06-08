@@ -134,6 +134,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
                   name={playlist.name}
                   count={displayCount}
                   isAdded={isActuallyAdded}
+                  disabled={isPending}
                   onToggle={() => handleToggle(playlist.playlistId, playlist.isVideoAdded)}
                 />
               )
@@ -157,14 +158,15 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
         </div>
 
         {/* Action Button */}
-        <div className="pt-2">
+        <div className="pt-3 mt-1 border-t border-neutral-800/50">
           <button
             onClick={handleSave}
-            disabled={isPending}
-            className={`w-full py-3 rounded-xl font-medium transition-colors ${
+            disabled={localSelections.size === 0 || isPending}
+            className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
               localSelections.size > 0 && !isPending
-                ? 'bg-neutral-800 hover:bg-neutral-700 text-white cursor-pointer'
-                : 'bg-neutral-900 text-neutral-500 cursor-not-allowed'
+                ? `bg-emerald-500 hover:bg-emerald-400 text-neutral-950 shadow-[0_4px_12px_rgba(16,185,129,0.25)]
+                  cursor-pointer`
+                : 'bg-neutral-800/60 text-neutral-500 cursor-not-allowed'
               }`}
           >
             {isPending ? 'Saving...' : 'Save'}
