@@ -41,9 +41,14 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
          .Select(Guid.Parse)
          .ToList();
 
+      var orderMap = userIds
+         .Select((id, index) => (id, index))
+         .ToDictionary(x => x.id, x => x.index);
+
       var users = await _userRepository.GetByIds(userIds);
-      
+
       var mappedUsers = users
+         .OrderBy(u => orderMap[u.UserId])
          .Select(u => new UserResponse
          {
             UserId = u.UserId.ToString(),
@@ -56,7 +61,6 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       {
          Users = { mappedUsers }
       };
-      
    }
 
    public override async Task<GetUserSubscriptionsIdsResponse> GetUserSubscriptionIds(GetUserSubscriptionIdsRequest request, ServerCallContext context)
