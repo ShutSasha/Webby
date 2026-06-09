@@ -21,6 +21,8 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	UserGrpcService_GetUserById_FullMethodName   = "/UserGrpcService/GetUserById"
 	UserGrpcService_GetUsersByIds_FullMethodName = "/UserGrpcService/GetUsersByIds"
+	UserGrpcService_FindUserIDs_FullMethodName   = "/UserGrpcService/FindUserIDs"
+	UserGrpcService_IsFollowed_FullMethodName    = "/UserGrpcService/IsFollowed"
 )
 
 // UserGrpcServiceClient is the client API for UserGrpcService service.
@@ -29,6 +31,8 @@ const (
 type UserGrpcServiceClient interface {
 	GetUserById(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetUsersByIds(ctx context.Context, in *GetUsersRequest, opts ...grpc.CallOption) (*GetUsersResponse, error)
+	FindUserIDs(ctx context.Context, in *FindUserIDsRequest, opts ...grpc.CallOption) (*FindUserIDsResponse, error)
+	IsFollowed(ctx context.Context, in *IsFollowedRequest, opts ...grpc.CallOption) (*IsFollowedResponse, error)
 }
 
 type userGrpcServiceClient struct {
@@ -59,12 +63,34 @@ func (c *userGrpcServiceClient) GetUsersByIds(ctx context.Context, in *GetUsersR
 	return out, nil
 }
 
+func (c *userGrpcServiceClient) FindUserIDs(ctx context.Context, in *FindUserIDsRequest, opts ...grpc.CallOption) (*FindUserIDsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FindUserIDsResponse)
+	err := c.cc.Invoke(ctx, UserGrpcService_FindUserIDs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userGrpcServiceClient) IsFollowed(ctx context.Context, in *IsFollowedRequest, opts ...grpc.CallOption) (*IsFollowedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IsFollowedResponse)
+	err := c.cc.Invoke(ctx, UserGrpcService_IsFollowed_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserGrpcServiceServer is the server API for UserGrpcService service.
 // All implementations must embed UnimplementedUserGrpcServiceServer
 // for forward compatibility.
 type UserGrpcServiceServer interface {
 	GetUserById(context.Context, *GetUserRequest) (*UserResponse, error)
 	GetUsersByIds(context.Context, *GetUsersRequest) (*GetUsersResponse, error)
+	FindUserIDs(context.Context, *FindUserIDsRequest) (*FindUserIDsResponse, error)
+	IsFollowed(context.Context, *IsFollowedRequest) (*IsFollowedResponse, error)
 	mustEmbedUnimplementedUserGrpcServiceServer()
 }
 
@@ -80,6 +106,12 @@ func (UnimplementedUserGrpcServiceServer) GetUserById(context.Context, *GetUserR
 }
 func (UnimplementedUserGrpcServiceServer) GetUsersByIds(context.Context, *GetUsersRequest) (*GetUsersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUsersByIds not implemented")
+}
+func (UnimplementedUserGrpcServiceServer) FindUserIDs(context.Context, *FindUserIDsRequest) (*FindUserIDsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FindUserIDs not implemented")
+}
+func (UnimplementedUserGrpcServiceServer) IsFollowed(context.Context, *IsFollowedRequest) (*IsFollowedResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method IsFollowed not implemented")
 }
 func (UnimplementedUserGrpcServiceServer) mustEmbedUnimplementedUserGrpcServiceServer() {}
 func (UnimplementedUserGrpcServiceServer) testEmbeddedByValue()                         {}
@@ -138,6 +170,42 @@ func _UserGrpcService_GetUsersByIds_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserGrpcService_FindUserIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FindUserIDsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServiceServer).FindUserIDs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserGrpcService_FindUserIDs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServiceServer).FindUserIDs(ctx, req.(*FindUserIDsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserGrpcService_IsFollowed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsFollowedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServiceServer).IsFollowed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserGrpcService_IsFollowed_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServiceServer).IsFollowed(ctx, req.(*IsFollowedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserGrpcService_ServiceDesc is the grpc.ServiceDesc for UserGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +220,14 @@ var UserGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUsersByIds",
 			Handler:    _UserGrpcService_GetUsersByIds_Handler,
+		},
+		{
+			MethodName: "FindUserIDs",
+			Handler:    _UserGrpcService_FindUserIDs_Handler,
+		},
+		{
+			MethodName: "IsFollowed",
+			Handler:    _UserGrpcService_IsFollowed_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

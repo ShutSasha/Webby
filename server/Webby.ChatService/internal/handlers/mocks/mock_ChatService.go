@@ -25,29 +25,29 @@ func (_m *MockchatService) EXPECT() *MockchatService_Expecter {
 	return &MockchatService_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: ctx, roomID
-func (_m *MockchatService) Create(ctx context.Context, roomID *uuid.UUID) (*models.Chat, error) {
-	ret := _m.Called(ctx, roomID)
+// CreatePrivate provides a mock function with given fields: ctx, initiatorID, targetID
+func (_m *MockchatService) CreatePrivate(ctx context.Context, initiatorID uuid.UUID, targetID uuid.UUID) (*models.Chat, error) {
+	ret := _m.Called(ctx, initiatorID, targetID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Create")
+		panic("no return value specified for CreatePrivate")
 	}
 
 	var r0 *models.Chat
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *uuid.UUID) (*models.Chat, error)); ok {
-		return rf(ctx, roomID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (*models.Chat, error)); ok {
+		return rf(ctx, initiatorID, targetID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *uuid.UUID) *models.Chat); ok {
-		r0 = rf(ctx, roomID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *models.Chat); ok {
+		r0 = rf(ctx, initiatorID, targetID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Chat)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *uuid.UUID) error); ok {
-		r1 = rf(ctx, roomID)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = rf(ctx, initiatorID, targetID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -55,31 +55,32 @@ func (_m *MockchatService) Create(ctx context.Context, roomID *uuid.UUID) (*mode
 	return r0, r1
 }
 
-// MockchatService_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
-type MockchatService_Create_Call struct {
+// MockchatService_CreatePrivate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePrivate'
+type MockchatService_CreatePrivate_Call struct {
 	*mock.Call
 }
 
-// Create is a helper method to define mock.On call
+// CreatePrivate is a helper method to define mock.On call
 //   - ctx context.Context
-//   - roomID *uuid.UUID
-func (_e *MockchatService_Expecter) Create(ctx interface{}, roomID interface{}) *MockchatService_Create_Call {
-	return &MockchatService_Create_Call{Call: _e.mock.On("Create", ctx, roomID)}
+//   - initiatorID uuid.UUID
+//   - targetID uuid.UUID
+func (_e *MockchatService_Expecter) CreatePrivate(ctx interface{}, initiatorID interface{}, targetID interface{}) *MockchatService_CreatePrivate_Call {
+	return &MockchatService_CreatePrivate_Call{Call: _e.mock.On("CreatePrivate", ctx, initiatorID, targetID)}
 }
 
-func (_c *MockchatService_Create_Call) Run(run func(ctx context.Context, roomID *uuid.UUID)) *MockchatService_Create_Call {
+func (_c *MockchatService_CreatePrivate_Call) Run(run func(ctx context.Context, initiatorID uuid.UUID, targetID uuid.UUID)) *MockchatService_CreatePrivate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*uuid.UUID))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *MockchatService_Create_Call) Return(_a0 *models.Chat, _a1 error) *MockchatService_Create_Call {
+func (_c *MockchatService_CreatePrivate_Call) Return(_a0 *models.Chat, _a1 error) *MockchatService_CreatePrivate_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockchatService_Create_Call) RunAndReturn(run func(context.Context, *uuid.UUID) (*models.Chat, error)) *MockchatService_Create_Call {
+func (_c *MockchatService_CreatePrivate_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) (*models.Chat, error)) *MockchatService_CreatePrivate_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -139,6 +140,75 @@ func (_c *MockchatService_GetByID_Call) Return(_a0 *models.Chat, _a1 error) *Moc
 }
 
 func (_c *MockchatService_GetByID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (*models.Chat, error)) *MockchatService_GetByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// History provides a mock function with given fields: ctx, userID, page, limit, search
+func (_m *MockchatService) History(ctx context.Context, userID uuid.UUID, page int, limit int, search string) ([]models.ChatHistoryItem, int, error) {
+	ret := _m.Called(ctx, userID, page, limit, search)
+
+	if len(ret) == 0 {
+		panic("no return value specified for History")
+	}
+
+	var r0 []models.ChatHistoryItem
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int, string) ([]models.ChatHistoryItem, int, error)); ok {
+		return rf(ctx, userID, page, limit, search)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int, int, string) []models.ChatHistoryItem); ok {
+		r0 = rf(ctx, userID, page, limit, search)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.ChatHistoryItem)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, int, int, string) int); ok {
+		r1 = rf(ctx, userID, page, limit, search)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, uuid.UUID, int, int, string) error); ok {
+		r2 = rf(ctx, userID, page, limit, search)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// MockchatService_History_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'History'
+type MockchatService_History_Call struct {
+	*mock.Call
+}
+
+// History is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+//   - page int
+//   - limit int
+//   - search string
+func (_e *MockchatService_Expecter) History(ctx interface{}, userID interface{}, page interface{}, limit interface{}, search interface{}) *MockchatService_History_Call {
+	return &MockchatService_History_Call{Call: _e.mock.On("History", ctx, userID, page, limit, search)}
+}
+
+func (_c *MockchatService_History_Call) Run(run func(ctx context.Context, userID uuid.UUID, page int, limit int, search string)) *MockchatService_History_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(int), args[3].(int), args[4].(string))
+	})
+	return _c
+}
+
+func (_c *MockchatService_History_Call) Return(_a0 []models.ChatHistoryItem, _a1 int, _a2 error) *MockchatService_History_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *MockchatService_History_Call) RunAndReturn(run func(context.Context, uuid.UUID, int, int, string) ([]models.ChatHistoryItem, int, error)) *MockchatService_History_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -5,6 +5,8 @@ option go_package = "webby/chat-service/internal/grpc/userpb";
 service UserGrpcService {
   rpc GetUserById (GetUserRequest) returns (UserResponse);
   rpc GetUsersByIds (GetUsersRequest) returns (GetUsersResponse);
+  rpc FindUserIDs(FindUserIDsRequest) returns (FindUserIDsResponse);
+  rpc IsFollowed(IsFollowedRequest) returns (IsFollowedResponse);
 }
 
 message GetUserRequest {
@@ -25,4 +27,24 @@ message GetUsersRequest {
 
 message GetUsersResponse {
   repeated UserResponse users = 1;
+}
+
+message FindUserIDsRequest {
+  repeated string userIds = 1;
+  string search = 2;
+  int32 offset = 3;
+  int32 limit = 4;
+}
+
+message FindUserIDsResponse {
+  repeated string userIds = 1;
+}
+
+message IsFollowedRequest {
+  string firstUserId = 1;
+  string secondUserId = 2;
+}
+
+message IsFollowedResponse {
+  bool isFollowed = 1;
 }

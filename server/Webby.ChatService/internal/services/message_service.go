@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 	"webby/chat-service/internal/apperrors"
 	"webby/chat-service/internal/models"
 	"webby/chat-service/pkg/logger"
@@ -22,6 +23,10 @@ type messageRepo interface {
 
 type chatMemberExister interface {
 	Exists(ctx context.Context, chatID, userID uuid.UUID) (bool, error)
+}
+
+type lastChatMessageUpdater interface {
+	UpdateLastMessage(ctx context.Context, chatID, lastMessageID uuid.UUID, createdAt time.Time) error
 }
 
 type userRetriever interface {
@@ -45,18 +50,20 @@ const (
 )
 
 type messageService struct {
-	messageRepo       messageRepo
-	chatMemberExister chatMemberExister
-	userRetriever     userRetriever
-	eventPublisher    eventPublisher
+	messageRepo            messageRepo
+	chatMemberExister      chatMemberExister
+	lastChatMessageUpdater lastChatMessageUpdater
+	userRetriever          userRetriever
+	eventPublisher         eventPublisher
 }
 
-func NewMessageService(messageRepo messageRepo, chatMemberExister chatMemberExister, userRetriever userRetriever, eventPublisher eventPublisher) *messageService {
+func NewMessageService(messageRepo messageRepo, chatMemberExister chatMemberExister, lastChatMessageUpdater lastChatMessageUpdater, userRetriever userRetriever, eventPublisher eventPublisher) *messageService {
 	return &messageService{
-		messageRepo:       messageRepo,
-		chatMemberExister: chatMemberExister,
-		userRetriever:     userRetriever,
-		eventPublisher:    eventPublisher,
+		messageRepo:            messageRepo,
+		chatMemberExister:      chatMemberExister,
+		lastChatMessageUpdater: lastChatMessageUpdater,
+		userRetriever:          userRetriever,
+		eventPublisher:         eventPublisher,
 	}
 }
 
@@ -77,6 +84,7 @@ func (s *messageService) SaveMessage(ctx context.Context, chatID, senderID uuid.
 		return fmt.Errorf("%s: %w: user is not a member of this chat", op, apperrors.ErrForbidden)
 	}
 
+	// TODO: apply transactional outbox
 	msg := &models.Message{
 		SenderID: senderID,
 		ChatID:   chatID,
@@ -85,6 +93,11 @@ func (s *messageService) SaveMessage(ctx context.Context, chatID, senderID uuid.
 	created, err := s.messageRepo.Create(ctx, msg)
 	if err != nil {
 		return fmt.Errorf("%s: create message: %w", op, err)
+	}
+
+	err = s.lastChatMessageUpdater.UpdateLastMessage(ctx, chatID, created.ID, created.CreatedAt)
+	if err != nil {
+		return fmt.Errorf("%s: update last message: %w", op, err)
 	}
 
 	sender, err := s.userRetriever.GetUserByID(ctx, created.SenderID)

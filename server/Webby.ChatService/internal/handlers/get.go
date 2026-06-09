@@ -11,16 +11,14 @@ import (
 )
 
 type chatGetResponse struct {
-	Id        uuid.UUID  `json:"id"`
-	RoomId    *uuid.UUID `json:"roomId,omitempty"`
+	ID        uuid.UUID  `json:"id"`
+	RoomID    *uuid.UUID `json:"roomId,omitempty"`
 	CreatedAt string     `json:"createdAt"`
 }
 
 func (h handler) Get(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(
-		slog.String("operation", "httpserver.chats.get"),
-	)
+	log := logger.FromContext(ctx).With("op", "httpserver.chats.get")
 
 	chatIdStr := c.Param("id")
 	chatId, err := uuid.Parse(chatIdStr)
@@ -45,8 +43,8 @@ func (h handler) Get(c *gin.Context) {
 		Success: true,
 		Message: "Chat retrieved",
 		Data: &chatGetResponse{
-			Id:        chat.ID,
-			RoomId:    chat.RoomID,
+			ID:        chat.ID,
+			RoomID:    chat.RoomID,
 			CreatedAt: chat.CreatedAt.Format(time.RFC3339),
 		},
 	})

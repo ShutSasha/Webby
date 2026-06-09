@@ -87,3 +87,44 @@ func (u *userClient) GetUsersByIDs(ctx context.Context, userIDs []uuid.UUID) (ma
 
 	return senders, nil
 }
+
+func (u *userClient) FindUserIDs(ctx context.Context, search string, userIDs []uuid.UUID) ([]uuid.UUID, error) {
+	const op = "grpc.userClient.FindUserIDs"
+
+	userIDsStr := make([]string, len(userIDs))
+	for i, userID := range userIDs {
+		userIDsStr[i] = userID.String()
+	}
+
+	resp, err := u.client.FindUserIDs(ctx, &userpb.FindUserIDsRequest{
+		Search:  search,
+		UserIds: userIDsStr,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	userIDsResult := make([]uuid.UUID, len(resp.UserIds))
+	for i, id := range resp.UserIds {
+		userIDsResult[i], err = uuid.Parse(id)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+	}
+
+	return userIDsResult, nil
+}
+
+func (u *userClient) IsFollowed(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error) {
+	const op = "grpc.userClient.IsFollowed"
+
+	resp, err := u.client.IsFollowed(ctx, &userpb.IsFollowedRequest{
+		FirstUserId:  firstUserID.String(),
+		SecondUserId: secondUserID.String(),
+	})
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resp.IsFollowed, nil
+}

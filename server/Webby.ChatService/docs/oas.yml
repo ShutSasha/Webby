@@ -329,8 +329,17 @@ paths:
     post:
       tags:
         - Chats
-      summary: Create a chat
-      description: Create a new chat. If a room ID is provided, the service will reuse an existing chat for that room when available.
+      summary: Create a private chat
+      description: |
+        Create a new private chat between the authenticated user (initiator) and a target user.
+        The chat will be established for direct messaging between these two participants.
+        
+        ## Request Details
+        - **Target ID**: UUID of the user to start a chat with
+        - **Initiator**: Automatically extracted from the JWT Bearer token
+        
+        ## Response
+        Returns the newly created chat with its unique identifier and creation timestamp.
       operationId: createChat
       security:
         - bearerAuth: []
@@ -339,10 +348,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateChatRequest'
+              $ref: '#/components/schemas/CreatePrivateChatRequest'
       responses:
         '201':
-          description: Chat created
+          description: Chat created successfully
           content:
             application/json:
               schema:
@@ -420,14 +429,16 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    CreateChatRequest:
+    CreatePrivateChatRequest:
       type: object
+      required:
+        - targetId
       properties:
-        roomId:
+        targetId:
           type: string
           format: uuid
-          nullable: true
-          description: Optional room UUID to reuse an existing chat
+          description: UUID of the user to start a private chat with
+          example: "550e8400-e29b-41d4-a716-446655440000"
     SendMessageRequest:
       type: object
       required:
@@ -512,13 +523,11 @@ components:
         id:
           type: string
           format: uuid
-        roomId:
-          type: string
-          format: uuid
-          nullable: true
+          description: Chat unique identifier
         createdAt:
           type: string
           format: date-time
+          description: ISO 8601 timestamp when chat was created
     ChatApiResponse:
       type: object
       properties:

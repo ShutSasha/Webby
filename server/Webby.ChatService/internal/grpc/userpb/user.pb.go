@@ -229,6 +229,214 @@ func (x *GetUsersResponse) GetUsers() []*UserResponse {
 	return nil
 }
 
+type FindUserIDsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserIds       []string               `protobuf:"bytes,1,rep,name=userIds,proto3" json:"userIds,omitempty"`
+	Search        string                 `protobuf:"bytes,2,opt,name=search,proto3" json:"search,omitempty"`
+	Offset        int32                  `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit         int32                  `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FindUserIDsRequest) Reset() {
+	*x = FindUserIDsRequest{}
+	mi := &file_proto_user_user_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FindUserIDsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FindUserIDsRequest) ProtoMessage() {}
+
+func (x *FindUserIDsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_user_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FindUserIDsRequest.ProtoReflect.Descriptor instead.
+func (*FindUserIDsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_user_user_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *FindUserIDsRequest) GetUserIds() []string {
+	if x != nil {
+		return x.UserIds
+	}
+	return nil
+}
+
+func (x *FindUserIDsRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+func (x *FindUserIDsRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *FindUserIDsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type FindUserIDsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserIds       []string               `protobuf:"bytes,1,rep,name=userIds,proto3" json:"userIds,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FindUserIDsResponse) Reset() {
+	*x = FindUserIDsResponse{}
+	mi := &file_proto_user_user_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FindUserIDsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FindUserIDsResponse) ProtoMessage() {}
+
+func (x *FindUserIDsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_user_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FindUserIDsResponse.ProtoReflect.Descriptor instead.
+func (*FindUserIDsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_user_user_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *FindUserIDsResponse) GetUserIds() []string {
+	if x != nil {
+		return x.UserIds
+	}
+	return nil
+}
+
+type IsFollowedRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FirstUserId   string                 `protobuf:"bytes,1,opt,name=firstUserId,proto3" json:"firstUserId,omitempty"`
+	SecondUserId  string                 `protobuf:"bytes,2,opt,name=secondUserId,proto3" json:"secondUserId,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IsFollowedRequest) Reset() {
+	*x = IsFollowedRequest{}
+	mi := &file_proto_user_user_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IsFollowedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IsFollowedRequest) ProtoMessage() {}
+
+func (x *IsFollowedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_user_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IsFollowedRequest.ProtoReflect.Descriptor instead.
+func (*IsFollowedRequest) Descriptor() ([]byte, []int) {
+	return file_proto_user_user_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *IsFollowedRequest) GetFirstUserId() string {
+	if x != nil {
+		return x.FirstUserId
+	}
+	return ""
+}
+
+func (x *IsFollowedRequest) GetSecondUserId() string {
+	if x != nil {
+		return x.SecondUserId
+	}
+	return ""
+}
+
+type IsFollowedResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	IsFollowed    bool                   `protobuf:"varint,1,opt,name=isFollowed,proto3" json:"isFollowed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IsFollowedResponse) Reset() {
+	*x = IsFollowedResponse{}
+	mi := &file_proto_user_user_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IsFollowedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IsFollowedResponse) ProtoMessage() {}
+
+func (x *IsFollowedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_user_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IsFollowedResponse.ProtoReflect.Descriptor instead.
+func (*IsFollowedResponse) Descriptor() ([]byte, []int) {
+	return file_proto_user_user_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *IsFollowedResponse) GetIsFollowed() bool {
+	if x != nil {
+		return x.IsFollowed
+	}
+	return false
+}
+
 var File_proto_user_user_proto protoreflect.FileDescriptor
 
 const file_proto_user_user_proto_rawDesc = "" +
@@ -248,10 +456,27 @@ const file_proto_user_user_proto_rawDesc = "" +
 	"\x0fGetUsersRequest\x12\x18\n" +
 	"\auserIds\x18\x01 \x03(\tR\auserIds\"7\n" +
 	"\x10GetUsersResponse\x12#\n" +
-	"\x05users\x18\x01 \x03(\v2\r.UserResponseR\x05users2v\n" +
+	"\x05users\x18\x01 \x03(\v2\r.UserResponseR\x05users\"t\n" +
+	"\x12FindUserIDsRequest\x12\x18\n" +
+	"\auserIds\x18\x01 \x03(\tR\auserIds\x12\x16\n" +
+	"\x06search\x18\x02 \x01(\tR\x06search\x12\x16\n" +
+	"\x06offset\x18\x03 \x01(\x05R\x06offset\x12\x14\n" +
+	"\x05limit\x18\x04 \x01(\x05R\x05limit\"/\n" +
+	"\x13FindUserIDsResponse\x12\x18\n" +
+	"\auserIds\x18\x01 \x03(\tR\auserIds\"Y\n" +
+	"\x11IsFollowedRequest\x12 \n" +
+	"\vfirstUserId\x18\x01 \x01(\tR\vfirstUserId\x12\"\n" +
+	"\fsecondUserId\x18\x02 \x01(\tR\fsecondUserId\"4\n" +
+	"\x12IsFollowedResponse\x12\x1e\n" +
+	"\n" +
+	"isFollowed\x18\x01 \x01(\bR\n" +
+	"isFollowed2\xe7\x01\n" +
 	"\x0fUserGrpcService\x12-\n" +
 	"\vGetUserById\x12\x0f.GetUserRequest\x1a\r.UserResponse\x124\n" +
-	"\rGetUsersByIds\x12\x10.GetUsersRequest\x1a\x11.GetUsersResponseB)Z'webby/chat-service/internal/grpc/userpbb\x06proto3"
+	"\rGetUsersByIds\x12\x10.GetUsersRequest\x1a\x11.GetUsersResponse\x128\n" +
+	"\vFindUserIDs\x12\x13.FindUserIDsRequest\x1a\x14.FindUserIDsResponse\x125\n" +
+	"\n" +
+	"IsFollowed\x12\x12.IsFollowedRequest\x1a\x13.IsFollowedResponseB)Z'webby/chat-service/internal/grpc/userpbb\x06proto3"
 
 var (
 	file_proto_user_user_proto_rawDescOnce sync.Once
@@ -265,21 +490,29 @@ func file_proto_user_user_proto_rawDescGZIP() []byte {
 	return file_proto_user_user_proto_rawDescData
 }
 
-var file_proto_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_user_user_proto_goTypes = []any{
-	(*GetUserRequest)(nil),   // 0: GetUserRequest
-	(*UserResponse)(nil),     // 1: UserResponse
-	(*GetUsersRequest)(nil),  // 2: GetUsersRequest
-	(*GetUsersResponse)(nil), // 3: GetUsersResponse
+	(*GetUserRequest)(nil),      // 0: GetUserRequest
+	(*UserResponse)(nil),        // 1: UserResponse
+	(*GetUsersRequest)(nil),     // 2: GetUsersRequest
+	(*GetUsersResponse)(nil),    // 3: GetUsersResponse
+	(*FindUserIDsRequest)(nil),  // 4: FindUserIDsRequest
+	(*FindUserIDsResponse)(nil), // 5: FindUserIDsResponse
+	(*IsFollowedRequest)(nil),   // 6: IsFollowedRequest
+	(*IsFollowedResponse)(nil),  // 7: IsFollowedResponse
 }
 var file_proto_user_user_proto_depIdxs = []int32{
 	1, // 0: GetUsersResponse.users:type_name -> UserResponse
 	0, // 1: UserGrpcService.GetUserById:input_type -> GetUserRequest
 	2, // 2: UserGrpcService.GetUsersByIds:input_type -> GetUsersRequest
-	1, // 3: UserGrpcService.GetUserById:output_type -> UserResponse
-	3, // 4: UserGrpcService.GetUsersByIds:output_type -> GetUsersResponse
-	3, // [3:5] is the sub-list for method output_type
-	1, // [1:3] is the sub-list for method input_type
+	4, // 3: UserGrpcService.FindUserIDs:input_type -> FindUserIDsRequest
+	6, // 4: UserGrpcService.IsFollowed:input_type -> IsFollowedRequest
+	1, // 5: UserGrpcService.GetUserById:output_type -> UserResponse
+	3, // 6: UserGrpcService.GetUsersByIds:output_type -> GetUsersResponse
+	5, // 7: UserGrpcService.FindUserIDs:output_type -> FindUserIDsResponse
+	7, // 8: UserGrpcService.IsFollowed:output_type -> IsFollowedResponse
+	5, // [5:9] is the sub-list for method output_type
+	1, // [1:5] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -297,7 +530,7 @@ func file_proto_user_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_user_user_proto_rawDesc), len(file_proto_user_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

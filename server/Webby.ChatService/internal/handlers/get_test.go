@@ -40,16 +40,16 @@ func TestGetChat_Success(t *testing.T) {
 	roomID := uuid.New()
 
 	t.Run("Chat retrieved successfully", func(t *testing.T) {
-		mockService := handlermocks.NewMockService(t)
+		mockChatService := handlermocks.NewMockchatService(t)
 		mockMessageManager := handlermocks.NewMockmessageService(t)
 		chat := &models.Chat{
 			ID:        chatID,
 			RoomID:    &roomID,
 			CreatedAt: time.Now(),
 		}
-		mockService.On("GetByID", mock.Anything, chatID).Return(chat, nil).Once()
+		mockChatService.On("GetByID", mock.Anything, chatID).Return(chat, nil).Once()
 
-		handler := handlers.New(mockService, mockMessageManager)
+		handler := handlers.New(mockChatService, mockMessageManager)
 		c, w := setupGetRequest(chatID.String(), userID)
 
 		handler.Get(c)
@@ -66,16 +66,16 @@ func TestGetChat_Success(t *testing.T) {
 	})
 
 	t.Run("Chat without room", func(t *testing.T) {
-		mockService := handlermocks.NewMockService(t)
+		mockChatService := handlermocks.NewMockchatService(t)
 		mockMessageManager := handlermocks.NewMockmessageService(t)
 		chat := &models.Chat{
 			ID:        chatID,
 			RoomID:    nil,
 			CreatedAt: time.Now(),
 		}
-		mockService.On("GetByID", mock.Anything, chatID).Return(chat, nil).Once()
+		mockChatService.On("GetByID", mock.Anything, chatID).Return(chat, nil).Once()
 
-		handler := handlers.New(mockService, mockMessageManager)
+		handler := handlers.New(mockChatService, mockMessageManager)
 		c, w := setupGetRequest(chatID.String(), userID)
 
 		handler.Get(c)
@@ -103,9 +103,9 @@ func TestGetChat_ValidationErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockService := handlermocks.NewMockService(t)
+			mockChatService := handlermocks.NewMockchatService(t)
 			mockMessageManager := handlermocks.NewMockmessageService(t)
-			handler := handlers.New(mockService, mockMessageManager)
+			handler := handlers.New(mockChatService, mockMessageManager)
 
 			c, w := setupGetRequest(tt.pathChatID, userID)
 
@@ -135,11 +135,11 @@ func TestGetChat_ServiceErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockService := handlermocks.NewMockService(t)
+			mockChatService := handlermocks.NewMockchatService(t)
 			mockMessageManager := handlermocks.NewMockmessageService(t)
-			mockService.On("GetByID", mock.Anything, chatID).Return((*models.Chat)(nil), tt.mockError).Once()
+			mockChatService.On("GetByID", mock.Anything, chatID).Return((*models.Chat)(nil), tt.mockError).Once()
 
-			handler := handlers.New(mockService, mockMessageManager)
+			handler := handlers.New(mockChatService, mockMessageManager)
 			c, w := setupGetRequest(chatID.String(), userID)
 
 			handler.Get(c)

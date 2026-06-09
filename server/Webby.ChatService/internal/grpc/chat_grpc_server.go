@@ -12,7 +12,7 @@ import (
 )
 
 type chatService interface {
-	Create(ctx context.Context, roomID *uuid.UUID) (*models.Chat, error)
+	CreateForRoom(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
 	GetByRoomID(ctx context.Context, roomId uuid.UUID) (*models.Chat, error)
 	GetChatIDByRoomID(ctx context.Context, roomID, userID uuid.UUID) (uuid.UUID, error)
 }
@@ -45,7 +45,7 @@ func (s *chatGrpcServer) CreateChat(ctx context.Context, req *chatpb.CreateChatR
 		return nil, status.Errorf(codes.InvalidArgument, "%s: wrong roomID", op)
 	}
 
-	chat, err := s.chatService.Create(ctx, &roomID)
+	chat, err := s.chatService.CreateForRoom(ctx, roomID)
 	if err != nil {
 		log.Error("gRPC CreateChat failed", slog.String("error", err.Error()))
 		return nil, status.Errorf(codes.Internal, "%s: %v", op, err)
