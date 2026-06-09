@@ -86,7 +86,10 @@ public class PlaylistController : ControllerBase
    }
 
    [HttpPost("videos/bulk")]
-   [SwaggerOperation("Add or delete videos in playlists", "AUTH REQUIRED")]
+   [SwaggerOperation(
+      Summary = "Add or delete videos in playlists",
+      Description = "Saves and delete specified videos in each of the provided playlists. AUTH REQUIRED"
+   )]
    public async Task<ActionResult<ApiResponse>> AddVideoToPlaylists([FromBody] AddVideoToPlaylistsRequest request)
    {
       var requestedUserId = JwtHelper.ExtractUserId(HttpContext)!;
@@ -105,7 +108,10 @@ public class PlaylistController : ControllerBase
    }
    
    [HttpPost("streams/bulk")]
-   [SwaggerOperation("Add or delete streams in playlists", "AUTH REQUIRED")]
+   [SwaggerOperation(
+      Summary = "Add or delete streams in playlists",
+      Description = "Saves and delete specified streams in each of the provided playlists. AUTH REQUIRED"
+   )]
    public async Task<ActionResult<ApiResponse>> AddStreamToPlaylists([FromBody] AddStreamToPlaylistsRequest request)
    {
       var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
