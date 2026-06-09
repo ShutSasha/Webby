@@ -8,6 +8,7 @@ service UserGrpcService {
   rpc GetUserSubscriptionIds (GetUserSubscriptionIdsRequest) returns (GetUserSubscriptionsIdsResponse);
   rpc GetPremiumStatus(GetPremiumStatusRequest) returns (GetPremiumStatusResponse);
   rpc FindUserIDs(FindUserIDsRequest) returns (FindUserIDsResponse);
+  rpc IsFollowed(IsFollowedRequest) returns (IsFollowedResponse);
 }
 
 // REQUESTS

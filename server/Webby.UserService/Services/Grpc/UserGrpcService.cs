@@ -102,5 +102,15 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       };
       
    }
-   
+
+   public override async Task<IsFollowedResponse> IsFollowed(IsFollowedRequest request, ServerCallContext context)
+   {
+      var mutualFollows =
+         await _userRepository.AreMutualFollowers(Guid.Parse(request.FirstUserId), Guid.Parse(request.SecondUserId));
+
+      return new IsFollowedResponse
+      {
+         IsFollowed = mutualFollows
+      };
+   }
 }

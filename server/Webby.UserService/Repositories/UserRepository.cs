@@ -108,5 +108,15 @@ public class UserRepository : GenericRepository<User>,IUserRepository
          .ToListAsync(); 
    }
    
+   public async Task<bool> AreMutualFollowers(Guid user1Id, Guid user2Id)
+   {
+      var count = await _context.UserFollowers
+         .CountAsync(uf => 
+            (uf.FollowerId == user1Id && uf.UserId == user2Id) || 
+            (uf.FollowerId == user2Id && uf.UserId == user1Id));
+
+      return count == 2;
+   }
+   
    
 }
