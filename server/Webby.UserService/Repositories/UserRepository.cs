@@ -85,4 +85,28 @@ public class UserRepository : GenericRepository<User>,IUserRepository
          .Select(uf => uf.UserId)
          .ToListAsync();
    }
+
+   public async Task<List<Guid>> SearchByUsername(List<Guid> userIds, string search, int limit, int skip)
+   {
+      if (userIds == null || userIds.Count == 0)
+      {
+         return [];
+      }
+
+      var query = _context.Users.Where(u => userIds.Contains(u.UserId));
+      
+      if (!string.IsNullOrWhiteSpace(search))
+      {
+         query = query.Where(u => EF.Functions.ILike(u.Username, $"%{search}%"));
+      }
+
+      return await query
+         .OrderBy(u => u.UserId) 
+         .Skip(skip)
+         .Take(limit)
+         .Select(u => u.UserId)
+         .ToListAsync(); 
+   }
+   
+   
 }

@@ -20,6 +20,7 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
    public override async Task<UserResponse> GetUserById(GetUserRequest request, ServerCallContext context)
    {
       var user = await _userRepository.FindById(Guid.Parse(request.UserId));
+      
       if (user == null)
          throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
       
@@ -89,4 +90,17 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
          Status = status
       };
    }
+
+   public override async Task<FindUserIDsResponse> FindUserIDs(FindUserIDsRequest request, ServerCallContext context)
+   {
+      var userIdGuids = request.UserIds.Select(Guid.Parse).ToList();
+      var userResult = await _userRepository.SearchByUsername(userIdGuids, request.Search, request.Limit, request.Offset);
+
+      return new FindUserIDsResponse
+      {
+         UserIds = {userResult.Select(id => id.ToString())}
+      };
+      
+   }
+   
 }
