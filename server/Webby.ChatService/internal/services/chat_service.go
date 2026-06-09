@@ -14,7 +14,7 @@ type chatReposotory interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Chat, error)
 	GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
 	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
-	History(ctx context.Context, userID uuid.UUID, userIDs []uuid.UUID, offset, limit int) ([]models.ChatHistoryItem, int, error)
+	History(ctx context.Context, userID uuid.UUID, userIDs []uuid.UUID) ([]models.ChatHistoryItem, int, error)
 	Exists(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error)
 }
 
@@ -28,7 +28,8 @@ type roomMemberExister interface {
 }
 
 type userManager interface {
-	FindUserIDs(ctx context.Context, search string, userIDs []uuid.UUID) ([]uuid.UUID, error)
+	GetUsersByIDs(ctx context.Context, userIDs []uuid.UUID) (map[uuid.UUID]models.Sender, error)
+	FindUserIDs(ctx context.Context, search string, userIDs []uuid.UUID, offset, limit int) ([]uuid.UUID, int, error)
 	IsFollowed(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error)
 }
 
@@ -147,12 +148,7 @@ func (s *chatService) GetChatIDByRoomID(ctx context.Context, roomID, userID uuid
 func (s *chatService) History(ctx context.Context, userID uuid.UUID, page, limit int, search string) ([]models.ChatHistoryItem, int, error) {
 	const op = "services.chatService.History"
 
-	interlocutors, err := s.chatMemberRepository.GetUserInterlocutors(ctx, userID)
-	if err != nil {
-		return nil, 0, fmt.Errorf("%s: %w", op, err)
-	}
-
-	userIDs, err := s.userManager.FindUserIDs(ctx, search, interlocutors)
+	interlocutorsIDs, err := s.chatMemberRepository.GetUserInterlocutors(ctx, userID)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: %w", op, err)
 	}
@@ -165,9 +161,33 @@ func (s *chatService) History(ctx context.Context, userID uuid.UUID, page, limit
 	}
 	offset := (page - 1) * limit
 
-	chatHistory, total, err := s.chatRepository.History(ctx, userID, userIDs, offset, limit)
+	searchedIDs, total, err := s.userManager.FindUserIDs(ctx, search, interlocutorsIDs, offset, limit)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	chatHistory, total, err := s.chatRepository.History(ctx, userID, searchedIDs)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	userIDs := make([]uuid.UUID, len(chatHistory))
+	for i, chatHistoryItem := range chatHistory {
+		userIDs[i] = chatHistoryItem.User.ID
+	}
+
+	interlocutors, err := s.userManager.GetUsersByIDs(ctx, userIDs)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	for i := range chatHistory {
+		userID := chatHistory[i].User.ID
+
+		if user, ok := interlocutors[userID]; ok {
+			chatHistory[i].User.AvatarUrl = user.AvatarURL
+			chatHistory[i].User.Username = user.Username
+		}
 	}
 
 	return chatHistory, total, nil

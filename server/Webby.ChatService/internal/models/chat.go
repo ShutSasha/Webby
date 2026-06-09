@@ -19,7 +19,6 @@ type user struct {
 }
 
 type lastMessage struct {
-	ID        uuid.UUID `json:"id"`
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"createdAt"`
 }

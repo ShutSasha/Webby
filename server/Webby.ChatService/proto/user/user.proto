@@ -38,6 +38,7 @@ message FindUserIDsRequest {
 
 message FindUserIDsResponse {
   repeated string userIds = 1;
+  int32 total = 2;
 }
 
 message IsFollowedRequest {

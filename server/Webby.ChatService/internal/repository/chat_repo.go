@@ -107,27 +107,59 @@ func (r *chatRepository) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID
 	return id, nil
 }
 
-func (r *chatRepository) History(ctx context.Context, userID uuid.UUID, userIDs []uuid.UUID, offset, limit int) ([]models.ChatHistoryItem, int, error) {
+func (r *chatRepository) History(ctx context.Context, userID uuid.UUID, userIDs []uuid.UUID) ([]models.ChatHistoryItem, int, error) {
 	const op = "repository.chatRepository.History"
 
-	query := `
-	SELECT cm.chat_id, cm.user_id, m.content, m.created_at
-	FROM chat_members cm
-	JOIN chats c ON cm.chat_id = c.id
-	JOIN messages m ON c.last_message_id = m.id
-	WHERE cm.chat_id IN (
-		SELECT cm2chat_id
-		FROM chat_members cm2
-		JOIN (
-			SELECT cm3.chat_id
-			FROM chat_members cm3
-			WHERE cm3.user_id = $1
-		) ON cm2.chat_id = cm3.chat_id
-		WHERE cm2.id IN ($2)
-	) AND c.room_id IS NULL;
-	`
-	_ = query
-	return nil, 0, nil
+	subQuery := sq.Select("chat_id").
+		From("chat_members").
+		Where(sq.Eq{"user_id": userID})
+
+	subQuerySql, subQueryArgs, err := subQuery.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: building subquery: %w", op, err)
+	}
+
+	queryBuilder := sq.Select(
+		"cm.chat_id",
+		"cm.user_id",
+		"m.content AS last_message",
+		"m.created_at AS last_message_sent_at",
+	).
+		From("chat_members cm").
+		Join("chats c ON cm.chat_id = c.id").
+		Join("messages m ON c.last_message_id = m.id").
+		Where(sq.Expr("cm.chat_id IN ("+subQuerySql+")", subQueryArgs...)).
+		Where(sq.NotEq{"cm.user_id": userID}).
+		Where(sq.Eq{"c.room_id": nil}).
+		Where(sq.Eq{"cm.user_id": userIDs}).
+		OrderBy("last_message_sent_at DESC").
+		PlaceholderFormat(sq.Dollar)
+
+	query, args, err := queryBuilder.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: building query: %w", op, err)
+	}
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: executing query: %w", op, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.ChatHistoryItem, 0)
+	for rows.Next() {
+		var item models.ChatHistoryItem
+		err := rows.Scan(&item.ChatID, &item.User.ID, &item.LastMessage.Content, &item.LastMessage.CreatedAt)
+		if err != nil {
+			return nil, 0, fmt.Errorf("%s: scanning row: %w", op, err)
+		}
+		items = append(items, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("%s: iterating rows: %w", op, err)
+	}
+
+	return items, len(items), nil
 }
 
 func (r *chatRepository) UpdateLastMessage(ctx context.Context, chatID, lastMessageID uuid.UUID, createdAt time.Time) error {
@@ -139,17 +171,18 @@ func (r *chatRepository) UpdateLastMessage(ctx context.Context, chatID, lastMess
 		Where(sq.Eq{"c.id": chatID})
 
 	subQuerySql, subQueryArgs, err := currentMessageTimeSubquery.ToSql()
+
 	if err != nil {
 		return fmt.Errorf("%s: building subquery: %w", op, err)
 	}
 
 	exprArgs := append([]interface{}{createdAt}, subQueryArgs...)
-
 	query, args, err := sq.Update("chats").
 		Set("last_message_id", lastMessageID).
 		Where(sq.Eq{"id": chatID}).
-		Where(sq.Expr("? >= ("+subQuerySql+")", exprArgs...)).	
+		Where(sq.Expr("? >= ("+subQuerySql+")", exprArgs...)).
 		PlaceholderFormat(sq.Dollar).ToSql()
+
 	if err != nil {
 		return fmt.Errorf("%s: building query: %w", op, err)
 	}
@@ -158,15 +191,16 @@ func (r *chatRepository) UpdateLastMessage(ctx context.Context, chatID, lastMess
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
+
 	if res.RowsAffected() == 0 {
 		var exists bool
 		checkErr := r.db.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM chats WHERE id = $1)", chatID).Scan(&exists)
 		if checkErr == nil && !exists {
 			return fmt.Errorf("%s: chat not found: %w", op, apperrors.ErrNotFound)
 		}
-
 		return nil
 	}
+
 	return nil
 }
 

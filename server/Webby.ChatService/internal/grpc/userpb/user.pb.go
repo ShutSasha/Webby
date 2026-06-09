@@ -300,6 +300,7 @@ func (x *FindUserIDsRequest) GetLimit() int32 {
 type FindUserIDsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserIds       []string               `protobuf:"bytes,1,rep,name=userIds,proto3" json:"userIds,omitempty"`
+	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -339,6 +340,13 @@ func (x *FindUserIDsResponse) GetUserIds() []string {
 		return x.UserIds
 	}
 	return nil
+}
+
+func (x *FindUserIDsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
 }
 
 type IsFollowedRequest struct {
@@ -461,9 +469,10 @@ const file_proto_user_user_proto_rawDesc = "" +
 	"\auserIds\x18\x01 \x03(\tR\auserIds\x12\x16\n" +
 	"\x06search\x18\x02 \x01(\tR\x06search\x12\x16\n" +
 	"\x06offset\x18\x03 \x01(\x05R\x06offset\x12\x14\n" +
-	"\x05limit\x18\x04 \x01(\x05R\x05limit\"/\n" +
+	"\x05limit\x18\x04 \x01(\x05R\x05limit\"E\n" +
 	"\x13FindUserIDsResponse\x12\x18\n" +
-	"\auserIds\x18\x01 \x03(\tR\auserIds\"Y\n" +
+	"\auserIds\x18\x01 \x03(\tR\auserIds\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\"Y\n" +
 	"\x11IsFollowedRequest\x12 \n" +
 	"\vfirstUserId\x18\x01 \x01(\tR\vfirstUserId\x12\"\n" +
 	"\fsecondUserId\x18\x02 \x01(\tR\fsecondUserId\"4\n" +
