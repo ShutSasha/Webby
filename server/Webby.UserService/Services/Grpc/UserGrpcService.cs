@@ -98,9 +98,20 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
 
       return new FindUserIDsResponse
       {
-         UserIds = {userResult.Select(id => id.ToString())}
+         UserIds = {userResult.Ids.Select(id => id.ToString())},
+         Total = userResult.Total
       };
       
    }
-   
+
+   public override async Task<IsFollowedResponse> IsFollowed(IsFollowedRequest request, ServerCallContext context)
+   {
+      var mutualFollows =
+         await _userRepository.AreMutualFollowers(Guid.Parse(request.FirstUserId), Guid.Parse(request.SecondUserId));
+
+      return new IsFollowedResponse
+      {
+         IsFollowed = mutualFollows
+      };
+   }
 }

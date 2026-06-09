@@ -6,7 +6,7 @@ using Webby.UserService.Models;
 
 namespace Webby.UserService.Repositories;
 
-public class UserRepository : GenericRepository<User>,IUserRepository
+public class UserRepository : GenericRepository<User>, IUserRepository
 {
    public UserRepository(AppDbContext context) : base(context)
    {
@@ -86,11 +86,11 @@ public class UserRepository : GenericRepository<User>,IUserRepository
          .ToListAsync();
    }
 
-   public async Task<List<Guid>> SearchByUsername(List<Guid> userIds, string search, int limit, int skip)
+   public async Task<(List<Guid> Ids, int Total)> SearchByUsername(List<Guid> userIds, string search, int limit, int skip)
    {
       if (userIds == null || userIds.Count == 0)
       {
-         return [];
+         return ([], 0);
       }
 
       var query = _context.Users.Where(u => userIds.Contains(u.UserId));
@@ -100,12 +100,26 @@ public class UserRepository : GenericRepository<User>,IUserRepository
          query = query.Where(u => EF.Functions.ILike(u.Username, $"%{search}%"));
       }
 
-      return await query
+      var total = await query.CountAsync();
+
+      var ids = await query
          .OrderBy(u => u.UserId) 
          .Skip(skip)
          .Take(limit)
          .Select(u => u.UserId)
          .ToListAsync(); 
+
+      return (ids, total);
+   }
+   
+   public async Task<bool> AreMutualFollowers(Guid user1Id, Guid user2Id)
+   {
+      var count = await _context.UserFollowers
+         .CountAsync(uf => 
+            (uf.FollowerId == user1Id && uf.UserId == user2Id) || 
+            (uf.FollowerId == user2Id && uf.UserId == user1Id));
+
+      return count == 2;
    }
    
    

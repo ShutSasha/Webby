@@ -13,6 +13,6 @@ public interface IUserRepository : IRepository<User>
    Task<List<UserFollower>> GetUserFollowers(Guid userId);
    Task<List<User>> GetByIds(List<Guid> ids);
    Task<List<Guid>> GetSubscriptionIds(Guid requestUserId);
-   Task<List<Guid>> SearchByUsername(List<Guid> userIds, string search, int limit, int skip);
-   
+   Task<(List<Guid> Ids, int Total)> SearchByUsername(List<Guid> userIds, string search, int limit, int skip);
+   Task<bool> AreMutualFollowers(Guid user1Id, Guid user2Id);
 }

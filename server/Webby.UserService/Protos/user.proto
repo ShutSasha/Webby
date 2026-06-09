@@ -8,6 +8,7 @@ service UserGrpcService {
   rpc GetUserSubscriptionIds (GetUserSubscriptionIdsRequest) returns (GetUserSubscriptionsIdsResponse);
   rpc GetPremiumStatus(GetPremiumStatusRequest) returns (GetPremiumStatusResponse);
   rpc FindUserIDs(FindUserIDsRequest) returns (FindUserIDsResponse);
+  rpc IsFollowed(IsFollowedRequest) returns (IsFollowedResponse);
 }
 
 // REQUESTS
@@ -71,6 +72,7 @@ message GetPremiumStatusResponse {
 
 message FindUserIDsResponse {
   repeated string userIds = 1;
+  int32 total = 2;
 }
 
 message IsFollowedResponse {
