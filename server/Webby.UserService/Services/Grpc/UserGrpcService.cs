@@ -98,7 +98,8 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
 
       return new FindUserIDsResponse
       {
-         UserIds = {userResult.Select(id => id.ToString())}
+         UserIds = {userResult.Ids.Select(id => id.ToString())},
+         Total = userResult.Total
       };
       
    }
