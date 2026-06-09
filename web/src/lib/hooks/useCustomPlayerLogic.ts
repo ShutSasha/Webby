@@ -71,6 +71,24 @@ export const useCustomPlayerLogic = (
   }
 
   const [state, setState] = useState<PlayerState>(initialState)
+  const [prevUrl, setPrevUrl] = useState(videoUrl)
+
+  if (prevUrl !== videoUrl) {
+    setPrevUrl(videoUrl)
+
+    setState(prev => ({
+      ...prev,
+      played: 0,
+      loaded: 0,
+      duration: 0,
+      loadedSeconds: 0,
+      playedSeconds: 0,
+      muted: isTwitch ? true : prev.muted,
+      isReady: false,
+      error: null,
+      buffering: true,
+    }))
+  }
 
   const syncTriggerId = useRoomStore(state => state.syncTriggerId)
   const syncTargetTimecode = useRoomStore(state => state.syncTargetTimecode)
@@ -114,29 +132,15 @@ export const useCustomPlayerLogic = (
   }, [syncTargetTimecode, setSyncTargetTimecode, state.duration])
 
   useEffect(() => {
-    const isTwitchVideo = videoUrl.includes('twitch.tv')
-
-    setState(prev => ({
-      ...prev,
-      played: 0,
-      loaded: 0,
-      duration: 0,
-      loadedSeconds: 0,
-      playedSeconds: 0,
-      muted: isTwitchVideo ? true : prev.muted,
-      isReady: false,
-      error: null,
-    }))
-
     const hasInteracted = typeof navigator !== 'undefined' && (navigator as any).userActivation?.hasBeenActive
 
     if (hasInteracted === false) {
       setPlaying(false)
     } else {
       // block play for twitch, we should wait onReady event
-      setPlaying(isTwitchVideo ? false : true)
+      setPlaying(isTwitch ? false : true)
     }
-  }, [videoUrl, setPlaying])
+  }, [videoUrl, setPlaying, isTwitch])
 
   useEffect(() => {
     const handleFsChange = () => {
@@ -473,7 +477,7 @@ export const useCustomPlayerLogic = (
     uiState: {
       isFullScreen,
       showCustomControls,
-      playing,
+      playing: isTwitch && !state.isReady ? false : playing,
       baseUserVolume,
     },
     actions: {
