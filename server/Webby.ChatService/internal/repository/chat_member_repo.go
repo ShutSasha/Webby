@@ -126,8 +126,6 @@ func (r *chatMemberRepository) Exists(ctx context.Context, chatID, userID uuid.U
 		return false, fmt.Errorf("%s: query failed: %w", op, err)
 	}
 
-	log.Debug("Passed exists check")
-
 	return true, nil
 }
 

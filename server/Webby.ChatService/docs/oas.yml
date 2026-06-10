@@ -502,6 +502,61 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Chats
+      summary: Delete a chat
+      description: |
+        Delete an existing chat. The chat and all its associated messages are permanently removed from the database.
+        Only participants of the chat can delete it.
+        
+        ## Deletion Details
+        - **Permanent Removal**: The chat and all messages are completely removed from the database
+        - **No Soft Delete**: This is a hard delete; chat content is not recoverable
+        - **Permissions**: Only users who are part of the chat can delete it
+        - **Response Code**: Returns 204 No Content on success (no response body)
+        
+        ## Broadcasting
+        Upon successful deletion, the server broadcasts a notification to all WebSocket clients 
+        connected to this chat via a deletion event.
+      operationId: deleteChat
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Chat identifier
+      responses:
+        '204':
+          description: Chat deleted successfully
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Chat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   securitySchemes:
     bearerAuth:

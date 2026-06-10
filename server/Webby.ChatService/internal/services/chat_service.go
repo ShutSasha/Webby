@@ -16,11 +16,13 @@ type chatReposotory interface {
 	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
 	History(ctx context.Context, userID uuid.UUID, userIDs []uuid.UUID) ([]models.ChatHistoryItem, int, error)
 	Exists(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error)
+	Delete(ctx context.Context, chatID uuid.UUID) error
 }
 
 type chatServiceChatMemberRepository interface {
 	AddMembersBulk(ctx context.Context, chatID uuid.UUID, membersIDs ...uuid.UUID) error
 	GetUserInterlocutors(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	Exists(ctx context.Context, chatID, userID uuid.UUID) (bool, error)
 }
 
 type roomMemberExister interface {
@@ -193,21 +195,21 @@ func (s *chatService) History(ctx context.Context, userID uuid.UUID, page, limit
 	return chatHistory, total, nil
 }
 
-func isNotFound(err error) bool {
-	for e := err; e != nil; e = unwrapErr(e) {
-		if e == apperrors.ErrNotFound {
-			return true
-		}
-	}
-	return false
-}
+func (s *chatService) Delete(ctx context.Context, userID, chatID uuid.UUID) error {
+	const op = "services.chatService.Delete"
 
-func unwrapErr(err error) error {
-	type unwrapper interface {
-		Unwrap() error
+	isMember, err := s.chatMemberRepository.Exists(ctx, chatID, userID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
 	}
-	if u, ok := err.(unwrapper); ok {
-		return u.Unwrap()
+	if !isMember {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrForbidden)
 	}
+
+	err = s.chatRepository.Delete(ctx, chatID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	return nil
 }

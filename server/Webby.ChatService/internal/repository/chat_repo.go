@@ -232,3 +232,25 @@ func (r *chatRepository) Exists(ctx context.Context, firstUserID, secondUserID u
 
 	return true, nil
 }
+
+func (r *chatRepository) Delete(ctx context.Context, chatID uuid.UUID) error {
+	const op = "repository.chatRepository.Delete"
+
+	sql, args, err := sq.Delete("chats").
+		Where(sq.Eq{"id": chatID}).
+		PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: failed to build sql query: %w", op, err)
+	}
+
+	tag, err := r.db.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("%s: execution failed: %w", op, err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotFound)
+	}
+
+	return nil
+}

@@ -126,7 +126,7 @@ func (r *messageRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("%s: message %s: %w", op, id.String(), apperrors.ErrNotFound)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotFound)
 	}
 
 	return nil
