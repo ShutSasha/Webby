@@ -3,9 +3,11 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"reflect"
 	"webby/room-queue-service/internal/apperrors"
+	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -26,6 +28,9 @@ type PaginatedResponse[T any] struct {
 }
 
 func HandleValidationError(c *gin.Context, err error) {
+	ctx := c.Request.Context()
+	log := logger.FromContext(ctx)
+
 	problems := make(map[string]string)
 	var ve validator.ValidationErrors
 
@@ -34,7 +39,8 @@ func HandleValidationError(c *gin.Context, err error) {
 			problems[fe.Field()] = formatErrorMessage(fe)
 		}
 	} else {
-		problems["message"] = err.Error()
+		log.Debug("non-validation error in request binding", slog.String("err", err.Error()))
+		problems["message"] = "invalid request body"
 	}
 
 	c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
@@ -82,20 +88,40 @@ func mapAppErrorToStatus(err error) int {
 		return http.StatusNotFound
 	case errors.Is(err, apperrors.ErrConflict):
 		return http.StatusConflict
-	case errors.Is(err, apperrors.ErrInvalidInput):
-		return http.StatusBadRequest
-	case errors.Is(err, apperrors.ErrForbidden):
+	case errors.Is(err, apperrors.ErrNotRoomMember):
 		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError
 	}
 }
 
+func mapAppErrorToClientMessage(err error) string {
+	switch {
+	case errors.Is(err, apperrors.ErrQueueItemNotFound):
+		return "The requested queue item was not found"
+	case errors.Is(err, apperrors.ErrVideoNotFound):
+		return "The requested video was not found"
+	case errors.Is(err, apperrors.ErrConflict):
+		return "This video already exists in the queue"
+	case errors.Is(err, apperrors.ErrNotRoomMember):
+		return "You are not a room member"
+	default:
+		return "An unexpected error occurred"
+	}
+}
+
 func HandleAppError(c *gin.Context, message string, err error) {
+	ctx := c.Request.Context()
+	log := logger.FromContext(ctx)
+
+	log.Error(message, slog.String("error", err.Error()))
+
 	status := mapAppErrorToStatus(err)
+	clientMessage := mapAppErrorToClientMessage(err)
+
 	c.JSON(status, ApiResponse[struct{}]{
 		Success: false,
 		Message: message,
-		Errors:  map[string]string{"message": err.Error()},
+		Errors:  map[string]string{"message": clientMessage},
 	})
 }

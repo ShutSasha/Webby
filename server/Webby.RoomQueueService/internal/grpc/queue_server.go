@@ -7,22 +7,21 @@ import (
 	"github.com/google/uuid"
 )
 
-type QueueService interface {
+type queueService interface {
 	MoveToTop(ctx context.Context, id uuid.UUID) error
 }
 
-type QueueServer struct {
+type queueServer struct {
 	queuepb.UnimplementedQueueGrpcServiceServer
-	service QueueService
+	service queueService
 }
 
-func NewQueueServer(service QueueService) *QueueServer {
-	return &QueueServer{service: service}
+func NewQueueServer(service queueService) *queueServer {
+	return &queueServer{service: service}
 }
 
-func (s *QueueServer) MoveToTop(
-	ctx context.Context, req *queuepb.MoveToTopRequest,
-) (*queuepb.MoveToTopResponse, error) {
+func (s *queueServer) MoveToTop(ctx context.Context, req *queuepb.MoveToTopRequest) (*queuepb.MoveToTopResponse, error) {
+	const op = "grpc.queueServer.MoveToTop"
 	id, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, err
