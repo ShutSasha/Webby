@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupUpdateRouter(mockRoomService *handlermocks.MockRoomService, mockMemberService *handlermocks.MockRoomMemberService, mockSyncService *handlermocks.MockSynchronizeService) *gin.Engine {
+func setupUpdateRouter(mockRoomService *handlermocks.MockroomService, mockMemberService *handlermocks.MockroomMemberService, mockSyncService *handlermocks.MocksynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
 	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
@@ -42,7 +42,7 @@ func TestUpdateRoom(t *testing.T) {
 		roomIdPath     string
 		fields         map[string]string
 		userID         string
-		mockSetup      func(*handlermocks.MockRoomService)
+		mockSetup      func(*handlermocks.MockroomService)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
@@ -51,7 +51,7 @@ func TestUpdateRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			fields:     map[string]string{"name": "New Name"},
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockRoomService) {
+			mockSetup: func(ms *handlermocks.MockroomService) {
 				newName := "New Name"
 				ms.EXPECT().Update(mock.Anything, roomID, userID, &newName, (*string)(nil), (*string)(nil), (*[]byte)(nil), (*bool)(nil)).
 					Return(&models.Room{
@@ -73,7 +73,7 @@ func TestUpdateRoom(t *testing.T) {
 			roomIdPath:     "invalid",
 			fields:         map[string]string{"name": "Test"},
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockRoomService) {},
+			mockSetup:      func(ms *handlermocks.MockroomService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -81,7 +81,7 @@ func TestUpdateRoom(t *testing.T) {
 			roomIdPath:     roomID.String(),
 			fields:         map[string]string{"name": "A"},
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockRoomService) {},
+			mockSetup:      func(ms *handlermocks.MockroomService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -90,7 +90,7 @@ func TestUpdateRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			fields:     map[string]string{"name": "New Name"},
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockRoomService) {
+			mockSetup: func(ms *handlermocks.MockroomService) {
 				newName := "New Name"
 				ms.EXPECT().Update(mock.Anything, roomID, userID, &newName, (*string)(nil), (*string)(nil), (*[]byte)(nil), (*bool)(nil)).
 					Return(nil, apperrors.ErrForbidden).Once()
@@ -101,9 +101,9 @@ func TestUpdateRoom(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRoomService := handlermocks.NewMockRoomService(t)
-			mockMemberService := handlermocks.NewMockRoomMemberService(t)
-			mockSyncService := handlermocks.NewMockSynchronizeService(t)
+			mockRoomService := handlermocks.NewMockroomService(t)
+			mockMemberService := handlermocks.NewMockroomMemberService(t)
+			mockSyncService := handlermocks.NewMocksynchronizeService(t)
 			tt.mockSetup(mockRoomService)
 
 			router := setupUpdateRouter(mockRoomService, mockMemberService, mockSyncService)

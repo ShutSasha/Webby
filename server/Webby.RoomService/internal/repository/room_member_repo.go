@@ -280,3 +280,28 @@ func (r *roomMemberRepository) AddPointsBulk(ctx context.Context, userIDs []uuid
 
 	return updatedTotals, nil
 }
+
+func (r *roomMemberRepository) GetMemberPoints(ctx context.Context, roomID, userID uuid.UUID) (int, error) {
+	const op = "repository.roomMemberRepository.GetMemberPoints"
+
+	sql, args, err := sq.Select("room_points").
+		From("room_members").
+		Where(sq.And{
+			sq.Eq{"room_id": roomID},
+			sq.Eq{"user_id": userID},
+		}).PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	var points int
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&points)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, fmt.Errorf("%s: %w", op, apperrors.ErrForbidden)
+		}
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return points, nil
+}

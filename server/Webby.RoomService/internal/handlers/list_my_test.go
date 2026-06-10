@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupListMyRouter(mockRoomService *handlermocks.MockRoomService, mockMemberService *handlermocks.MockRoomMemberService, mockSyncService *handlermocks.MockSynchronizeService) *gin.Engine {
+func setupListMyRouter(mockRoomService *handlermocks.MockroomService, mockMemberService *handlermocks.MockroomMemberService, mockSyncService *handlermocks.MocksynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
 	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
@@ -42,7 +42,7 @@ func TestListMyRooms(t *testing.T) {
 		name           string
 		queryParams    string
 		userID         string
-		mockSetup      func(*handlermocks.MockRoomService)
+		mockSetup      func(*handlermocks.MockroomService)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
@@ -50,7 +50,7 @@ func TestListMyRooms(t *testing.T) {
 			name:        "Success - Default Pagination",
 			queryParams: "",
 			userID:      userID.String(),
-			mockSetup: func(ms *handlermocks.MockRoomService) {
+			mockSetup: func(ms *handlermocks.MockroomService) {
 				ms.EXPECT().ListMyRooms(mock.Anything, userID, 1, 10, "", "").Return([]models.Room{
 					{ID: uuid.New(), Name: "My Room", Category: "Gaming", IsPrivate: false, Thumbnail: "thumb.jpg"},
 				}, int64(1), nil).Once()
@@ -67,7 +67,7 @@ func TestListMyRooms(t *testing.T) {
 			name:        "Success - With Search",
 			queryParams: "?search=test",
 			userID:      userID.String(),
-			mockSetup: func(ms *handlermocks.MockRoomService) {
+			mockSetup: func(ms *handlermocks.MockroomService) {
 				ms.EXPECT().ListMyRooms(mock.Anything, userID, 1, 10, "test", "").Return([]models.Room{}, int64(0), nil).Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -76,7 +76,7 @@ func TestListMyRooms(t *testing.T) {
 			name:        "Failure - Service Error",
 			queryParams: "",
 			userID:      userID.String(),
-			mockSetup: func(ms *handlermocks.MockRoomService) {
+			mockSetup: func(ms *handlermocks.MockroomService) {
 				ms.EXPECT().ListMyRooms(mock.Anything, userID, 1, 10, "", "").Return(nil, int64(0), fmt.Errorf("db error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -86,9 +86,9 @@ func TestListMyRooms(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRoomService := handlermocks.NewMockRoomService(t)
-			mockMemberService := handlermocks.NewMockRoomMemberService(t)
-			mockSyncService := handlermocks.NewMockSynchronizeService(t)
+			mockRoomService := handlermocks.NewMockroomService(t)
+			mockMemberService := handlermocks.NewMockroomMemberService(t)
+			mockSyncService := handlermocks.NewMocksynchronizeService(t)
 			tt.mockSetup(mockRoomService)
 
 			router := setupListMyRouter(mockRoomService, mockMemberService, mockSyncService)

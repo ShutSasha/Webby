@@ -18,9 +18,9 @@ import (
 func NewServer(
 	config *config.Config,
 	logger *slog.Logger,
-	roomService RoomService,
-	roomMemberService RoomMemberService,
-	synchronizeService SynchronizeService,
+	roomService roomService,
+	roomMemberService roomMemberService,
+	synchronizeService synchronizeService,
 ) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()

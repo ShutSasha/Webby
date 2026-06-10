@@ -291,7 +291,9 @@ func (svc *roomService) Delete(ctx context.Context, roomID, userID uuid.UUID) er
 	return nil
 }
 
+
 func (svc *roomService) generateThumbnailKey(filename string) string {
 	ext := filepath.Ext(filename)
 	return fmt.Sprintf("rooms/%d/thumbnail%s", time.Now().UnixMilli(), ext)
 }
+

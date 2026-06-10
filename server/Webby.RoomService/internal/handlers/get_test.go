@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupGetRouter(mockRoomService *handlermocks.MockRoomService, mockMemberService *handlermocks.MockRoomMemberService, mockSyncService *handlermocks.MockSynchronizeService) *gin.Engine {
+func setupGetRouter(mockRoomService *handlermocks.MockroomService, mockMemberService *handlermocks.MockroomMemberService, mockSyncService *handlermocks.MocksynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
 	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
@@ -45,7 +45,7 @@ func TestGetRoom(t *testing.T) {
 		name           string
 		roomIdPath     string
 		userID         string
-		mockSetup      func(*handlermocks.MockRoomService)
+		mockSetup      func(*handlermocks.MockroomService)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
@@ -53,7 +53,7 @@ func TestGetRoom(t *testing.T) {
 			name:       "Success - Public Room",
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockRoomService) {
+			mockSetup: func(ms *handlermocks.MockroomService) {
 				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(&models.Room{
 					ID:        roomID,
 					HostID:    userID,
@@ -76,7 +76,7 @@ func TestGetRoom(t *testing.T) {
 			name:           "Failure - Invalid UUID",
 			roomIdPath:     "invalid-id",
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockRoomService) {},
+			mockSetup:      func(ms *handlermocks.MockroomService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -84,7 +84,7 @@ func TestGetRoom(t *testing.T) {
 			name:       "Failure - Not Found",
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockRoomService) {
+			mockSetup: func(ms *handlermocks.MockroomService) {
 				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(nil, fmt.Errorf("room: %w", apperrors.ErrNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
@@ -94,7 +94,7 @@ func TestGetRoom(t *testing.T) {
 			name:       "Failure - Forbidden (Private Room, Not Member)",
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockRoomService) {
+			mockSetup: func(ms *handlermocks.MockroomService) {
 				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(nil, apperrors.ErrForbidden).Once()
 			},
 			expectedStatus: http.StatusForbidden,
@@ -104,9 +104,9 @@ func TestGetRoom(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRoomService := handlermocks.NewMockRoomService(t)
-			mockMemberService := handlermocks.NewMockRoomMemberService(t)
-			mockSyncService := handlermocks.NewMockSynchronizeService(t)
+			mockRoomService := handlermocks.NewMockroomService(t)
+			mockMemberService := handlermocks.NewMockroomMemberService(t)
+			mockSyncService := handlermocks.NewMocksynchronizeService(t)
 			tt.mockSetup(mockRoomService)
 
 			router := setupGetRouter(mockRoomService, mockMemberService, mockSyncService)
@@ -129,9 +129,9 @@ func TestGetRoomResponseFields(t *testing.T) {
 	roomID := uuid.New()
 	userID := uuid.New()
 
-	mockRoomService := handlermocks.NewMockRoomService(t)
-	mockMemberService := handlermocks.NewMockRoomMemberService(t)
-	mockSyncService := handlermocks.NewMockSynchronizeService(t)
+	mockRoomService := handlermocks.NewMockroomService(t)
+	mockMemberService := handlermocks.NewMockroomMemberService(t)
+	mockSyncService := handlermocks.NewMocksynchronizeService(t)
 	mockRoomService.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(&models.Room{
 		ID:        roomID,
 		HostID:    userID,

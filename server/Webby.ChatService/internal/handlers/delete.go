@@ -30,6 +30,7 @@ func (h *handler) delete(c *gin.Context) {
 	if err != nil {
 		log.Debug("chat deletion error", slog.String("err", err.Error()))
 		HandleAppError(c, "failed to delete a chat", err)
+		return
 	}
 
 	c.JSON(http.StatusOK, ApiResponse[struct{}]{
