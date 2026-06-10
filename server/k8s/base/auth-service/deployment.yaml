@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+      - name: auth-service
+        image: docker-registry/server-auth-service:latest
+        ports:
+        - containerPort: 5001
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ConnectionStrings__AppDbContext
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: DatabaseConnectionString
+        - name: SenderData__SenderPassword
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: SenderPassword
+        - name: SenderData__SenderEmail
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: SenderEmail
+        - name: JwtOptions__AccessSecretKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: JwtAccessSecretKey
+        - name: JwtOptions__AccessExpiresDuration
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: JwtAccessExpiresDuration
+        - name: AutoMapper__LicenseKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: AutoMapperLicenseKey
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 5001
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 5001
+          initialDelaySeconds: 10
+          periodSeconds: 10

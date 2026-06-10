@@ -43,6 +43,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
+      - ConnectionStrings__Redis=${RedisPassword}
       - AwsOptions__AccessKey=${AwsAccessKey}
       - AwsOptions__SecretKey=${AwsSecretKey}
       - AwsOptions__BucketName=${AwsBucketName}
@@ -64,6 +65,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
+      - ConnectionStrings__Redis=${RedisPassword}
       - AwsOptions__AccessKey=${AwsAccessKey}
       - AwsOptions__SecretKey=${AwsSecretKey}
       - AwsOptions__BucketName=${AwsBucketName}
@@ -75,6 +77,20 @@ services:
       - ExternalServices__TwitchOptions__ThumbnailHeight=720
       - GrpcClients__UserServiceUrl=http://user-service:5004
     container_name: webby-video-service
+
+  achievement-service:
+    build:
+      context: . 
+      dockerfile:  Webby.AchievementService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
+      - ConnectionStrings__Redis=${RedisPassword}
+      - AwsOptions__AccessKey=${AwsAccessKey}
+      - AwsOptions__SecretKey=${AwsSecretKey}
+      - AwsOptions__BucketName=${AwsBucketName}
+      - AwsOptions__Region=${AwsRegion}
+
 
   redis:
     image: redis:7-alpine

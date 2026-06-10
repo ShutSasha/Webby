@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+      - name: user-service
+        image: docker-registry/server-user-service:latest
+        ports:
+        - containerPort: 5002  # REST
+        - containerPort: 5004  # gRPC
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ConnectionStrings__AppDbContext
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: DatabaseConnectionString
+        - name: AwsOptions__AccessKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: AwsAccessKey
+        - name: AwsOptions__SecretKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: AwsSecretKey
+        - name: AwsOptions__BucketName
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: AwsBucketName
+        - name: AwsOptions__Region
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: AwsRegion
+        - name: PaymentOptions__PaymentPublicKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: StripePublishableKey
+        - name: PaymentOptions__PaymentSecretKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: StripeSecretKey
+        - name: PaymentOptions__PaymentWebhookKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: StripeWebhookKey
+        - name: PaymentOptions__SuccessUrl
+          value: "http://localhost:3000/payment/success" # ADD TO INFISICAL SECRET
+        - name: PaymentOptions__CancelUrl
+          value: "http://localhost:3000/payment/failed" # EDIT AND ADD TO INFISICAL SECRET
+        - name: AutoMapper__LicenseKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: AutoMapperLicenseKey
+        - name: GrpcClients__VideoServiceUrl
+          value: "http://video-service:5005" # ADD TO INFISICAL SECRET
+        - name: GrpcClients__NotificationServiceUrl
+          value: "http://notification-service:5007" # ADD TO INFISICAL SECRET
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 5002
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 5002
+          initialDelaySeconds: 10
+          periodSeconds: 10

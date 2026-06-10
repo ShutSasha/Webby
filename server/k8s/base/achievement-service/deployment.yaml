@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: achievement-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: achievement-service
+  template:
+    metadata:
+      labels:
+        app: achievement-service
+    spec:
+      containers:
+      - name: achievement-service
+        image: docker-registry/server-achievement-service:latest
+        ports:
+        - containerPort: 5008  # REST
+        - containerPort: 5009  # gRPC
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ConnectionStrings__AppDbContext
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: DatabaseConnectionString
+        - name: ConnectionStrings__Redis
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: RedisPassword
+        - name: AwsOptions__AccessKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: AwsAccessKey
+        - name: AwsOptions__SecretKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: AwsSecretKey
+        - name: AwsOptions__BucketName
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: AwsBucketName
+        - name: AwsOptions__Region
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: AwsRegion
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 5008
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 5008
+          initialDelaySeconds: 10
+          periodSeconds: 10

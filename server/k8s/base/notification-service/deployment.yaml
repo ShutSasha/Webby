@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+      - name: notification-service
+        image: docker-registry/server-notification-service:latest
+        ports:
+        - containerPort: 5006 # REST
+        - containerPort: 5007 # GRPC
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ConnectionStrings__AppDbContext
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: DatabaseConnectionString
+        - name: JwtOptions__AccessSecretKey
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: JwtAccessSecretKey
+        - name: JwtOptions__AccessExpiresDuration
+          valueFrom:
+            secretKeyRef:
+              name: webby-secrets
+              key: JwtAccessExpiresDuration
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 5006
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 5006
+          initialDelaySeconds: 10
+          periodSeconds: 10

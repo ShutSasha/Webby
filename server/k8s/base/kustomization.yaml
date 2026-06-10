@@ -1,0 +1,9 @@
+resources:
+  - api-gateway/
+  - auth-service/
+  - notification-service/
+  - user-service/
+  - video-service/
+  - achievement-service/
+  - redis/
+  - infisical/
