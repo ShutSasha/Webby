@@ -18,7 +18,13 @@ require (
 )
 
 require (
+	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
+	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
+)
+
+require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
+	github.com/Masterminds/squirrel v1.5.4
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect

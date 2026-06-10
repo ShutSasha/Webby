@@ -42,31 +42,31 @@ type roomChatManager interface {
 	AddChatMember(ctx context.Context, chatID, userID uuid.UUID) error
 }
 
-type RoomService struct {
+type roomService struct {
 	roomRepo          roomRepository
 	roomMemberChecker roomMemberChecker
 	fileRepo          fileRepository
-	categoryClient    categoryChecker
-	chatManager       roomChatManager
+	categoryChecker   categoryChecker
+	roomChatManager   roomChatManager
 }
 
 func NewRoomService(
 	roomRepo roomRepository,
 	roomMemberRepo roomMemberChecker,
 	fileRepo fileRepository,
-	categoryClient categoryChecker,
-	chatClient roomChatManager,
-) *RoomService {
-	return &RoomService{
+	categoryChecker categoryChecker,
+	roomChatManager roomChatManager,
+) *roomService {
+	return &roomService{
 		roomRepo:          roomRepo,
 		roomMemberChecker: roomMemberRepo,
 		fileRepo:          fileRepo,
-		categoryClient:    categoryClient,
-		chatManager:       chatClient,
+		categoryChecker:   categoryChecker,
+		roomChatManager:   roomChatManager,
 	}
 }
 
-func (svc *RoomService) Create(
+func (svc *roomService) Create(
 	ctx context.Context,
 	room *models.Room,
 	thumbnailData []byte,
@@ -74,7 +74,7 @@ func (svc *RoomService) Create(
 ) (*models.Room, error) {
 	const op = "services.RoomService.Create"
 
-	exists, err := svc.categoryClient.Exists(ctx, room.Category)
+	exists, err := svc.categoryChecker.Exists(ctx, room.Category)
 	if err != nil {
 		return nil, fmt.Errorf("%s: category check failed: %w", op, err)
 	}
@@ -113,31 +113,29 @@ func (svc *RoomService) Create(
 		)
 	}
 
-	if svc.chatManager != nil {
-		chatId, err := svc.chatManager.CreateChat(ctx, room.ID)
-		if err != nil {
-			slog.Warn("failed to create chat for room",
+	chatID, err := svc.roomChatManager.CreateChat(ctx, room.ID)
+	if err != nil {
+		slog.Warn("failed to create chat for room",
+			slog.String("roomId", room.ID.String()),
+			slog.String("error", err.Error()),
+		)
+	} else {
+		room.ChatID = &chatID
+
+		if err := svc.roomChatManager.AddChatMember(ctx, chatID, room.HostID); err != nil {
+			slog.Warn("failed to add host as chat member",
 				slog.String("roomId", room.ID.String()),
+				slog.String("chatId", chatID.String()),
+				slog.String("hostId", room.HostID.String()),
 				slog.String("error", err.Error()),
 			)
-		} else {
-			room.ChatID = &chatId
-
-			if err := svc.chatManager.AddChatMember(ctx, chatId, room.HostID); err != nil {
-				slog.Warn("failed to add host as chat member",
-					slog.String("roomId", room.ID.String()),
-					slog.String("chatId", chatId.String()),
-					slog.String("hostId", room.HostID.String()),
-					slog.String("error", err.Error()),
-				)
-			}
 		}
 	}
 
 	return room, nil
 }
 
-func (svc *RoomService) GetDetails(ctx context.Context, roomID, userID uuid.UUID) (*models.Room, error) {
+func (svc *roomService) GetDetails(ctx context.Context, roomID, userID uuid.UUID) (*models.Room, error) {
 	const op = "services.RoomService.GetByID"
 
 	room, err := svc.roomRepo.GetByID(ctx, roomID)
@@ -164,32 +162,30 @@ func (svc *RoomService) GetDetails(ctx context.Context, roomID, userID uuid.UUID
 		}
 	}
 
-	if svc.chatManager != nil {
-		chatID, err := svc.chatManager.GetChatByRoomID(ctx, room.ID)
+	chatID, err := svc.roomChatManager.GetChatByRoomID(ctx, room.ID)
+	if err != nil {
+		slog.Warn("failed to get chat for room",
+			slog.String("roomID", room.ID.String()),
+			slog.String("error", err.Error()),
+		)
+	} else {
+		room.ChatID = &chatID
+
+		err := svc.roomChatManager.AddChatMember(ctx, chatID, userID)
 		if err != nil {
-			slog.Warn("failed to get chat for room",
+			slog.Warn("failed to add user as chat member",
 				slog.String("roomID", room.ID.String()),
+				slog.String("chatID", chatID.String()),
+				slog.String("userID", userID.String()),
 				slog.String("error", err.Error()),
 			)
-		} else {
-			room.ChatID = &chatID
-
-			err := svc.chatManager.AddChatMember(ctx, chatID, userID)
-			if err != nil {
-				slog.Warn("failed to add user as chat member",
-					slog.String("roomID", room.ID.String()),
-					slog.String("chatID", chatID.String()),
-					slog.String("userID", userID.String()),
-					slog.String("error", err.Error()),
-				)
-			}
 		}
 	}
 
 	return room, nil
 }
 
-func (svc *RoomService) ListMyRooms(
+func (svc *roomService) ListMyRooms(
 	ctx context.Context,
 	userID uuid.UUID,
 	page, limit int,
@@ -205,7 +201,7 @@ func (svc *RoomService) ListMyRooms(
 	return rooms, total, nil
 }
 
-func (svc *RoomService) ListPublicRooms(
+func (svc *roomService) ListPublicRooms(
 	ctx context.Context,
 	page, limit int,
 	search, category string,
@@ -220,7 +216,7 @@ func (svc *RoomService) ListPublicRooms(
 	return rooms, total, nil
 }
 
-func (svc *RoomService) Update(
+func (svc *roomService) Update(
 	ctx context.Context,
 	roomID, userID uuid.UUID,
 	name, category, thumbnailFilename *string,
@@ -269,7 +265,7 @@ func (svc *RoomService) Update(
 	return existingRoom, nil
 }
 
-func (svc *RoomService) Delete(ctx context.Context, roomID, userID uuid.UUID) error {
+func (svc *roomService) Delete(ctx context.Context, roomID, userID uuid.UUID) error {
 	const op = "services.RoomService.Delete"
 
 	room, err := svc.roomRepo.GetByID(ctx, roomID)
@@ -295,7 +291,7 @@ func (svc *RoomService) Delete(ctx context.Context, roomID, userID uuid.UUID) er
 	return nil
 }
 
-func (svc *RoomService) generateThumbnailKey(filename string) string {
+func (svc *roomService) generateThumbnailKey(filename string) string {
 	ext := filepath.Ext(filename)
 	return fmt.Sprintf("rooms/%d/thumbnail%s", time.Now().UnixMilli(), ext)
 }

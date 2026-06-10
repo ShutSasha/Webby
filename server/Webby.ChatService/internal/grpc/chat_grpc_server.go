@@ -2,73 +2,53 @@ package grpc
 
 import (
 	"context"
-	"encoding/json"
 	"log/slog"
 	"webby/chat-service/internal/grpc/chatpb"
 	"webby/chat-service/internal/models"
-	"webby/chat-service/internal/services"
 
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-type ChatService interface {
-	Create(ctx context.Context, roomID *uuid.UUID) (*models.Chat, error)
+type chatService interface {
+	CreateForRoom(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
 	GetByRoomID(ctx context.Context, roomId uuid.UUID) (*models.Chat, error)
 	GetChatIDByRoomID(ctx context.Context, roomID, userID uuid.UUID) (uuid.UUID, error)
+}
+
+type chatMemberEnsurer interface {
 	EnsureMember(ctx context.Context, chatId, userId uuid.UUID) error
-	GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error)
 }
 
-type EventPublisher interface {
-	Publish(ctx context.Context, channel string, payload any) error
-}
-
-type RedisPublisher struct {
-	client *redis.Client
-}
-
-func NewRedisPublisher(client *redis.Client) *RedisPublisher {
-	return &RedisPublisher{client: client}
-}
-
-func (p *RedisPublisher) Publish(ctx context.Context, channel string, payload any) error {
-	data, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
-	return p.client.Publish(ctx, channel, string(data)).Err()
-}
-
-type ChatGrpcServer struct {
+type chatGrpcServer struct {
 	chatpb.UnimplementedChatGrpcServiceServer
-	chatService    ChatService
-	messageService *services.MessageService
-	publisher      EventPublisher
-	logger         *slog.Logger
+	chatService       chatService
+	chatMemberEnsurer chatMemberEnsurer
+	logger            *slog.Logger
 }
 
-func NewChatGrpcServer(chatService ChatService, messageService *services.MessageService, publisher EventPublisher, logger *slog.Logger) *ChatGrpcServer {
-	return &ChatGrpcServer{
-		chatService:    chatService,
-		messageService: messageService,
-		publisher:      publisher,
-		logger:         logger,
+func NewChatGrpcServer(chatService chatService, chatMemberEnsurer chatMemberEnsurer, logger *slog.Logger) *chatGrpcServer {
+	return &chatGrpcServer{
+		chatService:       chatService,
+		chatMemberEnsurer: chatMemberEnsurer,
+		logger:            logger,
 	}
 }
 
-func (s *ChatGrpcServer) CreateChat(ctx context.Context, req *chatpb.CreateChatRequest) (*chatpb.ChatResponse, error) {
+func (s *chatGrpcServer) CreateChat(ctx context.Context, req *chatpb.CreateChatRequest) (*chatpb.ChatResponse, error) {
+	const op = "grpc.chatGrpcServer.CreateChat"
+	log := s.logger.With("op", op)
+
 	roomID, err := uuid.Parse(req.RoomID)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "wrong roomID")
+		return nil, status.Errorf(codes.InvalidArgument, "%s: wrong roomID", op)
 	}
 
-	chat, err := s.chatService.Create(ctx, &roomID)
+	chat, err := s.chatService.CreateForRoom(ctx, roomID)
 	if err != nil {
-		s.logger.Error("gRPC CreateChat failed", slog.String("error", err.Error()))
-		return nil, status.Errorf(codes.Internal, "failed to create chat: %v", err)
+		log.Error("gRPC CreateChat failed", slog.String("error", err.Error()))
+		return nil, status.Errorf(codes.Internal, "%s: %v", op, err)
 	}
 
 	return &chatpb.ChatResponse{
@@ -77,11 +57,12 @@ func (s *ChatGrpcServer) CreateChat(ctx context.Context, req *chatpb.CreateChatR
 	}, nil
 }
 
-func (s *ChatGrpcServer) GetChatByRoomID(
+func (s *chatGrpcServer) GetChatByRoomID(
 	ctx context.Context,
 	req *chatpb.GetChatByRoomIdRequest,
 ) (*chatpb.ChatResponse, error) {
 	const op = "grpc.ChatGrpcServer.GetChatByRoomID"
+	log := s.logger.With("op", op)
 
 	roomID, err := uuid.Parse(req.GetRoomID())
 	if err != nil {
@@ -90,7 +71,7 @@ func (s *ChatGrpcServer) GetChatByRoomID(
 
 	chat, err := s.chatService.GetByRoomID(ctx, roomID)
 	if err != nil {
-		s.logger.Error("gRPC execution failed",
+		log.Error("gRPC execution failed",
 			slog.String("op", op),
 			slog.String("roomID", roomID.String()),
 			slog.String("error", err.Error()),
@@ -105,53 +86,57 @@ func (s *ChatGrpcServer) GetChatByRoomID(
 	}, nil
 }
 
-func (s *ChatGrpcServer) AddChatMember(ctx context.Context, req *chatpb.AddChatMemberRequest) (*chatpb.AddChatMemberResponse, error) {
+func (s *chatGrpcServer) AddChatMember(ctx context.Context, req *chatpb.AddChatMemberRequest) (*chatpb.AddChatMemberResponse, error) {
+	const op = "grpc.chatGrpcServer.AddChatMember"
+	log := s.logger.With("op", op)
+
 	chatID, err := uuid.Parse(req.GetChatID())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid chat_id: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "%s: invalid chat_id: %v", op, err)
 	}
 
 	userID, err := uuid.Parse(req.GetUserID())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid user_id: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "%s: invalid user_id: %v", op, err)
 	}
 
-	if err := s.chatService.EnsureMember(ctx, chatID, userID); err != nil {
-		s.logger.Error("gRPC AddChatMember failed",
+	if err := s.chatMemberEnsurer.EnsureMember(ctx, chatID, userID); err != nil {
+		log.Error("gRPC AddChatMember failed",
 			slog.String("chatID", chatID.String()),
 			slog.String("userID", userID.String()),
 			slog.String("error", err.Error()),
 		)
-		return nil, status.Errorf(codes.Internal, "failed to add chat member: %v", err)
+		return nil, status.Errorf(codes.Internal, "%s: %v", op, err)
 	}
 
 	return &chatpb.AddChatMemberResponse{}, nil
 }
 
-func (s *ChatGrpcServer) GetChatIDByRoomID(
+func (s *chatGrpcServer) GetChatIDByRoomID(
 	ctx context.Context,
 	req *chatpb.GetChatIDByRoomIDRequest,
 ) (*chatpb.ChatIDByRoomIDResponse, error) {
 	const op = "grpc.ChatGrpcServer.GetChatIDByRoomID"
+	log := s.logger.With("op", op)
 
 	roomID, err := uuid.Parse(req.GetRoomID())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid room_id: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "%s: invalid room_id: %v", op, err)
 	}
 
 	userID, err := uuid.Parse(req.GetUserID())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid user_id: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "%s: invalid user_id: %v", op, err)
 	}
 
 	id, err := s.chatService.GetChatIDByRoomID(ctx, roomID, userID)
 	if err != nil {
-		s.logger.Error("gRPC GetChatIDByRoomID failed",
+		log.Error("gRPC GetChatIDByRoomID failed",
 			slog.String("roomID", roomID.String()),
 			slog.String("userID", userID.String()),
 			slog.String("error", err.Error()),
 		)
-		return nil, status.Errorf(codes.Internal, "failed to get chat id: %v", err)
+		return nil, status.Errorf(codes.Internal, "%s: %v", op, err)
 	}
 
 	return &chatpb.ChatIDByRoomIDResponse{ChatID: id.String()}, nil

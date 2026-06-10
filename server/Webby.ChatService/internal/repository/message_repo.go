@@ -7,28 +7,35 @@ import (
 	"webby/chat-service/internal/apperrors"
 	"webby/chat-service/internal/models"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type MessageRepository struct {
+type messageRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewMessageRepository(db *pgxpool.Pool) *MessageRepository {
-	return &MessageRepository{db: db}
+func NewMessageRepository(db *pgxpool.Pool) *messageRepository {
+	return &messageRepository{db: db}
 }
 
-func (r *MessageRepository) Create(ctx context.Context, msg *models.Message) (*models.Message, error) {
+func (r *messageRepository) Create(ctx context.Context, msg *models.Message) (*models.Message, error) {
 	const op = "repository.MessageRepository.Create"
 
-	query := `
-		INSERT INTO messages (sender_id, chat_id, content)
-		VALUES ($1, $2, $3)
-		RETURNING id, created_at
-	`
-	err := r.db.QueryRow(ctx, query, msg.SenderID, msg.ChatID, msg.Content).Scan(&msg.ID, &msg.CreatedAt)
+	query := sq.Insert("messages").
+		Columns("sender_id", "chat_id", "content").
+		Values(msg.SenderID, msg.ChatID, msg.Content).
+		Suffix("RETURNING id, created_at").
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&msg.ID, &msg.CreatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -36,21 +43,28 @@ func (r *MessageRepository) Create(ctx context.Context, msg *models.Message) (*m
 	return msg, nil
 }
 
-func (r *MessageRepository) GetById(ctx context.Context, id uuid.UUID) (*models.Message, error) {
-	const op = "repository.MessageRepository.GetById"
+func (r *messageRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Message, error) {
+	const op = "repository.messageRepository.GetByID"
 
 	if id == uuid.Nil {
 		return nil, fmt.Errorf("%s: %w: invalid message id", op, apperrors.ErrInvalidInput)
 	}
 
-	query := `
-		SELECT id, sender_id, chat_id, content, is_edited, edited_at, created_at
-		FROM messages
-		WHERE id = $1
-	`
+	query := sq.Select(
+		"id", "sender_id", "chat_id", "content",
+		"is_edited", "edited_at", "created_at",
+	).
+		From("messages").
+		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
 	var msg models.Message
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err = r.db.QueryRow(ctx, sql, args...).Scan(
 		&msg.ID, &msg.SenderID, &msg.ChatID,
 		&msg.Content, &msg.IsEdited, &msg.EditedAt, &msg.CreatedAt,
 	)
@@ -64,22 +78,24 @@ func (r *MessageRepository) GetById(ctx context.Context, id uuid.UUID) (*models.
 	return &msg, nil
 }
 
-func (r *MessageRepository) Update(ctx context.Context, id uuid.UUID, content string) (*models.Message, error) {
-	const op = "repository.MessageRepository.Update"
+func (r *messageRepository) Update(ctx context.Context, id uuid.UUID, content string) (*models.Message, error) {
+	const op = "repository.messageRepository.Update"
 
-	if id == uuid.Nil {
-		return nil, fmt.Errorf("%s: %w: invalid message id", op, apperrors.ErrInvalidInput)
+	query := sq.Update("messages").
+		Set("content", content).
+		Set("is_edited", true).
+		Set("edited_at", sq.Expr("NOW()")).
+		Where(sq.Eq{"id": id}).
+		Suffix("RETURNING id, sender_id, chat_id, content, is_edited, edited_at, created_at").
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
 	}
 
-	query := `
-		UPDATE messages
-		SET content = $2, is_edited = true, edited_at = NOW()
-		WHERE id = $1
-		RETURNING id, sender_id, chat_id, content, is_edited, edited_at, created_at
-	`
-
 	var msg models.Message
-	err := r.db.QueryRow(ctx, query, id, content).Scan(
+	err = r.db.QueryRow(ctx, sql, args...).Scan(
 		&msg.ID, &msg.SenderID, &msg.ChatID,
 		&msg.Content, &msg.IsEdited, &msg.EditedAt, &msg.CreatedAt,
 	)
@@ -93,57 +109,62 @@ func (r *MessageRepository) Update(ctx context.Context, id uuid.UUID, content st
 	return &msg, nil
 }
 
-func (r *MessageRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	const op = "repository.MessageRepository.Delete"
+func (r *messageRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	const op = "repository.messageRepository.Delete"
 
-	if id == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid message id", op, apperrors.ErrInvalidInput)
+	query := sq.Delete("messages").
+		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar)
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build failed: %w", op, err)
 	}
 
-	query := `DELETE FROM messages WHERE id = $1`
-
-	tag, err := r.db.Exec(ctx, query, id)
+	tag, err := r.db.Exec(ctx, sql, args...)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("%s: message %s: %w", op, id.String(), apperrors.ErrNotFound)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotFound)
 	}
 
 	return nil
 }
 
-func (r *MessageRepository) ListByChat(ctx context.Context, chatId uuid.UUID, page, limit int) ([]models.Message, int64, error) {
+func (r *messageRepository) ListByChat(ctx context.Context, chatID uuid.UUID, offset, limit int) ([]models.Message, int64, error) {
 	const op = "repository.MessageRepository.ListByChat"
 
-	if chatId == uuid.Nil {
-		return nil, 0, fmt.Errorf("%s: %w: invalid chat id", op, apperrors.ErrInvalidInput)
+	countQuery := sq.Select("COUNT(*)").
+		From("messages").
+		Where(sq.Eq{"chat_id": chatID}).
+		PlaceholderFormat(sq.Dollar)
+	countSQL, countArgs, err := countQuery.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: count build failed: %w", op, err)
 	}
 
-	if page < 1 {
-		page = 1
-	}
-	if limit < 1 || limit > 100 {
-		limit = 50
-	}
-	offset := (page - 1) * limit
-
-	countQuery := `SELECT COUNT(*) FROM messages WHERE chat_id = $1`
 	var total int64
-	if err := r.db.QueryRow(ctx, countQuery, chatId).Scan(&total); err != nil {
+	if err := r.db.QueryRow(ctx, countSQL, countArgs...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("%s: count failed: %w", op, err)
 	}
 
-	query := `
-		SELECT id, sender_id, chat_id, content, is_edited, edited_at, created_at
-		FROM messages
-		WHERE chat_id = $1
-		ORDER BY created_at DESC
-		LIMIT $2 OFFSET $3
-	`
+	query := sq.Select(
+		"id", "sender_id", "chat_id", "content",
+		"is_edited", "edited_at", "created_at",
+	).
+		From("messages").
+		Where(sq.Eq{"chat_id": chatID}).
+		OrderBy("created_at DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset)).
+		PlaceholderFormat(sq.Dollar)
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	rows, err := r.db.Query(ctx, query, chatId, limit, offset)
+	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: query failed: %w", op, err)
 	}

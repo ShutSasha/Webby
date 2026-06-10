@@ -20,6 +20,7 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
    public override async Task<UserResponse> GetUserById(GetUserRequest request, ServerCallContext context)
    {
       var user = await _userRepository.FindById(Guid.Parse(request.UserId));
+      
       if (user == null)
          throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
       
@@ -41,9 +42,14 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
          .Select(Guid.Parse)
          .ToList();
 
+      var orderMap = userIds
+         .Select((id, index) => (id, index))
+         .ToDictionary(x => x.id, x => x.index);
+
       var users = await _userRepository.GetByIds(userIds);
-      
+
       var mappedUsers = users
+         .OrderBy(u => orderMap[u.UserId])
          .Select(u => new UserResponse
          {
             UserId = u.UserId.ToString(),
@@ -56,7 +62,6 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       {
          Users = { mappedUsers }
       };
-      
    }
 
    public override async Task<GetUserSubscriptionsIdsResponse> GetUserSubscriptionIds(GetUserSubscriptionIdsRequest request, ServerCallContext context)
@@ -83,6 +88,30 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       return new GetPremiumStatusResponse
       {
          Status = status
+      };
+   }
+
+   public override async Task<FindUserIDsResponse> FindUserIDs(FindUserIDsRequest request, ServerCallContext context)
+   {
+      var userIdGuids = request.UserIds.Select(Guid.Parse).ToList();
+      var userResult = await _userRepository.SearchByUsername(userIdGuids, request.Search, request.Limit, request.Offset);
+
+      return new FindUserIDsResponse
+      {
+         UserIds = {userResult.Ids.Select(id => id.ToString())},
+         Total = userResult.Total
+      };
+      
+   }
+
+   public override async Task<IsFollowedResponse> IsFollowed(IsFollowedRequest request, ServerCallContext context)
+   {
+      var mutualFollows =
+         await _userRepository.AreMutualFollowers(Guid.Parse(request.FirstUserId), Guid.Parse(request.SecondUserId));
+
+      return new IsFollowedResponse
+      {
+         IsFollowed = mutualFollows
       };
    }
 }
