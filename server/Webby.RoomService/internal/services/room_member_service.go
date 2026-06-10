@@ -17,13 +17,9 @@ type roomRetriever interface {
 
 type roomMemberRepository interface {
 	Delete(ctx context.Context, roomID, userID uuid.UUID) error
-	ListByRoom(
-		ctx context.Context,
-		roomID uuid.UUID,
-		page, limit int,
-		search string,
-	) ([]models.RoomMemberInfo, int64, error)
+	ListByRoom(ctx context.Context, roomID uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error)
 	EnsureMember(ctx context.Context, roomID, userID uuid.UUID) error
+	GetMemberPoints(ctx context.Context, roomID, userID uuid.UUID) (int, error)
 }
 
 type roomMemberChatManager interface {
@@ -31,24 +27,24 @@ type roomMemberChatManager interface {
 	AddChatMember(ctx context.Context, chatID, userID uuid.UUID) error
 }
 
-type NotificationSender interface {
+type notificationSender interface {
 	SendNotificationToUser(ctx context.Context, userID, roomID uuid.UUID) error
 }
 
-type RoomMemberService struct {
+type roomMemberService struct {
 	roomRetriever      roomRetriever
 	roomMemberRepo     roomMemberRepository
 	chatManager        roomMemberChatManager
-	notificationClient NotificationSender
+	notificationClient notificationSender
 }
 
 func NewRoomMemberService(
 	roomRepo roomRetriever,
 	roomMemberRepo roomMemberRepository,
 	chatClient roomMemberChatManager,
-	notificationClient NotificationSender,
-) *RoomMemberService {
-	return &RoomMemberService{
+	notificationClient notificationSender,
+) *roomMemberService {
+	return &roomMemberService{
 		roomRetriever:      roomRepo,
 		roomMemberRepo:     roomMemberRepo,
 		chatManager:        chatClient,
@@ -56,7 +52,7 @@ func NewRoomMemberService(
 	}
 }
 
-func (svc *RoomMemberService) AddMembers(ctx context.Context, roomID, hostID uuid.UUID, memberIDs []uuid.UUID) error {
+func (svc *roomMemberService) AddMembers(ctx context.Context, roomID, hostID uuid.UUID, memberIDs []uuid.UUID) error {
 	const op = "services.RoomMemberService.AddMembers"
 
 	room, err := svc.roomRetriever.GetByID(ctx, roomID)
@@ -110,7 +106,7 @@ func (svc *RoomMemberService) AddMembers(ctx context.Context, roomID, hostID uui
 	return nil
 }
 
-func (svc *RoomMemberService) ListMembers(
+func (svc *roomMemberService) ListMembers(
 	ctx context.Context,
 	roomID uuid.UUID,
 	page, limit int,
@@ -126,7 +122,7 @@ func (svc *RoomMemberService) ListMembers(
 	return members, total, nil
 }
 
-func (svc *RoomMemberService) RemoveMember(ctx context.Context, roomID, memberID, hostID uuid.UUID) error {
+func (svc *roomMemberService) RemoveMember(ctx context.Context, roomID, memberID, hostID uuid.UUID) error {
 	const op = "services.RoomMemberService.RemoveMember"
 
 	room, err := svc.roomRetriever.GetByID(ctx, roomID)
@@ -144,8 +140,19 @@ func (svc *RoomMemberService) RemoveMember(ctx context.Context, roomID, memberID
 
 	err = svc.roomMemberRepo.Delete(ctx, roomID, memberID)
 	if err != nil {
-		return fmt.Errorf("%s: %w: cannot remove room membere", op, apperrors.ErrInvalidInput)
+		return fmt.Errorf("%s: %w: cannot remove room member", op, apperrors.ErrInvalidInput)
 	}
 
 	return nil
+}
+
+func (svc *roomMemberService) GetMemberPoints(ctx context.Context, roomID, userID uuid.UUID) (int, error) {
+	const op = "services.roomMemberService.GetMemberPoints"
+
+	points, err := svc.roomMemberRepo.GetMemberPoints(ctx, roomID, userID)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return points, nil
 }
