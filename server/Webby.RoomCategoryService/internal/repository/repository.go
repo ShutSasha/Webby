@@ -47,7 +47,7 @@ func (r *Repository) Create(ctx context.Context, name string) error {
 	return nil
 }
 
-func (r *Repository) List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int64, error) {
+func (r *Repository) List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int, error) {
 	const op = "repository.List"
 
 	query := sq.Select("id", "name", "COUNT(*) OVER() AS total").
@@ -72,7 +72,7 @@ func (r *Repository) List(ctx context.Context, search string, offset int, limit 
 	}
 	defer rows.Close()
 
-	var total int64
+	var total int
 	categories := make([]models.Category, 0, limit)
 
 	for rows.Next() {
