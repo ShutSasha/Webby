@@ -51,7 +51,7 @@ func TestDeleteCategory(t *testing.T) {
 			name:     "Failure_CategoryNotFound",
 			pathName: "NonExistent",
 			mockSetup: func(md *handlermocks.MockService) {
-				md.EXPECT().Delete(mock.Anything, "NonExistent").Return(fmt.Errorf("%w", apperrors.ErrNotFound)).Once()
+				md.EXPECT().Delete(mock.Anything, "NonExistent").Return(fmt.Errorf("%w", apperrors.ErrCategoryNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   validateErrorResponse,

@@ -100,7 +100,7 @@ func TestCreateCategory(t *testing.T) {
 				Name: "Gaming",
 			},
 			mockSetup: func(mc *handlermocks.MockService) {
-				mc.EXPECT().Create(mock.Anything, "Gaming").Return(fmt.Errorf("%w: category already exists", apperrors.ErrConflict)).Once()
+				mc.EXPECT().Create(mock.Anything, "Gaming").Return(fmt.Errorf("%w: category already exists", apperrors.ErrCategoryAlreadyExists)).Once()
 			},
 			expectedStatus: http.StatusConflict,
 			validateBody: func(t *testing.T, body string) {

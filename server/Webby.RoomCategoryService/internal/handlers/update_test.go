@@ -162,7 +162,7 @@ func TestUpdateCategory(t *testing.T) {
 				Name: "Updated Name",
 			},
 			mockSetup: func(mu *handlermocks.MockService) {
-				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Updated Name").Return(fmt.Errorf("%w", apperrors.ErrNotFound)).Once()
+				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Updated Name").Return(fmt.Errorf("%w", apperrors.ErrCategoryNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   assertErrorUpdateResponse,
