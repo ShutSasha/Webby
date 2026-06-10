@@ -70,7 +70,7 @@ func (r *messageRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("%s: message %s: %w", op, id.String(), apperrors.ErrNotFound)
+			return nil, fmt.Errorf("%s: message %s: %w", op, id.String(), apperrors.ErrMessageNotFound)
 		}
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -101,7 +101,7 @@ func (r *messageRepository) Update(ctx context.Context, id uuid.UUID, content st
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("%s: message %s: %w", op, id.String(), apperrors.ErrNotFound)
+			return nil, fmt.Errorf("%s: message %s: %w", op, id.String(), apperrors.ErrMessageNotFound)
 		}
 		return nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -124,9 +124,8 @@ func (r *messageRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
-
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("%s: %w", op, apperrors.ErrNotFound)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrMessageNotFound)
 	}
 
 	return nil

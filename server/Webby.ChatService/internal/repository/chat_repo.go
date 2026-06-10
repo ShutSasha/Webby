@@ -58,7 +58,7 @@ func (r *chatRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Cha
 	err := r.db.QueryRow(ctx, query, id).Scan(&chat.ID, &chat.RoomID, &chat.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("%s: chat %s: %w", op, id.String(), apperrors.ErrNotFound)
+			return nil, fmt.Errorf("%s: chat %s: %w", op, id.String(), apperrors.ErrChatNotFound)
 		}
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -83,7 +83,7 @@ func (r *chatRepository) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*mo
 	err := r.db.QueryRow(ctx, query, roomID).Scan(&chat.ID, &chat.RoomID, &chat.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("%s: room %s: %w", op, roomID.String(), apperrors.ErrNotFound)
+			return nil, fmt.Errorf("%s: room %s: %w", op, roomID.String(), apperrors.ErrChatNotFound)
 		}
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -99,7 +99,7 @@ func (r *chatRepository) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID
 	err := r.db.QueryRow(ctx, query, roomID).Scan(&id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return uuid.Nil, fmt.Errorf("%s: room %s: %w", op, roomID.String(), apperrors.ErrNotFound)
+			return uuid.Nil, fmt.Errorf("%s: room %s: %w", op, roomID.String(), apperrors.ErrChatNotFound)
 		}
 		return uuid.Nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -196,7 +196,7 @@ func (r *chatRepository) UpdateLastMessage(ctx context.Context, chatID, lastMess
 		var exists bool
 		checkErr := r.db.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM chats WHERE id = $1)", chatID).Scan(&exists)
 		if checkErr == nil && !exists {
-			return fmt.Errorf("%s: chat not found: %w", op, apperrors.ErrNotFound)
+			return fmt.Errorf("%s: chat not found: %w", op, apperrors.ErrChatNotFound)
 		}
 		return nil
 	}
@@ -249,7 +249,7 @@ func (r *chatRepository) Delete(ctx context.Context, chatID uuid.UUID) error {
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("%s: %w", op, apperrors.ErrNotFound)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrChatNotFound)
 	}
 
 	return nil

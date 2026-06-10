@@ -82,7 +82,7 @@ func (s *chatService) CreatePrivate(ctx context.Context, initiatorID, targetID u
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	if !isFollowed {
-		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrForbidden)
+		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrNotFollowed)
 	}
 
 	exists, err := s.chatRepository.Exists(ctx, initiatorID, targetID)
@@ -90,7 +90,7 @@ func (s *chatService) CreatePrivate(ctx context.Context, initiatorID, targetID u
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	if exists {
-		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrConflict)
+		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrPrivateChatAlreadyExists)
 	}
 
 	// TODO: leverage tx outbox pattern
@@ -136,7 +136,7 @@ func (s *chatService) GetChatIDByRoomID(ctx context.Context, roomID, userID uuid
 
 	isMember, err := s.roomMemberExister.Exists(ctx, roomID, userID)
 	if err != nil || !isMember {
-		return uuid.Nil, fmt.Errorf("%s: forbidden %w", op, err)
+		return uuid.Nil, fmt.Errorf("%s: forbidden %w", op, apperrors.ErrNotMemeber)
 	}
 
 	id, err := s.chatRepository.GetChatIDByRoomID(ctx, roomID)
@@ -203,7 +203,7 @@ func (s *chatService) Delete(ctx context.Context, userID, chatID uuid.UUID) erro
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	if !isMember {
-		return fmt.Errorf("%s: %w", op, apperrors.ErrForbidden)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotMemeber)
 	}
 
 	err = s.chatRepository.Delete(ctx, chatID)

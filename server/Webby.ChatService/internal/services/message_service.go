@@ -81,7 +81,7 @@ func (s *messageService) SaveMessage(ctx context.Context, chatID, senderID uuid.
 		return fmt.Errorf("%s: check membership: %w", op, err)
 	}
 	if !isMember {
-		return fmt.Errorf("%s: %w: user is not a member of this chat", op, apperrors.ErrForbidden)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotMemeber)
 	}
 
 	// TODO: apply transactional outbox
@@ -133,7 +133,7 @@ func (s *messageService) List(ctx context.Context, chatID, userID uuid.UUID, lim
 		return nil, 0, fmt.Errorf("%s: check membership: %w", op, err)
 	}
 	if !isMember {
-		return nil, 0, fmt.Errorf("%s: %w: user is not a member of this chat", op, apperrors.ErrForbidden)
+		return nil, 0, fmt.Errorf("%s: %w", op, apperrors.ErrNotMemeber)
 	}
 
 	if page < 1 {
@@ -204,7 +204,7 @@ func (s *messageService) Update(ctx context.Context, chatID, messageID, userID u
 	}
 
 	if msg.SenderID != userID {
-		return fmt.Errorf("%s: %w: only the sender can edit this message", op, apperrors.ErrForbidden)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotSender)
 	}
 
 	if msg.ChatID != chatID {
@@ -251,7 +251,7 @@ func (s *messageService) Delete(ctx context.Context, chatID, messageID, userID u
 	}
 
 	if msg.SenderID != userID {
-		return fmt.Errorf("%s: only sender can delete this message %w: ", op, apperrors.ErrForbidden)
+		return fmt.Errorf("%s: %w: ", op, apperrors.ErrNotSender)
 	}
 
 	if msg.ChatID != chatID {
