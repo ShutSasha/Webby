@@ -1,23 +1,14 @@
 package handlers
 
 import (
-	"context"
-	"errors"
 	"io"
-	"log/slog"
 	"mime/multipart"
 	"net/http"
-	"webby/room-service/internal/apperrors"
 	"webby/room-service/internal/models"
-	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
-
-type RoomCreator interface {
-	Execute(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string) (*models.Room, error)
-}
 
 type createRoomRequest struct {
 	Name         string                `form:"name" binding:"required,min=2,max=50"`
@@ -37,13 +28,10 @@ type createResponse struct {
 
 func (h *handler) Create(c *gin.Context) {
 	const maxFileSize = 2 * 1024 * 1024
-
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("operation", "handlers.Create")
 
 	var req createRoomRequest
 	if err := c.ShouldBind(&req); err != nil {
-		log.Debug("validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -73,7 +61,6 @@ func (h *handler) Create(c *gin.Context) {
 
 		file, err := req.Thumbnail.Open()
 		if err != nil {
-			log.Error("failed to open thumbnail", slog.String("error", err.Error()))
 			HandleAppError(c, "File open error", err)
 			return
 		}
@@ -81,29 +68,19 @@ func (h *handler) Create(c *gin.Context) {
 
 		thumbnailData, err = io.ReadAll(file)
 		if err != nil {
-			log.Error("failed to read thumbnail", slog.String("error", err.Error()))
 			HandleAppError(c, "File read error", err)
 			return
 		}
 		thumbnailFilename = req.Thumbnail.Filename
 	}
 
-	room, err := h.roomCreator.Execute(ctx, &models.Room{
+	room, err := h.roomService.Create(ctx, &models.Room{
 		HostID:    hostID,
 		Category:  req.CategoryName,
 		Name:      req.Name,
 		IsPrivate: req.IsPrivate,
 	}, thumbnailData, thumbnailFilename)
 	if err != nil {
-		if errors.Is(err, apperrors.ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
-				Success: false,
-				Message: "Validation error",
-				Errors:  map[string]string{"categoryName": "category does not exist"},
-			})
-			return
-		}
-		log.Error("create room error", slog.String("err", err.Error()))
 		HandleAppError(c, "Create room error", err)
 		return
 	}

@@ -1,13 +1,20 @@
 package handlers
 
 import (
+	"context"
+	"errors"
 	"log/slog"
 	"net/http"
+	"webby/wsgateway/internal/domain"
 	"webby/wsgateway/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+type tokenGenerator interface {
+	GenerateToken(ctx context.Context, userID uuid.UUID) (string, error)
+}
 
 type ApiResponse[T any] struct {
 	Success bool              `json:"success"`
@@ -17,13 +24,47 @@ type ApiResponse[T any] struct {
 }
 
 type Handler struct {
-	service Service
+	tokenGenerator tokenGenerator
 }
 
-func NewHandler(service Service) Handler {
-	return Handler{
-		service: service,
+func NewHandler(tokenGenerator tokenGenerator) Handler {
+	return Handler{tokenGenerator}
+}
+
+func mapAppErrorToStatus(err error) int {
+	switch {
+	case errors.Is(err, domain.ErrTokenNotFound):
+		return http.StatusNotFound
+	default:
+		return http.StatusInternalServerError
 	}
+}
+
+func mapAppErrorToClientMessage(err error) string {
+	switch {
+	case errors.Is(err, domain.ErrTokenNotFound):
+		return "The token is not found"
+	default:
+		return "An unexpected error occurred"
+	}
+}
+
+func handleAppError(c *gin.Context, message string, err error) {
+	ctx := c.Request.Context()
+	log := logger.FromContext(ctx)
+
+	log.Error(message, slog.String("error", err.Error()))
+
+	status := mapAppErrorToStatus(err)
+	clientMessage := mapAppErrorToClientMessage(err)
+
+	c.JSON(status, ApiResponse[any]{
+		Success: false,
+		Message: message,
+		Errors: map[string]string{
+			"message": clientMessage,
+		},
+	})
 }
 
 func (h *Handler) getWsToken(c *gin.Context) {
@@ -36,15 +77,10 @@ func (h *Handler) getWsToken(c *gin.Context) {
 
 	log = log.With("userID", userID)
 
-	token, err := h.service.GenerateToken(ctx, userID)
+	token, err := h.tokenGenerator.GenerateToken(ctx, userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, ApiResponse[any]{
-			Success: false,
-			Message: "Error generating token",
-			Errors: map[string]string{
-				"message": "error generating token",
-			},
-		})
+		handleAppError(c, "Error generating token", err)
+		return
 	}
 
 	c.JSON(http.StatusOK, ApiResponse[string]{

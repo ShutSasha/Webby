@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -28,26 +26,22 @@ type memberItem struct {
 
 func (h *handler) ListMembers(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("operation", "handlers.ListMembers")
 
 	var uri listMembersUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	var query listMembersQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		log.Debug("query validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	roomID, _ := uuid.Parse(uri.RoomID)
-	members, total, err := h.roomMemberManager.ExecuteListMembers(ctx, roomID, query.Page, query.Limit, query.Search)
+	members, total, err := h.roomMemberService.ListMembers(ctx, roomID, query.Page, query.Limit, query.Search)
 	if err != nil {
-		log.Error("list members error", slog.String("err", err.Error()))
 		HandleAppError(c, "List room members error", err)
 		return
 	}

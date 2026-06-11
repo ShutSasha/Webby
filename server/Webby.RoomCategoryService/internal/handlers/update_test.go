@@ -51,7 +51,7 @@ func TestUpdateCategory(t *testing.T) {
 		emptyName      bool
 		requestBody    any
 		rawBody        []byte
-		mockSetup      func(*handlermocks.MockService)
+		mockSetup      func(*handlermocks.Mockservice)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
@@ -61,7 +61,7 @@ func TestUpdateCategory(t *testing.T) {
 			requestBody: updateCategoryRequest{
 				Name: "Updated Gaming",
 			},
-			mockSetup: func(mu *handlermocks.MockService) {
+			mockSetup: func(mu *handlermocks.Mockservice) {
 				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Updated Gaming").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -73,7 +73,7 @@ func TestUpdateCategory(t *testing.T) {
 			requestBody: updateCategoryRequest{
 				Name: "Ed",
 			},
-			mockSetup: func(mu *handlermocks.MockService) {
+			mockSetup: func(mu *handlermocks.Mockservice) {
 				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Ed").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -85,7 +85,7 @@ func TestUpdateCategory(t *testing.T) {
 			requestBody: updateCategoryRequest{
 				Name: strings.Repeat("A", 50),
 			},
-			mockSetup: func(mu *handlermocks.MockService) {
+			mockSetup: func(mu *handlermocks.Mockservice) {
 				mu.EXPECT().Update(mock.Anything, oldCategoryName, strings.Repeat("A", 50)).Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -97,7 +97,7 @@ func TestUpdateCategory(t *testing.T) {
 			requestBody: updateCategoryRequest{
 				Name: "G",
 			},
-			mockSetup:      func(mu *handlermocks.MockService) {},
+			mockSetup:      func(mu *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorUpdateResponse,
 		},
@@ -107,7 +107,7 @@ func TestUpdateCategory(t *testing.T) {
 			requestBody: updateCategoryRequest{
 				Name: strings.Repeat("A", 51),
 			},
-			mockSetup:      func(mu *handlermocks.MockService) {},
+			mockSetup:      func(mu *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorUpdateResponse,
 		},
@@ -117,7 +117,7 @@ func TestUpdateCategory(t *testing.T) {
 			requestBody: updateCategoryRequest{
 				Name: "    ",
 			},
-			mockSetup:      func(mu *handlermocks.MockService) {},
+			mockSetup:      func(mu *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorUpdateResponse,
 		},
@@ -125,7 +125,7 @@ func TestUpdateCategory(t *testing.T) {
 			name:           "Failure - Missing Name Field (EG)",
 			categoryName:   oldCategoryName,
 			requestBody:    map[string]string{"unrelated_field": "value"},
-			mockSetup:      func(mu *handlermocks.MockService) {},
+			mockSetup:      func(mu *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorUpdateResponse,
 		},
@@ -133,7 +133,7 @@ func TestUpdateCategory(t *testing.T) {
 			name:           "Failure - Empty JSON Body (EG)",
 			categoryName:   oldCategoryName,
 			requestBody:    updateCategoryRequest{},
-			mockSetup:      func(mu *handlermocks.MockService) {},
+			mockSetup:      func(mu *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorUpdateResponse,
 		},
@@ -141,7 +141,7 @@ func TestUpdateCategory(t *testing.T) {
 			name:           "Failure - Malformed JSON (EG)",
 			categoryName:   oldCategoryName,
 			rawBody:        []byte(`{"name": "incomplete string`),
-			mockSetup:      func(mu *handlermocks.MockService) {},
+			mockSetup:      func(mu *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorUpdateResponse,
 		},
@@ -149,7 +149,7 @@ func TestUpdateCategory(t *testing.T) {
 			name:        "Failure - Empty Path Parameter",
 			emptyName:   true,
 			requestBody: updateCategoryRequest{Name: "Valid Name"},
-			mockSetup: func(mu *handlermocks.MockService) {
+			mockSetup: func(mu *handlermocks.Mockservice) {
 				mu.EXPECT().Update(mock.Anything, "", "Valid Name").Return(fmt.Errorf("%w: old category name cannot be empty", apperrors.ErrInvalidInput)).Once()
 			},
 			expectedStatus: http.StatusBadRequest,
@@ -161,8 +161,8 @@ func TestUpdateCategory(t *testing.T) {
 			requestBody: updateCategoryRequest{
 				Name: "Updated Name",
 			},
-			mockSetup: func(mu *handlermocks.MockService) {
-				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Updated Name").Return(fmt.Errorf("%w", apperrors.ErrNotFound)).Once()
+			mockSetup: func(mu *handlermocks.Mockservice) {
+				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Updated Name").Return(fmt.Errorf("%w", apperrors.ErrCategoryNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   assertErrorUpdateResponse,
@@ -173,7 +173,7 @@ func TestUpdateCategory(t *testing.T) {
 			requestBody: updateCategoryRequest{
 				Name: "Updated Name",
 			},
-			mockSetup: func(mu *handlermocks.MockService) {
+			mockSetup: func(mu *handlermocks.Mockservice) {
 				mu.EXPECT().Update(mock.Anything, oldCategoryName, "Updated Name").Return(fmt.Errorf("database error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -185,7 +185,7 @@ func TestUpdateCategory(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUpdater := handlermocks.NewMockService(t)
+			mockUpdater := handlermocks.NewMockservice(t)
 			tt.mockSetup(mockUpdater)
 
 			h := handlers.New(mockUpdater)

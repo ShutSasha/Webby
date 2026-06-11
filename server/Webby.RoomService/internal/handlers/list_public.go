@@ -1,10 +1,7 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"strings"
-	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -29,24 +26,15 @@ type roomListPublicItem struct {
 
 func (h *handler) ListPublic(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("operation", "handlers.ListPublic")
 
 	var query listMyQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		log.Debug("query validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
-	if strings.ToLower(query.Category) == "all" {
-		query.Category = ""
-	}
-
-	log.Debug("Query", "page", query.Page, "limit", query.Limit, "search", query.Search, "category", query.Category)
-
-	rooms, total, err := h.roomLister.ExecuteListPublic(ctx, query.Page, query.Limit, query.Search, query.Category)
+	rooms, total, err := h.roomService.ListPublicRooms(ctx, query.Page, query.Limit, query.Search, query.Category)
 	if err != nil {
-		log.Error("list public rooms error", slog.String("err", err.Error()))
 		HandleAppError(c, "List rooms error", err)
 		return
 	}

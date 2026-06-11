@@ -2,6 +2,11 @@ env: "local"
 connectionString: "{{UriConnectionString}}"
 jwtSecret: "{{JwtAccessSecretKey}}"
 
+worker:
+  points_per_tick: 67
+  interval: 1m
+  zombie_ttl: 2m
+
 http:
   host: "localhost"
   port: 8080

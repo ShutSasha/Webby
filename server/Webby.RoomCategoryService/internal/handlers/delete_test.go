@@ -25,14 +25,14 @@ func TestDeleteCategory(t *testing.T) {
 	tests := []struct {
 		name           string
 		pathName       string
-		mockSetup      func(*handlermocks.MockService)
+		mockSetup      func(*handlermocks.Mockservice)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
 		{
 			name:     "Success_CategoryDeleted",
 			pathName: "Gaming",
-			mockSetup: func(md *handlermocks.MockService) {
+			mockSetup: func(md *handlermocks.Mockservice) {
 				md.EXPECT().Delete(mock.Anything, "Gaming").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -41,7 +41,7 @@ func TestDeleteCategory(t *testing.T) {
 		{
 			name:     "Failure_EmptyName",
 			pathName: "",
-			mockSetup: func(md *handlermocks.MockService) {
+			mockSetup: func(md *handlermocks.Mockservice) {
 				md.EXPECT().Delete(mock.Anything, "").Return(fmt.Errorf("%w: category name cannot be empty", apperrors.ErrInvalidInput)).Once()
 			},
 			expectedStatus: http.StatusBadRequest,
@@ -50,8 +50,8 @@ func TestDeleteCategory(t *testing.T) {
 		{
 			name:     "Failure_CategoryNotFound",
 			pathName: "NonExistent",
-			mockSetup: func(md *handlermocks.MockService) {
-				md.EXPECT().Delete(mock.Anything, "NonExistent").Return(fmt.Errorf("%w", apperrors.ErrNotFound)).Once()
+			mockSetup: func(md *handlermocks.Mockservice) {
+				md.EXPECT().Delete(mock.Anything, "NonExistent").Return(fmt.Errorf("%w", apperrors.ErrCategoryNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   validateErrorResponse,
@@ -59,7 +59,7 @@ func TestDeleteCategory(t *testing.T) {
 		{
 			name:     "Failure_ServiceGenericError",
 			pathName: "Gaming",
-			mockSetup: func(md *handlermocks.MockService) {
+			mockSetup: func(md *handlermocks.Mockservice) {
 				md.EXPECT().Delete(mock.Anything, "Gaming").Return(fmt.Errorf("database connection lost")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -69,7 +69,7 @@ func TestDeleteCategory(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockDeleter := handlermocks.NewMockService(t)
+			mockDeleter := handlermocks.NewMockservice(t)
 			tt.mockSetup(mockDeleter)
 
 			h := handlers.New(mockDeleter)

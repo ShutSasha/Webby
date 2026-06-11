@@ -10,13 +10,416 @@ info:
 tags:
   - name: Chats
     description: Endpoints for managing chats
+  - name: Messages
+    description: Endpoints for managing messages within chats
 paths:
+  /api/chats/{chatId}/messages:
+    post:
+      tags:
+        - Messages
+      summary: Send a message to a chat
+      description: |
+        Send a new message to a specific chat. The message will be stored in the database and immediately 
+        broadcast to all active participants via WebSocket for real-time synchronization.
+        
+        ## Message Details
+        - **Sender ID**: Automatically extracted from the JWT Bearer token. Do not include in request body.
+        - **Chat ID**: Must be a valid UUID of an existing chat that you have access to.
+        - **Persistence**: Messages are immediately persisted to the database.
+        - **Real-time Broadcasting**: Upon successful creation, the server broadcasts the message to all 
+          WebSocket clients connected to the chat room.
+        
+        ## Integration Flow
+        1. Client sends a message via this REST endpoint with the message content
+        2. Server validates the JWT token and extracts the sender's user ID
+        3. Server validates that the chat exists and is accessible to the user
+        4. Server stores the message in the database with metadata (timestamps, sender info)
+        5. Server broadcasts the message to all connected WebSocket clients via the `NEW_MESSAGE` event
+        6. All connected clients receive the event and can update their UI in real-time
+        
+        ## WebSocket Events
+        When a message is successfully created, the server sends a `NEW_MESSAGE` event to all connected 
+        WebSocket clients in the chat room. Refer to the **Webby WebSocket Gateway** documentation for:
+        - **Event Payload Structure**: Complete details about the `NEW_MESSAGE` event payload
+        - **Timing**: When the event is delivered relative to the REST response
+        - **Client Actions**: Recommended UI updates upon receiving the event
+        - **Error Handling**: How to handle message failures in WebSocket context
+      operationId: sendMessage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Chat identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '200':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendMessageResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Chat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - Messages
+      summary: List messages in a chat
+      description: |
+        Retrieve all messages from a specific chat. This endpoint returns the complete message history
+        for the chat, including message content, metadata, and sender information.
+        
+        ## Response Details
+        Messages are returned in the order they are stored in the database. Each message includes:
+        - **ID**: Unique message identifier (UUID)
+        - **Chat ID**: UUID of the chat room
+        - **Sender ID**: UUID of the user who sent the message
+        - **Content**: The message text
+        - **Is Edited**: Boolean indicating if the message has been updated
+        - **Created At**: ISO 8601 timestamp of message creation
+        - **Updated At**: ISO 8601 timestamp of last edit (null if never edited)
+        
+        ## Usage
+        Use this endpoint to:
+        - Load chat history when opening a chat room
+        - Paginate through messages (implement client-side pagination with the array)
+        - Refresh message list after reconnection or network issues
+        
+        ## Real-time Updates
+        Note that this endpoint returns a static snapshot. For real-time message updates, subscribe to 
+        WebSocket events from the **Webby WebSocket Gateway**:
+        - `NEW_MESSAGE`: Fired when a new message is posted
+        - `MESSAGE_UPDATED`: Fired when a message is edited
+        - `MESSAGE_DELETED`: Fired when a message is deleted
+        
+        Refer to the **Webby WebSocket Gateway** documentation for full details on these events and their payloads.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Chat identifier
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMessagesResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Chat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/chats/{chatId}/messages/{messageId}:
+    patch:
+      tags:
+        - Messages
+      summary: Update a message
+      description: |
+        Update the content of an existing message in a chat. Only the message sender can edit their own messages.
+        
+        ## Update Details
+        - **Content Update**: Replace the message text with new content
+        - **Edited Flag**: The message's `isEdited` flag is automatically set to true
+        - **Timestamp**: The `updatedAt` timestamp is automatically set to the current time
+        - **Permissions**: Only the message sender (extracted from JWT token) can edit the message
+        
+        ## Broadcasting
+        Upon successful update, the server broadcasts the edited message to all WebSocket clients 
+        connected to the chat room via the `MESSAGE_UPDATED` event.
+        
+        ## WebSocket Events
+        When a message is successfully updated, clients connected to the chat room will receive a 
+        `MESSAGE_UPDATED` event containing:
+        - Updated message content
+        - The `isEdited` flag set to true
+        - The new `updatedAt` timestamp
+        - Complete sender and chat information
+        
+        Refer to the **Webby WebSocket Gateway** documentation for:
+        - Complete `MESSAGE_UPDATED` event payload structure
+        - Client action recommendations
+        - Timing and ordering guarantees
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Chat identifier
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Message identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMessageRequest'
+      responses:
+        '200':
+          description: Message updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendMessageResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Message or chat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Messages
+      summary: Delete a message
+      description: |
+        Delete an existing message from a chat. The message is permanently removed from the database.
+        Only the message sender can delete their own messages.
+        
+        ## Deletion Details
+        - **Permanent Removal**: The message is completely removed from the database
+        - **No Soft Delete**: This is a hard delete; message content is not recoverable
+        - **Permissions**: Only the message sender (extracted from JWT token) can delete the message
+        - **Response Code**: Returns 204 No Content on success (no response body)
+        
+        ## Broadcasting
+        Upon successful deletion, the server broadcasts a notification to all WebSocket clients 
+        connected to the chat room via the `MESSAGE_DELETED` event.
+        
+        ## WebSocket Events
+        When a message is successfully deleted, clients connected to the chat room will receive a 
+        `MESSAGE_DELETED` event containing:
+        - The ID of the deleted message
+        - The chat ID
+        - Metadata confirming the deletion
+        
+        This allows clients to immediately update their UI by removing the message from their local 
+        message list without needing to reload the chat.
+        
+        Refer to the **Webby WebSocket Gateway** documentation for:
+        - Complete `MESSAGE_DELETED` event payload structure
+        - Client action recommendations
+        - Handling deletions in real-time message lists
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Chat identifier
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Message identifier
+      responses:
+        '204':
+          description: Message deleted successfully
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Message or chat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/chats:
+    get:
+      tags:
+        - Chats
+      summary: List chat history
+      description: |
+        Retrieve the authenticated user's chat history with pagination and search support.
+        
+        ## Query Parameters
+        - **page**: Page number for pagination (default: 1, minimum: 1)
+        - **limit**: Number of results per page (default: 10, minimum: 1, maximum: 100)
+        - **search**: Optional search term to filter chats (case-insensitive)
+        
+        ## Response Details
+        Returns a paginated list of chat history items. Each item includes:
+        - **Chat ID**: Unique identifier of the chat
+        - **User**: Information about the other participant (ID, Username, Avatar URL)
+        - **Last Message**: Details of the most recent message in the chat (ID, Content, Created At)
+        
+        ## Usage
+        Use this endpoint to:
+        - Load user's chat list when opening the messaging interface
+        - Display recent conversations
+        - Implement pagination for large chat histories
+        - Search for specific conversations by username or message content
+        
+        ## Pagination
+        The response includes:
+        - `items`: Array of chat history items
+        - `page`: Current page number
+        - `limit`: Items per page
+        - `total`: Total number of chats available
+      operationId: listChats
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+          description: Number of items per page
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search term to filter chats
+      responses:
+        '200':
+          description: Chat history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListChatsResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags:
         - Chats
-      summary: Create a chat
-      description: Create a new chat. If a room ID is provided, the service will reuse an existing chat for that room when available.
+      summary: Create a private chat
+      description: |
+        Create a new private chat between the authenticated user (initiator) and a target user.
+        The chat will be established for direct messaging between these two participants.
+        
+        ## Request Details
+        - **Target ID**: UUID of the user to start a chat with
+        - **Initiator**: Automatically extracted from the JWT Bearer token
+        
+        ## Response
+        Returns the newly created chat with its unique identifier and creation timestamp.
       operationId: createChat
       security:
         - bearerAuth: []
@@ -25,10 +428,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateChatRequest'
+              $ref: '#/components/schemas/CreatePrivateChatRequest'
       responses:
         '201':
-          description: Chat created
+          description: Chat created successfully
           content:
             application/json:
               schema:
@@ -99,6 +502,61 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Chats
+      summary: Delete a chat
+      description: |
+        Delete an existing chat. The chat and all its associated messages are permanently removed from the database.
+        Only participants of the chat can delete it.
+        
+        ## Deletion Details
+        - **Permanent Removal**: The chat and all messages are completely removed from the database
+        - **No Soft Delete**: This is a hard delete; chat content is not recoverable
+        - **Permissions**: Only users who are part of the chat can delete it
+        - **Response Code**: Returns 204 No Content on success (no response body)
+        
+        ## Broadcasting
+        Upon successful deletion, the server broadcasts a notification to all WebSocket clients 
+        connected to this chat via a deletion event.
+      operationId: deleteChat
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Chat identifier
+      responses:
+        '204':
+          description: Chat deleted successfully
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Chat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   securitySchemes:
     bearerAuth:
@@ -106,27 +564,178 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    CreateChatRequest:
+    User:
       type: object
       properties:
-        roomId:
+        id:
           type: string
           format: uuid
+          description: User unique identifier
+        username:
+          type: string
+          description: User's display name
+        avatarUrl:
+          type: string
+          description: URL to user's avatar image
+    LastMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Message unique identifier
+        content:
+          type: string
+          description: Message content text
+        createdAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when message was created
+    ChatHistoryItem:
+      type: object
+      properties:
+        chatId:
+          type: string
+          format: uuid
+          description: Chat unique identifier
+        user:
+          $ref: '#/components/schemas/User'
+        lastMessage:
+          $ref: '#/components/schemas/LastMessage'
+    PaginatedMetadata:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number
+        limit:
+          type: integer
+          description: Items per page
+        total:
+          type: integer
+          description: Total number of items available
+    ListChatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/ChatHistoryItem'
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+        errors:
+          type: object
           nullable: true
-          description: Optional room UUID to reuse an existing chat
+    CreatePrivateChatRequest:
+      type: object
+      required:
+        - targetId
+      properties:
+        targetId:
+          type: string
+          format: uuid
+          description: UUID of the user to start a private chat with
+          example: "550e8400-e29b-41d4-a716-446655440000"
+    SendMessageRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: Message content text
+          example: "Hello, how are you?"
+    UpdateMessageRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: Updated message content text
+          example: "Hello, how are you doing?"
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Message unique identifier
+        chatId:
+          type: string
+          format: uuid
+          description: Chat identifier where message belongs
+        senderId:
+          type: string
+          format: uuid
+          description: User ID of the message sender
+        content:
+          type: string
+          description: Message content text
+        isEdited:
+          type: boolean
+          description: Whether the message has been edited
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when message was created
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: ISO 8601 timestamp when message was last updated
+    SendMessageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Message sent"
+        data:
+          $ref: '#/components/schemas/Message'
+          nullable: true
+        errors:
+          type: object
+          nullable: true
+    ListMessagesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        errors:
+          type: object
+          nullable: true
     ChatResponse:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        roomId:
-          type: string
-          format: uuid
-          nullable: true
+          description: Chat unique identifier
         createdAt:
           type: string
           format: date-time
+          description: ISO 8601 timestamp when chat was created
     ChatApiResponse:
       type: object
       properties:

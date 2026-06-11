@@ -23,17 +23,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupGetRouter(mockService *handlermocks.MockService) *gin.Engine {
+func setupGetRouter(mockRoomService *handlermocks.MockroomService, mockMemberService *handlermocks.MockroomMemberService, mockSyncService *handlermocks.MocksynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	creator := &handlermocks.RoomCreatorAdapter{Service: mockService}
-	updater := &handlermocks.RoomUpdaterAdapter{Service: mockService}
-	deleter := &handlermocks.RoomDeleterAdapter{Service: mockService}
-	retriever := &handlermocks.RoomDetailsRetrieverAdapter{Service: mockService}
-	lister := &handlermocks.RoomListerAdapter{Service: mockService}
-	memberMgr := &handlermocks.RoomMemberManagerAdapter{Service: mockService}
-	syncer := &handlermocks.PlaybackSynchronizerAdapter{Service: mockService}
-	h := handlers.New(creator, updater, deleter, retriever, lister, memberMgr, syncer)
+	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
 	router.GET("/api/rooms/:id", func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "userID", c.GetHeader("X-User-ID"))
 		ctx = logger.ToContext(ctx, log)
@@ -52,7 +45,7 @@ func TestGetRoom(t *testing.T) {
 		name           string
 		roomIdPath     string
 		userID         string
-		mockSetup      func(*handlermocks.MockService)
+		mockSetup      func(*handlermocks.MockroomService)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
@@ -60,8 +53,8 @@ func TestGetRoom(t *testing.T) {
 			name:       "Success - Public Room",
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().GetByID(mock.Anything, roomID, userID).Return(&models.Room{
+			mockSetup: func(ms *handlermocks.MockroomService) {
+				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(&models.Room{
 					ID:        roomID,
 					HostID:    userID,
 					Category:  "Gaming",
@@ -83,7 +76,7 @@ func TestGetRoom(t *testing.T) {
 			name:           "Failure - Invalid UUID",
 			roomIdPath:     "invalid-id",
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockroomService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -91,8 +84,8 @@ func TestGetRoom(t *testing.T) {
 			name:       "Failure - Not Found",
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().GetByID(mock.Anything, roomID, userID).Return(nil, fmt.Errorf("room: %w", apperrors.ErrNotFound)).Once()
+			mockSetup: func(ms *handlermocks.MockroomService) {
+				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(nil, fmt.Errorf("room: %w", apperrors.ErrRoomNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   assertErrorResponse,
@@ -101,8 +94,8 @@ func TestGetRoom(t *testing.T) {
 			name:       "Failure - Forbidden (Private Room, Not Member)",
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().GetByID(mock.Anything, roomID, userID).Return(nil, apperrors.ErrForbidden).Once()
+			mockSetup: func(ms *handlermocks.MockroomService) {
+				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(nil, apperrors.ErrNotMember).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody:   assertErrorResponse,
@@ -111,10 +104,12 @@ func TestGetRoom(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockService := handlermocks.NewMockService(t)
-			tt.mockSetup(mockService)
+			mockRoomService := handlermocks.NewMockroomService(t)
+			mockMemberService := handlermocks.NewMockroomMemberService(t)
+			mockSyncService := handlermocks.NewMocksynchronizeService(t)
+			tt.mockSetup(mockRoomService)
 
-			router := setupGetRouter(mockService)
+			router := setupGetRouter(mockRoomService, mockMemberService, mockSyncService)
 
 			req := httptest.NewRequest(http.MethodGet, "/api/rooms/"+tt.roomIdPath, nil)
 			req.Header.Set("X-User-ID", tt.userID)
@@ -134,8 +129,10 @@ func TestGetRoomResponseFields(t *testing.T) {
 	roomID := uuid.New()
 	userID := uuid.New()
 
-	mockService := handlermocks.NewMockService(t)
-	mockService.EXPECT().GetByID(mock.Anything, roomID, userID).Return(&models.Room{
+	mockRoomService := handlermocks.NewMockroomService(t)
+	mockMemberService := handlermocks.NewMockroomMemberService(t)
+	mockSyncService := handlermocks.NewMocksynchronizeService(t)
+	mockRoomService.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(&models.Room{
 		ID:        roomID,
 		HostID:    userID,
 		Category:  "Music",
@@ -144,7 +141,7 @@ func TestGetRoomResponseFields(t *testing.T) {
 		IsPrivate: true,
 	}, nil).Once()
 
-	router := setupGetRouter(mockService)
+	router := setupGetRouter(mockRoomService, mockMemberService, mockSyncService)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/rooms/"+roomID.String(), nil)
 	req.Header.Set("X-User-ID", userID.String())

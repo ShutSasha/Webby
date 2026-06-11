@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"webby/room-service/internal/config"
-	"webby/room-service/internal/usecases"
 	"webby/room-service/pkg/http/middleware/cors"
 	loggerMw "webby/room-service/pkg/http/middleware/logger"
 
@@ -19,13 +18,9 @@ import (
 func NewServer(
 	config *config.Config,
 	logger *slog.Logger,
-	roomCreator *usecases.RoomCreator,
-	roomUpdater *usecases.RoomUpdater,
-	roomDeleter *usecases.RoomDeleter,
-	roomDetailsRetriever *usecases.RoomDetailsRetriever,
-	roomLister *usecases.RoomLister,
-	roomMemberManager *usecases.RoomMemberManager,
-	playbackSynchronizer *usecases.PlaybackSynchronizer,
+	roomService roomService,
+	roomMemberService roomMemberService,
+	synchronizeService synchronizeService,
 ) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -47,15 +42,7 @@ func NewServer(
 	router.Use(gin.Recovery())
 	router.Use(cors.CORS())
 
-	handler := New(
-		roomCreator,
-		roomUpdater,
-		roomDeleter,
-		roomDetailsRetriever,
-		roomLister,
-		roomMemberManager,
-		playbackSynchronizer,
-	)
+	handler := New(roomService, roomMemberService, synchronizeService)
 	addRoutes(router, config, handler)
 
 	return router

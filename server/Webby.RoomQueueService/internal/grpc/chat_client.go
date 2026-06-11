@@ -11,17 +11,17 @@ import (
 	"webby/room-queue-service/internal/grpc/chatpb"
 )
 
-type ChatIDInfo struct {
+type chatIDInfo struct {
 	success bool
 	chatID  uuid.UUID
 }
 
-type ChatClient struct {
+type chatClient struct {
 	client chatpb.ChatGrpcServiceClient
 	conn   *grpc.ClientConn
 }
 
-func NewChatClient(address string) (*ChatClient, error) {
+func NewChatClient(address string) (*chatClient, error) {
 	conn, err := grpc.NewClient(
 		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -34,17 +34,17 @@ func NewChatClient(address string) (*ChatClient, error) {
 
 	client := chatpb.NewChatGrpcServiceClient(conn)
 
-	return &ChatClient{
+	return &chatClient{
 		client: client,
 		conn:   conn,
 	}, nil
 }
 
-func (m *ChatClient) Close() error {
+func (m *chatClient) Close() error {
 	return m.conn.Close()
 }
 
-func (m *ChatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (uuid.UUID, error) {
+func (m *chatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (uuid.UUID, error) {
 	const op = "grpc.chat_client.GetChatIDByRoomID"
 
 	resp, err := m.client.GetChatIDByRoomID(ctx, &chatpb.GetChatIDByRoomIDRequest{

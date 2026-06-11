@@ -14,24 +14,16 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type QueueItemRepository struct {
+type queueItemRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewQueueItemRepository(db *pgxpool.Pool) *QueueItemRepository {
-	return &QueueItemRepository{db: db}
+func NewQueueItemRepository(db *pgxpool.Pool) *queueItemRepository {
+	return &queueItemRepository{db}
 }
 
-func (r *QueueItemRepository) Create(
-	ctx context.Context, item *models.QueueItem,
-) (uuid.UUID, int, error) {
-	const op = "repository.QueueItemRepository.Create"
-
-	if item == nil {
-		return uuid.Nil, -1, fmt.Errorf(
-			"%s: %w: item cannot be nil", op, apperrors.ErrInvalidInput,
-		)
-	}
+func (r *queueItemRepository) Create(ctx context.Context, item *models.QueueItem) (uuid.UUID, int, error) {
+	const op = "repository.queueItemRepository.Create"
 
 	query := sq.StatementBuilder.
 		PlaceholderFormat(sq.Dollar).
@@ -64,14 +56,8 @@ func (r *QueueItemRepository) Create(
 	return item.ID, item.Position, nil
 }
 
-func (r *QueueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, error) {
-	const op = "repository.QueueItemRepository.Delete"
-
-	if id == uuid.Nil {
-		return -1, fmt.Errorf(
-			"%s: %w: invalid queue item id", op, apperrors.ErrInvalidInput,
-		)
-	}
+func (r *queueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, error) {
+	const op = "repository.queueItemRepository.Delete"
 
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
@@ -186,16 +172,8 @@ func (r *QueueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, er
 	return position, nil
 }
 
-func (r *QueueItemRepository) GetById(
-	ctx context.Context, id uuid.UUID,
-) (*models.QueueItem, error) {
-	const op = "repository.QueueItemRepository.GetById"
-
-	if id == uuid.Nil {
-		return nil, fmt.Errorf(
-			"%s: %w: invalid queue item id", op, apperrors.ErrInvalidInput,
-		)
-	}
+func (r *queueItemRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.QueueItem, error) {
+	const op = "repository.queueItemRepository.GetByID"
 
 	query := sq.StatementBuilder.
 		PlaceholderFormat(sq.Dollar).
@@ -219,10 +197,7 @@ func (r *QueueItemRepository) GetById(
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf(
-				"%s: queue item %s: %w",
-				op, id.String(), apperrors.ErrQueueItemNotFound,
-			)
+			return nil, fmt.Errorf("%s: %w", op, apperrors.ErrQueueItemNotFound)
 		}
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -230,15 +205,8 @@ func (r *QueueItemRepository) GetById(
 	return &item, nil
 }
 
-func (r *QueueItemRepository) ListByRoom(
-	ctx context.Context, roomID uuid.UUID,
-	offset, limit int,
-) ([]models.QueueItem, int, error) {
-	const op = "repository.QueueItemRepository.ListByRoom"
-
-	if roomID == uuid.Nil {
-		return nil, -1, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
+func (r *queueItemRepository) ListByRoom(ctx context.Context, roomID uuid.UUID, offset, limit int) ([]models.QueueItem, int, error) {
+	const op = "repository.queueItemRepository.ListByRoom"
 
 	query := sq.StatementBuilder.
 		PlaceholderFormat(sq.Dollar).
@@ -287,16 +255,8 @@ func (r *QueueItemRepository) ListByRoom(
 	return items, total, nil
 }
 
-func (r *QueueItemRepository) MoveToTop(
-	ctx context.Context, id uuid.UUID,
-) error {
-	const op = "repository.QueueItemRepository.MoveToTop"
-
-	if id == uuid.Nil {
-		return fmt.Errorf(
-			"%s: %w: invalid queue item id", op, apperrors.ErrInvalidInput,
-		)
-	}
+func (r *queueItemRepository) MoveToTop(ctx context.Context, id uuid.UUID) error {
+	const op = "repository.queueItemRepository.MoveToTop"
 
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
@@ -304,8 +264,8 @@ func (r *QueueItemRepository) MoveToTop(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	var roomId uuid.UUID
-	var currentPos int
+	var roomID uuid.UUID
+	var currentPosition int
 
 	selectQuery := sq.StatementBuilder.
 		PlaceholderFormat(sq.Dollar).
@@ -318,18 +278,15 @@ func (r *QueueItemRepository) MoveToTop(
 		return fmt.Errorf("%s: build query: %w", op, err)
 	}
 
-	err = tx.QueryRow(ctx, sql, args...).Scan(&roomId, &currentPos)
+	err = tx.QueryRow(ctx, sql, args...).Scan(&roomID, &currentPosition)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return fmt.Errorf(
-				"%s: queue item %s: %w",
-				op, id.String(), apperrors.ErrQueueItemNotFound,
-			)
+			return fmt.Errorf("%s: %w", op, apperrors.ErrQueueItemNotFound)
 		}
 		return fmt.Errorf("%s: get item: %w", op, err)
 	}
 
-	if currentPos == 1 {
+	if currentPosition == 1 {
 		return nil
 	}
 
@@ -338,8 +295,8 @@ func (r *QueueItemRepository) MoveToTop(
 		Update("queue_items").
 		Set("position", sq.Expr("position + 1")).
 		Where(sq.And{
-			sq.Eq{"room_id": roomId},
-			sq.Lt{"position": currentPos},
+			sq.Eq{"room_id": roomID},
+			sq.Lt{"position": currentPosition},
 		})
 
 	sql, args, err = shiftQuery.ToSql()
@@ -375,15 +332,8 @@ func (r *QueueItemRepository) MoveToTop(
 	return nil
 }
 
-func (r *QueueItemRepository) ActivateVideo(
-	ctx context.Context,
-	roomID, itemID uuid.UUID,
-) (int, int, error) {
-	const op = "repository.QueueItemRepository.ActivateVideo"
-
-	if itemID == uuid.Nil {
-		return -1, -1, fmt.Errorf("%s: %w: invalid item id", op, apperrors.ErrInvalidInput)
-	}
+func (r *queueItemRepository) ActivateVideo(ctx context.Context, roomID, itemID uuid.UUID) (int, int, error) {
+	const op = "repository.queueItemRepository.ActivateVideo"
 
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
@@ -402,8 +352,8 @@ func (r *QueueItemRepository) ActivateVideo(
 		return -1, -1, fmt.Errorf("%s: build query: %w", op, err)
 	}
 
-	var currPosition int
-	if err = tx.QueryRow(ctx, sql, args...).Scan(&currPosition); err != nil {
+	var currentPosition int
+	if err = tx.QueryRow(ctx, sql, args...).Scan(&currentPosition); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return -1, -1, fmt.Errorf(
 				"%s: queue item %s: %w",
@@ -461,5 +411,5 @@ func (r *QueueItemRepository) ActivateVideo(
 		return -1, -1, fmt.Errorf("%s: commit: %w", op, err)
 	}
 
-	return prevPosition, currPosition, nil
+	return prevPosition, currentPosition, nil
 }

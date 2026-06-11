@@ -11,7 +11,6 @@ import (
 
 	"webby/room-category-service/internal/handlers"
 	handlermocks "webby/room-category-service/internal/handlers/mocks"
-	"webby/room-category-service/internal/models"
 	"webby/room-category-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -26,18 +25,16 @@ func TestListCategories(t *testing.T) {
 	tests := []struct {
 		name           string
 		queryParams    map[string]string
-		mockSetup      func(*handlermocks.MockService)
+		mockSetup      func(*handlermocks.Mockservice)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
 		{
 			name:        "Success - Default Parameters Missing Query Params",
 			queryParams: map[string]string{},
-			mockSetup: func(ml *handlermocks.MockService) {
-				categories := []models.Category{
-					{Name: "Gaming"},
-				}
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return(categories, int64(1), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				categories := []string{"Gaming"}
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return(categories, 1, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -50,12 +47,9 @@ func TestListCategories(t *testing.T) {
 				"page":  "1",
 				"limit": "10",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				categories := []models.Category{
-					{Name: "Gaming"},
-					{Name: "Education"},
-				}
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return(categories, int64(2), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				categories := []string{"Gaming", "Education"}
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return(categories, 2, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -69,11 +63,9 @@ func TestListCategories(t *testing.T) {
 				"page":   "1",
 				"limit":  "10",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				categories := []models.Category{
-					{Name: "Gaming"},
-				}
-				ml.EXPECT().List(mock.Anything, "Gaming", 1, 10).Return(categories, int64(1), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				categories := []string{"Gaming"}
+				ml.EXPECT().List(mock.Anything, "Gaming", 1, 10).Return(categories, 1, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -86,11 +78,9 @@ func TestListCategories(t *testing.T) {
 				"page":  "2",
 				"limit": "10",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				categories := []models.Category{
-					{Name: "Category 11"},
-				}
-				ml.EXPECT().List(mock.Anything, "", 2, 10).Return(categories, int64(15), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				categories := []string{"Category 11"}
+				ml.EXPECT().List(mock.Anything, "", 2, 10).Return(categories, 15, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -103,11 +93,9 @@ func TestListCategories(t *testing.T) {
 				"page":  "1",
 				"limit": "1",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				categories := []models.Category{
-					{Name: "Gaming"},
-				}
-				ml.EXPECT().List(mock.Anything, "", 1, 1).Return(categories, int64(50), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				categories := []string{"Gaming"}
+				ml.EXPECT().List(mock.Anything, "", 1, 1).Return(categories, 50, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -120,11 +108,9 @@ func TestListCategories(t *testing.T) {
 				"page":  "1",
 				"limit": "100",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				categories := []models.Category{
-					{Name: "Gaming"},
-				}
-				ml.EXPECT().List(mock.Anything, "", 1, 100).Return(categories, int64(1), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				categories := []string{"Gaming"}
+				ml.EXPECT().List(mock.Anything, "", 1, 100).Return(categories, 1, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -138,8 +124,8 @@ func TestListCategories(t *testing.T) {
 				"page":   "1",
 				"limit":  "10",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				ml.EXPECT().List(mock.Anything, "NonExistent", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				ml.EXPECT().List(mock.Anything, "NonExistent", 1, 10).Return([]string{}, 0, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -152,8 +138,8 @@ func TestListCategories(t *testing.T) {
 				"page":  "0",
 				"limit": "10",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -166,8 +152,8 @@ func TestListCategories(t *testing.T) {
 				"page":  "1",
 				"limit": "101",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				ml.EXPECT().List(mock.Anything, "", 1, 100).Return([]models.Category{}, int64(0), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				ml.EXPECT().List(mock.Anything, "", 1, 100).Return([]string{}, 0, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -180,8 +166,8 @@ func TestListCategories(t *testing.T) {
 				"page":  "1",
 				"limit": "10",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), errors.New("database error")).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, errors.New("database error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody: func(t *testing.T, body string) {
@@ -194,8 +180,8 @@ func TestListCategories(t *testing.T) {
 				"page":  "-5",
 				"limit": "10",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -208,8 +194,8 @@ func TestListCategories(t *testing.T) {
 				"page":  "1",
 				"limit": "0",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -222,8 +208,8 @@ func TestListCategories(t *testing.T) {
 				"page":  "1",
 				"limit": "-5",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -236,8 +222,8 @@ func TestListCategories(t *testing.T) {
 				"page":  "abc",
 				"limit": "10",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -250,8 +236,8 @@ func TestListCategories(t *testing.T) {
 				"page":  "1",
 				"limit": "xyz",
 			},
-			mockSetup: func(ml *handlermocks.MockService) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]models.Category{}, int64(0), nil).Once()
+			mockSetup: func(ml *handlermocks.Mockservice) {
+				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body string) {
@@ -262,7 +248,7 @@ func TestListCategories(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockService := handlermocks.NewMockService(t)
+			mockService := handlermocks.NewMockservice(t)
 			tt.mockSetup(mockService)
 
 			h := handlers.New(mockService)

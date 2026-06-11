@@ -37,7 +37,7 @@ func (r *Repository) Create(ctx context.Context, name string) error {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
-				return fmt.Errorf("%s: %w: category with name '%s' already exists", op, apperrors.ErrConflict, name)
+				return fmt.Errorf("%s: %w: category with name '%s' already exists", op, apperrors.ErrCategoryAlreadyExists, name)
 			}
 		}
 
@@ -47,7 +47,7 @@ func (r *Repository) Create(ctx context.Context, name string) error {
 	return nil
 }
 
-func (r *Repository) List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int64, error) {
+func (r *Repository) List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int, error) {
 	const op = "repository.List"
 
 	query := sq.Select("id", "name", "COUNT(*) OVER() AS total").
@@ -72,7 +72,7 @@ func (r *Repository) List(ctx context.Context, search string, offset int, limit 
 	}
 	defer rows.Close()
 
-	var total int64
+	var total int
 	categories := make([]models.Category, 0, limit)
 
 	for rows.Next() {
@@ -108,14 +108,14 @@ func (r *Repository) Update(ctx context.Context, oldName string, newName string)
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
-				return fmt.Errorf("%s: %w: category with name '%s' already exists", op, apperrors.ErrConflict, newName)
+				return fmt.Errorf("%s: %w: category with name '%s' already exists", op, apperrors.ErrCategoryAlreadyExists, newName)
 			}
 		}
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("%s: category '%s': %w", op, oldName, apperrors.ErrNotFound)
+		return fmt.Errorf("%s: category '%s': %w", op, oldName, apperrors.ErrCategoryNotFound)
 	}
 
 	return nil
@@ -139,7 +139,7 @@ func (r *Repository) Delete(ctx context.Context, name string) error {
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("%s: category '%s': %w", op, name, apperrors.ErrNotFound)
+		return fmt.Errorf("%s: category '%s': %w", op, name, apperrors.ErrCategoryNotFound)
 	}
 
 	return nil

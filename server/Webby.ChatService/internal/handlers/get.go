@@ -1,42 +1,35 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
 	"time"
-	"webby/chat-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
+type chatGetUri struct {
+	ChatID string `uri:"id" binding:"required,uuid"`
+}
+
 type chatGetResponse struct {
-	Id        uuid.UUID  `json:"id"`
-	RoomId    *uuid.UUID `json:"roomId,omitempty"`
+	ID        uuid.UUID  `json:"id"`
+	RoomID    *uuid.UUID `json:"roomId,omitempty"`
 	CreatedAt string     `json:"createdAt"`
 }
 
 func (h handler) Get(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(
-		slog.String("operation", "httpserver.chats.get"),
-	)
 
-	chatIdStr := c.Param("id")
-	chatId, err := uuid.Parse(chatIdStr)
-	if err != nil {
-		log.Debug("invalid chat id", slog.String("err", err.Error()))
-		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
-			Success: false,
-			Message: "Validation error",
-			Errors:  map[string]string{"id": "invalid UUID format"},
-		})
+	var uri chatGetUri
+	if err := c.ShouldBindUri(&uri); err != nil {
+		HandleValidationError(c, err)
 		return
 	}
 
-	chat, err := h.service.GetByID(ctx, chatId)
+	chatID, _ := uuid.Parse(uri.ChatID)
+	chat, err := h.chatService.GetByID(ctx, chatID)
 	if err != nil {
-		log.Error("retrieve chat error", slog.String("err", err.Error()))
 		HandleAppError(c, "Get chat error", err)
 		return
 	}
@@ -45,8 +38,8 @@ func (h handler) Get(c *gin.Context) {
 		Success: true,
 		Message: "Chat retrieved",
 		Data: &chatGetResponse{
-			Id:        chat.ID,
-			RoomId:    chat.RoomID,
+			ID:        chat.ID,
+			RoomID:    chat.RoomID,
 			CreatedAt: chat.CreatedAt.Format(time.RFC3339),
 		},
 	})

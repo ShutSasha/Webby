@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -143,7 +144,7 @@ func TestListQueue(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().GetQueue(
 					mock.Anything, roomID, userID, 1, 10,
-				).Return(nil, 0, apperrors.ErrForbidden).Once()
+				).Return(nil, 0, apperrors.ErrNotRoomMember).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody: func(t *testing.T, body string) {
@@ -158,7 +159,7 @@ func TestListQueue(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().GetQueue(
 					mock.Anything, roomID, userID, 1, 10,
-				).Return(nil, 0, apperrors.ErrInternal).Once()
+				).Return(nil, 0, errors.New("internal")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody: func(t *testing.T, body string) {

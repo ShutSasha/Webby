@@ -8,14 +8,10 @@ http:
   host: "localhost"
   port: 8090
   timeout: 10s
+  call_timeout: 5s
 
 redis:
   addr: "localhost:6379"
   password: "{{RedisPassword}}"
   db: 0
   pattern: "chat:*"
-
-grpc:
-  chat: "localhost:50051"
-  votes: "localhost:50053"
-  room: "localhost:50052"

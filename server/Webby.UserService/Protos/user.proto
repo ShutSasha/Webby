@@ -10,6 +10,8 @@ service UserGrpcService {
   rpc GetUserSubscriptionIds (GetUserSubscriptionIdsRequest) returns (GetUserSubscriptionsIdsResponse);
   rpc GetPremiumStatus(GetPremiumStatusRequest) returns (GetPremiumStatusResponse);
   rpc CheckIfUserExist(CheckIfUserExistsRequest) returns (google.protobuf.BoolValue);
+  rpc FindUserIDs(FindUserIDsRequest) returns (FindUserIDsResponse);
+  rpc IsFollowed(IsFollowedRequest) returns (IsFollowedResponse);
 }
 
 // REQUESTS
@@ -33,6 +35,18 @@ message GetPremiumStatusRequest{
 
 message CheckIfUserExistsRequest {
   string userId = 1;
+ }
+ 
+message FindUserIDsRequest {
+  repeated string userIds = 1;
+  string search = 2;
+  int32 offset = 3;
+  int32 limit = 4;
+}
+
+message IsFollowedRequest {
+  string firstUserId = 1;
+  string secondUserId = 2;
 }
 
 //RESPONSES
@@ -61,4 +75,13 @@ enum PremiumStatus {
 
 message GetPremiumStatusResponse {
   PremiumStatus status = 1;
+}
+
+message FindUserIDsResponse {
+  repeated string userIds = 1;
+  int32 total = 2;
+}
+
+message IsFollowedResponse {
+  bool isFollowed = 1;
 }

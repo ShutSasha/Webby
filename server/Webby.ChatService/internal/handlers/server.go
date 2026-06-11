@@ -17,8 +17,8 @@ import (
 func NewServer(
 	cfg *config.Config,
 	logger *slog.Logger,
-	service Service,
-	messageManager messageManager,
+	service chatService,
+	messageService messageService,
 ) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -40,7 +40,7 @@ func NewServer(
 	router.Use(gin.Recovery())
 	router.Use(cors.CORS())
 
-	handler := New(service, messageManager)
+	handler := New(service, messageService)
 	addRoutes(router, cfg, handler)
 
 	return router

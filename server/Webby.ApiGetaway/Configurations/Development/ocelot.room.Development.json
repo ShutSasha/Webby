@@ -103,6 +103,21 @@
       }
     },
     {
+      "DownstreamPathTemplate": "/api/rooms/{id}/members/points",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/members/points",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
       "DownstreamPathTemplate": "/api/rooms/{id}/members/{memberId}/points",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

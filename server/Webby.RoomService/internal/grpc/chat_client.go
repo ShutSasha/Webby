@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type ChatClient struct {
+type chatClient struct {
 	client chatpb.ChatGrpcServiceClient
 	conn   *grpc.ClientConn
 }
 
-func NewChatClient(address string) (*ChatClient, error) {
+func NewChatClient(address string) (*chatClient, error) {
 	const op = "grpc.NewChatClient"
 
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -25,24 +25,22 @@ func NewChatClient(address string) (*ChatClient, error) {
 
 	client := chatpb.NewChatGrpcServiceClient(conn)
 
-	return &ChatClient{
+	return &chatClient{
 		client: client,
 		conn:   conn,
 	}, nil
 }
 
-func (c *ChatClient) Close() error {
+func (c *chatClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *ChatClient) CreateChat(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
+func (c *chatClient) CreateChat(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
 	const op = "grpc.ChatClient.CreateChat"
 
-	resp, err := c.client.CreateChat(ctx, &chatpb.CreateChatRequest{
-		RoomID: roomID.String(),
-	})
+	resp, err := c.client.CreateChat(ctx, &chatpb.CreateChatRequest{RoomID: roomID.String()})
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("%s for room %s: %w", op, roomID, err)
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	chatID, err := uuid.Parse(resp.GetId())
@@ -53,14 +51,12 @@ func (c *ChatClient) CreateChat(ctx context.Context, roomID uuid.UUID) (uuid.UUI
 	return chatID, nil
 }
 
-func (c *ChatClient) GetChatByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
-	const op = "grpc.ChatClient.GetChatByRoomID"
+func (c *chatClient) GetChatByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
+	const op = "grpc.chatClient.GetChatByRoomID"
 
-	resp, err := c.client.GetChatByRoomID(ctx, &chatpb.GetChatByRoomIdRequest{
-		RoomID: roomID.String(),
-	})
+	resp, err := c.client.GetChatByRoomID(ctx, &chatpb.GetChatByRoomIdRequest{RoomID: roomID.String()})
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("%s for room %s: %w", op, roomID, err)
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	chatID, err := uuid.Parse(resp.GetId())
@@ -71,8 +67,8 @@ func (c *ChatClient) GetChatByRoomID(ctx context.Context, roomID uuid.UUID) (uui
 	return chatID, nil
 }
 
-func (m *ChatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (uuid.UUID, error) {
-	const op = "grpc.chat_client.GetChatIDByRoomID"
+func (m *chatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (uuid.UUID, error) {
+	const op = "grpc.chatClient.GetChatIDByRoomID"
 
 	resp, err := m.client.GetChatIDByRoomID(ctx, &chatpb.GetChatIDByRoomIDRequest{
 		RoomID: roomID.String(),
@@ -85,14 +81,14 @@ func (m *ChatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, us
 	return uuid.Parse(resp.GetChatID())
 }
 
-func (c *ChatClient) AddChatMember(ctx context.Context, chatID, userID uuid.UUID) error {
-	const op = "grpc.ChatClient.AddChatMember"
+func (c *chatClient) AddChatMember(ctx context.Context, chatID, userID uuid.UUID) error {
+	const op = "grpc.chatClient.AddChatMember"
 
 	if _, err := c.client.AddChatMember(ctx, &chatpb.AddChatMemberRequest{
 		ChatID: chatID.String(),
 		UserID: userID.String(),
 	}); err != nil {
-		return fmt.Errorf("%s (chat=%s, user=%s): %w", op, chatID, userID, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil
