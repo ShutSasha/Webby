@@ -47,6 +47,7 @@ export default function PlaylistMediaStreamContainer({ streamId, playlistId }: P
       mediaUrl={streamUrl}
       isMediaPrivate={false}
       mediaTags={streamTags}
+      mediaType="LiveStream"
     />
   )
 }

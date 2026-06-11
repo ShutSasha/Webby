@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import LockIcon from '@/assets/icons/shared/lock.svg'
+import { MediaType } from '@/types/general.types'
 import { VideoSource } from '@/types/video.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
@@ -28,6 +29,7 @@ type Props = {
   views: number
   createdAt: string
   mediaTags?: string[] | null
+  mediaType?: MediaType
 }
 
 export default function MediaDetails({
@@ -43,6 +45,7 @@ export default function MediaDetails({
   views,
   createdAt,
   mediaTags,
+  mediaType,
 }: Props) {
   if (isMediaPrivate && !isOwner) return <VideoNotFound />
 
@@ -86,14 +89,16 @@ export default function MediaDetails({
             )}
           </div>
           <div className="flex gap-3 items-center">
-            {currentUserId && <SaveToPlaylistButton userId={currentUserId} videoId={resourceId} />}
+            {currentUserId && (
+              <SaveToPlaylistButton userId={currentUserId} videoId={resourceId} mediaType={mediaType} />
+            )}
             <ComplaintButton authorId={currentUserId} targetId={resourceId.slice(3)} targetType="Video" />
           </div>
         </div>
       )}
       {currentUserId && source !== 'Webby' && (
         <div className="flex flex-row-reverse">
-          <SaveToPlaylistButton userId={currentUserId} videoId={resourceId} />
+          <SaveToPlaylistButton userId={currentUserId} videoId={resourceId} mediaType={mediaType} />
         </div>
       )}
       <VideoDescription text={description ?? ''} views={views} date={createdAt} videoTags={mediaTags} />
