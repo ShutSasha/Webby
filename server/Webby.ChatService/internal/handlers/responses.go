@@ -64,7 +64,8 @@ func HandleValidationError(c *gin.Context, err error) {
 func mapAppErrorToStatus(err error) int {
 	switch {
 	case errors.Is(err, apperrors.ErrChatNotFound),
-		errors.Is(err, apperrors.ErrMessageNotFound):
+		errors.Is(err, apperrors.ErrMessageNotFound),
+		errors.Is(err, apperrors.ErrMemberNotFound):
 		return http.StatusNotFound
 	case errors.Is(err, apperrors.ErrPrivateChatAlreadyExists):
 		return http.StatusConflict
@@ -95,6 +96,8 @@ func mapAppErrorToClientMessage(err error) string {
 		return "You are not a sender of this message"
 	case errors.Is(err, apperrors.ErrNotFollowed):
 		return "You have to be followed to each other"
+	case errors.Is(err, apperrors.ErrMemberNotFound):
+		return "Member not found"
 	default:
 		return "An unexpected error occurred"
 	}

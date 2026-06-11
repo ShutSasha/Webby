@@ -12,10 +12,16 @@ type Chat struct {
 	CreatedAt time.Time
 }
 
-type user struct {
+type User struct {
 	ID        uuid.UUID `json:"id"`
 	Username  string    `json:"username"`
 	AvatarUrl string    `json:"avatarUrl"`
+}
+
+type EnrichedChat struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	User      User      `json:"user"`
 }
 
 type lastMessage struct {
@@ -25,6 +31,6 @@ type lastMessage struct {
 
 type ChatHistoryItem struct {
 	ChatID      uuid.UUID   `json:"chatId"`
-	User        user        `json:"user"`
+	User        User        `json:"user"`
 	LastMessage lastMessage `json:"lastMessage"`
 }

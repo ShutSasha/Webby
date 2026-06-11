@@ -133,29 +133,29 @@ func (_c *MockchatService_Delete_Call) RunAndReturn(run func(context.Context, uu
 	return _c
 }
 
-// GetByID provides a mock function with given fields: ctx, chatID
-func (_m *MockchatService) GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error) {
-	ret := _m.Called(ctx, chatID)
+// GetByID provides a mock function with given fields: ctx, chatID, userID
+func (_m *MockchatService) GetByID(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (*models.EnrichedChat, error) {
+	ret := _m.Called(ctx, chatID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByID")
 	}
 
-	var r0 *models.Chat
+	var r0 *models.EnrichedChat
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*models.Chat, error)); ok {
-		return rf(ctx, chatID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (*models.EnrichedChat, error)); ok {
+		return rf(ctx, chatID, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *models.Chat); ok {
-		r0 = rf(ctx, chatID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *models.EnrichedChat); ok {
+		r0 = rf(ctx, chatID, userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Chat)
+			r0 = ret.Get(0).(*models.EnrichedChat)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, chatID)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = rf(ctx, chatID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -171,23 +171,24 @@ type MockchatService_GetByID_Call struct {
 // GetByID is a helper method to define mock.On call
 //   - ctx context.Context
 //   - chatID uuid.UUID
-func (_e *MockchatService_Expecter) GetByID(ctx interface{}, chatID interface{}) *MockchatService_GetByID_Call {
-	return &MockchatService_GetByID_Call{Call: _e.mock.On("GetByID", ctx, chatID)}
+//   - userID uuid.UUID
+func (_e *MockchatService_Expecter) GetByID(ctx interface{}, chatID interface{}, userID interface{}) *MockchatService_GetByID_Call {
+	return &MockchatService_GetByID_Call{Call: _e.mock.On("GetByID", ctx, chatID, userID)}
 }
 
-func (_c *MockchatService_GetByID_Call) Run(run func(ctx context.Context, chatID uuid.UUID)) *MockchatService_GetByID_Call {
+func (_c *MockchatService_GetByID_Call) Run(run func(ctx context.Context, chatID uuid.UUID, userID uuid.UUID)) *MockchatService_GetByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *MockchatService_GetByID_Call) Return(_a0 *models.Chat, _a1 error) *MockchatService_GetByID_Call {
+func (_c *MockchatService_GetByID_Call) Return(_a0 *models.EnrichedChat, _a1 error) *MockchatService_GetByID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockchatService_GetByID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (*models.Chat, error)) *MockchatService_GetByID_Call {
+func (_c *MockchatService_GetByID_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) (*models.EnrichedChat, error)) *MockchatService_GetByID_Call {
 	_c.Call.Return(run)
 	return _c
 }
