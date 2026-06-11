@@ -5,6 +5,7 @@ using StackExchange.Redis;
 using UserService;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Data;
+using Webby.VideoService.Helpers.ContentFetch;
 using Webby.VideoService.Helpers.External;
 using Webby.VideoService.Helpers.Queue;
 using Webby.VideoService.Helpers.Storage;
@@ -112,6 +113,7 @@ public static class ApiExtension
    public static void AddHelpers(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
+      serviceCollection.AddScoped<IExternalContentFetcher, ExternalContentFetcher>();
    }
 
    public static void AddExternalServices(this IServiceCollection serviceCollection)

@@ -23,6 +23,7 @@ public class TwitchItem
    [JsonPropertyName("user_id")] public string? UserId { get; set; }
    [JsonPropertyName("user_name")] public string? UserName { get; set; }
    [JsonPropertyName("game_name")] public string? GameName { get; set; }
+   [JsonPropertyName("description")] public string? Description { get; set; }
    [JsonPropertyName("viewer_count")] public int ViewerCount { get; set; }
    
    [JsonPropertyName("display_name")] public string? DisplayName { get; set; }
@@ -30,6 +31,7 @@ public class TwitchItem
    [JsonPropertyName("title")] public string Title { get; set; } = string.Empty;
    [JsonPropertyName("thumbnail_url")] public string ThumbnailUrl { get; set; } = string.Empty;
    [JsonPropertyName("started_at")] public DateTime StartedAt { get; set; }
+   [JsonPropertyName("tags")] public List<string> StreamTags { get; set; }
 }
 
 public class TwitchUser

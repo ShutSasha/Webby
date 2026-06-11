@@ -9,6 +9,8 @@ using Webby.NotificationService.Interfaces.Repositories;
 using Webby.NotificationService.Interfaces.Services;
 using Webby.NotificationService.Models;
 using Webby.NotificationService.Models.Enums;
+using Webby.NotificationService.UserGrpcClient;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Webby.NotificationService.Services;
 
@@ -16,10 +18,16 @@ public class NotificationService : INotificationService
 {
    private readonly INotificationRepository _notificationRepository;
    private readonly IHubContext<NotificationHub> _hubContext;
-   public NotificationService(INotificationRepository notificationRepository, IHubContext<NotificationHub> hubContext)
+   private readonly IMemoryCache _memoryCache;
+   private readonly UserGrpcClient.UserGrpcService.UserGrpcServiceClient _userClient;
+   public NotificationService(INotificationRepository notificationRepository,
+      IHubContext<NotificationHub> hubContext, IMemoryCache memoryCache,
+      UserGrpcService.UserGrpcServiceClient userClient)
    {
       _notificationRepository = notificationRepository;
       _hubContext = hubContext;
+      _memoryCache = memoryCache;
+      _userClient = userClient;
    }
    
    public async Task<Notification> CreateNotification(CreateNotificationRequest request)
@@ -162,6 +170,33 @@ public class NotificationService : INotificationService
          Page = request.Page,
          PageSize = request.PageSize
       };
+   }
+
+   public async Task<string> GenerateOneTimeTicket(Guid userId)
+   {
+      var existResult = await _userClient.CheckIfUserExistAsync(new CheckIfUserExistsRequest
+      {
+         UserId = userId.ToString()
+      });
+
+      if (existResult.Value == false)
+      {
+         throw new ApiException("Generate one time ticket error", 404, "User wasn't found");
+      }
+      
+      var userMappingKey = $"user_ticket_map_{userId}";
+
+      if (_memoryCache.TryGetValue(userMappingKey, out string oldTicket))
+      {
+         _memoryCache.Remove($"ws_ticket_{oldTicket}");
+      }
+
+      var ticket = Guid.NewGuid().ToString("N");
+      var expiration = TimeSpan.FromSeconds(30);
+
+      _memoryCache.Set($"ws_ticket_{ticket}", userId.ToString(), expiration);
+      _memoryCache.Set(userMappingKey, ticket, expiration);
+      return ticket;
    }
 
    private async Task UpdateNotificationsCount(Guid userId)

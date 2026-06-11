@@ -80,6 +80,60 @@
       },
 
       {
+         "DownstreamPathTemplate": "/api/playlists/videos/bulk",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/videos/bulk",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/playlists/streams",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/streams",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/playlists/streams/bulk",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/streams/bulk",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
          "DownstreamPathTemplate": "/api/playlists/{playlistId}/videos/{videoId}/exists",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [

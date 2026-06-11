@@ -41,7 +41,9 @@ export async function searchVideos(
     if (searchPlatform) params.append('searchPlatform', searchPlatform)
 
     if (nextPageToken) params.append('nextPageToken', nextPageToken)
-    if (contentSeed) params.append('contentSeed', contentSeed.toString())
+    if (contentSeed !== undefined && contentSeed !== null) {
+      params.append('contentSeed', contentSeed.toString())
+    }
 
     const { data: response } = await $api.get<BaseServerResponse<SearchVideosResponse>>(
       `${endpoint}/search?${params.toString()}`,

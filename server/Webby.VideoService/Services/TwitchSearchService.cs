@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using AutoMapper;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Webby.VideoService.Constants;
@@ -17,11 +18,15 @@ public class TwitchSearchService : ITwitchSearchService
 {
     private readonly HttpClient _httpClient;
     private readonly TwitchOptions _options;
+    private readonly ILogger<TwitchSearchService> _logger;
+    private readonly IMapper _mapper;
     private string? _accessToken;
 
-    public TwitchSearchService(HttpClient httpClient, IOptions<ExternalServicesOptions> options)
+    public TwitchSearchService(HttpClient httpClient, IOptions<ExternalServicesOptions> options, ILogger<TwitchSearchService> logger, IMapper mapper)
     {
         _httpClient = httpClient;
+        _logger = logger;
+        _mapper = mapper;
         _options = options.Value.TwitchOptions;
     }
     
@@ -88,28 +93,17 @@ public class TwitchSearchService : ITwitchSearchService
         
         var userIds = streamData.Select(i => i.UserId ?? i.Id).Distinct();
         var avatars = await GetUsersAvatarsAsync(userIds);
+        var streamItems = new List<StreamDto>();
         
-        var resultItems = streamData.Select(item => new StreamDto
+        foreach (var item in streamData)
         {
-            StreamId = PlatformPrefixesConstants.TwitchPrefix + item.Id,
-            Name = item.Title,
-            StartedAt = item.StartedAt,
-            PreviewUrl = item.ThumbnailUrl.Replace("{width}",_options.ThumbnailWidth).Replace("{height}", _options.ThumbnailHeight),
-            StreamUrl = DefaultLinks.DefaultTwitchPlayerWatchLink + item.UserName ?? item.BroadcasterLogin!,
-            Viewers = item.ViewerCount,
-            Source = "Twitch",
-            User = new UserVideoDto
-            {
-                UserId = PlatformPrefixesConstants.TwitchPrefix + item.UserId,
-                Username = item.UserName ?? item.DisplayName ?? "Unknown",
-                AvatarUrl = avatars.GetValueOrDefault(item.UserId ?? item.Id) ?? "",
-                IsFollowed = false
-            }
-        }).ToList();
+            var streamDtoItem = ConfigurePreviews(_mapper.Map<StreamDto>(item), avatars.GetValueOrDefault(item.UserId ?? item.Id));
+            streamItems.Add(streamDtoItem);
+        }
 
         return new PagedResponse<StreamDto>
         {
-            Items = resultItems,
+            Items = streamItems,
             NextPageToken = NewNextPageToken,
             PageSize = pageSize,
             Page = page
@@ -130,7 +124,10 @@ public class TwitchSearchService : ITwitchSearchService
         if (streamItem != null)
         {
             var avatars = await GetUsersAvatarsAsync([streamItem.UserId]);
-            return MapToStreamDto(streamItem, avatars.GetValueOrDefault(streamItem.UserId));
+            
+            var streamDtoItem = ConfigurePreviews(_mapper.Map<StreamDto>(streamItem), avatars.GetValueOrDefault(streamItem.UserId));
+
+            return streamDtoItem;
         }
         
         var videoUrl = $"https://api.twitch.tv/helix/videos?id={streamId}";
@@ -140,7 +137,9 @@ public class TwitchSearchService : ITwitchSearchService
         if (videoItem != null)
         {
             var avatars = await GetUsersAvatarsAsync([videoItem.UserId]);
-            return MapToStreamDto(videoItem, avatars.GetValueOrDefault(videoItem.UserId));
+            var streamDtoItem = ConfigurePreviews(_mapper.Map<StreamDto>(videoItem), avatars.GetValueOrDefault(videoItem.UserId));
+
+            return streamDtoItem;
         }
 
         throw new ApiException("Get twitch stream error", 404, "Stream wasn't found");
@@ -206,31 +205,11 @@ public class TwitchSearchService : ITwitchSearchService
 
         foreach (var item in items)
         {
-            results.Add(MapToStreamDto(item, avatars.GetValueOrDefault(item.UserId ?? item.Id!)));
+            var streamDtoItem = ConfigurePreviews(_mapper.Map<StreamDto>(item), avatars.GetValueOrDefault(item.UserId ?? item.Id!));
+            results.Add(streamDtoItem);
         }
 
         return results;
-    }
-
-    private StreamDto MapToStreamDto(TwitchItem? item, string? avatarUrl)
-    {
-        return new StreamDto
-        {
-            StreamId = PlatformPrefixesConstants.TwitchPrefix + item.Id,
-            Name = item.Title,
-            StartedAt = item.StartedAt,
-            PreviewUrl = item.ThumbnailUrl.Replace("{width}", _options.ThumbnailWidth).Replace("{height}", _options.ThumbnailHeight),
-            StreamUrl = DefaultLinks.DefaultTwitchPlayerWatchLink + item.UserName ?? item.BroadcasterLogin!,
-            Viewers = item.ViewerCount,
-            Source = "Twitch",
-            User = new UserVideoDto
-            {
-                UserId = PlatformPrefixesConstants.TwitchPrefix + item.UserId,
-                Username = item.UserName ?? item.DisplayName ?? "Unknown",
-                AvatarUrl = avatarUrl ?? "",
-                IsFollowed = false
-            }
-        };
     }
 
     private async Task<Dictionary<string, string>> GetUsersAvatarsAsync(IEnumerable<string> userIds)
@@ -249,6 +228,8 @@ public class TwitchSearchService : ITwitchSearchService
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         
         var response = await _httpClient.SendAsync(request);
+        
+        var rawContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
         {
@@ -272,5 +253,13 @@ public class TwitchSearchService : ITwitchSearchService
 
         var tokenData = await response.Content.ReadFromJsonAsync<TwitchTokenResponse>();
         _accessToken = tokenData?.AccessToken;
+    }
+
+    private StreamDto ConfigurePreviews(StreamDto streamDto,string? avatarUrl)
+    {
+        streamDto.PreviewUrl = streamDto.PreviewUrl.Replace("{width}", _options.ThumbnailWidth).Replace("{height}", _options.ThumbnailHeight);
+        streamDto.StreamerInformation.AvatarUrl = avatarUrl ?? "";
+
+        return streamDto;
     }
 }

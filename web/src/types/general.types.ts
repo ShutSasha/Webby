@@ -23,4 +23,6 @@ type PaginatedData<T> = {
 
 type Platform = 'Webby' | 'Youtube' | 'Twitch'
 
-export { type FormActionState, type BaseServerResponse, type PaginatedData, type Platform }
+type MediaType = 'Video' | 'LiveStream'
+
+export { type FormActionState, type BaseServerResponse, type PaginatedData, type Platform, type MediaType }

@@ -1,58 +1,25 @@
-import { useEffect, useState } from 'react'
-
 import Image from 'next/image'
 
-import { useTogglePlaylistVideoMutation } from '@/lib/hooks/api/playlist/useTogglePlaylistVideo'
-import { useToastStore } from '@/stores/toast-store'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {
   playlistId: string
-  videoId: string
   image: string
   name: string
   count: number
-  isVideoAdded: boolean
-  userId: string
+  isAdded: boolean
+  disabled?: boolean
+  onToggle: (playlistId: string) => void
 }
 
-export default function PlaylistItem({ videoId, playlistId, image, name, count, isVideoAdded, userId }: Props) {
-  const addToast = useToastStore(state => state.addToast)
-
-  const [isAdded, setIsAdded] = useState(isVideoAdded)
-  const [localCount, setLocalCount] = useState(count)
-
-  useEffect(() => {
-    setIsAdded(isVideoAdded)
-    setLocalCount(count)
-  }, [isVideoAdded, count])
-
-  const { mutate: toggleVideo, isPending } = useTogglePlaylistVideoMutation(userId)
-
-  const handleToggle = () => {
-    if (isPending) return
-
-    const newIsAdded = !isAdded
-    setIsAdded(newIsAdded)
-    setLocalCount(prev => (newIsAdded ? prev + 1 : prev - 1))
-
-    toggleVideo(
-      { playlistId, videoId },
-      {
-        onError: () => {
-          setIsAdded(!newIsAdded)
-          setLocalCount(prev => (!newIsAdded ? prev + 1 : prev - 1))
-          addToast(`Failed to update "${name}"`, 'error')
-        },
-      },
-    )
-  }
-
+export default function PlaylistItem({ playlistId, image, name, count, isAdded, disabled, onToggle }: Props) {
   return (
     <div
       className={`flex items-center justify-between py-2 px-2.5 mr-1 transition-all duration-300 ease-in-out rounded-xl
-        group ${isPending ? 'cursor-default opacity-60' : 'cursor-pointer hover:bg-neutral-800/50'}`}
-      onClick={handleToggle}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'group cursor-pointer hover:bg-neutral-800/50'} `}
+      onClick={() => {
+        if (!disabled) onToggle(playlistId)
+      }}
     >
       <div className="flex gap-4">
         <Image
@@ -69,13 +36,11 @@ export default function PlaylistItem({ videoId, playlistId, image, name, count, 
           <p className="text-sm text-neutral-300 line-clamp-1" title={name}>
             {name}
           </p>
-          <p className="text-sm text-neutral-500">{localCount === 1 ? '1 video' : `${localCount} videos`}</p>
+          <p className="text-sm text-neutral-500">{count === 1 ? '1 video' : `${count} videos`}</p>
         </div>
       </div>
       <div className="flex items-center justify-center size-6 shrink-0 ml-3">
-        {isPending ? (
-          <div className="size-4 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
-        ) : isAdded ? (
+        {isAdded ? (
           <div
             className="size-5 bg-emerald-500 rounded-full flex items-center justify-center
               shadow-[0_0_8px_rgba(16,185,129,0.3)]"

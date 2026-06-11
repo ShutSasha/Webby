@@ -171,6 +171,7 @@ export default function VideoCard({
         onClose={() => setIsPlaylistModalOpen(false)}
         videoId={videoId}
         userId={currentUserId}
+        mediaType="Video"
       />
     </>
   )

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 
 import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
 import { EntityType, FALLBACK_MAP, getRoute } from '@/lib/utils/global-search-modal.utils'
+import { MediaType } from '@/types/general.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import { SearchCardMenu } from './SearchCardMenu'
@@ -18,6 +19,7 @@ type Props = {
   thumbnail: string
   type: EntityType
   showAddButton?: boolean
+  mediaType: MediaType
   onCloseSearchModal: () => void
 }
 
@@ -28,6 +30,7 @@ const GlobalSearchCard = ({
   thumbnail,
   type,
   showAddButton = true,
+  mediaType,
   onCloseSearchModal,
 }: Props) => {
   const { data: session } = useSession()
@@ -94,6 +97,7 @@ const GlobalSearchCard = ({
           onClose={() => setIsPlaylistModalOpen(false)}
           videoId={id}
           userId={currentUserId}
+          mediaType={mediaType}
         />
       )}
     </>

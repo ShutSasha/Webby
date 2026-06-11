@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using AutoMapper;
 using Microsoft.Extensions.Options;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.External;
@@ -8,6 +9,7 @@ using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Helpers.External;
 using Webby.VideoService.Helpers.Response;
 using Webby.VideoService.Interfaces.Services;
+using Webby.VideoService.Models;
 using Webby.VideoService.Models.Enums;
 
 namespace Webby.VideoService.Services;
@@ -16,12 +18,14 @@ public class YoutubeSearchService : IYouTubeSearchService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
+    private readonly IMapper _mapper;
 
     public YoutubeSearchService(
         HttpClient httpClient,
-        IOptions<ExternalServicesOptions> options)
+        IOptions<ExternalServicesOptions> options, IMapper mapper)
     {
         _httpClient = httpClient;
+        _mapper = mapper;
         _apiKey = options.Value.YouTubeOptions.ApiKey;
     }
 
@@ -117,6 +121,7 @@ public class YoutubeSearchService : IYouTubeSearchService
             CreatedAt = item.Snippet.PublishedAt,
             IsPrivate = false,
             VideoUploadStatus = VideoStatus.Ready,
+            MediaType = MediaType.Video,
 
             Duration = !string.IsNullOrEmpty(item.ContentDetails?.Duration) 
                 ? (long)Math.Round(System.Xml.XmlConvert.ToTimeSpan(item.ContentDetails.Duration).TotalSeconds) 
@@ -193,33 +198,13 @@ public class YoutubeSearchService : IYouTubeSearchService
                                    ?? channelAvatarUrl;
             }
         }
-        
-        return new VideoDto
-        {
-            VideoId = item.Id?.ToString(),
-            Name = item.Snippet.Title,
-            Description = item.Snippet.Description,
-            Source = "YouTube",
-            PreviewUrl = item.Snippet.Thumbnails?.Medium?.Url ?? item.Snippet.Thumbnails?.Default?.Url ?? "",
-            VideoUrl = DefaultLinks.BaseWatchLinkUrl + item.Id,
-            CreatedAt = item.Snippet.PublishedAt,
-            IsPrivate = false,
-            VideoUploadStatus = VideoStatus.Ready,
-            Duration = !string.IsNullOrEmpty(item.ContentDetails?.Duration) 
-                ? (long)Math.Round(System.Xml.XmlConvert.ToTimeSpan(item.ContentDetails.Duration).TotalSeconds) 
-                : 0L,
-            
-            Views = int.TryParse(item.Statistics?.ViewCount, out var v) ? v : 0,
-            VideoTags = item.Snippet.Tags,
-            
-            User = new UserVideoDto
-            {
-                UserId = channelId,
-                Username = item.Snippet.ChannelTitle,
-                AvatarUrl = channelAvatarUrl,
-                IsFollowed = false
-            }
-        };
+
+        var videoDto = _mapper.Map<VideoDto>(item);
+
+        videoDto.User.UserId = channelId;
+        videoDto.User.AvatarUrl = channelAvatarUrl;
+
+        return videoDto;
     }
 
     public async Task<List<VideoDto>> GetList(List<string> sourceIds)
@@ -323,35 +308,12 @@ public class YoutubeSearchService : IYouTubeSearchService
 
     private VideoDto MapToVideoDto(YouTubeVideoResponse.Item item, Dictionary<string, string> channelAvatars)
     {
-        return new VideoDto()
-        {
-            VideoId = PlatformPrefixesConstants.YouTubePrefix + item.Id?.ToString(),
-            Name = item.Snippet.Title,
-            Description = item.Snippet.Description,
-            Source = "YouTube",
-            PreviewUrl = item.Snippet.Thumbnails?.Medium?.Url ?? item.Snippet.Thumbnails?.Default?.Url ?? "",
-            VideoUrl = DefaultLinks.BaseWatchLinkUrl + item.Id,
-            CreatedAt = item.Snippet.PublishedAt,
-            IsPrivate = false,
-            VideoUploadStatus = VideoStatus.Ready,
+        var videoDto = _mapper.Map<VideoDto>(item);
+        _ = channelAvatars.TryGetValue(item.Snippet.ChannelId, out var avatar);
 
-            Duration = !string.IsNullOrEmpty(item.ContentDetails?.Duration)
-                ? (long)Math.Round(System.Xml.XmlConvert.ToTimeSpan(item.ContentDetails.Duration).TotalSeconds)
-                : 0L,
+        videoDto.User.AvatarUrl = !string.IsNullOrEmpty(avatar) ? avatar : DefaultLinks.BaseYouTubeUserIcon;
 
-            Views = int.TryParse(item.Statistics?.ViewCount, out var v) ? v : 0,
-            VideoTags = item.Snippet.Tags,
-
-            User = new UserVideoDto
-            {
-                UserId = item.Snippet.ChannelId,
-                Username = item.Snippet.ChannelTitle,
-                AvatarUrl = channelAvatars.TryGetValue(item.Snippet.ChannelId, out var avatar) &&
-                            !string.IsNullOrEmpty(avatar)
-                    ? avatar
-                    : DefaultLinks.BaseYouTubeUserIcon,
-                IsFollowed = false
-            }
-        };
+        return videoDto;
+        
     }
 }

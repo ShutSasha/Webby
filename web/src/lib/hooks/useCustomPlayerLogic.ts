@@ -49,10 +49,13 @@ export const useCustomPlayerLogic = (
   const setPlaying = usePlayerPlayStore(state => state.setPlaying)
   const playing = usePlayerPlayStore(state => state.playing)
 
+  const isTwitch = videoUrl.includes('twitch.tv')
+  const isYoutube = videoUrl.includes('youtube.com')
+
   const initialState: PlayerState = {
     pip: false,
     light: false,
-    muted: false,
+    muted: isTwitch,
     played: 0,
     loaded: 0,
     duration: 0,
@@ -68,6 +71,24 @@ export const useCustomPlayerLogic = (
   }
 
   const [state, setState] = useState<PlayerState>(initialState)
+  const [prevUrl, setPrevUrl] = useState(videoUrl)
+
+  if (prevUrl !== videoUrl) {
+    setPrevUrl(videoUrl)
+
+    setState(prev => ({
+      ...prev,
+      played: 0,
+      loaded: 0,
+      duration: 0,
+      loadedSeconds: 0,
+      playedSeconds: 0,
+      muted: isTwitch ? true : prev.muted,
+      isReady: false,
+      error: null,
+      buffering: true,
+    }))
+  }
 
   const syncTriggerId = useRoomStore(state => state.syncTriggerId)
   const syncTargetTimecode = useRoomStore(state => state.syncTargetTimecode)
@@ -111,24 +132,15 @@ export const useCustomPlayerLogic = (
   }, [syncTargetTimecode, setSyncTargetTimecode, state.duration])
 
   useEffect(() => {
-    setState(prev => ({
-      ...prev,
-      played: 0,
-      loaded: 0,
-      duration: 0,
-      loadedSeconds: 0,
-      playedSeconds: 0,
-      error: null,
-    }))
-
     const hasInteracted = typeof navigator !== 'undefined' && (navigator as any).userActivation?.hasBeenActive
 
     if (hasInteracted === false) {
       setPlaying(false)
     } else {
-      setPlaying(true)
+      // block play for twitch, we should wait onReady event
+      setPlaying(isTwitch ? false : true)
     }
-  }, [videoUrl, setPlaying])
+  }, [videoUrl, setPlaying, isTwitch])
 
   useEffect(() => {
     const handleFsChange = () => {
@@ -306,7 +318,8 @@ export const useCustomPlayerLogic = (
     }
   }
 
-  const handleReactPlayerVolumeChange = (e: any, isPlatformMode: boolean) => {
+  // each player playform must control volume its own
+  const handlePlayerVolumeChange = (e: any, isPlatformMode: boolean) => {
     const target = e?.target
     if (!target) return
 
@@ -317,41 +330,48 @@ export const useCustomPlayerLogic = (
       return
     }
 
-    if (isNativeMuted && !state.muted) {
-      if (baseUserVolume > 0) {
-        setPrevUserVolume(baseUserVolume)
-      }
-
-      setState(prev => ({ ...prev, muted: true }))
+    // ReactPlayer settings
+    if (!isPlatformMode && typeof nativeVolume === 'number') {
+      handleReactPlayerVolumeChange(nativeVolume, isNativeMuted)
       return
     }
 
-    if (!isNativeMuted && state.muted) {
-      if (isPlatformMode && nativeVolume <= 0.05) {
-        const volToRestore = prevVolume > 0 ? prevVolume : 1
-        setBaseUserVolume(volToRestore)
-      } else {
-        setBaseUserVolume(nativeVolume)
-        if (nativeVolume > 0) {
-          setPrevUserVolume(nativeVolume)
-        }
-      }
-      setState(prev => ({ ...prev, muted: false }))
+    if (isYoutube && typeof nativeVolume === 'number') {
+      handleYoutubeVolumeChange(nativeVolume, isNativeMuted)
       return
     }
 
-    if (typeof nativeVolume === 'number') {
-      setBaseUserVolume(nativeVolume)
-      setState(prev => ({ ...prev, muted: isNativeMuted }))
+    if (isTwitch && typeof nativeVolume === 'number') {
+      handleTwitchVolumeChange(nativeVolume, isNativeMuted)
+      return
+    }
+  }
 
-      if (nativeVolume > 0) {
-        setPrevUserVolume(nativeVolume)
-      }
+  const handleReactPlayerVolumeChange = (nativeVolume: number, isNativeMuted: boolean) => {
+    setState(prev => ({ ...prev, muted: isNativeMuted }))
+  }
+
+  const handleYoutubeVolumeChange = (nativeVolume: number, isNativeMuted: boolean) => {
+    setBaseUserVolume(nativeVolume)
+    setState(prev => ({ ...prev, muted: isNativeMuted }))
+
+    if (nativeVolume > 0) {
+      setPrevUserVolume(nativeVolume)
+    }
+  }
+
+  const handleTwitchVolumeChange = (nativeVolume: number, isNativeMuted: boolean) => {
+    setBaseUserVolume(nativeVolume)
+    setState(prev => ({ ...prev, muted: isNativeMuted }))
+
+    if (nativeVolume > 0) {
+      setPrevUserVolume(nativeVolume)
     }
   }
 
   const handleReactPlayerReady = () => {
     const videoElement = playerRef.current
+    const isTwitchVideo = videoUrl.includes('twitch.tv')
 
     if (videoElement) {
       const isActuallyLoaded = videoElement.readyState >= 3
@@ -359,13 +379,23 @@ export const useCustomPlayerLogic = (
       setState(prev => ({
         ...prev,
         buffering: !isActuallyLoaded,
-        isReady: isActuallyLoaded,
+        isReady: isActuallyLoaded || isTwitchVideo, // twitch API works another so we just force true on this event
       }))
 
       videoElement.onwaiting = () => setState(prev => ({ ...prev, buffering: true }))
       videoElement.onloadeddata = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
       videoElement.onplaying = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
       videoElement.oncanplay = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
+    } else if (isTwitchVideo) {
+      setState(prev => ({ ...prev, buffering: false, isReady: true }))
+    }
+
+    // autoplay for twitch
+    if (isTwitchVideo) {
+      const hasInteracted = typeof navigator !== 'undefined' && (navigator as any).userActivation?.hasBeenActive
+      if (hasInteracted !== false) {
+        setPlaying(true)
+      }
     }
   }
 
@@ -447,7 +477,7 @@ export const useCustomPlayerLogic = (
     uiState: {
       isFullScreen,
       showCustomControls,
-      playing,
+      playing: isTwitch && !state.isReady ? false : playing,
       baseUserVolume,
     },
     actions: {
@@ -467,7 +497,7 @@ export const useCustomPlayerLogic = (
       toggleFullScreen,
       handleMouseMove,
       handleMouseLeave,
-      handleReactPlayerVolumeChange,
+      handlePlayerVolumeChange,
       handleReactPlayerReady,
       handleReactPlayerPlay,
       handleReactPlayerPause,

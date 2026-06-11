@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { useParams } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
 
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import { useAddQueueItemMutation } from '@/lib/hooks/api/room/useAddQueueItem'
@@ -18,12 +18,15 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
   const menuRef = useRef<HTMLDivElement>(null)
 
   const params = useParams()
-  const roomId = params?.id as string | undefined
+  const pathname = usePathname()
+
+  const isRoomPage = pathname?.startsWith('/rooms/')
+  const roomId = isRoomPage ? (params?.id as string | undefined) : undefined
 
   const { mutate: addQueueItem, isPending } = useAddQueueItemMutation()
 
-  const checkCanAddToPlaylist = (type: EntityType) => type === 'Video' || type === 'YouTube'
-  const checkCanAddToRoom = (type: EntityType) => !!roomId && ['Video', 'YouTube', 'Playlist', 'Stream'].includes(type)
+  const canAddToPlaylist = ['Video', 'YouTube', 'Stream'].includes(type)
+  const canAddToRoom = !!roomId && ['Video', 'YouTube', 'Playlist', 'Stream'].includes(type)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -67,6 +70,10 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
     )
   }
 
+  if (!canAddToPlaylist && !canAddToRoom) {
+    return null
+  }
+
   return (
     <div className="relative shrink-0" ref={menuRef}>
       <button
@@ -83,7 +90,7 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
             shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
           onClick={e => e.preventDefault()}
         >
-          {checkCanAddToPlaylist(type) && (
+          {canAddToPlaylist && (
             <button
               onClick={handleAddToPlaylist}
               className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors
@@ -93,7 +100,7 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
             </button>
           )}
 
-          {checkCanAddToRoom(type) && (
+          {canAddToRoom && (
             <button
               onClick={handleAddToRoom}
               disabled={isPending}

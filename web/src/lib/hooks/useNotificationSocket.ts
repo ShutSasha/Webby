@@ -21,7 +21,7 @@ export const useNotificationSocket = () => {
 
     let isMounted = true
 
-    const connectToHub = async () => {
+    const connectToHub = async (isRetry = false) => {
       try {
         const ticketResponse = await getOneTimeTicket()
 
@@ -63,9 +63,14 @@ export const useNotificationSocket = () => {
           queryClient.setQueryData(['unread-notifications-count'], count)
         })
 
-        connection.on('AuthError', (errorMsg: string) => {
+        connection.on('AuthError', async (errorMsg: string) => {
           console.error('SignalR AuthError:', errorMsg)
-          connection.stop()
+
+          await connection.stop()
+
+          if (!isRetry && isMounted) {
+            connectToHub(true)
+          }
         })
       } catch (err) {
         console.error('SignalR Connection Error: ', err)
