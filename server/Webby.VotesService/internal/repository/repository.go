@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 	"webby/vote-service/internal/apperrors"
 	"webby/vote-service/internal/models"
 
@@ -21,15 +22,17 @@ func NewRepository(client *redis.Client) *repository {
 
 func (r *repository) CreateVoteWithRightChoice(ctx context.Context, vote *models.Vote) error {
 	const op = "repository.CreateVoteWithRightChoice"
-
 	key := fmt.Sprintf("votings:%s", vote.ID)
+	roomIdxKey := fmt.Sprintf("room:%s:votings", vote.RoomID)
 
 	pipe := r.client.TxPipeline()
 	pipe.HSet(ctx, key, vote)
 	pipe.HSet(ctx, key, "status", "active")
 
-	roomIdxKey := fmt.Sprintf("room:%s:votings", vote.RoomID)
+	pipe.Expire(ctx, key, 24*time.Hour)
+
 	pipe.SAdd(ctx, roomIdxKey, vote.ID.String())
+	pipe.Expire(ctx, roomIdxKey, 24*time.Hour)
 
 	if _, err := pipe.Exec(ctx); err != nil {
 		return fmt.Errorf("%s: pipeline failed: %w", op, err)
@@ -40,18 +43,20 @@ func (r *repository) CreateVoteWithRightChoice(ctx context.Context, vote *models
 
 func (r *repository) SaveChoices(ctx context.Context, voteID uuid.UUID, choices []string) error {
 	const op = "repository.SaveChoices"
+	key := fmt.Sprintf("votings:%s:options", voteID)
 
 	interfaceChoices := make([]any, len(choices))
 	for i, v := range choices {
 		interfaceChoices[i] = v
 	}
 
-	key := fmt.Sprintf("votings:%s:options", voteID)
-	cmd := r.client.SAdd(ctx, key, interfaceChoices...)
-	if cmd.Err() != nil {
-		return fmt.Errorf("%s: %w", op, cmd.Err())
-	}
+	pipe := r.client.TxPipeline()
+	pipe.SAdd(ctx, key, interfaceChoices...)
+	pipe.Expire(ctx, key, 24*time.Hour)
 
+	if _, err := pipe.Exec(ctx); err != nil {
+		return fmt.Errorf("%s: pipeline failed: %w", op, err)
+	}
 	return nil
 }
 
@@ -66,7 +71,7 @@ func (r *repository) IsChoiceValid(ctx context.Context, voteID uuid.UUID, choice
 	return isValid, nil
 }
 
-func (r *repository) SetVotingRightOption(ctx context.Context, voteID uuid.UUID, rightChoice string) error {
+func (r *repository) SetVotingRightOption(ctx context.Context, roomID, voteID uuid.UUID, rightChoice string) error {
 	const op = "repository.SetVotingRightOption"
 	key := fmt.Sprintf("votings:%s", voteID)
 
@@ -83,6 +88,17 @@ func (r *repository) SetVotingRightOption(ctx context.Context, voteID uuid.UUID,
 		_, err = tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
 			pipe.HSet(ctx, key, "status", "resolved")
 			pipe.HSet(ctx, key, "right_choice", rightChoice)
+
+			optionsKey := fmt.Sprintf("votings:%s:options", voteID)
+			votesKey := fmt.Sprintf("votings:%s:user_choices", voteID)
+			roomIdxKey := fmt.Sprintf("room:%s:votings", roomID)
+
+			pipe.Expire(ctx, key, 5*time.Minute)
+			pipe.Expire(ctx, optionsKey, 5*time.Minute)
+			pipe.Expire(ctx, votesKey, 5*time.Minute)
+
+			pipe.SRem(ctx, roomIdxKey, voteID.String())
+
 			return nil
 		})
 		return err
@@ -139,23 +155,8 @@ func (r *repository) GetVotingUserWinners(ctx context.Context, voteID uuid.UUID,
 	return winners, nil
 }
 
-func (r *repository) GetVotingRightOption(ctx context.Context, voteID uuid.UUID) (string, error) {
-	const op = "repository.GetVotingRightOption"
-	key := fmt.Sprintf("votings:%s", voteID)
-
-	rightChoice, err := r.client.HGet(ctx, key, "right_choice").Result()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return "", fmt.Errorf("%s: right choice not set yet", op)
-		}
-		return "", fmt.Errorf("%s: %w", op, err)
-	}
-
-	return rightChoice, nil
-}
-
-func (r *repository) GetVoteById(ctx context.Context, id uuid.UUID) (*models.Vote, error) {
-	const op = "repository.GetVoteById"
+func (r *repository) GetVoteByID(ctx context.Context, id uuid.UUID) (*models.Vote, error) {
+	const op = "repository.GetVoteByID"
 	key := fmt.Sprintf("votings:%s", id)
 
 	var vote models.Vote
@@ -187,7 +188,7 @@ func (r *repository) ListByRoom(ctx context.Context, roomID uuid.UUID) ([]models
 			continue
 		}
 
-		vote, err := r.GetVoteById(ctx, vID)
+		vote, err := r.GetVoteByID(ctx, vID)
 		if err == nil && vote != nil {
 			votes = append(votes, *vote)
 		}
@@ -199,7 +200,7 @@ func (r *repository) ListByRoom(ctx context.Context, roomID uuid.UUID) ([]models
 func (r *repository) DeleteVote(ctx context.Context, id uuid.UUID) error {
 	const op = "repository.DeleteVote"
 
-	vote, err := r.GetVoteById(ctx, id)
+	vote, err := r.GetVoteByID(ctx, id)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

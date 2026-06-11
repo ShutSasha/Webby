@@ -13,14 +13,13 @@ import (
 	"sync"
 	"time"
 	"webby/vote-service/internal/config"
-	"webby/vote-service/internal/database"
 	grpcserver "webby/vote-service/internal/grpc"
-	"webby/vote-service/internal/grpc/votepb"
 	httpserver "webby/vote-service/internal/handlers"
 	"webby/vote-service/internal/repository"
 	"webby/vote-service/internal/services"
 	"webby/vote-service/pkg/slogpretty"
 
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 )
 
@@ -46,19 +45,16 @@ func run(ctx context.Context, w io.Writer) error {
 	cfg := config.MustLoad()
 	logger := setupLogger(cfg.Env, w)
 
-	db, err := database.New(cfg.ConnectionString)
-	if err != nil {
-		logger.Error(
-			"database connection failed",
-			slog.String("error", err.Error()),
-		)
-		return err
-	}
-	defer db.Close()
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	defer rdb.Close()
 
-	logger.Info("database connected successfully")
+	logger.Info("redis connected successfully")
 
-	voteRepo := repository.NewRepository(db)
+	voteRepo := repository.NewRepository(rdb)
 
 	memberClient, err := grpcserver.NewMemberClient(
 		cfg.Grpc.RoomServiceAddress,

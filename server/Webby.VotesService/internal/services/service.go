@@ -32,13 +32,11 @@ const eventTypeVotingLocked = "VOTING_LOCKED"
 type repository interface {
 	CreateVoteWithRightChoice(ctx context.Context, vote *models.Vote) error
 	SaveChoices(ctx context.Context, vodeID uuid.UUID, choices []string) error
-	GetVotingRightOption(ctx context.Context, voteID uuid.UUID) (string, error)
 	GetVotingUserWinners(ctx context.Context, voteID uuid.UUID, rightChoice string) ([]uuid.UUID, error)
-	MarkVoteAsClosed(ctx context.Context, voteID uuid.UUID) error
 	ListByRoom(ctx context.Context, roomID uuid.UUID) ([]models.Vote, error)
 	GetChoicesForVoting(ctx context.Context, voteID uuid.UUID) ([]string, error)
 	IsChoiceValid(ctx context.Context, voteID uuid.UUID, rightChoice string) (bool, error)
-	SetVotingRightOption(ctx context.Context, voteID uuid.UUID, rightChoice string) error
+	SetVotingRightOption(ctx context.Context, roomID, voteID uuid.UUID, rightChoice string) error
 	MarkVoteAsLocked(ctx context.Context, voteID uuid.UUID) error
 }
 
@@ -183,12 +181,17 @@ func (s *service) ResolveVoting(ctx context.Context, roomID, userID, voteID uuid
 		return fmt.Errorf("%s: %w", op, apperrors.ErrInvalidChoice)
 	}
 
+	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, roomID, userID)
+	if err != nil {
+		return fmt.Errorf("%s: get chat: %w", op, err)
+	}
+
 	if cancelInf, ok := s.activeTimers.LoadAndDelete(voteID); ok {
 		cancel := cancelInf.(context.CancelFunc)
 		cancel()
 	}
 
-	err = s.repository.SetVotingRightOption(ctx, voteID, rightChoice)
+	err = s.repository.SetVotingRightOption(ctx, roomID, voteID, rightChoice)
 	if err != nil {
 		return fmt.Errorf("%s: set right option: %w", op, err)
 	}
@@ -198,12 +201,6 @@ func (s *service) ResolveVoting(ctx context.Context, roomID, userID, voteID uuid
 		return fmt.Errorf("%s: get winners: %w", op, err)
 	}
 
-	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, roomID, userID)
-	if err != nil {
-		return fmt.Errorf("%s: get chat: %w", op, err)
-	}
-	topic := fmt.Sprintf("chat:%s", chatID.String())
-
 	resultsEnvelope := eventEnvelope{
 		Type: eventTypeVotingResults,
 		Payload: votingResults{
@@ -212,6 +209,7 @@ func (s *service) ResolveVoting(ctx context.Context, roomID, userID, voteID uuid
 			Winners:     userIDs,
 		},
 	}
+	topic := fmt.Sprintf("chat:%s", chatID.String())
 	if err := s.publisher.Publish(ctx, topic, resultsEnvelope); err != nil {
 		log.Error("failed to publish votingResults", slog.String("err", err.Error()))
 	}
