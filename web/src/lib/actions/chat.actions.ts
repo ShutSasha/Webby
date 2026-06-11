@@ -58,3 +58,67 @@ export async function getChatMessagesAction(
     }
   }
 }
+
+export type ChatHistoryItem = {
+  chatId: string
+  user: ChatUser
+  lastMessage: {
+    content: string
+    createdAt: string
+  } | null
+}
+
+export async function getChatHistoryAction(
+  page: number = 1,
+  limit: number = 10,
+  search?: string,
+): Promise<BaseServerResponse<PaginatedData<ChatHistoryItem>>> {
+  try {
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    })
+
+    if (search) {
+      queryParams.append('search', search)
+    }
+
+    const { data: response } = await $api.get<BaseServerResponse<PaginatedData<ChatHistoryItem>>>(
+      `/chats?${queryParams.toString()}`,
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_CHAT_HISTORY_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve chat history',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export type ChatDetails = {
+  id: string
+  createdAt: string
+  user: ChatUser
+}
+
+export async function getChatByIdAction(chatId: string): Promise<BaseServerResponse<ChatDetails>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<ChatDetails>>(`${endpoint}/${chatId}`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_CHAT_BY_ID_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve chat details',
+      errors: parseAxiosError(error),
+    }
+  }
+}
