@@ -131,7 +131,7 @@ func (r *messageRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *messageRepository) ListByChat(ctx context.Context, chatID uuid.UUID, offset, limit int) ([]models.Message, int64, error) {
+func (r *messageRepository) List(ctx context.Context, chatID uuid.UUID, offset, limit int) ([]models.Message, int, error) {
 	const op = "repository.MessageRepository.ListByChat"
 
 	countQuery := sq.Select("COUNT(*)").
@@ -143,7 +143,7 @@ func (r *messageRepository) ListByChat(ctx context.Context, chatID uuid.UUID, of
 		return nil, 0, fmt.Errorf("%s: count build failed: %w", op, err)
 	}
 
-	var total int64
+	var total int
 	if err := r.db.QueryRow(ctx, countSQL, countArgs...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("%s: count failed: %w", op, err)
 	}

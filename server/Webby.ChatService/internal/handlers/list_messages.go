@@ -48,7 +48,7 @@ func (h *handler) listMessages(c *gin.Context) {
 			Items: messages,
 			Page:  query.Page,
 			Limit: query.Limit,
-			Total: int(total),
+			Total: total,
 		},
 	})
 }

@@ -75,7 +75,7 @@ func (_c *MockmessageService_Delete_Call) RunAndReturn(run func(context.Context,
 }
 
 // List provides a mock function with given fields: ctx, chatID, userID, limit, page
-func (_m *MockmessageService) List(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit int, page int) ([]models.RichMessage, int64, error) {
+func (_m *MockmessageService) List(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit int, page int) ([]models.RichMessage, int, error) {
 	ret := _m.Called(ctx, chatID, userID, limit, page)
 
 	if len(ret) == 0 {
@@ -83,9 +83,9 @@ func (_m *MockmessageService) List(ctx context.Context, chatID uuid.UUID, userID
 	}
 
 	var r0 []models.RichMessage
-	var r1 int64
+	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, int) ([]models.RichMessage, int64, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, int) ([]models.RichMessage, int, error)); ok {
 		return rf(ctx, chatID, userID, limit, page)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, int, int) []models.RichMessage); ok {
@@ -96,10 +96,10 @@ func (_m *MockmessageService) List(ctx context.Context, chatID uuid.UUID, userID
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, int, int) int64); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, int, int) int); ok {
 		r1 = rf(ctx, chatID, userID, limit, page)
 	} else {
-		r1 = ret.Get(1).(int64)
+		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(context.Context, uuid.UUID, uuid.UUID, int, int) error); ok {
@@ -133,12 +133,12 @@ func (_c *MockmessageService_List_Call) Run(run func(ctx context.Context, chatID
 	return _c
 }
 
-func (_c *MockmessageService_List_Call) Return(_a0 []models.RichMessage, _a1 int64, _a2 error) *MockmessageService_List_Call {
+func (_c *MockmessageService_List_Call) Return(_a0 []models.RichMessage, _a1 int, _a2 error) *MockmessageService_List_Call {
 	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *MockmessageService_List_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, int, int) ([]models.RichMessage, int64, error)) *MockmessageService_List_Call {
+func (_c *MockmessageService_List_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, int, int) ([]models.RichMessage, int, error)) *MockmessageService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }
