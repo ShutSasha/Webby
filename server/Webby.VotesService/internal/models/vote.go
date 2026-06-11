@@ -7,24 +7,17 @@ import (
 )
 
 type Vote struct {
-	Id              uuid.UUID
-	RoomId          uuid.UUID
-	Type            string
-	VoteText        string
-	CreatedAt       time.Time
-	DurationSeconds int
+	ID        uuid.UUID
+	RoomID    uuid.UUID
+	VoteText  string
+	Duration  int
+	CreatedAt time.Time
 }
 
-type VoteChoice struct {
-	Id          uuid.UUID
-	VoteId      uuid.UUID
-	Name        string
-	Votes       int
-	IsCorrect   bool
-	QueueItemId *uuid.UUID
-}
-
-type UserVote struct {
-	VoteChoiceId uuid.UUID
-	UserId       uuid.UUID
+type EnrichedVoting struct {
+	ID        uuid.UUID `json:"id"`
+	VoteText  string    `json:"voteText"`
+	Duration  int       `json:"duration"`
+	CreatedAt time.Time `json:"createdAt"`
+	Choices   []string  `json:"choices"`
 }

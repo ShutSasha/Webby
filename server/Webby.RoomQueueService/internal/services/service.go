@@ -44,7 +44,7 @@ type mediaRetriever interface {
 }
 
 type chatRetriever interface {
-	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (uuid.UUID, error)
+	GetChatIDByRoomID(ctx context.Context, roomID, userID uuid.UUID) (uuid.UUID, error)
 }
 
 type memberChecker interface {
@@ -55,7 +55,7 @@ type eventPublisher interface {
 	Publish(ctx context.Context, channel string, payload any) error
 }
 
-type Service struct {
+type service struct {
 	repository     queueItemRepository
 	mediaRetriever mediaRetriever
 	chatRetriever  chatRetriever
@@ -69,8 +69,8 @@ func New(
 	chatRetriever chatRetriever,
 	memberChecker memberChecker,
 	eventPublisher eventPublisher,
-) *Service {
-	return &Service{
+) *service {
+	return &service{
 		repository:     repo,
 		mediaRetriever: mediaRetriever,
 		chatRetriever:  chatRetriever,
@@ -79,7 +79,7 @@ func New(
 	}
 }
 
-func (s *Service) isMember(ctx context.Context, roomID, userID uuid.UUID) error {
+func (s *service) isMember(ctx context.Context, roomID, userID uuid.UUID) error {
 	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
 	if err != nil {
 		return fmt.Errorf("check membership: %w", err)
@@ -90,7 +90,7 @@ func (s *Service) isMember(ctx context.Context, roomID, userID uuid.UUID) error 
 	return nil
 }
 
-func (s *Service) AddToQueue(ctx context.Context, roomID, userID uuid.UUID, videoID string) (uuid.UUID, int, error) {
+func (s *service) AddToQueue(ctx context.Context, roomID, userID uuid.UUID, videoID string) (uuid.UUID, int, error) {
 	const op = "services.AddToQueue"
 	log := logger.FromContext(ctx).With(slog.String("op", op))
 
@@ -129,7 +129,7 @@ func (s *Service) AddToQueue(ctx context.Context, roomID, userID uuid.UUID, vide
 	return id, position, nil
 }
 
-func (s *Service) GetQueue(
+func (s *service) GetQueue(
 	ctx context.Context,
 	roomID, userID uuid.UUID,
 	page, limit int,
@@ -180,7 +180,7 @@ func (s *Service) GetQueue(
 	return enrichedItems, total, nil
 }
 
-func (s *Service) DeleteFromQueue(ctx context.Context, itemID, userID uuid.UUID) error {
+func (s *service) DeleteFromQueue(ctx context.Context, itemID, userID uuid.UUID) error {
 	const op = "services.DeleteFromQueue"
 	log := logger.FromContext(ctx).With(slog.String("op", op))
 
@@ -218,11 +218,11 @@ func (s *Service) DeleteFromQueue(ctx context.Context, itemID, userID uuid.UUID)
 }
 
 // TODO
-func (s *Service) MoveToTop(ctx context.Context, id uuid.UUID) error {
+func (s *service) MoveToTop(ctx context.Context, id uuid.UUID) error {
 	return s.repository.MoveToTop(ctx, id)
 }
 
-func (s *Service) ActivateVideo(ctx context.Context, itemID, userID uuid.UUID) error {
+func (s *service) ActivateVideo(ctx context.Context, itemID, userID uuid.UUID) error {
 	const op = "services.ActivateVideo"
 	log := logger.FromContext(ctx).With(slog.String("op", op))
 

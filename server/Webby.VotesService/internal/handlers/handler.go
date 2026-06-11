@@ -7,15 +7,9 @@ import (
 	"github.com/google/uuid"
 )
 
-type Service interface {
-	CreateVote(
-		ctx context.Context,
-		roomId, userId uuid.UUID,
-		voteType, voteText string,
-		durationSeconds int,
-		choices []services.CreateChoiceInput,
-	) (*services.VoteDetail, error)
-	ListVotes(ctx context.Context, roomId, userId uuid.UUID) ([]services.VoteDetail, error)
+type service interface {
+	CreateWithRightChoice(ctx context.Context, roomID, userID uuid.UUID, voteText string, duration int, choices []string) error
+	ListVotes(ctx context.Context, roomID, userID uuid.UUID) ([]services.VoteDetail, error)
 	GetVote(ctx context.Context, voteId, userId uuid.UUID) (*services.VoteDetail, error)
 	CastVote(ctx context.Context, voteId, choiceId, userId uuid.UUID) (*services.VoteDetail, error)
 	RemoveVote(ctx context.Context, voteId, userId uuid.UUID) (*services.VoteDetail, error)
@@ -23,10 +17,10 @@ type Service interface {
 }
 
 type handler struct {
-	service Service
+	service service
 }
 
-func New(service Service) handler {
+func New(service service) handler {
 	return handler{
 		service: service,
 	}

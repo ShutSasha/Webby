@@ -9,77 +9,30 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
-type VoteRepository struct {
-	db *pgxpool.Pool
+type repository struct {
+	client *redis.Client
 }
 
-func NewVoteRepository(db *pgxpool.Pool) *VoteRepository {
-	return &VoteRepository{db: db}
+func NewRepository(client *redis.Client) *repository {
+	return &repository{client}
 }
 
-func (r *VoteRepository) CreateVote(
-	ctx context.Context, vote *models.Vote,
-) (uuid.UUID, error) {
-	const op = "repository.VoteRepository.CreateVote"
+func (r *repository) CreateVoteWithRightChoice(ctx context.Context, vote *models.Vote) error {
+	const  op = "repository.CreateVoteWithRightChoice"
 
-	if vote == nil {
-		return uuid.Nil, fmt.Errorf(
-			"%s: %w: vote cannot be nil", op, apperrors.ErrInvalidInput,
-		)
-	}
+	r.client.HSet()
 
-	vote.Id = uuid.New()
-
-	query := `
-		INSERT INTO votes (id, room_id, type, vote_text, duration_seconds)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING created_at
-	`
-
-	err := r.db.QueryRow(
-		ctx, query,
-		vote.Id, vote.RoomId, vote.Type, vote.VoteText, vote.DurationSeconds,
-	).Scan(&vote.CreatedAt)
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
-	}
-
-	return vote.Id, nil
+	return nil
 }
 
-func (r *VoteRepository) CreateChoice(
-	ctx context.Context, choice *models.VoteChoice,
-) (uuid.UUID, error) {
-	const op = "repository.VoteRepository.CreateChoice"
-
-	if choice == nil {
-		return uuid.Nil, fmt.Errorf(
-			"%s: %w: choice cannot be nil", op, apperrors.ErrInvalidInput,
-		)
-	}
-
-	choice.Id = uuid.New()
-
-	query := `
-		INSERT INTO vote_choices (id, vote_id, name, is_correct, queue_item_id)
-		VALUES ($1, $2, $3, $4, $5)
-	`
-
-	_, err := r.db.Exec(
-		ctx, query,
-		choice.Id, choice.VoteId, choice.Name, choice.IsCorrect, choice.QueueItemId,
-	)
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
-	}
-
-	return choice.Id, nil
+func (r *repository) SaveChoices(ctx context.Context, vodeID uuid.UUID, choices []string) error {
+	return nil
 }
 
-func (r *VoteRepository) DeleteVote(
+func (r *repository) DeleteVote(
 	ctx context.Context, id uuid.UUID,
 ) error {
 	const op = "repository.VoteRepository.DeleteVote"
@@ -106,7 +59,7 @@ func (r *VoteRepository) DeleteVote(
 	return nil
 }
 
-func (r *VoteRepository) GetVoteById(
+func (r *repository) GetVoteById(
 	ctx context.Context, id uuid.UUID,
 ) (*models.Vote, error) {
 	const op = "repository.VoteRepository.GetVoteById"
@@ -145,7 +98,7 @@ func (r *VoteRepository) GetVoteById(
 	return &vote, nil
 }
 
-func (r *VoteRepository) ListByRoom(
+func (r *repository) ListByRoom(
 	ctx context.Context, roomId uuid.UUID,
 ) ([]models.Vote, error) {
 	const op = "repository.VoteRepository.ListByRoom"
@@ -193,7 +146,7 @@ func (r *VoteRepository) ListByRoom(
 	return votes, nil
 }
 
-func (r *VoteRepository) GetChoicesByVoteId(
+func (r *repository) GetChoicesByVoteId(
 	ctx context.Context, voteId uuid.UUID,
 ) ([]models.VoteChoice, error) {
 	const op = "repository.VoteRepository.GetChoicesByVoteId"
@@ -241,7 +194,7 @@ func (r *VoteRepository) GetChoicesByVoteId(
 	return choices, nil
 }
 
-func (r *VoteRepository) GetChoiceById(
+func (r *repository) GetChoiceById(
 	ctx context.Context, choiceId uuid.UUID,
 ) (*models.VoteChoice, error) {
 	const op = "repository.VoteRepository.GetChoiceById"
@@ -281,7 +234,7 @@ func (r *VoteRepository) GetChoiceById(
 	return &choice, nil
 }
 
-func (r *VoteRepository) CastVote(
+func (r *repository) CastVote(
 	ctx context.Context, choiceId, userId uuid.UUID,
 ) error {
 	const op = "repository.VoteRepository.CastVote"
@@ -317,7 +270,7 @@ func (r *VoteRepository) CastVote(
 	return nil
 }
 
-func (r *VoteRepository) RemoveUserVote(
+func (r *repository) RemoveUserVote(
 	ctx context.Context, voteId, userId uuid.UUID,
 ) error {
 	const op = "repository.VoteRepository.RemoveUserVote"
@@ -368,7 +321,7 @@ func (r *VoteRepository) RemoveUserVote(
 	return nil
 }
 
-func (r *VoteRepository) GetUserVoteForVote(
+func (r *repository) GetUserVoteForVote(
 	ctx context.Context, voteId, userId uuid.UUID,
 ) (*uuid.UUID, error) {
 	const op = "repository.VoteRepository.GetUserVoteForVote"

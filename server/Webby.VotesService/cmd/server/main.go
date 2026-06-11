@@ -58,7 +58,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	logger.Info("database connected successfully")
 
-	voteRepo := repository.NewVoteRepository(db)
+	voteRepo := repository.NewRepository(db)
 
 	memberClient, err := grpcserver.NewMemberClient(
 		cfg.Grpc.RoomServiceAddress,
