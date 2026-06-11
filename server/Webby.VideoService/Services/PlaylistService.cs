@@ -276,6 +276,7 @@ public class PlaylistService : IPlaylistService
        await ValidatePlaylistsOwnership([playlistId], requestUserId, "Attach video to playlist");
 
        var parsedIds = ParseAndValidateIds(videoIds, "Attach video");
+       ValidatePlatformForMediaType(parsedIds, MediaType.Video);
        await ValidateLocalVideos(parsedIds, requestUserId);
        await ApplyPlaylistItemsDiff([playlistId], MediaType.Video, parsedIds);
    }
@@ -293,6 +294,7 @@ public class PlaylistService : IPlaylistService
        await ValidatePlaylistsOwnership(playlistIds, requestUserId, "Attach video to playlists");
 
        var parsedIds = ParseAndValidateIds(videoIds, "Attach video");
+       ValidatePlatformForMediaType(parsedIds, MediaType.Video);
        await ValidateLocalVideos(parsedIds, requestUserId);
        await ApplyPlaylistItemsDiff(playlistIds, MediaType.Video, parsedIds);
    }
@@ -588,6 +590,18 @@ public class PlaylistService : IPlaylistService
 
        if (allItemsToDelete.Count > 0)
            await _playlistRepository.DeletePlaylistVideos(allItemsToDelete);
+   }
+   
+   private static void ValidatePlatformForMediaType(
+      List<(SystemPlatforms Platform, string ActualId)> parsedIds,
+      MediaType mediaType)
+   {
+      if (mediaType == MediaType.Video)
+      {
+         var hasTwitch = parsedIds.Any(v => v.Platform == SystemPlatforms.Twitch);
+         if (hasTwitch)
+            throw new ApiException("Attach video error", 400, "Twitch platform is not allowed for videos");
+      }
    }
    
 }
