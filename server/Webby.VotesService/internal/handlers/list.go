@@ -3,7 +3,7 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"webby/vote-service/internal/services"
+	"webby/vote-service/internal/models"
 	"webby/vote-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -40,7 +40,7 @@ func (h *handler) List(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, ApiResponse[[]services.VoteDetail]{
+	c.JSON(http.StatusOK, ApiResponse[[]models.EnrichedVoting]{
 		Success: true,
 		Message: "Votes retrieved",
 		Data:    &votes,

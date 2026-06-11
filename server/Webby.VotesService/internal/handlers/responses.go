@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"reflect"
-	"webby/room-service/internal/apperrors"
-	"webby/room-service/pkg/logger"
+	"webby/vote-service/internal/apperrors"
+	"webby/vote-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -77,11 +77,16 @@ func formatErrorMessage(fe validator.FieldError) string {
 
 func mapAppErrorToStatus(err error) int {
 	switch {
-	case errors.Is(err, apperrors.ErrNotFound):
+	case errors.Is(err, apperrors.ErrNotFound),
+		errors.Is(err, apperrors.ErrMemberNotFound):
 		return http.StatusNotFound
 	case errors.Is(err, apperrors.ErrForbidden),
 		errors.Is(err, apperrors.ErrNotHost):
 		return http.StatusForbidden
+	case errors.Is(err, apperrors.ErrAlreadyClosed):
+		return http.StatusConflict
+	case errors.Is(err, apperrors.ErrInvalidChoice):
+		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
 	}
@@ -90,11 +95,17 @@ func mapAppErrorToStatus(err error) int {
 func mapAppErrorToClientMessage(err error) string {
 	switch {
 	case errors.Is(err, apperrors.ErrNotFound):
-		return "Queue item was not found"
+		return "Voting was not found"
+	case errors.Is(err, apperrors.ErrMemberNotFound):
+		return "You are not a member of this room"
 	case errors.Is(err, apperrors.ErrForbidden):
 		return "The action is forbidden"
+	case errors.Is(err, apperrors.ErrAlreadyClosed):
+		return "This voting is already closed"
 	case errors.Is(err, apperrors.ErrNotHost):
 		return "Only host of this room can perform this action"
+	case errors.Is(err, apperrors.ErrInvalidChoice):
+		return "There is no this choice in the voting"
 	default:
 		return "An unexpected error occurred"
 	}

@@ -7,11 +7,11 @@ import (
 )
 
 type Vote struct {
-	ID        uuid.UUID
-	RoomID    uuid.UUID
-	VoteText  string
-	Duration  int
-	CreatedAt time.Time
+	ID        uuid.UUID `redis:"id"`
+	RoomID    uuid.UUID `redis:"room_id"`
+	VoteText  string    `redis:"vote_text"`
+	Duration  int       `redis:"duration"`
+	CreatedAt time.Time `redis:"created_at"`
 }
 
 type EnrichedVoting struct {
