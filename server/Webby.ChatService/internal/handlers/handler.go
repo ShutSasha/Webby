@@ -10,7 +10,7 @@ import (
 
 type chatService interface {
 	CreatePrivate(ctx context.Context, initiatorID, targetID uuid.UUID) (*models.Chat, error)
-	GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error)
+	GetByID(ctx context.Context, chatID, userID uuid.UUID) (*models.EnrichedChat, error)
 	History(ctx context.Context, userID uuid.UUID, page, limit int, search string) ([]models.ChatHistoryItem, int, error)
 	Delete(ctx context.Context, userID, chatID uuid.UUID) error
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"time"
+	"webby/chat-service/internal/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -13,9 +14,9 @@ type chatGetUri struct {
 }
 
 type chatGetResponse struct {
-	ID        uuid.UUID  `json:"id"`
-	RoomID    *uuid.UUID `json:"roomId,omitempty"`
-	CreatedAt string     `json:"createdAt"`
+	ID        uuid.UUID   `json:"id"`
+	CreatedAt string      `json:"createdAt"`
+	User      models.User `json:"user"`
 }
 
 func (h handler) Get(c *gin.Context) {
@@ -28,7 +29,8 @@ func (h handler) Get(c *gin.Context) {
 	}
 
 	chatID, _ := uuid.Parse(uri.ChatID)
-	chat, err := h.chatService.GetByID(ctx, chatID)
+	userID, _ := uuid.Parse(ctx.Value("userID").(string))
+	chat, err := h.chatService.GetByID(ctx, chatID, userID)
 	if err != nil {
 		HandleAppError(c, "Get chat error", err)
 		return
@@ -39,8 +41,8 @@ func (h handler) Get(c *gin.Context) {
 		Message: "Chat retrieved",
 		Data: &chatGetResponse{
 			ID:        chat.ID,
-			RoomID:    chat.RoomID,
 			CreatedAt: chat.CreatedAt.Format(time.RFC3339),
+			User:      chat.User,
 		},
 	})
 }

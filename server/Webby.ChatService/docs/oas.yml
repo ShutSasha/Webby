@@ -478,7 +478,15 @@ paths:
       tags:
         - Chats
       summary: Get chat by ID
-      description: Retrieve a chat by UUID.
+      description: |
+        Retrieve the chat by its ID.
+        #Response fields:
+        - `id` - id of the chat
+        - `createdAt` - the date and time when the chat was created
+        - `user` - info about the interlocutor:
+          - `id` - interlocutor's id
+          - `username` - its username
+          - `avatarUrl` - user's profile picture
       operationId: getChatById
       security:
         - bearerAuth: []

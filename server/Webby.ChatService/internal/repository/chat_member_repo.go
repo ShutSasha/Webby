@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"webby/chat-service/internal/apperrors"
 	"webby/chat-service/pkg/logger"
 
 	sq "github.com/Masterminds/squirrel"
@@ -203,4 +205,30 @@ func (r *chatMemberRepository) GetUserInterlocutors(ctx context.Context, userID 
 	}
 
 	return userIDs, nil
+}
+
+func (r *chatMemberRepository) GetChatInterlocutor(ctx context.Context, chatID, userID uuid.UUID) (uuid.UUID, error) {
+	const op = "repository.chatMemberRepository.GetChatInterlocutor"
+
+	query := sq.Select("user_id").
+		From("chat_members").
+		Where(sq.Eq{"chat_id": chatID}).
+		Where(sq.NotEq{"user_id": userID}).
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var interlocutorID uuid.UUID
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&interlocutorID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return uuid.Nil, fmt.Errorf("%s: %w", op, apperrors.ErrMemberNotFound)
+		}
+		return uuid.Nil, fmt.Errorf("%s: query failed: %w", op, err)
+	}
+
+	return interlocutorID, nil
 }
