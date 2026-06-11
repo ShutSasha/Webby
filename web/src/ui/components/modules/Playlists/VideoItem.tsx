@@ -8,6 +8,7 @@ import Image from 'next/image'
 import TrashIcon from '@/assets/icons/ic_trash.svg'
 import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
+import { useTogglePlaylistMediaMutation } from '@/lib/hooks/api/playlist/useTogglePlaylistMedia'
 import { useTogglePlaylistVideoMutation } from '@/lib/hooks/api/playlist/useTogglePlaylistVideo'
 import { cn } from '@/lib/utils/general.utils'
 import { usePlayerPlayStore } from '@/stores/player.store'
@@ -36,17 +37,17 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
 
   const isActive = activeResourceId === id
 
-  const { mutate: toggleVideo, isPending } = useTogglePlaylistVideoMutation(userId)
+  const { mutate: toggleMedia, isPending } = useTogglePlaylistMediaMutation(userId)
 
   const handleToggle = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     e.stopPropagation()
     if (isPending) return
 
-    toggleVideo(
-      { playlistId, videoId: id },
+    toggleMedia(
+      { playlistId, mediaId: id, mediaType },
       {
-        onError: () => addToast(`Failed to delete video in playlist`, 'error'),
+        onError: () => addToast(`Failed to delete media from playlist`, 'error'),
       },
     )
   }

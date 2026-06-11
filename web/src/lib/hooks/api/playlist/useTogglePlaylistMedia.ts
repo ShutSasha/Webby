@@ -29,9 +29,6 @@ export const useTogglePlaylistMediaMutation = (userId: string) => {
     },
 
     onSettled: async (_, __, variables) => {
-      // TODO: remove promise
-      await new Promise(resolve => setTimeout(resolve, 300))
-
       queryClient.invalidateQueries({
         queryKey: ['search-user-playlists', userId],
       })
