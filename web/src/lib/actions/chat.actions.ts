@@ -122,3 +122,20 @@ export async function getChatByIdAction(chatId: string): Promise<BaseServerRespo
     }
   }
 }
+
+export async function deleteChatAction(chatId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(`${endpoint}/${chatId}`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('DELETE_CHAT_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to delete chat',
+      errors: parseAxiosError(error),
+    }
+  }
+}

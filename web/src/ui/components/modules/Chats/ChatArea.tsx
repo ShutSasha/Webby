@@ -1,14 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useSession } from 'next-auth/react'
 
+import MoreVerticalIcon from '@/assets/icons/shared/more-vertical.svg'
 import SendIcon from '@/assets/icons/shared/send_message.svg'
+import { useDeleteChatMutation } from '@/lib/hooks/api/chat/useDeleteChat'
 import { useGetChatDetailsQuery } from '@/lib/hooks/api/chat/useGetChatDetails'
 import { useGetChatMessagesQuery } from '@/lib/hooks/api/chat/useGetChatMessages'
 import { useSendMessageMutation } from '@/lib/hooks/api/chat/useSendMessage'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
+import Modal from '@/ui/components/shared/Modal'
 import SafeImage from '@/ui/components/shared/SafeImage'
 
 type Props = {
@@ -20,9 +23,13 @@ export default function ChatArea({ chatId }: Props) {
   const currentUserId = session?.user?.id
 
   const [messageText, setMessageText] = useState('')
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useGetChatMessagesQuery(chatId)
   const { mutate: sendMessage, isPending: isSending } = useSendMessageMutation()
+  const { mutate: deleteChat, isPending: isDeleting } = useDeleteChatMutation()
 
   const messages = data?.pages.flatMap(page => page.data?.items || []) || []
 
@@ -36,6 +43,16 @@ export default function ChatArea({ chatId }: Props) {
   const { data: chatDetailsResponse, isLoading: isChatDetailsLoading } = useGetChatDetailsQuery(chatId)
   const chatDetails = chatDetailsResponse?.data
   const otherUser = chatDetails?.user
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false)
+      }
+    }
+    if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isMenuOpen])
 
   const handleSendMessage = () => {
     if (!messageText.trim() || isSending) return
@@ -57,13 +74,21 @@ export default function ChatArea({ chatId }: Props) {
     }
   }
 
+  const handleDeleteChat = () => {
+    deleteChat(chatId, {
+      onSuccess: () => {
+        setIsDeleteModalOpen(false)
+      },
+    })
+  }
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full relative">
       {/* Header */}
       <div
         className="h-[72px] shrink-0 border-b border-neutral-800/60 flex items-center justify-between px-6
@@ -86,8 +111,36 @@ export default function ChatArea({ chatId }: Props) {
                 : `@${otherUser?.username}`}
           </span>
         </div>
+
+        {/* Dropdown Menu Area */}
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setIsMenuOpen(prev => !prev)}
+            className="p-2 rounded-full text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
+          >
+            <MoreVerticalIcon className="size-5" />
+          </button>
+
+          {isMenuOpen && (
+            <div
+              className="absolute right-0 top-full mt-2 w-48 bg-neutral-800 border border-neutral-700/60 shadow-xl
+                shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
+            >
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false)
+                  setIsDeleteModalOpen(true)
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-neutral-700/50 transition-colors"
+              >
+                Delete chat
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Messages Area */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col-reverse gap-2">
         {isLoading && messages.length === 0 ? (
           <div className="text-center text-neutral-500 my-auto">Loading messages...</div>
@@ -161,6 +214,35 @@ export default function ChatArea({ chatId }: Props) {
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={isDeleteModalOpen} onClose={() => !isDeleting && setIsDeleteModalOpen(false)}>
+        <div className="flex flex-col">
+          <h3 className="text-xl font-semibold text-neutral-200 mb-2">Delete Chat</h3>
+          <p className="text-sm text-neutral-400 mb-6">
+            Are you sure you want to delete this chat? All messages will be permanently removed. This action cannot be
+            undone.
+          </p>
+          <div className="flex items-center justify-end gap-3">
+            <button
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isDeleting}
+              className="px-4 py-2 text-sm font-medium text-neutral-300 hover:bg-neutral-800 rounded-xl
+                transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteChat}
+              disabled={isDeleting}
+              className="px-4 py-2 text-sm font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20 border
+                border-red-500/20 rounded-xl transition-colors disabled:opacity-50"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
