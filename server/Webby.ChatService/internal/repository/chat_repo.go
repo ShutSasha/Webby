@@ -127,12 +127,12 @@ func (r *chatRepository) History(ctx context.Context, userID uuid.UUID, userIDs 
 	).
 		From("chat_members cm").
 		Join("chats c ON cm.chat_id = c.id").
-		Join("messages m ON c.last_message_id = m.id").
+		LeftJoin("messages m ON c.last_message_id = m.id").
 		Where(sq.Expr("cm.chat_id IN ("+subQuerySql+")", subQueryArgs...)).
 		Where(sq.NotEq{"cm.user_id": userID}).
 		Where(sq.Eq{"c.room_id": nil}).
 		Where(sq.Eq{"cm.user_id": userIDs}).
-		OrderBy("last_message_sent_at DESC").
+		OrderBy("last_message_sent_at DESC NULLS LAST").
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := queryBuilder.ToSql()
@@ -148,10 +148,26 @@ func (r *chatRepository) History(ctx context.Context, userID uuid.UUID, userIDs 
 	items := make([]models.ChatHistoryItem, 0)
 	for rows.Next() {
 		var item models.ChatHistoryItem
-		err := rows.Scan(&item.ChatID, &item.User.ID, &item.LastMessage.Content, &item.LastMessage.CreatedAt)
+		var content *string
+		var createdAt *time.Time
+
+		err := rows.Scan(
+			&item.ChatID,
+			&item.User.ID,
+			&content,
+			&createdAt,
+		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("%s: scanning row: %w", op, err)
 		}
+
+		if content != nil {
+			item.LastMessage.Content = *content
+		}
+		if createdAt != nil {
+			item.LastMessage.CreatedAt = *createdAt
+		}
+
 		items = append(items, item)
 	}
 
