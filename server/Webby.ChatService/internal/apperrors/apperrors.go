@@ -10,4 +10,5 @@ var (
 	ErrNotFollowed              = errors.New("not followed to each other")
 	ErrNotMemeber               = errors.New("not member of chat")
 	ErrNotSender                = errors.New("not sender of message")
+	ErrMemberNotFound           = errors.New("member not found")
 )

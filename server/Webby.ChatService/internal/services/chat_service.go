@@ -11,7 +11,7 @@ import (
 
 type chatReposotory interface {
 	Create(ctx context.Context, chat *models.Chat) (uuid.UUID, error)
-	GetByID(ctx context.Context, id uuid.UUID) (*models.Chat, error)
+	GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error)
 	GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
 	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
 	History(ctx context.Context, userID uuid.UUID, userIDs []uuid.UUID) ([]models.ChatHistoryItem, int, error)
@@ -23,6 +23,7 @@ type chatServiceChatMemberRepository interface {
 	AddMembersBulk(ctx context.Context, chatID uuid.UUID, membersIDs ...uuid.UUID) error
 	GetUserInterlocutors(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	Exists(ctx context.Context, chatID, userID uuid.UUID) (bool, error)
+	GetChatInterlocutor(ctx context.Context, chatID, userID uuid.UUID) (uuid.UUID, error)
 }
 
 type roomMemberExister interface {
@@ -31,6 +32,7 @@ type roomMemberExister interface {
 
 type userManager interface {
 	GetUsersByIDs(ctx context.Context, userIDs []uuid.UUID) (map[uuid.UUID]models.Sender, error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (*models.Sender, error)
 	FindUserIDs(ctx context.Context, search string, userIDs []uuid.UUID, offset, limit int) ([]uuid.UUID, int, error)
 	IsFollowed(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error)
 }
@@ -109,15 +111,41 @@ func (s *chatService) CreatePrivate(ctx context.Context, initiatorID, targetID u
 	return chat, nil
 }
 
-func (s *chatService) GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error) {
+func (s *chatService) GetByID(ctx context.Context, chatID, userID uuid.UUID) (*models.EnrichedChat, error) {
 	const op = "services.chatService.GetByID"
+
+	exists, err := s.chatMemberRepository.Exists(ctx, chatID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	if !exists {
+		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrNotMemeber)
+	}
 
 	chat, err := s.chatRepository.GetByID(ctx, chatID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return chat, nil
+	interlocutorID, err := s.chatMemberRepository.GetChatInterlocutor(ctx, chatID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	user, err := s.userManager.GetUserByID(ctx, interlocutorID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &models.EnrichedChat{
+		ID:        chatID,
+		CreatedAt: chat.CreatedAt,
+		User: models.User{
+			ID:        user.ID,
+			Username:  user.Username,
+			AvatarUrl: user.AvatarURL,
+		},
+	}, nil
 }
 
 func (s *chatService) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error) {
