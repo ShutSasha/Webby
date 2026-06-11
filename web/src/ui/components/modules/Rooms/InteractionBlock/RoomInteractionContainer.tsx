@@ -10,7 +10,11 @@ import RoomInteractionHeader from './RoomInteractionHeader'
 import RoomSettings from './Settings/RoomSettings'
 import RoomUsers from './UsersList/RoomUsers'
 
-export default function RoomInteractionContainer() {
+type Props = {
+  chatId: string
+}
+
+export default function RoomInteractionContainer({ chatId }: Props) {
   const tab = useRoomStore(state => state.tab)
   const isClient = useIsClient()
 
@@ -32,7 +36,7 @@ export default function RoomInteractionContainer() {
     >
       <RoomInteractionHeader />
 
-      {tab === 'chat' && <RoomChatContainer />}
+      {tab === 'chat' && <RoomChatContainer chatId={chatId} />}
       {tab === 'playlist' && <RoomPlaylists />}
       {tab === 'users' && <RoomUsers />}
       {tab === 'settings' && <RoomSettings />}
