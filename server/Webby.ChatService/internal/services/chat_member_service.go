@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"webby/chat-service/internal/apperrors"
 	"webby/chat-service/internal/models"
 
 	"github.com/google/uuid"
@@ -36,13 +37,12 @@ func (s *chatMemberService) AddMember(ctx context.Context, chatID, userID uuid.U
 
 	_, err := s.chatRetriever.GetByID(ctx, chatID)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrChatNotFound)
 	}
 
 	err = s.chatMemberRepository.Add(ctx, chatID, userID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
-
 	}
 
 	return nil
@@ -64,7 +64,7 @@ func (s *chatMemberService) IsMember(ctx context.Context, chatId, userId uuid.UU
 
 	exists, err := s.chatMemberRepository.Exists(ctx, chatId, userId)
 	if err != nil {
-		return false, fmt.Errorf("%s: %w", op, err)
+		return false, fmt.Errorf("%s: %w", op, apperrors.ErrNotMemeber)
 	}
 
 	return exists, nil
@@ -75,7 +75,7 @@ func (s *chatMemberService) ListMembers(ctx context.Context, chatID uuid.UUID) (
 
 	_, err := s.chatRetriever.GetByID(ctx, chatID)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrChatNotFound)
 	}
 
 	ids, err := s.chatMemberRepository.ListByChat(ctx, chatID)

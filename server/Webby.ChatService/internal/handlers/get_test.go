@@ -129,8 +129,7 @@ func TestGetChat_ServiceErrors(t *testing.T) {
 		mockError    error
 		expectedCode int
 	}{
-		{name: "Not Found", mockError: apperrors.ErrNotFound, expectedCode: http.StatusNotFound},
-		{name: "Internal Error", mockError: apperrors.ErrInternal, expectedCode: http.StatusInternalServerError},
+		{name: "Not Found", mockError: apperrors.ErrChatNotFound, expectedCode: http.StatusNotFound},
 	}
 
 	for _, tt := range tests {

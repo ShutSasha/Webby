@@ -61,7 +61,7 @@ func (svc *roomMemberService) AddMembers(ctx context.Context, roomID, hostID uui
 	}
 
 	if room.HostID != hostID {
-		return fmt.Errorf("%s: %w", op, apperrors.ErrForbidden)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
 	}
 
 	for _, memberID := range memberIDs {
@@ -123,7 +123,7 @@ func (svc *roomMemberService) ListMembers(
 }
 
 func (svc *roomMemberService) RemoveMember(ctx context.Context, roomID, memberID, hostID uuid.UUID) error {
-	const op = "services.RoomMemberService.RemoveMember"
+	const op = "services.roomMemberService.RemoveMember"
 
 	room, err := svc.roomRetriever.GetByID(ctx, roomID)
 	if err != nil {
@@ -131,16 +131,16 @@ func (svc *roomMemberService) RemoveMember(ctx context.Context, roomID, memberID
 	}
 
 	if room.HostID != hostID {
-		return fmt.Errorf("%s: %w", op, apperrors.ErrForbidden)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
 	}
 
 	if memberID == room.HostID {
-		return fmt.Errorf("%s: %w: cannot remove host from room", op, apperrors.ErrInvalidInput)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrRemoveHost)
 	}
 
 	err = svc.roomMemberRepo.Delete(ctx, roomID, memberID)
 	if err != nil {
-		return fmt.Errorf("%s: %w: cannot remove room member", op, apperrors.ErrInvalidInput)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil

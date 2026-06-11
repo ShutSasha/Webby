@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"webby/room-service/internal/apperrors"
@@ -72,14 +73,14 @@ func (svc *roomService) Create(
 	thumbnailData []byte,
 	thumbnailFilename string,
 ) (*models.Room, error) {
-	const op = "services.RoomService.Create"
+	const op = "services.roomService.Create"
 
 	exists, err := svc.categoryChecker.Exists(ctx, room.Category)
 	if err != nil {
 		return nil, fmt.Errorf("%s: category check failed: %w", op, err)
 	}
 	if !exists {
-		return nil, fmt.Errorf("%s: category '%s': %w", op, room.Category, apperrors.ErrInvalidInput)
+		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrCategoryNotFound)
 	}
 
 	id, err := svc.roomRepo.Create(ctx, room)
@@ -136,7 +137,7 @@ func (svc *roomService) Create(
 }
 
 func (svc *roomService) GetDetails(ctx context.Context, roomID, userID uuid.UUID) (*models.Room, error) {
-	const op = "services.RoomService.GetByID"
+	const op = "services.roomService.GetByID"
 
 	room, err := svc.roomRepo.GetByID(ctx, roomID)
 	if err != nil {
@@ -149,7 +150,7 @@ func (svc *roomService) GetDetails(ctx context.Context, roomID, userID uuid.UUID
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
 		if !isMember {
-			return nil, fmt.Errorf("%s: %w", op, apperrors.ErrForbidden)
+			return nil, fmt.Errorf("%s: %w", op, apperrors.ErrNotMember)
 		}
 	} else {
 		err := svc.roomMemberChecker.EnsureMember(ctx, room.ID, userID)
@@ -193,6 +194,10 @@ func (svc *roomService) ListMyRooms(
 ) ([]models.Room, int64, error) {
 	const op = "services.RoomService.ListMyRooms"
 
+	if strings.ToLower(category) == "all" {
+		category = ""
+	}
+
 	rooms, total, err := svc.roomRepo.ListMy(ctx, userID, page, limit, search, category)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: %w", op, err)
@@ -206,7 +211,11 @@ func (svc *roomService) ListPublicRooms(
 	page, limit int,
 	search, category string,
 ) ([]models.PublicRoom, int64, error) {
-	const op = "services.RoomService.ListPublicRooms"
+	const op = "services.roomService.ListPublicRooms"
+
+	if strings.ToLower(category) == "all" {
+		category = ""
+	}
 
 	rooms, total, err := svc.roomRepo.ListPublic(ctx, page, limit, search, category)
 	if err != nil {
@@ -231,7 +240,7 @@ func (svc *roomService) Update(
 	}
 
 	if existingRoom.HostID != userID {
-		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrForbidden)
+		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
 	}
 
 	if name != nil {
@@ -274,7 +283,7 @@ func (svc *roomService) Delete(ctx context.Context, roomID, userID uuid.UUID) er
 	}
 
 	if room.HostID != userID {
-		return fmt.Errorf("%s: %w", op, apperrors.ErrForbidden)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
 	}
 
 	if err := svc.roomRepo.Delete(ctx, roomID); err != nil {
@@ -291,9 +300,7 @@ func (svc *roomService) Delete(ctx context.Context, roomID, userID uuid.UUID) er
 	return nil
 }
 
-
 func (svc *roomService) generateThumbnailKey(filename string) string {
 	ext := filepath.Ext(filename)
 	return fmt.Sprintf("rooms/%d/thumbnail%s", time.Now().UnixMilli(), ext)
 }
-

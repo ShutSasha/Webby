@@ -3,9 +3,11 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"reflect"
 	"webby/room-service/internal/apperrors"
+	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -26,15 +28,21 @@ type PaginatedResponse[T any] struct {
 }
 
 func HandleValidationError(c *gin.Context, err error) {
+	ctx := c.Request.Context()
+	log := logger.FromContext(ctx)
+
 	problems := make(map[string]string)
 	var ve validator.ValidationErrors
 
 	if errors.As(err, &ve) {
+		log.Debug("validation error", slog.String("err", err.Error()))
+
 		for _, fe := range ve {
 			problems[fe.Field()] = formatErrorMessage(fe)
 		}
 	} else {
-		problems["message"] = err.Error()
+		log.Debug("non-validation error in request binding", slog.String("err", err.Error()))
+		problems["message"] = "invalid request body"
 	}
 
 	c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
@@ -69,24 +77,50 @@ func formatErrorMessage(fe validator.FieldError) string {
 
 func mapAppErrorToStatus(err error) int {
 	switch {
-	case errors.Is(err, apperrors.ErrNotFound):
+	case errors.Is(err, apperrors.ErrRoomNotFound),
+		errors.Is(err, apperrors.ErrCategoryNotFound),
+		errors.Is(err, apperrors.ErrRoomMemberNotFound):
 		return http.StatusNotFound
-	case errors.Is(err, apperrors.ErrConflict):
-		return http.StatusConflict
-	case errors.Is(err, apperrors.ErrInvalidInput):
-		return http.StatusBadRequest
-	case errors.Is(err, apperrors.ErrForbidden):
+	case errors.Is(err, apperrors.ErrNotHost),
+		errors.Is(err, apperrors.ErrNotMember),
+		errors.Is(err, apperrors.ErrRemoveHost):
 		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError
 	}
 }
 
+func mapAppErrorToClientMessage(err error) string {
+	switch {
+	case errors.Is(err, apperrors.ErrRoomNotFound):
+		return "The requested room was not found"
+	case errors.Is(err, apperrors.ErrCategoryNotFound):
+		return "The requested category was not found"
+	case errors.Is(err, apperrors.ErrRoomMemberNotFound):
+		return "The room member was not found"
+	case errors.Is(err, apperrors.ErrNotHost):
+		return "Only host can perform this action"
+	case errors.Is(err, apperrors.ErrNotMember):
+		return "You are not a member of this room"
+	case errors.Is(err, apperrors.ErrRemoveHost):
+		return "Host can not be removed from room"
+	default:
+		return "An unexpected error occurred"
+	}
+}
+
 func HandleAppError(c *gin.Context, message string, err error) {
+	ctx := c.Request.Context()
+	log := logger.FromContext(ctx)
+
+	log.Error(message, slog.String("error", err.Error()))
+
 	status := mapAppErrorToStatus(err)
+	clientMessage := mapAppErrorToClientMessage(err)
+
 	c.JSON(status, ApiResponse[struct{}]{
 		Success: false,
 		Message: message,
-		Errors:  map[string]string{"message": err.Error()},
+		Errors:  map[string]string{"message": clientMessage},
 	})
 }

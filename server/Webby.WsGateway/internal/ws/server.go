@@ -14,8 +14,6 @@ import (
 	"github.com/googollee/go-socket.io/engineio/transport"
 	"github.com/googollee/go-socket.io/engineio/transport/polling"
 	"github.com/googollee/go-socket.io/engineio/transport/websocket"
-
-	"webby/wsgateway/internal/domain"
 )
 
 type SessionInfo struct {
@@ -111,10 +109,6 @@ func (server *Server) onConnect(c socketio.Conn) error {
 	userID, err := server.service.GetUserID(ctx, token)
 	if err != nil {
 		log.Warn("auth failed", slog.String("err", err.Error()))
-
-		if errors.Is(err, domain.ErrUserNotFound) {
-			return errors.New("unauthorized")
-		}
 
 		return errors.New("internal server error")
 	}

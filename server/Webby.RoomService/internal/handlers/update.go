@@ -2,10 +2,8 @@ package handlers
 
 import (
 	"io"
-	"log/slog"
 	"mime/multipart"
 	"net/http"
-	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -32,21 +30,16 @@ type updateResponse struct {
 
 func (h *handler) Update(c *gin.Context) {
 	const maxFileSize = 2 * 1024 * 1024
-
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("operation", "handlers.Update")
 
 	var uri updateUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
-	log = log.With("roomID", uri.RoomID)
 
 	var req updateRequest
 	if err := c.ShouldBind(&req); err != nil {
-		log.Debug("form validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -77,7 +70,6 @@ func (h *handler) Update(c *gin.Context) {
 
 		file, err := req.Thumbnail.Open()
 		if err != nil {
-			log.Error("failed to open thumbnail file", slog.String("error", err.Error()))
 			HandleAppError(c, "File open error", err)
 			return
 		}
@@ -85,7 +77,6 @@ func (h *handler) Update(c *gin.Context) {
 
 		data, err := io.ReadAll(file)
 		if err != nil {
-			log.Error("failed to read thumbnail file", slog.String("error", err.Error()))
 			HandleAppError(c, "File upload error", err)
 			return
 		}
@@ -97,13 +88,15 @@ func (h *handler) Update(c *gin.Context) {
 
 	updatedRoom, err := h.roomService.Update(
 		ctx,
-		roomID, hostID,
-		req.Name, req.Category, thumbnailFilename,
-		thumbnailData, req.IsPrivate,
+		roomID,
+		hostID,
+		req.Name,
+		req.Category,
+		thumbnailFilename,
+		thumbnailData,
+		req.IsPrivate,
 	)
-
 	if err != nil {
-		log.Error("update room error", slog.String("err", err.Error()))
 		HandleAppError(c, "Update room error", err)
 		return
 	}

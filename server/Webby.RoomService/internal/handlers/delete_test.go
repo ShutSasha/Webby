@@ -80,7 +80,7 @@ func TestDeleteRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockroomService) {
-				ms.EXPECT().Delete(mock.Anything, roomID, userID).Return(fmt.Errorf("room: %w", apperrors.ErrNotFound)).Once()
+				ms.EXPECT().Delete(mock.Anything, roomID, userID).Return(fmt.Errorf("room: %w", apperrors.ErrRoomNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   assertErrorResponse,
@@ -90,7 +90,7 @@ func TestDeleteRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockroomService) {
-				ms.EXPECT().Delete(mock.Anything, roomID, userID).Return(apperrors.ErrForbidden).Once()
+				ms.EXPECT().Delete(mock.Anything, roomID, userID).Return(apperrors.ErrNotHost).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody:   assertErrorResponse,

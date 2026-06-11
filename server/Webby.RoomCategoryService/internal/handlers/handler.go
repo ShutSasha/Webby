@@ -2,22 +2,19 @@ package handlers
 
 import (
 	"context"
-	"webby/room-category-service/internal/models"
 )
 
-type Service interface {
+type service interface {
 	Create(ctx context.Context, name string) error
-	List(ctx context.Context, search string, page int, limit int) ([]models.Category, int64, error)
+	List(ctx context.Context, search string, page, limit int) ([]string, int, error)
 	Update(ctx context.Context, oldName string, newName string) error
 	Delete(ctx context.Context, name string) error
 }
 
 type handler struct {
-	service Service
+	service service
 }
 
-func New(service Service) handler {
-	return handler{
-		service: service,
-	}
+func New(service service) handler {
+	return handler{service}
 }

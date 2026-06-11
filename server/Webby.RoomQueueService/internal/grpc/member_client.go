@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type MemberClient struct {
+type memberClient struct {
 	client memberpb.MemberGrpcServiceClient
 	conn   *grpc.ClientConn
 }
 
-func NewMemberClient(address string) (*MemberClient, error) {
+func NewMemberClient(address string) (*memberClient, error) {
 	conn, err := grpc.NewClient(
 		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -28,19 +28,19 @@ func NewMemberClient(address string) (*MemberClient, error) {
 
 	client := memberpb.NewMemberGrpcServiceClient(conn)
 
-	return &MemberClient{
+	return &memberClient{
 		client: client,
 		conn:   conn,
 	}, nil
 }
 
-func (m *MemberClient) Close() error {
+func (m *memberClient) Close() error {
 	return m.conn.Close()
 }
 
-func (m *MemberClient) Exists(
-	ctx context.Context, roomID, userID uuid.UUID,
-) (bool, error) {
+func (m *memberClient) Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error) {
+	const op = "grpc.memberClient.Exists"
+
 	resp, err := m.client.MemberExists(
 		ctx, &memberpb.MemberExistsRequest{
 			RoomId: roomID.String(),
@@ -48,10 +48,7 @@ func (m *MemberClient) Exists(
 		},
 	)
 	if err != nil {
-		return false, fmt.Errorf(
-			"member exists check for room %s, user %s: %w",
-			roomID.String(), userID.String(), err,
-		)
+		return false, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return resp.GetExists(), nil

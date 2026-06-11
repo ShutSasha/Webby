@@ -24,7 +24,7 @@ type timecodesRepository interface {
 	SetTimecode(ctx context.Context, userID, roomID, syncID uuid.UUID, timecode int) error
 }
 
-type SynchronizeService struct {
+type synchronizeService struct {
 	chatIDRetriever chatIDRetriever
 	publisher       eventPublisher
 	timecodesRepo   timecodesRepository
@@ -34,8 +34,8 @@ func NewSynchronizeService(
 	chatClient chatIDRetriever,
 	publisher eventPublisher,
 	timecodesRepo timecodesRepository,
-) *SynchronizeService {
-	return &SynchronizeService{
+) *synchronizeService {
+	return &synchronizeService{
 		chatIDRetriever: chatClient,
 		publisher:       publisher,
 		timecodesRepo:   timecodesRepo,
@@ -61,8 +61,8 @@ const (
 	syncSkipDuration        = 1 * time.Second
 )
 
-func (svc *SynchronizeService) Synchronize(ctx context.Context, userID, roomID uuid.UUID) error {
-	const op = "service.SynchronizeService.Synchronize"
+func (svc *synchronizeService) Synchronize(ctx context.Context, userID, roomID uuid.UUID) error {
+	const op = "service.synchronizeService.Synchronize"
 	log := logger.FromContext(ctx).With(slog.String("op", op))
 
 	chatID, err := svc.chatIDRetriever.GetChatIDByRoomID(ctx, roomID, userID)
@@ -77,6 +77,7 @@ func (svc *SynchronizeService) Synchronize(ctx context.Context, userID, roomID u
 			SyncID: syncID.String(),
 		},
 	}
+
 	// TODO: Move to Publish
 	topic := fmt.Sprintf("chat:%s", chatID.String())
 	if err := svc.publisher.Publish(ctx, topic, reportEnvelope); err != nil {
@@ -112,8 +113,8 @@ func (svc *SynchronizeService) Synchronize(ctx context.Context, userID, roomID u
 	return nil
 }
 
-func (svc *SynchronizeService) ReportTimecode(ctx context.Context, userID, roomID, syncID uuid.UUID, timecode int) error {
-	const op = "services.SynchronizeService.ReportTimecode"
+func (svc *synchronizeService) ReportTimecode(ctx context.Context, userID, roomID, syncID uuid.UUID, timecode int) error {
+	const op = "services.synchronizeService.ReportTimecode"
 
 	err := svc.timecodesRepo.SetTimecode(ctx, userID, roomID, syncID, timecode)
 	if err != nil {
@@ -123,7 +124,7 @@ func (svc *SynchronizeService) ReportTimecode(ctx context.Context, userID, roomI
 	return nil
 }
 
-func (svc *SynchronizeService) selectMaxTimecode(timecodes map[string]int) int {
+func (svc *synchronizeService) selectMaxTimecode(timecodes map[string]int) int {
 	result := 0
 
 	for _, timecode := range timecodes {

@@ -3,78 +3,82 @@ package services
 import (
 	"context"
 	"fmt"
-	"webby/room-category-service/internal/apperrors"
 	"webby/room-category-service/internal/models"
 )
 
-type Repository interface {
+type repository interface {
 	Create(ctx context.Context, name string) error
 	Delete(ctx context.Context, name string) error
 	Exists(ctx context.Context, name string) (bool, error)
-	List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int64, error)
+	List(ctx context.Context, search string, offset, limit int) ([]models.Category, int, error)
 	Update(ctx context.Context, oldName string, newName string) error
 }
 
-type Service struct {
-	repo Repository
+type service struct {
+	repository repository
 }
 
-func New(repo Repository) *Service {
-	return &Service{
-		repo: repo,
-	}
+func New(repository repository) *service {
+	return &service{repository}
 }
 
-func (c *Service) Create(ctx context.Context, name string) error {
-	const op = "services.CategoryService.Create"
+func (c *service) Create(ctx context.Context, name string) error {
+	const op = "service.Create"
 
-	if name == "" {
-		return fmt.Errorf("%s: %w: category name cannot be empty", op, apperrors.ErrInvalidInput)
-	}
-
-	return c.repo.Create(ctx, name)
-}
-
-func (c *Service) Delete(ctx context.Context, name string) error {
-	const op = "services.CategoryService.Delete"
-
-	if name == "" {
-		return fmt.Errorf("%s: %w: category name cannot be empty", op, apperrors.ErrInvalidInput)
-	}
-
-	return c.repo.Delete(ctx, name)
-}
-
-func (c *Service) List(ctx context.Context, search string, page int, limit int) ([]models.Category, int64, error) {
-	offset := (page - 1) * limit
-
-	categories, total, err := c.repo.List(ctx, search, offset, limit)
+	err := c.repository.Create(ctx, name)
 	if err != nil {
-		return nil, 0, err
+		return fmt.Errorf("%s: %w: failed to create category", op, err)
 	}
-	return categories, total, nil
+
+	return nil
 }
 
-func (c *Service) Update(ctx context.Context, oldName string, newName string) error {
-	const op = "services.CategoryService.Update"
+func (c *service) Delete(ctx context.Context, name string) error {
+	const op = "service.Delete"
 
-	if oldName == "" {
-		return fmt.Errorf("%s: %w: old category name cannot be empty", op, apperrors.ErrInvalidInput)
+	err := c.repository.Delete(ctx, name)
+	if err != nil {
+		return fmt.Errorf("%s: %w: failed to delete category", op, err)
 	}
 
-	if newName == "" {
-		return fmt.Errorf("%s: %w: new category name cannot be empty", op, apperrors.ErrInvalidInput)
-	}
-
-	return c.repo.Update(ctx, oldName, newName)
+	return nil
 }
 
-func (c *Service) Exists(ctx context.Context, name string) (bool, error) {
-	const op = "services.CategoryService.Exists"
+func (c *service) List(ctx context.Context, search string, page, limit int) ([]string, int, error) {
+	const op = "service.List"
 
-	if name == "" {
-		return false, fmt.Errorf("%s: %w: category name cannot be empty", op, apperrors.ErrInvalidInput)
+	offset := (page - 1) * limit
+	categories, total, err := c.repository.List(ctx, search, offset, limit)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: %w: failed to list categories", op, err)
 	}
 
-	return c.repo.Exists(ctx, name)
+	items := make([]string, len(categories))
+	for i, cat := range categories {
+		items[i] = cat.Name
+	}
+
+	return items, total, nil
+}
+
+func (c *service) Update(ctx context.Context, oldName string, newName string) error {
+	const op = "service.Update"
+
+	err := c.repository.Update(ctx, oldName, newName)
+	if err != nil {
+		return fmt.Errorf("%s: %w: failed to update category", op, err)
+	}
+
+	return nil
+}
+
+func (c *service) Exists(ctx context.Context, name string) (bool, error) {
+	const op = "service.Exists"
+
+	exists, err := c.repository.Exists(ctx, name)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w: failed to check if category exists", op, err)
+	}
+
+	return exists, nil
 }

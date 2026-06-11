@@ -72,13 +72,6 @@ func run(ctx context.Context, w io.Writer) error {
 	timecodesRepository := repository.NewTimecodesRepo(rdb)
 	roomPresenceRepository := repository.NewRedisPresenceRepository(rdb)
 
-	mediaClient, err := grpcClient.NewMediaClient(cfg.Grpc.MediaServiceAddress)
-	if err != nil {
-		logger.Error("media service gRPC connection failed", slog.String("error", err.Error()))
-		return err
-	}
-	defer mediaClient.Close()
-
 	chatClient, err := grpcClient.NewChatClient(cfg.Grpc.ChatServiceAddress)
 	if err != nil {
 		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
