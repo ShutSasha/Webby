@@ -18,7 +18,7 @@ type messageRepo interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Message, error)
 	Update(ctx context.Context, id uuid.UUID, content string) (*models.Message, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	ListByChat(ctx context.Context, chatID uuid.UUID, offset, limit int) ([]models.Message, int64, error)
+	List(ctx context.Context, chatID uuid.UUID, offset, limit int) ([]models.Message, int, error)
 }
 
 type chatMemberExister interface {
@@ -125,7 +125,7 @@ func (s *messageService) SaveMessage(ctx context.Context, chatID, senderID uuid.
 	return nil
 }
 
-func (s *messageService) List(ctx context.Context, chatID, userID uuid.UUID, limit, page int) ([]models.RichMessage, int64, error) {
+func (s *messageService) List(ctx context.Context, chatID, userID uuid.UUID, limit, page int) ([]models.RichMessage, int, error) {
 	const op = "services.messageService.List"
 
 	isMember, err := s.chatMemberExister.Exists(ctx, chatID, userID)
@@ -144,7 +144,7 @@ func (s *messageService) List(ctx context.Context, chatID, userID uuid.UUID, lim
 	}
 	offset := (page - 1) * limit
 
-	messages, total, err := s.messageRepo.ListByChat(ctx, chatID, offset, limit)
+	messages, total, err := s.messageRepo.List(ctx, chatID, offset, limit)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: %w", op, err)
 	}
