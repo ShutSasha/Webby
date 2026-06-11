@@ -319,3 +319,18 @@ export async function addRoomMembersAction(roomId: string, userIds: string[]): P
     }
   }
 }
+export async function getRoomMemberPointsAction(roomId: string): Promise<BaseServerResponse<{ points: number }>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<{ points: number }>>(`/rooms/${roomId}/members/points`)
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_ROOM_MEMBER_POINTS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve member points',
+      errors: parseAxiosError(error),
+    }
+  }
+}

@@ -8,12 +8,16 @@ import { useRoomStore } from '@/stores/room.store'
 
 import { ChatMessage } from '../actions/chat.actions'
 
-export const useRoomWebSocket = (roomId: string | undefined, chatId: string | undefined) => {
+export const useRoomWebSocket = (
+  roomId: string | undefined,
+  chatId: string | undefined,
+  userId: string | undefined,
+) => {
   const socketRef = useRef<SocketIOClient.Socket | null>(null)
   const queryClient = useQueryClient()
 
   useEffect(() => {
-    if (!chatId || !roomId) return
+    if (!chatId || !roomId || !userId) return
 
     let isMounted = true
 
@@ -82,6 +86,26 @@ export const useRoomWebSocket = (roomId: string | undefined, chatId: string | un
           return updatedData
         })
       })
+
+      socket.on('ROOM_POINTS_UPDATED', (payload: { added_points: number; totals: Record<string, number> }) => {
+        if (!payload || !payload.totals) return
+
+        const myNewPoints = payload.totals[userId]
+
+        if (myNewPoints !== undefined) {
+          queryClient.setQueryData(['room-member-points', roomId], (oldData: any) => {
+            if (!oldData) return oldData
+
+            return {
+              ...oldData,
+              data: {
+                ...oldData.data,
+                points: myNewPoints,
+              },
+            }
+          })
+        }
+      })
     }
 
     connectSocket()
@@ -92,7 +116,7 @@ export const useRoomWebSocket = (roomId: string | undefined, chatId: string | un
         socketRef.current.disconnect()
       }
     }
-  }, [chatId, roomId, queryClient])
+  }, [chatId, roomId, userId, queryClient])
 
   return socketRef.current
 }
