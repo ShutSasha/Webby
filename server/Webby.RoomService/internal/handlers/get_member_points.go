@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -19,11 +17,9 @@ type getMemberPointsResponse struct {
 
 func (h *handler) GetMemberPoints(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("op", "handler.GetMemberPoints")
 
 	var uri getMemberPointsUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -32,7 +28,6 @@ func (h *handler) GetMemberPoints(c *gin.Context) {
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	points, err := h.roomMemberService.GetMemberPoints(ctx, roomID, userID)
 	if err != nil {
-		log.Debug("failed to get member points", slog.String("err", err.Error()))
 		HandleAppError(c, "failed to get member points", err)
 		return
 	}

@@ -9,12 +9,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type CategoryClient struct {
+type categoryClient struct {
 	client categorypb.CategoryGrpcServiceClient
 	conn   *grpc.ClientConn
 }
 
-func NewCategoryClient(address string) (*CategoryClient, error) {
+func NewCategoryClient(address string) (*categoryClient, error) {
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to category service: %w", err)
@@ -22,22 +22,20 @@ func NewCategoryClient(address string) (*CategoryClient, error) {
 
 	client := categorypb.NewCategoryGrpcServiceClient(conn)
 
-	return &CategoryClient{
+	return &categoryClient{
 		client: client,
 		conn:   conn,
 	}, nil
 }
 
-func (c *CategoryClient) Close() error {
+func (c *categoryClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *CategoryClient) Exists(ctx context.Context, name string) (bool, error) {
-	const op = "grpc.CategoryClient.Exists"
+func (c *categoryClient) Exists(ctx context.Context, name string) (bool, error) {
+	const op = "grpc.categoryClient.Exists"
 
-	resp, err := c.client.CategoryExists(ctx, &categorypb.CategoryExistsRequest{
-		Name: name,
-	})
+	resp, err := c.client.CategoryExists(ctx, &categorypb.CategoryExistsRequest{Name: name})
 	if err != nil {
 		return false, fmt.Errorf("%s for %q: %w", op, name, err)
 	}

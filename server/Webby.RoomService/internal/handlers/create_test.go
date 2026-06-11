@@ -166,7 +166,7 @@ func TestCreateRoom(t *testing.T) {
 			userID: userID.String(),
 			mockSetup: func(ms *handlermocks.MockroomService) {
 				ms.EXPECT().Create(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-					Return(nil, fmt.Errorf("category 'NonExistent': %w", apperrors.ErrInvalidInput)).Once()
+					Return(nil, fmt.Errorf("category 'NonExistent': %w", apperrors.ErrCategoryNotFound)).Once()
 			},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {

@@ -93,7 +93,7 @@ func TestUpdateRoom(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockroomService) {
 				newName := "New Name"
 				ms.EXPECT().Update(mock.Anything, roomID, userID, &newName, (*string)(nil), (*string)(nil), (*[]byte)(nil), (*bool)(nil)).
-					Return(nil, apperrors.ErrForbidden).Once()
+					Return(nil, apperrors.ErrNotHost).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 		},

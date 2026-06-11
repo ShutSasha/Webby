@@ -14,20 +14,16 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type RoomRepository struct {
+type roomRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewRoomRepository(db *pgxpool.Pool) *RoomRepository {
-	return &RoomRepository{db: db}
+func NewRoomRepository(db *pgxpool.Pool) *roomRepository {
+	return &roomRepository{db}
 }
 
-func (r *RoomRepository) Create(ctx context.Context, room *models.Room) (uuid.UUID, error) {
-	const op = "repository.RoomRepository.Create"
-
-	if room == nil {
-		return uuid.Nil, fmt.Errorf("%s: %w: room cannot be nil", op, apperrors.ErrInvalidInput)
-	}
+func (r *roomRepository) Create(ctx context.Context, room *models.Room) (uuid.UUID, error) {
+	const op = "repository.roomRepository.Create"
 
 	room.ID = uuid.New()
 
@@ -56,12 +52,8 @@ func (r *RoomRepository) Create(ctx context.Context, room *models.Room) (uuid.UU
 	return room.ID, nil
 }
 
-func (r *RoomRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	const op = "repository.RoomRepository.Delete"
-
-	if id == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
+func (r *roomRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	const op = "repository.roomRepository.Delete"
 
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Delete("rooms").
@@ -77,29 +69,17 @@ func (r *RoomRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("%s: room %s: %w", op, id.String(), apperrors.ErrNotFound)
+		return fmt.Errorf("%s: room %s: %w", op, id.String(), apperrors.ErrRoomNotFound)
 	}
 
 	return nil
 }
 
-func (r *RoomRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Room, error) {
-	const op = "repository.RoomRepository.GetByID"
-
-	if id == uuid.Nil {
-		return nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
+func (r *roomRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Room, error) {
+	const op = "repository.roomRepository.GetByID"
 
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Select(
-			"r.id",
-			"r.host_id",
-			"c.name",
-			"r.name",
-			"r.thumbnail",
-			"r.is_private",
-			"r.created_at",
-		).
+		Select("r.id", "r.host_id", "c.name", "r.name", "r.thumbnail", "r.is_private", "r.created_at").
 		From("rooms r").
 		Join("categories c ON c.id = r.category_id").
 		Where(sq.Eq{"r.id": id}).
@@ -121,7 +101,7 @@ func (r *RoomRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Roo
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("%s: room %s: %w", op, id.String(), apperrors.ErrNotFound)
+			return nil, fmt.Errorf("%s: room %s: %w", op, id.String(), apperrors.ErrRoomNotFound)
 		}
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -129,12 +109,8 @@ func (r *RoomRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Roo
 	return &room, nil
 }
 
-func (r *RoomRepository) ListMy(ctx context.Context, userID uuid.UUID, page, limit int, search, categoryName string) ([]models.Room, int64, error) {
-	const op = "repository.RoomRepository.ListMy"
-
-	if userID == uuid.Nil {
-		return nil, 0, fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
-	}
+func (r *roomRepository) ListMy(ctx context.Context, userID uuid.UUID, page, limit int, search, categoryName string) ([]models.Room, int64, error) {
+	const op = "repository.roomRepository.ListMy"
 
 	if page < 1 {
 		page = 1
@@ -230,7 +206,7 @@ func (r *RoomRepository) ListMy(ctx context.Context, userID uuid.UUID, page, lim
 	return rooms, total, nil
 }
 
-func (r *RoomRepository) ListPublic(ctx context.Context, page, limit int, search, category string) ([]models.PublicRoom, int64, error) {
+func (r *roomRepository) ListPublic(ctx context.Context, page, limit int, search, category string) ([]models.PublicRoom, int64, error) {
 	const op = "repository.RoomRepository.ListPublic"
 	log := logger.FromContext(ctx).With("op", op)
 
@@ -336,12 +312,8 @@ func (r *RoomRepository) ListPublic(ctx context.Context, page, limit int, search
 	return rooms, total, nil
 }
 
-func (r *RoomRepository) Update(ctx context.Context, room *models.Room) (uuid.UUID, error) {
-	const op = "repository.RoomRepository.Update"
-
-	if room == nil || room.ID == uuid.Nil {
-		return uuid.Nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
+func (r *roomRepository) Update(ctx context.Context, room *models.Room) (uuid.UUID, error) {
+	const op = "repository.roomRepository.Update"
 
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Update("rooms").
@@ -361,7 +333,7 @@ func (r *RoomRepository) Update(ctx context.Context, room *models.Room) (uuid.UU
 	}
 
 	if tag.RowsAffected() == 0 {
-		return uuid.Nil, fmt.Errorf("%s: room %s: %w", op, room.ID.String(), apperrors.ErrNotFound)
+		return uuid.Nil, fmt.Errorf("%s: %w", op, apperrors.ErrRoomNotFound)
 	}
 
 	return room.ID, nil

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -102,7 +101,7 @@ func TestAddMembers(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockroomMemberService) {
 				ms.EXPECT().AddMembers(mock.Anything, roomID, userID, mock.MatchedBy(func(ids []uuid.UUID) bool {
 					return len(ids) == 1
-				})).Return(apperrors.ErrForbidden).Once()
+				})).Return(apperrors.ErrNotHost).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody:   assertErrorResponse,
@@ -194,7 +193,7 @@ func TestRemoveMember(t *testing.T) {
 			memberIdPath: memberID.String(),
 			userID:       userID.String(),
 			mockSetup: func(ms *handlermocks.MockroomMemberService) {
-				ms.EXPECT().RemoveMember(mock.Anything, roomID, memberID, userID).Return(apperrors.ErrForbidden).Once()
+				ms.EXPECT().RemoveMember(mock.Anything, roomID, memberID, userID).Return(apperrors.ErrNotHost).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 		},
@@ -205,7 +204,7 @@ func TestRemoveMember(t *testing.T) {
 			userID:       userID.String(),
 			mockSetup: func(ms *handlermocks.MockroomMemberService) {
 				ms.EXPECT().RemoveMember(mock.Anything, roomID, memberID, userID).
-					Return(fmt.Errorf("%w: cannot remove the host from the room", apperrors.ErrInvalidInput)).Once()
+					Return(apperrors.ErrRemoveHost).Once()
 			},
 			expectedStatus: http.StatusBadRequest,
 		},

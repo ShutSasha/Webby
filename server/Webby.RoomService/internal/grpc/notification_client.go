@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type NotificationClient struct {
+type notificationClient struct {
 	client notificationpb.NotificationGrpcServiceClient
 	conn   *grpc.ClientConn
 }
 
-func NewNotificationClient(address string) (*NotificationClient, error) {
+func NewNotificationClient(address string) (*notificationClient, error) {
 	const op = "grpc.NewNotificationClient"
 
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -25,17 +25,17 @@ func NewNotificationClient(address string) (*NotificationClient, error) {
 
 	client := notificationpb.NewNotificationGrpcServiceClient(conn)
 
-	return &NotificationClient{
+	return &notificationClient{
 		client: client,
 		conn:   conn,
 	}, nil
 }
 
-func (c *NotificationClient) Close() error {
+func (c *notificationClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *NotificationClient) SendNotificationToUser(ctx context.Context, userID, roomID uuid.UUID) error {
+func (c *notificationClient) SendNotificationToUser(ctx context.Context, userID, roomID uuid.UUID) error {
 	const op = "grpc.NotificationClient.SendNotificationToUser"
 
 	_, err := c.client.SendNotificationToUser(ctx, &notificationpb.CreateNotificationRequest{

@@ -85,7 +85,7 @@ func TestGetRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockroomService) {
-				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(nil, fmt.Errorf("room: %w", apperrors.ErrNotFound)).Once()
+				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(nil, fmt.Errorf("room: %w", apperrors.ErrRoomNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   assertErrorResponse,
@@ -95,7 +95,7 @@ func TestGetRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockroomService) {
-				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(nil, apperrors.ErrForbidden).Once()
+				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(nil, apperrors.ErrNotMember).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody:   assertErrorResponse,

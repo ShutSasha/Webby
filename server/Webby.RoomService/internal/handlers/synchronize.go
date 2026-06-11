@@ -1,19 +1,11 @@
 package handlers
 
 import (
-	"context"
-	"log/slog"
 	"net/http"
-	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
-
-type PlaybackSynchronizer interface {
-	ExecuteSynchronize(ctx context.Context, userID, roomID uuid.UUID) error
-	ExecuteReportTimecode(ctx context.Context, userID, roomID, syncID uuid.UUID, timecode int) error
-}
 
 type synchronizeUri struct {
 	RoomID string `uri:"id" binding:"required,uuid"`
@@ -21,11 +13,9 @@ type synchronizeUri struct {
 
 func (h *handler) Synchronize(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("op", "handlers.Synchronize")
 
 	var uri synchronizeUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -33,7 +23,6 @@ func (h *handler) Synchronize(c *gin.Context) {
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	if err := h.synchronizeService.Synchronize(ctx, userID, roomID); err != nil {
-		log.Error("sync error", slog.String("err", err.Error()))
 		HandleAppError(c, "Synchronization error", err)
 		return
 	}
