@@ -13,7 +13,9 @@ import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import Modal from '@/ui/components/shared/Modal'
 import SafeImage from '@/ui/components/shared/SafeImage'
 
+import { ChatAreaSkeleton } from './ChatAreaSkeleton'
 import ChatMessageInput from './ChatMessageInput'
+import { ChatNotFound } from './ChatNotFound'
 
 type Props = {
   chatId: string
@@ -52,6 +54,14 @@ export default function ChatArea({ chatId }: Props) {
     if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isMenuOpen])
+
+  if (isChatDetailsLoading) {
+    return <ChatAreaSkeleton />
+  }
+
+  if (!chatDetails) {
+    return <ChatNotFound />
+  }
 
   const handleDeleteChat = () => {
     deleteChat(chatId, {
