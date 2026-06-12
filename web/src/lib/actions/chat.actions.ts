@@ -163,3 +163,22 @@ export async function createPrivateChatAction(targetId: string): Promise<BaseSer
     }
   }
 }
+
+export async function deleteMessageAction(chatId: string, messageId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.delete<BaseServerResponse<null>>(
+      `${endpoint}/${chatId}/messages/${messageId}`,
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('DELETE_MESSAGE_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to delete message',
+      errors: parseAxiosError(error),
+    }
+  }
+}

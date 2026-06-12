@@ -90,6 +90,28 @@ export const useChatWebSocket = (chatId: string) => {
           return { ...oldData, pages: newPages }
         })
       })
+
+      socket.on('MESSAGE_DELETED', (payload: { id: string }) => {
+        if (!payload || !payload.id) return
+
+        queryClient.setQueryData(['chat-messages', chatId], (oldData: any) => {
+          if (!oldData || !oldData.pages) return oldData
+
+          const newPages = oldData.pages.map((page: any) => {
+            if (!page.data || !page.data.items) return page
+
+            return {
+              ...page,
+              data: {
+                ...page.data,
+                items: page.data.items.filter((msg: any) => msg.id !== payload.id),
+              },
+            }
+          })
+
+          return { ...oldData, pages: newPages }
+        })
+      })
     }
 
     connectSocket()

@@ -8,14 +8,13 @@ import { useSession } from 'next-auth/react'
 import MoreVerticalIcon from '@/assets/icons/shared/more-vertical.svg'
 import { useDeleteChatMutation } from '@/lib/hooks/api/chat/useDeleteChat'
 import { useGetChatDetailsQuery } from '@/lib/hooks/api/chat/useGetChatDetails'
-import { useGetChatMessagesQuery } from '@/lib/hooks/api/chat/useGetChatMessages'
-import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import Modal from '@/ui/components/shared/Modal'
 import SafeImage from '@/ui/components/shared/SafeImage'
 
 import { ChatAreaSkeleton } from './ChatAreaSkeleton'
 import ChatMessageInput from './ChatMessageInput'
 import { ChatNotFound } from './ChatNotFound'
+import ChatMessagesList from './PrivateChat/ChatMessagesList'
 
 type Props = {
   chatId: string
@@ -29,21 +28,8 @@ export default function ChatArea({ chatId }: Props) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useGetChatMessagesQuery(chatId)
   const { mutate: deleteChat, isPending: isDeleting } = useDeleteChatMutation()
-
-  const messages = data?.pages.flatMap(page => page.data?.items || []) || []
-
-  const lastElementRef = useInfiniteScroll({
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  })
-
   const { data: chatDetailsResponse, isLoading: isChatDetailsLoading } = useGetChatDetailsQuery(chatId)
-  const chatDetails = chatDetailsResponse?.data
-  const otherUser = chatDetails?.user
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -59,9 +45,13 @@ export default function ChatArea({ chatId }: Props) {
     return <ChatAreaSkeleton />
   }
 
+  const chatDetails = chatDetailsResponse?.data
+
   if (!chatDetails) {
     return <ChatNotFound />
   }
+
+  const otherUser = chatDetails.user
 
   const handleDeleteChat = () => {
     deleteChat(chatId, {
@@ -69,11 +59,6 @@ export default function ChatArea({ chatId }: Props) {
         setIsDeleteModalOpen(false)
       },
     })
-  }
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
@@ -137,56 +122,7 @@ export default function ChatArea({ chatId }: Props) {
         </div>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col-reverse gap-2">
-        {isLoading && messages.length === 0 ? (
-          <div className="text-center text-neutral-500 my-auto">Loading messages...</div>
-        ) : (
-          messages.map((msg, index) => {
-            const isMe = msg.sender.id === currentUserId
-            const isLast = index === messages.length - 1
-
-            const messageBlock = (
-              <div className={`flex flex-col max-w-[70%] ${isMe ? 'self-end items-end' : 'self-start items-start'}`}>
-                <div
-                  className={`px-4 py-2.5 flex items-end gap-3 shadow-sm ${
-                    isMe
-                      ? 'bg-emerald-500 text-neutral-950 rounded-2xl rounded-br-sm border border-neutral-800/50'
-                      : 'bg-neutral-800 text-neutral-300 rounded-2xl rounded-bl-sm font-medium'
-                    }`}
-                >
-                  <p className="text-[15px] leading-relaxed break-all whitespace-pre-wrap">{msg.content}</p>
-                  <span
-                    className={`text-[10px] shrink-0 translate-y-0.5 ${
-                      isMe ? 'text-emerald-900/75' : ' text-neutral-600'
-                    }`}
-                  >
-                    {formatTime(msg.createdAt)}
-                  </span>
-                </div>
-              </div>
-            )
-
-            if (isLast) {
-              return (
-                <div key={msg.id} ref={lastElementRef} className="flex flex-col">
-                  {messageBlock}
-                </div>
-              )
-            }
-
-            return (
-              <div key={msg.id} className="flex flex-col">
-                {messageBlock}
-              </div>
-            )
-          })
-        )}
-
-        {isFetchingNextPage && (
-          <div className="text-center text-xs text-neutral-500 py-2">Loading older messages...</div>
-        )}
-      </div>
+      <ChatMessagesList chatId={chatId} currentUserId={currentUserId} />
       <ChatMessageInput chatId={chatId} />
 
       {/* Delete Confirmation Modal */}
