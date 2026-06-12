@@ -4,6 +4,7 @@ using UserService;
 using Webby.VideoService.Dtos.Event;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.Search;
+using Webby.VideoService.Dtos.Statistic;
 using Webby.VideoService.Dtos.Stream;
 using Webby.VideoService.Dtos.User;
 using Webby.VideoService.Dtos.Video;
@@ -770,6 +771,60 @@ public class VideoService : IVideoService
             await _videoRepository.DeleteAsync(video.VideoId);
             break;
       }
+   } 
+  public async Task<VideoStatisticDto> GetVideoStatisticAsync(string videoId, Guid requestUserId, int? year, int? month, int? day)
+   {
+       var parsedPlatform = PlatformPrefixToPlatformConverter.ParseLocalPlatform(videoId);
+       if (parsedPlatform == null)
+       {
+          throw new ApiException("Get statistic error", 400, "Invalid id prefix type");
+       }
+       
+       var (_, actualId) = parsedPlatform.Value;
+
+       if (!Guid.TryParse(actualId, out var parsedVideoId))
+       {
+           throw new ApiException("Validation error", 400, "Invalid video ID format");
+       }
+
+       var video = await _videoRepository.FindById(parsedVideoId)
+           ?? throw new ApiException("Get statistic error", 404, "Video wasn't found");
+
+       if (video.UserId != requestUserId)
+       {
+           throw new ApiException("Get video statistic error", 403, "You don't have permission to get statistics for this video");
+       }
+
+       var now = DateTime.UtcNow;
+       var targetYear = year is > 0 ? year.Value : now.Year;
+       var targetMonth = month is >= 1 and <= 12 ? month.Value : now.Month;
+       var daysInMonth = DateTime.DaysInMonth(targetYear, targetMonth);
+       var targetDay = day is > 0 && day <= daysInMonth ? day.Value : 1;
+
+       var totalViews = await _videoRepository.CountUserView(parsedVideoId);
+       var dbViewsTrend = await _videoRepository.GetVideoDailyViewsTrendForMonthAsync(parsedVideoId, targetYear, targetMonth);
+       var dbHourlyActivity = await _videoRepository.GetVideoHourlyActivityForDayAsync(parsedVideoId, targetYear, targetMonth, targetDay);
+
+       var trendDict = dbViewsTrend.ToDictionary(v => v.Date, v => v.ViewsCount);
+       
+       var fullMonthViews = Enumerable.Range(1, daysInMonth)
+           .Select(d => new DateTime(targetYear, targetMonth, d, 0, 0, 0, DateTimeKind.Utc))
+           .Select(date => new DailyViewsDto(date, trendDict.GetValueOrDefault(date, 0)))
+           .ToList();
+
+       var hourlyDict = dbHourlyActivity.ToDictionary(h => h.Hour, h => h.ViewsCount);
+       
+       var fullHourlyActivity = Enumerable.Range(0, 24)
+           .Select(h => new HourlyActivityDto(h, hourlyDict.GetValueOrDefault(h, 0)))
+           .ToList();
+
+       return new VideoStatisticDto
+       {
+           TotalViews = totalViews,
+           TotalSecondsWatched = totalViews * video.Duration,
+           ViewsTrend = fullMonthViews,
+           HourlyActivity = fullHourlyActivity
+       };
    }
 
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>

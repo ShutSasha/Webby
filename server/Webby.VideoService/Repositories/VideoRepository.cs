@@ -2,6 +2,7 @@
 using Npgsql;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Data;
+using Webby.VideoService.Dtos.Statistic;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Models;
 using Webby.VideoService.Models.Enums;
@@ -295,5 +296,49 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
        }
 
        return (items, total, seed);
+   }
+   
+   public async Task<List<DailyViewsDto>> GetVideoDailyViewsTrendForMonthAsync(Guid videoId, int year, int month)
+   {
+       var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+       var endDate = startDate.AddMonths(1);
+
+       var queryResult = await _context.UserViews
+           .AsNoTracking()
+           .Where(uv => uv.VideoId == videoId && uv.WatchedAt >= startDate && uv.WatchedAt < endDate)
+           .GroupBy(uv => uv.WatchedAt.Date)
+           .Select(g => new 
+           { 
+               Date = g.Key, 
+               ViewsCount = g.Count() 
+           })
+           .OrderBy(x => x.Date)
+           .ToListAsync();
+    
+       return queryResult
+           .Select(x => new DailyViewsDto(x.Date, x.ViewsCount))
+           .ToList();
+   }
+
+   public async Task<List<HourlyActivityDto>> GetVideoHourlyActivityForDayAsync(Guid videoId, int year, int month, int day)
+   {
+       var startDate = new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
+       var endDate = startDate.AddDays(1);
+
+       var queryResult = await _context.UserViews
+           .AsNoTracking()
+           .Where(uv => uv.VideoId == videoId && uv.WatchedAt >= startDate && uv.WatchedAt < endDate)
+           .GroupBy(uv => uv.WatchedAt.Hour)
+           .Select(g => new 
+           {
+               Hour = g.Key,
+               ViewsCount = g.Count()
+           })
+           .OrderBy(x => x.Hour)
+           .ToListAsync();
+    
+       return queryResult
+           .Select(x => new HourlyActivityDto(x.Hour, x.ViewsCount))
+           .ToList();
    }
 }

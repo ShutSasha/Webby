@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.Search;
+using Webby.VideoService.Dtos.Statistic;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Dtos.Video.Enums;
 using Webby.VideoService.Helpers.Exception;
@@ -21,8 +22,6 @@ public class VideoController: ControllerBase
    {
       _videoService = videoService;
    }
-
-
    
    [HttpGet("{videoId}")]
    [SwaggerOperation("Get video information")]
@@ -75,6 +74,16 @@ public class VideoController: ControllerBase
       var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
       var result = await _videoService.GetUserVideos(userId, requestUserId, request);
       return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved user videos", result));
+   }
+
+   [HttpGet("{videoId}/statistic")]
+   [SwaggerOperation("Get video statistic", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<VideoStatisticDto>>> GetVideoStatistic(string videoId,[FromQuery] GetStatisticRequest request)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      var statisticBlock = await _videoService
+         .GetVideoStatisticAsync(videoId,requestUserId.Value,request.Year,request.Month,request.Day);
+      return Ok(ApiResponse<VideoStatisticDto>.Ok("Sucessfully retrieved video statistic",statisticBlock));
    }
    
    [HttpGet("recommendation/{videoId}")]

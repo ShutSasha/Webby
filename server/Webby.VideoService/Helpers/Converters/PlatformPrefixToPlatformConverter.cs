@@ -38,6 +38,11 @@ public static class PlatformPrefixToPlatformConverter
             { PlatformPrefixesConstants.TwitchPrefix, SystemPlatforms.Twitch }
         };
     
+    private static readonly IReadOnlyDictionary<string, SystemPlatforms> LocalPlatformMap =
+        new Dictionary<string, SystemPlatforms>
+        {
+            { PlatformPrefixesConstants.WebbyPrefix, SystemPlatforms.Webby },
+        };
 
     private static PlatformParseResult<TEnum>? Parse<TEnum>(
         string prefixedId,
@@ -70,5 +75,8 @@ public static class PlatformPrefixToPlatformConverter
 
     public static PlatformParseResult<SystemPlatforms>? ParseSystemPlatform(string prefixedId)
         => Parse(prefixedId, SystemPlatformsMap);
+    
+    public static PlatformParseResult<SystemPlatforms>? ParseLocalPlatform(string prefixedId)
+        => Parse(prefixedId, LocalPlatformMap);
     
 }
