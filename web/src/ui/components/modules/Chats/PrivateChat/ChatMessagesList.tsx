@@ -17,7 +17,7 @@ type Props = {
 
 export default function ChatMessagesList({ chatId, currentUserId }: Props) {
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useGetChatMessagesQuery(chatId)
-  const { mutate: deleteMessage } = useDeleteMessageMutation()
+  const { mutate: deleteMessage, isPending: isDeletingMessage, variables: deleteVars } = useDeleteMessageMutation()
 
   const messages = data?.pages.flatMap(page => page.data?.items || []) || []
 
@@ -76,9 +76,14 @@ export default function ChatMessagesList({ chatId, currentUserId }: Props) {
             const isMe = msg.sender.id === currentUserId
             const isLast = index === messages.length - 1
 
+            const isDeleting = isDeletingMessage && deleteVars?.messageId === msg.id
+
             const messageBlock = (
               <div
-                className={`flex flex-col max-w-[70%] ${isMe ? 'self-end items-end' : 'self-start items-start'}`}
+                className={`flex flex-col max-w-[70%] transition-all duration-300 ease-out ${
+                  isMe ? 'self-end items-end' : 'self-start items-start'
+                }
+                  ${isDeleting ? 'opacity-40 scale-[0.98] pointer-events-none blur-[0.5px]' : 'opacity-100'}`}
                 onContextMenu={e => handleContextMenu(e, msg, isMe)}
               >
                 <div
