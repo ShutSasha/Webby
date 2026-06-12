@@ -28,6 +28,7 @@ type eventEnvelope struct {
 const eventTypeVotingStarted = "VOTING_STARTED"
 const eventTypeVotingResults = "VOTING_RESULTS"
 const eventTypeVotingLocked = "VOTING_LOCKED"
+const eventTypeVoteCasted = "VOTE_CASTED"
 
 type repository interface {
 	CreateVoteWithRightChoice(ctx context.Context, vote *models.Vote) error
@@ -38,6 +39,7 @@ type repository interface {
 	IsChoiceValid(ctx context.Context, voteID uuid.UUID, rightChoice string) (bool, error)
 	SetVotingRightOption(ctx context.Context, roomID, voteID uuid.UUID, rightChoice string) error
 	MarkVoteAsLocked(ctx context.Context, voteID uuid.UUID) error
+	CastVote(ctx context.Context, voteID, userID uuid.UUID, choice string) error
 }
 
 type roomHostGetter interface {
@@ -217,7 +219,7 @@ func (s *service) ResolveVoting(ctx context.Context, roomID, userID, voteID uuid
 	return nil
 }
 
-func (s *service) ListVotes(ctx context.Context, roomID, userID uuid.UUID) ([]models.EnrichedVoting, error) {
+func (s *service) ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]models.EnrichedVoting, error) {
 	const op = "service.ListVotes"
 
 	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
@@ -251,4 +253,31 @@ func (s *service) ListVotes(ctx context.Context, roomID, userID uuid.UUID) ([]mo
 	}
 
 	return enrichedVotings, nil
+}
+
+func (s *service) CastVote(ctx context.Context, roomID, voteID, userID uuid.UUID, choice string) error {
+	const op = "service.CastVote"
+
+	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
+	if err != nil {
+		return fmt.Errorf("%s, %w", op, err)
+	}
+	if !exists {
+		return fmt.Errorf("%s, %w", op, apperrors.ErrMemberNotFound)
+	}
+
+	isValid, err := s.repository.IsChoiceValid(ctx, voteID, choice)
+	if err != nil {
+		return fmt.Errorf("%s: validate choice: %w", op, err)
+	}
+	if !isValid {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrInvalidChoice)
+	}
+
+	err = s.repository.CastVote(ctx, voteID, userID, choice)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }

@@ -21,7 +21,6 @@ import (
 	"webby/vote-service/pkg/slogpretty"
 
 	"github.com/redis/go-redis/v9"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -135,37 +134,6 @@ func run(ctx context.Context, w io.Writer) error {
 		}
 	}()
 
-	grpcListener, err := net.Listen(
-		"tcp",
-		net.JoinHostPort(
-			cfg.Grpc.Host, strconv.Itoa(cfg.Grpc.Port),
-		),
-	)
-	if err != nil {
-		logger.Error("grpc listen failed", slog.Any("error", err))
-		return err
-	}
-
-	grpcSrv := grpc.NewServer()
-	votepb.RegisterVoteGrpcServiceServer(
-		grpcSrv,
-		grpcserver.NewVoteServer(voteRepo),
-	)
-
-	go func() {
-		logger.Info(
-			"gRPC server listening",
-			slog.String("host", cfg.Grpc.Host),
-			slog.Int("port", cfg.Grpc.Port),
-		)
-		if err := grpcSrv.Serve(grpcListener); err != nil {
-			logger.Error(
-				"error serving grpc",
-				slog.Any("error", err),
-			)
-		}
-	}()
-
 	var wg sync.WaitGroup
 	wg.Go(func() {
 		<-ctx.Done()
@@ -180,7 +148,6 @@ func run(ctx context.Context, w io.Writer) error {
 				slog.Any("error", err),
 			)
 		}
-		grpcSrv.GracefulStop()
 		logger.Info("server stopped gracefully")
 	})
 	wg.Wait()

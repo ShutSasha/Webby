@@ -225,4 +225,41 @@ func (r *repository) GetChoicesForVoting(ctx context.Context, voteID uuid.UUID) 
 	const op = "repository.GetChoicesForVoting"
 	optionsKey := fmt.Sprintf("votings:%s:options", voteID)
 
+	choices, err := r.client.SMembers(ctx, optionsKey).Result()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return choices, nil
+}
+
+func (r *repository) CastVote(ctx context.Context, voteID, userID uuid.UUID, choice string) error {
+	const op = "repository.CastVote"
+	key := fmt.Sprintf("votings:%s", voteID)
+	votesKey := fmt.Sprintf("votings:%s:user_choices", voteID)
+
+	err := r.client.Watch(ctx, func(tx *redis.Tx) error {
+		status, err := tx.HGet(ctx, key, "status").Result()
+		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				return fmt.Errorf("voting not found")
+			}
+			return err
+		}
+
+		if status != "active" {
+			return apperrors.ErrVotingLocked
+		}
+
+		_, err = tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+			pipe.HSet(ctx, votesKey, userID.String(), choice)
+			return nil
+		})
+		return err
+	}, key)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }

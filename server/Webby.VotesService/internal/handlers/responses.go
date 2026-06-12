@@ -77,11 +77,10 @@ func formatErrorMessage(fe validator.FieldError) string {
 
 func mapAppErrorToStatus(err error) int {
 	switch {
-	case errors.Is(err, apperrors.ErrNotFound),
-		errors.Is(err, apperrors.ErrMemberNotFound):
+	case errors.Is(err, apperrors.ErrMemberNotFound):
 		return http.StatusNotFound
-	case errors.Is(err, apperrors.ErrForbidden),
-		errors.Is(err, apperrors.ErrNotHost):
+	case errors.Is(err, apperrors.ErrNotHost),
+		errors.Is(err, apperrors.ErrVotingLocked):
 		return http.StatusForbidden
 	case errors.Is(err, apperrors.ErrAlreadyClosed):
 		return http.StatusConflict
@@ -94,18 +93,16 @@ func mapAppErrorToStatus(err error) int {
 
 func mapAppErrorToClientMessage(err error) string {
 	switch {
-	case errors.Is(err, apperrors.ErrNotFound):
-		return "Voting was not found"
 	case errors.Is(err, apperrors.ErrMemberNotFound):
 		return "You are not a member of this room"
-	case errors.Is(err, apperrors.ErrForbidden):
-		return "The action is forbidden"
 	case errors.Is(err, apperrors.ErrAlreadyClosed):
 		return "This voting is already closed"
 	case errors.Is(err, apperrors.ErrNotHost):
 		return "Only host of this room can perform this action"
 	case errors.Is(err, apperrors.ErrInvalidChoice):
 		return "There is no this choice in the voting"
+	case errors.Is(err, apperrors.ErrVotingLocked):
+		return "The voting is locked"
 	default:
 		return "An unexpected error occurred"
 	}
