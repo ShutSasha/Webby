@@ -23,17 +23,20 @@ func NewChatRepository(db *pgxpool.Pool) *chatRepository {
 }
 
 func (r *chatRepository) Create(ctx context.Context, chat *models.Chat) (uuid.UUID, error) {
-	const op = "repository.ChatRepository.Create"
+	const op = "repository.chatRepository.Create"
 
-	chat.ID = uuid.New()
+	query := sq.Insert("chats").
+		Columns("room_id").
+		Values(chat.RoomID).
+		Suffix("RETURNING id, created_at").
+		PlaceholderFormat(sq.Dollar)
 
-	query := `
-		INSERT INTO chats (id, room_id)
-		VALUES ($1, $2)
-		RETURNING created_at
-	`
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	err := r.db.QueryRow(ctx, query, chat.ID, chat.RoomID).Scan(&chat.CreatedAt)
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&chat.ID, &chat.CreatedAt)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -42,20 +45,20 @@ func (r *chatRepository) Create(ctx context.Context, chat *models.Chat) (uuid.UU
 }
 
 func (r *chatRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Chat, error) {
-	const op = "repository.ChatRepository.GetByID"
+	const op = "repository.chatRepository.GetByID"
 
-	if id == uuid.Nil {
-		return nil, fmt.Errorf("%s: %w: invalid chat id", op, apperrors.ErrInvalidInput)
+	query := sq.Select("id", "room_id", "created_at").
+		From("chats").
+		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
 	}
 
-	query := `
-		SELECT id, room_id, created_at
-		FROM chats
-		WHERE id = $1
-	`
-
 	var chat models.Chat
-	err := r.db.QueryRow(ctx, query, id).Scan(&chat.ID, &chat.RoomID, &chat.CreatedAt)
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&chat.ID, &chat.RoomID, &chat.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("%s: chat %s: %w", op, id.String(), apperrors.ErrChatNotFound)
@@ -67,23 +70,23 @@ func (r *chatRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Cha
 }
 
 func (r *chatRepository) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error) {
-	const op = "repository.ChatRepository.GetByRoomID"
+	const op = "repository.chatRepository.GetByRoomID"
 
-	if roomID == uuid.Nil {
-		return nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
+	query := sq.Select("id", "room_id", "created_at").
+		From("chats").
+		Where(sq.Eq{"room_id": roomID}).
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
 	}
 
-	query := `
-		SELECT id, room_id, created_at
-		FROM chats
-		WHERE room_id = $1
-	`
-
 	var chat models.Chat
-	err := r.db.QueryRow(ctx, query, roomID).Scan(&chat.ID, &chat.RoomID, &chat.CreatedAt)
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&chat.ID, &chat.RoomID, &chat.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("%s: room %s: %w", op, roomID.String(), apperrors.ErrChatNotFound)
+			return nil, fmt.Errorf("%s: %w", op, apperrors.ErrChatNotFound)
 		}
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -92,14 +95,23 @@ func (r *chatRepository) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*mo
 }
 
 func (r *chatRepository) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
-	const op = "repository.ChatRepository.GetChatIDByRoomID"
+	const op = "repository.chatRepository.GetChatIDByRoomID"
 
-	query := `SELECT id FROM chats WHERE room_id = $1`
+	query := sq.Select("id").
+		From("chats").
+		Where(sq.Eq{"room_id": roomID}).
+		PlaceholderFormat(sq.Dollar)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
 	var id uuid.UUID
-	err := r.db.QueryRow(ctx, query, roomID).Scan(&id)
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return uuid.Nil, fmt.Errorf("%s: room %s: %w", op, roomID.String(), apperrors.ErrChatNotFound)
+			return uuid.Nil, fmt.Errorf("%s: %w", op, apperrors.ErrChatNotFound)
 		}
 		return uuid.Nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -276,8 +288,9 @@ func (r *chatRepository) GetByMembers(ctx context.Context, firstUserID, secondUs
 
 	sql, args, err := sq.Select("c.id", "c.created_at").
 		From("chats c").
-		Join("chat_members cm1 ON cm1.user_id = ?", firstUserID).
-		Join("chat_members cm2 ON cm2.user_id = ?", secondUserID).
+		Join("chat_members cm1 ON c.id = cm1.chat_id").
+		Join("chat_members cm2 ON c.id = cm2.chat_id").
+		Where(sq.Eq{"cm1.user_id": firstUserID, "cm2.user_id": secondUserID}).
 		Where(sq.Eq{"c.room_id": nil}).
 		PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {

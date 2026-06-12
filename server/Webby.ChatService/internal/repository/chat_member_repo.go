@@ -111,7 +111,8 @@ func (r *chatMemberRepository) Exists(ctx context.Context, chatID, userID uuid.U
 		PlaceholderFormat(sq.Dollar).
 		Select("1").
 		From("chat_members").
-		Where(sq.Eq{"chat_id": chatID, "user_id": userID}).
+		Where(sq.Eq{"chat_id": chatID}).
+		Where(sq.Eq{"user_id": userID}).
 		Limit(1)
 
 	sql, args, err := query.ToSql()
