@@ -341,4 +341,68 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
            .Select(x => new HourlyActivityDto(x.Hour, x.ViewsCount))
            .ToList();
    }
+
+   public async Task<int> CountUserWatchedVideosAsync(Guid userId)
+   {
+       return await _context.UserViews.CountAsync(uv => uv.UserId == userId);
+   }
+
+   public async Task<long> GetUserTotalWatchTimeAsync(Guid userId)
+   {
+       var watchedVideoIds = _context.UserViews
+           .Where(uv => uv.UserId == userId)
+           .Select(uv => uv.VideoId);
+
+       return await _context.Videos
+           .AsNoTracking()
+           .Where(v => watchedVideoIds.Contains(v.VideoId))
+           .SumAsync(v => v.Duration);
+   }
+
+   public async Task<List<TagStatisticDto>> GetUserTopTagsAsync(Guid userId, int limit = 5)
+   {
+       var watchedVideoIds = _context.UserViews
+           .Where(uv => uv.UserId == userId)
+           .Select(uv => uv.VideoId);
+
+       var queryResult = await _context.Videos
+           .AsNoTracking()
+           .Where(v => watchedVideoIds.Contains(v.VideoId))
+           .SelectMany(v => v.VideoTags!)
+           .GroupBy(vt => vt.Tag.Name)
+           .Select(g => new 
+           {
+               TagName = g.Key,
+               WatchCount = g.Count()
+           })
+           .OrderByDescending(x => x.WatchCount)
+           .Take(limit)
+           .ToListAsync();
+
+       return queryResult
+           .Select(x => new TagStatisticDto { TagName = x.TagName, WatchCount = x.WatchCount })
+           .ToList();
+   }
+
+   public async Task<List<DailyViewsDto>> GetUserDailyWatchTrendForMonthAsync(Guid userId, int year, int month)
+   {
+       var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+       var endDate = startDate.AddMonths(1);
+
+       var queryResult = await _context.UserViews
+           .AsNoTracking()
+           .Where(uv => uv.UserId == userId && uv.WatchedAt >= startDate && uv.WatchedAt < endDate)
+           .GroupBy(uv => uv.WatchedAt.Date)
+           .Select(g => new 
+           { 
+               Date = g.Key, 
+               ViewsCount = g.Count() 
+           })
+           .OrderBy(x => x.Date)
+           .ToListAsync();
+    
+       return queryResult
+           .Select(x => new DailyViewsDto(x.Date, x.ViewsCount))
+           .ToList();
+   }
 }

@@ -26,5 +26,9 @@ public interface IVideoRepository : IRepository<Video>
    Task<List<string>> GetRecentUserViewTagsAsync(Guid userId, int limit = 30);
    Task<List<DailyViewsDto>> GetVideoDailyViewsTrendForMonthAsync(Guid videoId, int year, int month);
    Task<List<HourlyActivityDto>> GetVideoHourlyActivityForDayAsync(Guid videoId, int year, int month, int day);
+   Task<int> CountUserWatchedVideosAsync(Guid userId);
+   Task<long> GetUserTotalWatchTimeAsync(Guid userId);
+   Task<List<TagStatisticDto>> GetUserTopTagsAsync(Guid userId, int limit = 5);
+   Task<List<DailyViewsDto>> GetUserDailyWatchTrendForMonthAsync(Guid userId, int year, int month);
 
 }

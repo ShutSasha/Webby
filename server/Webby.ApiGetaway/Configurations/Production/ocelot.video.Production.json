@@ -212,6 +212,21 @@
       },
 
       {
+         "DownstreamPathTemplate": "/api/videos/{videoId}/statistic",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/{videoId}/statistic",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
          "DownstreamPathTemplate": "/api/videos/upload",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
