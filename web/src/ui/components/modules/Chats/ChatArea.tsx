@@ -6,14 +6,14 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 
 import MoreVerticalIcon from '@/assets/icons/shared/more-vertical.svg'
-import SendIcon from '@/assets/icons/shared/send_message.svg'
 import { useDeleteChatMutation } from '@/lib/hooks/api/chat/useDeleteChat'
 import { useGetChatDetailsQuery } from '@/lib/hooks/api/chat/useGetChatDetails'
 import { useGetChatMessagesQuery } from '@/lib/hooks/api/chat/useGetChatMessages'
-import { useSendMessageMutation } from '@/lib/hooks/api/chat/useSendMessage'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import Modal from '@/ui/components/shared/Modal'
 import SafeImage from '@/ui/components/shared/SafeImage'
+
+import ChatMessageInput from './ChatMessageInput'
 
 type Props = {
   chatId: string
@@ -23,13 +23,11 @@ export default function ChatArea({ chatId }: Props) {
   const { data: session } = useSession()
   const currentUserId = session?.user?.id
 
-  const [messageText, setMessageText] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useGetChatMessagesQuery(chatId)
-  const { mutate: sendMessage, isPending: isSending } = useSendMessageMutation()
   const { mutate: deleteChat, isPending: isDeleting } = useDeleteChatMutation()
 
   const messages = data?.pages.flatMap(page => page.data?.items || []) || []
@@ -54,26 +52,6 @@ export default function ChatArea({ chatId }: Props) {
     if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isMenuOpen])
-
-  const handleSendMessage = () => {
-    if (!messageText.trim() || isSending) return
-
-    sendMessage(
-      { chatId, content: messageText.trim() },
-      {
-        onSuccess: () => {
-          setMessageText('')
-        },
-      },
-    )
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
 
   const handleDeleteChat = () => {
     deleteChat(chatId, {
@@ -199,30 +177,7 @@ export default function ChatArea({ chatId }: Props) {
           <div className="text-center text-xs text-neutral-500 py-2">Loading older messages...</div>
         )}
       </div>
-
-      {/* Input Area */}
-      <div className="p-4 bg-neutral-900/20 border-t border-neutral-800/60">
-        <div className="relative flex items-center">
-          <input
-            type="text"
-            value={messageText}
-            onChange={e => setMessageText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Write a message..."
-            disabled={isSending}
-            className="w-full bg-[#141414] border border-neutral-800 text-neutral-200 placeholder:text-neutral-600
-              rounded-xl py-3.5 pl-5 pr-12 outline-none focus:border-neutral-600 transition-colors disabled:opacity-50"
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!messageText.trim() || isSending}
-            className="absolute right-3 p-1.5 text-neutral-500 hover:text-emerald-500 transition-colors
-              disabled:hover:text-neutral-500 disabled:opacity-50"
-          >
-            <SendIcon className="size-5" />
-          </button>
-        </div>
-      </div>
+      <ChatMessageInput chatId={chatId} />
 
       {/* Delete Confirmation Modal */}
       <Modal isOpen={isDeleteModalOpen} onClose={() => !isDeleting && setIsDeleteModalOpen(false)}>
