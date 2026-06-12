@@ -53,6 +53,42 @@ export const useChatWebSocket = (chatId: string) => {
 
           return { ...oldData, pages: newPages }
         })
+
+        queryClient.setQueriesData({ queryKey: ['chat-history'] }, (oldData: any) => {
+          if (!oldData || !oldData.pages) return oldData
+
+          let updatedChat: any = null
+
+          const newPages = oldData.pages.map((page: any) => {
+            if (!page.data || !page.data.items) return page
+
+            const filteredItems = page.data.items.filter((chat: any) => {
+              if (chat.chatId === chatId) {
+                updatedChat = { ...chat }
+                return false
+              }
+              return true
+            })
+
+            return {
+              ...page,
+              data: { ...page.data, items: filteredItems },
+            }
+          })
+
+          if (updatedChat) {
+            updatedChat.lastMessage = {
+              content: payload.content,
+              createdAt: payload.createdAt,
+            }
+
+            if (newPages[0]?.data?.items) {
+              newPages[0].data.items.unshift(updatedChat)
+            }
+          }
+
+          return { ...oldData, pages: newPages }
+        })
       })
     }
 
