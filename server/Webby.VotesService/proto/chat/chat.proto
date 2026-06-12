@@ -14,5 +14,5 @@ message GetChatIDByRoomIDRequest {
 }
 
 message ChatIDByRoomIDResponse {
-  string chatID = 1;
+  string chatID = 2;
 }

@@ -99,6 +99,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalError"
 
+  /api/rooms/{id}/votes:
     get:
       tags:
         - Votes
@@ -206,7 +207,7 @@ paths:
       summary: Resolve a vote and publish results
       description: |
         Resolve a vote by confirming the correct choice. This endpoint:
-        
+
         1. Validates that the provided `rightChoice` is one of the vote's choices
         2. Calculates which users voted for the correct choice (winners)
         3. Publishes the `VOTING_RESULTS` event to all room participants

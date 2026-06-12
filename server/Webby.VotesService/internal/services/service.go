@@ -76,6 +76,7 @@ func New(repository repository, roomHostGetter roomHostGetter, chatRetriever cha
 	return &service{
 		repository:     repository,
 		memberChecker:  memberChecker,
+		chatRetriever:  chatRetriever,
 		roomHostGetter: roomHostGetter,
 		queueItemMover: queueItemMover,
 		publisher:      publisher,
@@ -90,7 +91,7 @@ func (s *service) CreateWithRightChoice(ctx context.Context, roomID, userID uuid
 
 	hostID, err := s.roomHostGetter.GetRoomHost(ctx, roomID)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: get room host %w", op, err)
 	}
 	if hostID != userID {
 		return fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
@@ -111,7 +112,7 @@ func (s *service) CreateWithRightChoice(ctx context.Context, roomID, userID uuid
 	}
 	err = s.repository.CreateVoteWithRightChoice(ctx, vote)
 	if err != nil {
-		return fmt.Errorf("%s: craete vote %w", op, err)
+		return fmt.Errorf("%s: create vote %w", op, err)
 	}
 
 	err = s.repository.SaveChoices(ctx, voteID, choices)

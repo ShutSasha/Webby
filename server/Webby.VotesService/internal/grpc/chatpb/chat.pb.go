@@ -75,7 +75,7 @@ func (x *GetChatIDByRoomIDRequest) GetUserID() string {
 
 type ChatIDByRoomIDResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ChatID        string                 `protobuf:"bytes,1,opt,name=chatID,proto3" json:"chatID,omitempty"`
+	ChatID        string                 `protobuf:"bytes,2,opt,name=chatID,proto3" json:"chatID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -126,7 +126,7 @@ const file_proto_chat_chat_proto_rawDesc = "" +
 	"\x06roomID\x18\x01 \x01(\tR\x06roomID\x12\x16\n" +
 	"\x06userID\x18\x02 \x01(\tR\x06userID\"0\n" +
 	"\x16ChatIDByRoomIDResponse\x12\x16\n" +
-	"\x06chatID\x18\x01 \x01(\tR\x06chatID2d\n" +
+	"\x06chatID\x18\x02 \x01(\tR\x06chatID2d\n" +
 	"\x0fChatGrpcService\x12Q\n" +
 	"\x11GetChatIDByRoomID\x12\x1e.chat.GetChatIDByRoomIDRequest\x1a\x1c.chat.ChatIDByRoomIDResponseB)Z'webby/vote-service/internal/grpc/chatpbb\x06proto3"
 

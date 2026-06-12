@@ -46,5 +46,10 @@ func (m *chatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, us
 		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return uuid.Parse(resp.GetChatID())
+	chatID, err := uuid.Parse(resp.ChatID)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return chatID, nil
 }
