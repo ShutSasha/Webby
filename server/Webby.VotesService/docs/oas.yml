@@ -136,7 +136,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalError"
 
-  /api/rooms/{id}/votes/{voteId}/cast:
+  /api/rooms/{id}/votes/{voteId}/vote:
     post:
       tags:
         - Votes
@@ -154,14 +154,15 @@ paths:
       parameters:
         - $ref: "#/components/parameters/RoomId"
         - $ref: "#/components/parameters/VoteId"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CastVoteRequest"
-            example:
-              choice: "Jupiter"
+        - name: choice
+          in: query
+          description: The choice value to vote for (must be one of the vote's choices).
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+          example: Jupiter
       responses:
         "200":
           description: Vote cast successfully.

@@ -46,7 +46,7 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/cast",
+      "DownstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/vote",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -54,8 +54,8 @@
           "Port": 8084
         }
       ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/cast",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/vote",
+      "UpstreamHttpMethod": ["GET"],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }

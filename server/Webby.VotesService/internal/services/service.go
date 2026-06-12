@@ -28,7 +28,6 @@ type eventEnvelope struct {
 const eventTypeVotingStarted = "VOTING_STARTED"
 const eventTypeVotingResults = "VOTING_RESULTS"
 const eventTypeVotingLocked = "VOTING_LOCKED"
-const eventTypeVoteCasted = "VOTE_CASTED"
 
 type repository interface {
 	CreateVoteWithRightChoice(ctx context.Context, vote *models.Vote) error
