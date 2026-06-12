@@ -1,4 +1,3 @@
-import MailIcon from '@/assets/icons/ic_mail.svg'
 import { checkFollowing, getUser } from '@/lib/actions/user.actions'
 import { cn } from '@/lib/utils/general.utils'
 import EditProfileBtn from '@/ui/components/modules/Profile/EditProfileBtn'
@@ -7,8 +6,8 @@ import UserBioSection from '@/ui/components/modules/Profile/UserBioSection'
 import { BLUR_DATA_URLS } from '@/ui/images'
 import { auth } from '@/workspace/auth'
 
+import ChatButton from './ChatButton'
 import FollowButton from './FollowButton'
-import ActionButton from '../../shared/ActionButton'
 import ComplaintButton from '../../shared/ComplaintButton'
 import EmptyState from '../../shared/EmptyState'
 import SafeImage from '../../shared/SafeImage'
@@ -66,9 +65,7 @@ export default async function UserProfileInfo({ id }: { id: string }) {
           <div className="flex items-center gap-2">
             <FollowButton targetUserId={id} initialIsFollowing={isFollowing} currentUserId={session?.user.id} />
 
-            <ActionButton label="Chat">
-              <MailIcon className="w-4 h-4" />
-            </ActionButton>
+            <ChatButton targetUserId={id} />
           </div>
         )}
       </div>

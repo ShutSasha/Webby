@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 
 import MoreVerticalIcon from '@/assets/icons/shared/more-vertical.svg'
@@ -95,21 +96,29 @@ export default function ChatArea({ chatId }: Props) {
           bg-neutral-900/20"
       >
         <div className="flex items-center gap-3">
-          <SafeImage
-            src={otherUser?.avatarUrl || ''}
-            fallbackType="user"
-            alt="Avatar"
-            width={40}
-            height={40}
-            className="rounded-full object-cover size-10"
-          />
-          <span className="font-medium text-neutral-200">
-            {isChatDetailsLoading
-              ? 'Loading...'
-              : otherUser?.username?.startsWith('@')
-                ? otherUser.username
-                : `@${otherUser?.username}`}
-          </span>
+          {isChatDetailsLoading ? (
+            <>
+              <div className="size-10 rounded-full bg-neutral-800 animate-pulse shrink-0" />
+              <div className="h-5 w-32 bg-neutral-800 rounded-md animate-pulse" />
+            </>
+          ) : (
+            <>
+              <SafeImage
+                src={otherUser?.avatarUrl || ''}
+                fallbackType="user"
+                alt="Avatar"
+                width={40}
+                height={40}
+                className="rounded-full object-cover size-10"
+              />
+              <Link
+                href={`/profile/${otherUser?.id}`}
+                className="font-medium text-neutral-200 hover:underline hover:cursor-pointer"
+              >
+                {otherUser?.username?.startsWith('@') ? otherUser.username : `@${otherUser?.username}`}
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Dropdown Menu Area */}
@@ -161,7 +170,7 @@ export default function ChatArea({ chatId }: Props) {
                   <p className="text-[15px] leading-relaxed break-all whitespace-pre-wrap">{msg.content}</p>
                   <span
                     className={`text-[10px] shrink-0 translate-y-0.5 ${
-                      isMe ? 'text-emerald-900/60' : ' text-neutral-600'
+                      isMe ? 'text-emerald-900/75' : ' text-neutral-600'
                     }`}
                   >
                     {formatTime(msg.createdAt)}

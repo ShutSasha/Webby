@@ -139,3 +139,27 @@ export async function deleteChatAction(chatId: string): Promise<BaseServerRespon
     }
   }
 }
+
+export type CreateChatResponse = {
+  id: string
+  createdAt: string
+}
+
+export async function createPrivateChatAction(targetId: string): Promise<BaseServerResponse<CreateChatResponse>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<CreateChatResponse>>('/chats', {
+      targetId,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('CREATE_CHAT_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to create chat',
+      errors: parseAxiosError(error),
+    }
+  }
+}

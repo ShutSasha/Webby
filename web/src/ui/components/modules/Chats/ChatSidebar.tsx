@@ -12,6 +12,8 @@ import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import { cn } from '@/lib/utils/general.utils'
 import SafeImage from '@/ui/components/shared/SafeImage'
 
+import ChatItemSkeleton from './ChatItemSkeleton'
+
 export default function ChatSidebar() {
   const [searchValue, setSearchValue] = useState('')
   const [debouncedSearch] = useDebounce(searchValue, 300)
@@ -49,7 +51,7 @@ export default function ChatSidebar() {
       {/* Chat List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-2 flex flex-col gap-1">
         {isLoading && chats.length === 0 ? (
-          <div className="p-4 text-center text-sm text-neutral-500">Loading chats...</div>
+          Array.from({ length: 9 }).map((_, index) => <ChatItemSkeleton key={index} />)
         ) : chats.length > 0 ? (
           chats.map((chat, index) => {
             const isLast = chats.length === index + 1
