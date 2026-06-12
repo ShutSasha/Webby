@@ -16,6 +16,7 @@ type chatReposotory interface {
 	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
 	History(ctx context.Context, userID uuid.UUID, userIDs []uuid.UUID) ([]models.ChatHistoryItem, int, error)
 	Exists(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error)
+	GetByMembers(ctx context.Context, firstUserID, secondUserID uuid.UUID) (*models.Chat, error)
 	Delete(ctx context.Context, chatID uuid.UUID) error
 }
 
@@ -85,12 +86,9 @@ func (s *chatService) CreatePrivate(ctx context.Context, initiatorID, targetID u
 		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrNotFollowed)
 	}
 
-	exists, err := s.chatRepository.Exists(ctx, initiatorID, targetID)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-	if exists {
-		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrPrivateChatAlreadyExists)
+	existing, err := s.chatRepository.GetByMembers(ctx, initiatorID, targetID)
+	if err == nil && existing != nil {
+		return existing, nil
 	}
 
 	// TODO: leverage tx outbox pattern

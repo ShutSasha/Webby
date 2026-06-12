@@ -270,3 +270,25 @@ func (r *chatRepository) Delete(ctx context.Context, chatID uuid.UUID) error {
 
 	return nil
 }
+
+func (r *chatRepository) GetByMembers(ctx context.Context, firstUserID, secondUserID uuid.UUID) (*models.Chat, error) {
+	const op = "repository.chatRepository.GetByMembers"
+
+	sql, args, err := sq.Select("c.id", "c.created_at").
+		From("chats c").
+		Join("chat_members cm1 ON cm1.user_id = ?", firstUserID).
+		Join("chat_members cm2 ON cm2.user_id = ?", secondUserID).
+		Where(sq.Eq{"c.room_id": nil}).
+		PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to build sql query: %w", op, err)
+	}
+
+	var chat models.Chat
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&chat.ID, &chat.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: exec query: %w", op, err)
+	}
+
+	return &chat, nil
+}
