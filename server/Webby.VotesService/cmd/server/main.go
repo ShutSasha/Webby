@@ -15,6 +15,7 @@ import (
 	"webby/vote-service/internal/config"
 	grpcserver "webby/vote-service/internal/grpc"
 	httpserver "webby/vote-service/internal/handlers"
+	"webby/vote-service/internal/publisher"
 	"webby/vote-service/internal/repository"
 	"webby/vote-service/internal/services"
 	"webby/vote-service/pkg/slogpretty"
@@ -52,6 +53,7 @@ func run(ctx context.Context, w io.Writer) error {
 	})
 	defer rdb.Close()
 
+	publisher := publisher.New(rdb)
 	logger.Info("redis connected successfully")
 
 	voteRepo := repository.NewRepository(rdb)
@@ -80,6 +82,13 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer roomClient.Close()
 
+	chatClient, err := grpcserver.NewChatClient(cfg.Grpc.ChatServiceAddress)
+	if err != nil {
+		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
+		chatClient = nil
+	}
+	defer chatClient.Close()
+
 	var queueClient *grpcserver.QueueClient
 	if cfg.Grpc.QueueServiceAddress != "" {
 		queueClient, err = grpcserver.NewQueueClient(
@@ -97,9 +106,7 @@ func run(ctx context.Context, w io.Writer) error {
 		}
 	}
 
-	voteService := services.New(
-		voteRepo, memberClient, roomClient, queueClient,
-	)
+	voteService := services.New(voteRepo, roomClient, chatClient, memberClient, queueClient, publisher)
 
 	logger.Info("services initialized")
 

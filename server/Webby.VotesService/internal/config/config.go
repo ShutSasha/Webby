@@ -25,6 +25,7 @@ type HttpConfig struct {
 type GrpcConfig struct {
 	Host                string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
 	Port                int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
+	ChatServiceAddress  string `yaml:"chatServiceAddress" env-default:"localhost:5008" env:"GRPC_CHAT_SERVICE_ADDRESS"`
 	RoomServiceAddress  string `yaml:"roomServiceAddress" env-default:"localhost:5006" env:"GRPC_ROOM_SERVICE_ADDRESS"`
 	QueueServiceAddress string `yaml:"queueServiceAddress" env-default:"localhost:5007" env:"GRPC_QUEUE_SERVICE_ADDRESS"`
 }

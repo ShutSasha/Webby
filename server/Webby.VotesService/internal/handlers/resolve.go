@@ -34,7 +34,6 @@ func (h *handler) ResolveVoting(c *gin.Context) {
 	roomID, _ := uuid.Parse(uri.RoomID)
 	voteID, _ := uuid.Parse(uri.VoteID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-
 	err := h.service.ResolveVoting(ctx, roomID, userID, voteID, req.RightChoice)
 	if err != nil {
 		HandleAppError(c, "Resolve vote error", err)

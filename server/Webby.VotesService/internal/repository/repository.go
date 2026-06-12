@@ -220,3 +220,9 @@ func (r *repository) DeleteVote(ctx context.Context, id uuid.UUID) error {
 
 	return nil
 }
+
+func (r *repository) GetChoicesForVoting(ctx context.Context, voteID uuid.UUID) ([]string, error) {
+	const op = "repository.GetChoicesForVoting"
+	optionsKey := fmt.Sprintf("votings:%s:options", voteID)
+
+}

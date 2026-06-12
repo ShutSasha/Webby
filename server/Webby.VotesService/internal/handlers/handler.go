@@ -10,7 +10,7 @@ import (
 type service interface {
 	CreateWithRightChoice(ctx context.Context, roomID, userID uuid.UUID, voteText string, duration int, choices []string) error
 	ResolveVoting(ctx context.Context, roomID, userID, voteID uuid.UUID, rightChoice string) error
-	ListVotes(ctx context.Context, roomID, userID uuid.UUID) ([]models.EnrichedVoting, error)
+	ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]models.EnrichedVoting, error)
 	CastVote(ctx context.Context, voteId, choiceId, userId uuid.UUID) error
 	RemoveVote(ctx context.Context, voteId, userId uuid.UUID) error
 	DeleteVote(ctx context.Context, voteId, userId uuid.UUID) error
