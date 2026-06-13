@@ -9,12 +9,16 @@ import RoomCard, { RoomCardSkeleton } from '../RoomCard'
 type Props = {
   query: string
   category: string
+  limit?: number
+  gridClassName?: string
 }
 
-export default function RoomsContainer({ query, category }: Props) {
+export default function RoomsContainer({ query, category, limit, gridClassName }: Props) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = usePublicRoomsQuery(query, category)
 
-  const rooms = data?.pages.flatMap(page => page?.data?.items || []) || []
+  const allRooms = data?.pages.flatMap(page => page?.data?.items || []) || []
+
+  const rooms = limit ? allRooms.slice(0, limit) : allRooms
 
   const lastElementRef = useInfiniteScroll({
     isLoading,
@@ -25,8 +29,8 @@ export default function RoomsContainer({ query, category }: Props) {
 
   if (isLoading && rooms.length === 0) {
     return (
-      <GridCardsContainer>
-        {[...new Array(12)].map((_, idx) => (
+      <GridCardsContainer className={gridClassName}>
+        {[...new Array(limit || 12)].map((_, idx) => (
           <RoomCardSkeleton key={idx} />
         ))}
       </GridCardsContainer>
@@ -48,7 +52,7 @@ export default function RoomsContainer({ query, category }: Props) {
 
   return (
     <>
-      <GridCardsContainer>
+      <GridCardsContainer className={gridClassName}>
         {rooms.map((room, index) => {
           const isLast = rooms.length === index + 1
 
@@ -64,7 +68,7 @@ export default function RoomsContainer({ query, category }: Props) {
             />
           )
 
-          if (isLast) {
+          if (isLast && !limit) {
             return (
               <div ref={lastElementRef} key={`last-${room.id}`}>
                 {item}
@@ -76,7 +80,7 @@ export default function RoomsContainer({ query, category }: Props) {
         })}
       </GridCardsContainer>
 
-      {isFetchingNextPage && (
+      {isFetchingNextPage && !limit && (
         <div className="w-full flex justify-center py-8">
           <div className="size-6 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
         </div>
