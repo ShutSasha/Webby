@@ -12,14 +12,16 @@ import (
 func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 	requireAuth := auth.AuthMiddleware([]byte(cfg.JwtSecret))
 
-	api := router.Group("/api/rooms/:id/votes")
+	api := router.Group("/api/rooms/:id")
 	api.Use(requireAuth)
 	{
-		api.GET("", handler.List)
-		api.POST("/right-choice", handler.CreateRightChoiceVoting)
-		api.POST("/next-video", handler.CreateNextVideoVoting)
-		api.POST("/:voteId/resolve", handler.ResolveVoting)
-		api.POST("/:voteId/vote", handler.CastVote)
+		api.GET("/votes", handler.List)
+		api.POST("/votes/right-choice", handler.CreateRightChoiceVoting)
+		api.POST("/votes/:voteId/resolve", handler.ResolveVoting)
+		api.POST("/votes/:voteId/vote", handler.CastVote)
+		api.POST("/votes/next-video", handler.CreateNextVideoVoting)
+		api.POST("/votes/next-video/vote", handler.VoteForNext)
+		api.POST("/has-next-video-voting", handler.HasNextVideoVoting)
 	}
 
 	router.GET("/swagger", swaggerUI)

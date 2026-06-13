@@ -319,9 +319,9 @@ func (r *repository) CreateVotingForNextVideo(ctx context.Context, roomID uuid.U
 	const op = "repository.CreateVotingForNextVideo"
 	key := "rooms:nextvideo"
 
-	cmd := r.client.SAdd(ctx, key, roomID.String())
-	if cmd.Err() != nil {
-		return fmt.Errorf("%s: create voting: %w", op, cmd.Err())
+	err := r.client.SAdd(ctx, key, roomID.String()).Err()
+	if err != nil {
+		return fmt.Errorf("%s: create voting: %w", op, err)
 	}
 
 	return nil
@@ -332,22 +332,50 @@ func (r *repository) GetNextVideoResults(ctx context.Context, roomID uuid.UUID) 
 	log := logger.FromContext(ctx).With("op", op)
 
 	votesKey := fmt.Sprintf("votings:%s:user_choices", roomID)
+	activeVotingsKey := "rooms:nextvideo"
 
 	allVotes, err := r.client.HGetAll(ctx, votesKey).Result()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	results := make(map[uuid.UUID]int, 0)
-	for _, choice := range allVotes {
+	results := make(map[uuid.UUID]int)
+	for userID, choice := range allVotes {
 		choiceID, parseErr := uuid.Parse(choice)
 		if parseErr != nil {
 			log.Warn("Failed to parse choidce ID, removing from set", "choice", choice)
-			r.client.SRem(ctx, votesKey, choice)
+			r.client.HDel(ctx, votesKey, userID)
 			continue
 		}
 		results[choiceID]++
 	}
 
+	r.client.Expire(ctx, votesKey, 30*time.Second)
+	r.client.SRem(ctx, activeVotingsKey, roomID.String())
+
 	return results, nil
+}
+
+func (r *repository) VoteForNextVideo(ctx context.Context, roomID, userID, queueItemID uuid.UUID) error {
+	const op = "repository.VoteForNextVideo"
+
+	votesKey := fmt.Sprintf("votings:%s:user_choices", roomID)
+	err := r.client.HSet(ctx, votesKey, userID.String(), queueItemID.String()).Err()
+	if err != nil {
+		return fmt.Errorf("%s: cast vote: %w", op, err)
+	}
+
+	return nil
+}
+
+func (r *repository) HasNextVideoVoting(ctx context.Context, roomID uuid.UUID) (bool, error) {
+	const op = "repository.HasNextVideoVoting"
+
+	key := "rooms:nextvideo"
+	hasVoting, err := r.client.SIsMember(ctx, key, roomID.String()).Result()
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return hasVoting, nil
 }

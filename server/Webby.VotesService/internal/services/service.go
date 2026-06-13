@@ -45,6 +45,8 @@ type repository interface {
 	CastVote(ctx context.Context, voteID, userID uuid.UUID, choice string) error
 	CreateVotingForNextVideo(ctx context.Context, roomID uuid.UUID) error
 	GetNextVideoResults(ctx context.Context, roomID uuid.UUID) (map[uuid.UUID]int, error)
+	VoteForNextVideo(ctx context.Context, roomID, userID, queueItemID uuid.UUID) error
+	HasNextVideoVoting(ctx context.Context, roomID uuid.UUID) (bool, error)
 }
 
 type roomHostGetter interface {
@@ -233,7 +235,7 @@ func (s *service) ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]
 		return nil, fmt.Errorf("%s, %w", op, err)
 	}
 	if !exists {
-		return nil, fmt.Errorf("%s, %w", op, apperrors.ErrMemberNotFound)
+		return nil, fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
 	}
 
 	votes, err := s.repository.ListByRoom(ctx, roomID)
@@ -274,7 +276,7 @@ func (s *service) CastVote(ctx context.Context, roomID, voteID, userID uuid.UUID
 		return fmt.Errorf("%s, %w", op, err)
 	}
 	if !exists {
-		return fmt.Errorf("%s, %w", op, apperrors.ErrMemberNotFound)
+		return fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
 	}
 
 	isValid, err := s.repository.IsChoiceValid(ctx, voteID, choice)
@@ -362,4 +364,42 @@ func (s *service) CreateVotingForNextVideo(ctx context.Context, roomID, userID u
 	}(timeoutCtx, roomID, chatID)
 
 	return nil
+}
+
+func (s *service) VoteForNextVideo(ctx context.Context, roomID, userID, queueItemID uuid.UUID) error {
+	const op = "service.VoteForNextVideo"
+
+	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
+	if err != nil {
+		return fmt.Errorf("%s, %w", op, err)
+	}
+	if !exists {
+		return fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
+	}
+
+	err = s.repository.VoteForNextVideo(ctx, roomID, userID, queueItemID)
+	if err != nil {
+		return fmt.Errorf("%s, %w", op, err)
+	}
+
+	return nil
+}
+
+func (s *service) HasNextVideoVoting(ctx context.Context, roomID, userID uuid.UUID) (bool, error) {
+	const op = "service.HasNextVideoVoting"
+
+	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
+	if err != nil {
+		return false, fmt.Errorf("%s, %w", op, err)
+	}
+	if !exists {
+		return false, fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
+	}
+
+	hasVoting, err := s.repository.HasNextVideoVoting(ctx, roomID)
+	if err != nil {
+		return false, fmt.Errorf("%s, %w", op, err)
+	}
+
+	return hasVoting, nil
 }
