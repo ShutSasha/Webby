@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,14 +20,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	QueueGrpcService_MoveToTop_FullMethodName = "/queue.QueueGrpcService/MoveToTop"
+	QueueGrpcService_MakeNext_FullMethodName = "/queue.QueueGrpcService/MakeNext"
 )
 
 // QueueGrpcServiceClient is the client API for QueueGrpcService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type QueueGrpcServiceClient interface {
-	MoveToTop(ctx context.Context, in *MoveToTopRequest, opts ...grpc.CallOption) (*MoveToTopResponse, error)
+	MakeNext(ctx context.Context, in *MakeNextRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type queueGrpcServiceClient struct {
@@ -37,10 +38,10 @@ func NewQueueGrpcServiceClient(cc grpc.ClientConnInterface) QueueGrpcServiceClie
 	return &queueGrpcServiceClient{cc}
 }
 
-func (c *queueGrpcServiceClient) MoveToTop(ctx context.Context, in *MoveToTopRequest, opts ...grpc.CallOption) (*MoveToTopResponse, error) {
+func (c *queueGrpcServiceClient) MakeNext(ctx context.Context, in *MakeNextRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MoveToTopResponse)
-	err := c.cc.Invoke(ctx, QueueGrpcService_MoveToTop_FullMethodName, in, out, cOpts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, QueueGrpcService_MakeNext_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (c *queueGrpcServiceClient) MoveToTop(ctx context.Context, in *MoveToTopReq
 // All implementations must embed UnimplementedQueueGrpcServiceServer
 // for forward compatibility.
 type QueueGrpcServiceServer interface {
-	MoveToTop(context.Context, *MoveToTopRequest) (*MoveToTopResponse, error)
+	MakeNext(context.Context, *MakeNextRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedQueueGrpcServiceServer()
 }
 
@@ -62,8 +63,8 @@ type QueueGrpcServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedQueueGrpcServiceServer struct{}
 
-func (UnimplementedQueueGrpcServiceServer) MoveToTop(context.Context, *MoveToTopRequest) (*MoveToTopResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method MoveToTop not implemented")
+func (UnimplementedQueueGrpcServiceServer) MakeNext(context.Context, *MakeNextRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method MakeNext not implemented")
 }
 func (UnimplementedQueueGrpcServiceServer) mustEmbedUnimplementedQueueGrpcServiceServer() {}
 func (UnimplementedQueueGrpcServiceServer) testEmbeddedByValue()                          {}
@@ -86,20 +87,20 @@ func RegisterQueueGrpcServiceServer(s grpc.ServiceRegistrar, srv QueueGrpcServic
 	s.RegisterService(&QueueGrpcService_ServiceDesc, srv)
 }
 
-func _QueueGrpcService_MoveToTop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MoveToTopRequest)
+func _QueueGrpcService_MakeNext_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MakeNextRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueueGrpcServiceServer).MoveToTop(ctx, in)
+		return srv.(QueueGrpcServiceServer).MakeNext(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: QueueGrpcService_MoveToTop_FullMethodName,
+		FullMethod: QueueGrpcService_MakeNext_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueueGrpcServiceServer).MoveToTop(ctx, req.(*MoveToTopRequest))
+		return srv.(QueueGrpcServiceServer).MakeNext(ctx, req.(*MakeNextRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +113,8 @@ var QueueGrpcService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*QueueGrpcServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "MoveToTop",
-			Handler:    _QueueGrpcService_MoveToTop_Handler,
+			MethodName: "MakeNext",
+			Handler:    _QueueGrpcService_MakeNext_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

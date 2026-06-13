@@ -77,10 +77,9 @@ func formatErrorMessage(fe validator.FieldError) string {
 
 func mapAppErrorToStatus(err error) int {
 	switch {
-	case errors.Is(err, apperrors.ErrMemberNotFound):
-		return http.StatusNotFound
 	case errors.Is(err, apperrors.ErrNotHost),
-		errors.Is(err, apperrors.ErrVotingLocked):
+		errors.Is(err, apperrors.ErrVotingLocked),
+		errors.Is(err, apperrors.ErrNotMember):
 		return http.StatusForbidden
 	case errors.Is(err, apperrors.ErrAlreadyClosed):
 		return http.StatusConflict
@@ -93,7 +92,7 @@ func mapAppErrorToStatus(err error) int {
 
 func mapAppErrorToClientMessage(err error) string {
 	switch {
-	case errors.Is(err, apperrors.ErrMemberNotFound):
+	case errors.Is(err, apperrors.ErrNotMember):
 		return "You are not a member of this room"
 	case errors.Is(err, apperrors.ErrAlreadyClosed):
 		return "This voting is already closed"

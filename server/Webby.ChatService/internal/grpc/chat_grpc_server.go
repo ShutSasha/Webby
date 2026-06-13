@@ -13,8 +13,8 @@ import (
 
 type chatService interface {
 	CreateForRoom(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
-	GetByRoomID(ctx context.Context, roomId uuid.UUID) (*models.Chat, error)
-	GetChatIDByRoomID(ctx context.Context, roomID, userID uuid.UUID) (uuid.UUID, error)
+	GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
+	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
 }
 
 type chatMemberEnsurer interface {
@@ -125,21 +125,10 @@ func (s *chatGrpcServer) GetChatIDByRoomID(ctx context.Context, req *chatpb.GetC
 		return nil, status.Errorf(codes.InvalidArgument, "%s: invalid room_id: %v", op, err)
 	}
 
-	userID, err := uuid.Parse(req.GetUserID())
+	id, err := s.chatService.GetChatIDByRoomID(ctx, roomID)
 	if err != nil {
 		log.Error("gRPC GetChatIDByRoomID failed",
 			slog.String("roomID", roomID.String()),
-			slog.String("userID", userID.String()),
-			slog.String("error", err.Error()),
-		)
-		return nil, status.Errorf(codes.InvalidArgument, "%s: invalid user_id: %v", op, err)
-	}
-
-	id, err := s.chatService.GetChatIDByRoomID(ctx, roomID, userID)
-	if err != nil {
-		log.Error("gRPC GetChatIDByRoomID failed",
-			slog.String("roomID", roomID.String()),
-			slog.String("userID", userID.String()),
 			slog.String("error", err.Error()),
 		)
 		return nil, status.Errorf(codes.Internal, "%s: %v", op, err)

@@ -10,7 +10,6 @@ service ChatGrpcService {
 
 message GetChatIDByRoomIDRequest {
   string roomID = 1;
-  string userID = 2;
 }
 
 message ChatIDByRoomIDResponse {

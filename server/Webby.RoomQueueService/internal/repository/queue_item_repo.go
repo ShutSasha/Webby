@@ -413,3 +413,124 @@ func (r *queueItemRepository) ActivateVideo(ctx context.Context, roomID, itemID 
 
 	return prevPosition, currentPosition, nil
 }
+
+func (r *queueItemRepository) MakeNext(ctx context.Context, roomID, queueItemID uuid.UUID) ([]int, error) {
+	const op = "queueItemRepository.MakeNext"
+
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to begin transaction: %w", op, err)
+	}
+	defer tx.Rollback(ctx)
+
+	activeSql, activeArgs, err := sq.Select("position").
+		From("queue_items").
+		Where(sq.Eq{"room_id": roomID, "is_active": true}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to build active position query: %w", op, err)
+	}
+
+	var activePosition int
+	err = tx.QueryRow(ctx, activeSql, activeArgs...).Scan(&activePosition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to get active position: %w", op, err)
+	}
+
+	prevSql, prevArgs, err := sq.Select("position").
+		From("queue_items").
+		Where(sq.Eq{"room_id": roomID, "id": queueItemID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to build prev position query: %w", op, err)
+	}
+
+	var prevPosition int
+	err = tx.QueryRow(ctx, prevSql, prevArgs...).Scan(&prevPosition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to get prev position: %w", op, err)
+	}
+
+	var positions []int
+
+	if prevPosition == activePosition || prevPosition == activePosition+1 {
+		return []int{}, nil
+	}
+
+	if prevPosition > activePosition {
+		shiftSql, shiftArgs, err := sq.Update("queue_items").
+			Set("position", sq.Expr("position + 1")).
+			Where(sq.Eq{"room_id": roomID}).
+			Where(sq.Gt{"position": activePosition}).
+			Where(sq.Lt{"position": prevPosition}).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to build forward shift query: %w", op, err)
+		}
+
+		_, err = tx.Exec(ctx, shiftSql, shiftArgs...)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to shift intermediate queue items forward: %w", op, err)
+		}
+
+		moveSql, moveArgs, err := sq.Update("queue_items").
+			Set("position", activePosition+1).
+			Where(sq.Eq{"id": queueItemID}).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to build forward move query: %w", op, err)
+		}
+
+		_, err = tx.Exec(ctx, moveSql, moveArgs...)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to update target queue item forward: %w", op, err)
+		}
+
+		for i := activePosition + 1; i <= prevPosition; i++ {
+			positions = append(positions, i)
+		}
+	} else if prevPosition < activePosition {
+		shiftSql, shiftArgs, err := sq.Update("queue_items").
+			Set("position", sq.Expr("position - 1")).
+			Where(sq.Eq{"room_id": roomID}).
+			Where(sq.Gt{"position": prevPosition}).
+			Where(sq.LtOrEq{"position": activePosition}).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to build backward shift query: %w", op, err)
+		}
+
+		_, err = tx.Exec(ctx, shiftSql, shiftArgs...)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to shift intermediate queue items backward: %w", op, err)
+		}
+
+		moveSql, moveArgs, err := sq.Update("queue_items").
+			Set("position", activePosition).
+			Where(sq.Eq{"id": queueItemID}).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to build backward move query: %w", op, err)
+		}
+
+		_, err = tx.Exec(ctx, moveSql, moveArgs...)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to update target queue item backward: %w", op, err)
+		}
+		for i := prevPosition; i <= activePosition; i++ {
+			positions = append(positions, i)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("%s: failed to commit transaction: %w", op, err)
+	}
+
+	return positions, nil
+}

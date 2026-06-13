@@ -67,15 +67,14 @@ func (c *chatClient) GetChatByRoomID(ctx context.Context, roomID uuid.UUID) (uui
 	return chatID, nil
 }
 
-func (m *chatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (uuid.UUID, error) {
+func (m *chatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
 	const op = "grpc.chatClient.GetChatIDByRoomID"
 
 	resp, err := m.client.GetChatIDByRoomID(ctx, &chatpb.GetChatIDByRoomIDRequest{
 		RoomID: roomID.String(),
-		UserID: userID.String(),
 	})
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("%s: failed to get chat id by room id: %w", op, err)
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return uuid.Parse(resp.GetChatID())

@@ -20,7 +20,7 @@ type eventEnvelope struct {
 	Payload any    `json:"payload"`
 }
 
-const EventTypeQueueUpdated = "QUEUE_UPDATED"
+const eventTypeQueueUpdated = "QUEUE_UPDATED"
 
 type VideoInfo struct {
 	ID        string
@@ -36,6 +36,7 @@ type queueItemRepository interface {
 	ListByRoom(ctx context.Context, roomID uuid.UUID, offset, limit int) ([]models.QueueItem, int, error)
 	MoveToTop(ctx context.Context, id uuid.UUID) error
 	ActivateVideo(ctx context.Context, roomID, itemID uuid.UUID) (int, int, error)
+	MakeNext(ctx context.Context, roomID, queueItemID uuid.UUID) ([]int, error)
 }
 
 type mediaRetriever interface {
@@ -44,11 +45,11 @@ type mediaRetriever interface {
 }
 
 type chatRetriever interface {
-	GetChatIDByRoomID(ctx context.Context, roomID, userID uuid.UUID) (uuid.UUID, error)
+	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
 }
 
 type memberChecker interface {
-	Exists(ctx context.Context, roomId, userId uuid.UUID) (bool, error)
+	Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error)
 }
 
 type eventPublisher interface {
@@ -64,14 +65,14 @@ type service struct {
 }
 
 func New(
-	repo queueItemRepository,
+	repository queueItemRepository,
 	mediaRetriever mediaRetriever,
 	chatRetriever chatRetriever,
 	memberChecker memberChecker,
 	eventPublisher eventPublisher,
 ) *service {
 	return &service{
-		repository:     repo,
+		repository:     repository,
 		mediaRetriever: mediaRetriever,
 		chatRetriever:  chatRetriever,
 		memberChecker:  memberChecker,
@@ -80,13 +81,16 @@ func New(
 }
 
 func (s *service) isMember(ctx context.Context, roomID, userID uuid.UUID) error {
+	const op = "service.isMember"
+
 	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
 	if err != nil {
-		return fmt.Errorf("check membership: %w", err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 	if !exists {
-		return apperrors.ErrNotRoomMember
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotRoomMember)
 	}
+
 	return nil
 }
 
@@ -94,11 +98,12 @@ func (s *service) AddToQueue(ctx context.Context, roomID, userID uuid.UUID, vide
 	const op = "services.AddToQueue"
 	log := logger.FromContext(ctx).With(slog.String("op", op))
 
-	if err := s.isMember(ctx, roomID, userID); err != nil {
+	err := s.isMember(ctx, roomID, userID)
+	if err != nil {
 		return uuid.Nil, -1, err
 	}
 
-	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, roomID, userID)
+	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, roomID)
 	if err != nil {
 		return uuid.Nil, -1, fmt.Errorf("%s: %w", op, err)
 	}
@@ -117,7 +122,7 @@ func (s *service) AddToQueue(ctx context.Context, roomID, userID uuid.UUID, vide
 	}
 
 	envelope := eventEnvelope{
-		Type: EventTypeQueueUpdated,
+		Type: eventTypeQueueUpdated,
 		Payload: queueUpdatedEvent{
 			Positions: []int{position},
 		},
@@ -129,11 +134,7 @@ func (s *service) AddToQueue(ctx context.Context, roomID, userID uuid.UUID, vide
 	return id, position, nil
 }
 
-func (s *service) GetQueue(
-	ctx context.Context,
-	roomID, userID uuid.UUID,
-	page, limit int,
-) ([]models.EnrichedQueueItem, int, error) {
+func (s *service) GetQueue(ctx context.Context, roomID, userID uuid.UUID, page, limit int) ([]models.EnrichedQueueItem, int, error) {
 	const op = "services.GetQueue"
 
 	if err := s.isMember(ctx, roomID, userID); err != nil {
@@ -186,25 +187,26 @@ func (s *service) DeleteFromQueue(ctx context.Context, itemID, userID uuid.UUID)
 
 	item, err := s.repository.GetByID(ctx, itemID)
 	if err != nil {
-		return fmt.Errorf("%s: failed get item by ID: %w", op, err)
-	}
-
-	if err := s.isMember(ctx, item.RoomID, userID); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, item.RoomID, userID)
+	err = s.isMember(ctx, item.RoomID, userID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, item.RoomID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	position, err := s.repository.Delete(ctx, itemID)
 	if err != nil {
-		return fmt.Errorf("%s: failed to delete item: %w", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	envelope := eventEnvelope{
-		Type: EventTypeQueueUpdated,
+		Type: eventTypeQueueUpdated,
 		Payload: queueUpdatedEvent{
 			Positions: []int{position},
 		},
@@ -217,9 +219,32 @@ func (s *service) DeleteFromQueue(ctx context.Context, itemID, userID uuid.UUID)
 	return nil
 }
 
-// TODO
-func (s *service) MoveToTop(ctx context.Context, id uuid.UUID) error {
-	return s.repository.MoveToTop(ctx, id)
+func (s *service) MakeNext(ctx context.Context, roomID, queueItemID uuid.UUID) error {
+	const op = "service.MakeNext"
+	log := logger.FromContext(ctx).With("op", op)
+
+	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	positions, err := s.repository.MakeNext(ctx, roomID, queueItemID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	envelope := eventEnvelope{
+		Type: eventTypeQueueUpdated,
+		Payload: queueUpdatedEvent{
+			Positions: positions,
+		},
+	}
+	topic := fmt.Sprintf("chat:%s", chatID.String())
+	if err := s.eventPublisher.Publish(ctx, topic, envelope); err != nil {
+		log.Error("failed to publish queue update", slog.String("err", err.Error()))
+	}
+
+	return nil
 }
 
 func (s *service) ActivateVideo(ctx context.Context, itemID, userID uuid.UUID) error {
@@ -231,11 +256,12 @@ func (s *service) ActivateVideo(ctx context.Context, itemID, userID uuid.UUID) e
 		return fmt.Errorf("%s: failed get queue item by ID: %w", op, err)
 	}
 
-	if err := s.isMember(ctx, item.RoomID, userID); err != nil {
+	err = s.isMember(ctx, item.RoomID, userID)
+	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, item.RoomID, userID)
+	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, item.RoomID)
 	if err != nil {
 		return fmt.Errorf("%s: failed to get chat id: %w", op, err)
 	}
@@ -253,7 +279,7 @@ func (s *service) ActivateVideo(ctx context.Context, itemID, userID uuid.UUID) e
 		updatedPositions = append(updatedPositions, currPos)
 
 		envelope := eventEnvelope{
-			Type: EventTypeQueueUpdated,
+			Type: eventTypeQueueUpdated,
 			Payload: queueUpdatedEvent{
 				Positions: updatedPositions,
 			},
