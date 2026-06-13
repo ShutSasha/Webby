@@ -58,7 +58,7 @@
         }
       ],
       "UpstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/vote",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamHttpMethod": ["POST"],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }

@@ -1,5 +1,4 @@
 env: "local"
-connectionString: "{{UriConnectionString}}"
 jwtSecret: "{{JwtAccessSecretKey}}"
 
 http:
@@ -14,3 +13,7 @@ grpc:
   queueServiceAddress: "localhost:50053"
   chatServiceAddress: "localhost:50051"
 
+redis:
+  addr: "localhost:6379"
+  password: "your_super_password"
+  db: 0

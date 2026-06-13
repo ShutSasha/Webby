@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 	"webby/vote-service/internal/apperrors"
 	"webby/vote-service/internal/models"
+	"webby/vote-service/pkg/logger"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -26,9 +29,17 @@ func (r *repository) CreateVoteWithRightChoice(ctx context.Context, vote *models
 	roomIdxKey := fmt.Sprintf("room:%s:votings", vote.RoomID)
 
 	pipe := r.client.TxPipeline()
-	pipe.HSet(ctx, key, vote)
-	pipe.HSet(ctx, key, "status", "active")
 
+	fields := map[string]any{
+		"id":         vote.ID.String(),
+		"room_id":    vote.RoomID.String(),
+		"vote_text":  vote.VoteText,
+		"duration":   vote.Duration,
+		"created_at": vote.CreatedAt.Format(time.RFC3339),
+		"status":     "active",
+	}
+
+	pipe.HSet(ctx, key, fields)
 	pipe.Expire(ctx, key, 24*time.Hour)
 
 	pipe.SAdd(ctx, roomIdxKey, vote.ID.String())
@@ -96,7 +107,6 @@ func (r *repository) SetVotingRightOption(ctx context.Context, roomID, voteID uu
 			pipe.Expire(ctx, key, 5*time.Minute)
 			pipe.Expire(ctx, optionsKey, 5*time.Minute)
 			pipe.Expire(ctx, votesKey, 5*time.Minute)
-
 			pipe.SRem(ctx, roomIdxKey, voteID.String())
 
 			return nil
@@ -143,7 +153,7 @@ func (r *repository) GetVotingUserWinners(ctx context.Context, voteID uuid.UUID,
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	var winners []uuid.UUID
+	winners := make([]uuid.UUID, 0)
 	for userIDStr, choice := range allVotes {
 		if choice == rightChoice {
 			if parsedID, parseErr := uuid.Parse(userIDStr); parseErr == nil {
@@ -157,23 +167,52 @@ func (r *repository) GetVotingUserWinners(ctx context.Context, voteID uuid.UUID,
 
 func (r *repository) GetVoteByID(ctx context.Context, id uuid.UUID) (*models.Vote, error) {
 	const op = "repository.GetVoteByID"
+	log := logger.FromContext(ctx).With("op", op)
+
 	key := fmt.Sprintf("votings:%s", id)
 
-	var vote models.Vote
-	err := r.client.HGetAll(ctx, key).Scan(&vote)
+	res, err := r.client.HGetAll(ctx, key).Result()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+	if len(res) == 0 {
+		return nil, fmt.Errorf("%s: vote not found", op)
+	}
 
+	parseUUID := func(val string) uuid.UUID {
+		u, parseErr := uuid.Parse(val)
+		if parseErr != nil {
+			u, _ = uuid.FromBytes([]byte(val))
+		}
+		return u
+	}
+
+	duration, _ := strconv.Atoi(res["duration"])
+	createdAt, err := time.Parse(time.RFC3339, res["created_at"])
+	if err != nil {
+		createdAt.UnmarshalText([]byte(res["created_at"]))
+	}
+
+	vote := &models.Vote{
+		ID:        parseUUID(res["id"]),
+		RoomID:    parseUUID(res["room_id"]),
+		VoteText:  res["vote_text"],
+		Duration:  duration,
+		CreatedAt: createdAt,
+	}
+
+	log.Debug("Retrieve vote from redis", "vote", vote)
 	if vote.ID == uuid.Nil {
 		return nil, fmt.Errorf("%s: vote not found", op)
 	}
 
-	return &vote, nil
+	return vote, nil
 }
 
 func (r *repository) ListByRoom(ctx context.Context, roomID uuid.UUID) ([]models.Vote, error) {
 	const op = "repository.ListByRoom"
+	log := logger.FromContext(ctx).With("op", op)
+
 	roomIdxKey := fmt.Sprintf("room:%s:votings", roomID)
 
 	voteIDs, err := r.client.SMembers(ctx, roomIdxKey).Result()
@@ -185,11 +224,23 @@ func (r *repository) ListByRoom(ctx context.Context, roomID uuid.UUID) ([]models
 	for _, vIDStr := range voteIDs {
 		vID, parseErr := uuid.Parse(vIDStr)
 		if parseErr != nil {
+			log.Warn("Failed to parse vote ID, removing from set", "vIDStr", vIDStr)
+			r.client.SRem(ctx, roomIdxKey, vIDStr)
 			continue
 		}
 
 		vote, err := r.GetVoteByID(ctx, vID)
-		if err == nil && vote != nil {
+		if err != nil {
+			if errors.Is(err, redis.Nil) || strings.Contains(err.Error(), "not found") {
+				log.Info("Vote body expired naturally, cleaning up orphaned ID", "voteID", vID)
+				r.client.SRem(ctx, roomIdxKey, vIDStr)
+			} else {
+				log.Error("Failed to fetch vote", "voteID", vID, "error", err.Error())
+			}
+			continue
+		}
+
+		if vote != nil {
 			votes = append(votes, *vote)
 		}
 	}

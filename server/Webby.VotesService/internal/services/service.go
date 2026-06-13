@@ -221,6 +221,7 @@ func (s *service) ResolveVoting(ctx context.Context, roomID, userID, voteID uuid
 
 func (s *service) ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]models.EnrichedVoting, error) {
 	const op = "service.ListVotes"
+	log := logger.FromContext(ctx).With("op", op)
 
 	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
 	if err != nil {
@@ -234,6 +235,8 @@ func (s *service) ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]
 	if err != nil {
 		return nil, fmt.Errorf("%s, %w", op, err)
 	}
+
+	log.Debug("Retrieving votes", "votes", votes)
 
 	enrichedVotings := make([]models.EnrichedVoting, 0, len(votes))
 	for _, v := range votes {
@@ -249,6 +252,9 @@ func (s *service) ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]
 			CreatedAt: v.CreatedAt,
 			Choices:   choices,
 		}
+
+		log.Debug("List enriched votings", "voting", enrichedVoting)
+
 		enrichedVotings = append(enrichedVotings, enrichedVoting)
 	}
 
