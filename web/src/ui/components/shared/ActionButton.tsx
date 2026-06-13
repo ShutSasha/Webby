@@ -9,17 +9,20 @@ interface Props {
   label: string
   onClick?: () => void
   btnClassName?: string
+  disabled?: boolean
 }
 
-export default function ActionButton({ children, label, onClick, btnClassName }: Props) {
+export default function ActionButton({ children, label, onClick, btnClassName, disabled }: Props) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={cn(
         'group flex items-center gap-2 shrink-0 px-3 py-2 md:px-4 md:py-2 rounded-full',
-        'transition-all duration-300 ease-out cursor-pointer text-nowrap',
+        'transition-all duration-300 ease-out text-nowrap',
         'bg-transparent text-neutral-400',
-        'hover:bg-neutral-800 hover:text-neutral-100',
+        'not-disabled:cursor-pointer hover:bg-neutral-800 hover:text-neutral-100',
+        'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400',
         btnClassName,
       )}
     >

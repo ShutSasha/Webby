@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import MailIcon from '@/assets/icons/ic_mail_with_background.svg'
+import { useCreateChatMutation } from '@/lib/hooks/api/chat/useCreateChat'
 import SafeImage from '@/ui/components/shared/SafeImage'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
@@ -26,6 +27,12 @@ export default function FollowItem({
   currentUserId,
 }: Props) {
   const isOwner = userProfileId === currentUserId
+  const { mutate: createChat, isPending } = useCreateChatMutation()
+
+  const handleCreateChat = () => {
+    if (isPending) return
+    createChat(userId)
+  }
 
   return (
     <div
@@ -52,15 +59,30 @@ export default function FollowItem({
 
       {/* Actions */}
       <div className="flex items-center gap-5 pr-2">
-        <div className="relative group/mail cursor-pointer">
-          <MailIcon
-            className="w-4.5 h-4.5 text-neutral-500/90 group-hover/mail:text-emerald-500/90 transition-all duration-300"
-          />
+        {currentUserId !== userId && (
           <div
-            className="absolute w-8 h-8 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2
-              group-hover/mail:bg-emerald-500/20 transition-all duration-300 rounded-full"
-          />
-        </div>
+            className={`relative flex items-center justify-center
+            ${isPending ? 'cursor-not-allowed opacity-70' : 'cursor-pointer group/mail'}`}
+            onClick={handleCreateChat}
+          >
+            {isPending ? (
+              <div
+                className="w-[18px] h-[18px] rounded-full border-2 border-neutral-600 border-t-emerald-500 animate-spin"
+              />
+            ) : (
+              <>
+                <MailIcon
+                  className="w-4.5 h-4.5 text-neutral-500/90 group-hover/mail:text-emerald-500/90 transition-all
+                    duration-300"
+                />
+                <div
+                  className="absolute w-8 h-8 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2
+                    group-hover/mail:bg-emerald-500/20 transition-all duration-300 rounded-full"
+                />
+              </>
+            )}
+          </div>
+        )}
         {isFollow && isOwner && <UnfollowButton targetId={userId} currentUserId={currentUserId} />}
       </div>
     </div>

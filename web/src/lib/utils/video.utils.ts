@@ -20,3 +20,13 @@ export function formatViews(views: number): string {
 
   return `${formattedNumber} ${label}`
 }
+
+export function formatPoints(points: number): string {
+  if (isNaN(points) || points < 0) {
+    return '0'
+  }
+
+  const formattedNumber = compactNumberFormatter.format(points)
+
+  return `${formattedNumber}`
+}
