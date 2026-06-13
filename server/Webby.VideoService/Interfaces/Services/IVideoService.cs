@@ -1,5 +1,6 @@
 ﻿using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.Search;
+using Webby.VideoService.Dtos.Statistic;
 using Webby.VideoService.Dtos.Video;
 using Webby.VideoService.Dtos.Video.Enums;
 using Webby.VideoService.Helpers.Response;
@@ -24,4 +25,5 @@ public interface IVideoService
    Task<bool> CheckUploadStatus(string videoId);
    Task IncrementVideoView(Guid requestUserId, string videoId);
    Task<(List<VideoDto> videoDtos,List<string> unavailableVideos)> GetVideoRange(List<string> ids);
+   Task<VideoStatisticDto> GetVideoStatisticAsync(string videoId, Guid requestUserId, int? year, int? month, int? day);
 }

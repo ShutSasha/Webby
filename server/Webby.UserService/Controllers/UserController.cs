@@ -2,6 +2,7 @@
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.UserService.Dtos;
 using Webby.UserService.Dtos.Search;
+using Webby.UserService.Dtos.Statistic;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Helpers.Jwt;
@@ -72,6 +73,18 @@ public class UserController : ControllerBase
    {
       var userPagedResponse = await _userService.SearchUsers(searchOptions);
       return Ok(ApiResponse<PagedResponse<UserDto>>.Ok("Successfully retrieved users", userPagedResponse));
+   }
+
+   [HttpGet("statistics/me")]
+   [SwaggerOperation("Get statistic of using platform", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<UserStatisticDto>>> GetUserStatistic(
+      [FromQuery] GetStatisticRequest request)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      
+      var statisticBlock = await _userService.GetUserStatistic(requestUserId.Value, request.Year, request.Month);
+
+      return Ok(ApiResponse<UserStatisticDto>.Ok("Successfully retrieved user statistics", statisticBlock));
    }
    
    
