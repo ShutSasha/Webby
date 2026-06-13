@@ -4,14 +4,13 @@ package queue;
 
 option go_package = "webby/vote-service/internal/grpc/queuepb";
 
+import "google/protobuf/empty.proto";
+
 service QueueGrpcService {
-  rpc MoveToTop(MoveToTopRequest) returns (MoveToTopResponse);
+  rpc MakeNext(MakeNextRequest) returns (google.protobuf.Empty);
 }
 
-message MoveToTopRequest {
-  string id = 1;
-}
-
-message MoveToTopResponse {
-  bool success = 1;
+message MakeNextRequest {
+  string roomID = 1;
+  string queueItemID = 2;
 }

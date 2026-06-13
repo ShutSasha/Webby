@@ -98,7 +98,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, categoryClient, chatClient)
 	roomMemberService := services.NewRoomMemberService(roomRepository, roomMemberRepository, chatClient, notificationClient)
-	syncService := services.NewSynchronizeService(chatClient, publisher, timecodesRepository)
+	syncService := services.NewSynchronizeService(chatClient, publisher, timecodesRepository, roomMemberRepository)
 
 	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService)
 	httpServer := &http.Server{

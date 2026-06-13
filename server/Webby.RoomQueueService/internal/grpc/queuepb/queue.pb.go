@@ -9,6 +9,7 @@ package queuepb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -21,27 +22,28 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type MoveToTopRequest struct {
+type MakeNextRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RoomID        string                 `protobuf:"bytes,1,opt,name=roomID,proto3" json:"roomID,omitempty"`
+	QueueItemID   string                 `protobuf:"bytes,2,opt,name=queueItemID,proto3" json:"queueItemID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *MoveToTopRequest) Reset() {
-	*x = MoveToTopRequest{}
+func (x *MakeNextRequest) Reset() {
+	*x = MakeNextRequest{}
 	mi := &file_proto_queue_queue_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MoveToTopRequest) String() string {
+func (x *MakeNextRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MoveToTopRequest) ProtoMessage() {}
+func (*MakeNextRequest) ProtoMessage() {}
 
-func (x *MoveToTopRequest) ProtoReflect() protoreflect.Message {
+func (x *MakeNextRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_queue_queue_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -53,73 +55,35 @@ func (x *MoveToTopRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MoveToTopRequest.ProtoReflect.Descriptor instead.
-func (*MoveToTopRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use MakeNextRequest.ProtoReflect.Descriptor instead.
+func (*MakeNextRequest) Descriptor() ([]byte, []int) {
 	return file_proto_queue_queue_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *MoveToTopRequest) GetId() string {
+func (x *MakeNextRequest) GetRoomID() string {
 	if x != nil {
-		return x.Id
+		return x.RoomID
 	}
 	return ""
 }
 
-type MoveToTopResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *MoveToTopResponse) Reset() {
-	*x = MoveToTopResponse{}
-	mi := &file_proto_queue_queue_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *MoveToTopResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*MoveToTopResponse) ProtoMessage() {}
-
-func (x *MoveToTopResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_queue_queue_proto_msgTypes[1]
+func (x *MakeNextRequest) GetQueueItemID() string {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
+		return x.QueueItemID
 	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use MoveToTopResponse.ProtoReflect.Descriptor instead.
-func (*MoveToTopResponse) Descriptor() ([]byte, []int) {
-	return file_proto_queue_queue_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *MoveToTopResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
+	return ""
 }
 
 var File_proto_queue_queue_proto protoreflect.FileDescriptor
 
 const file_proto_queue_queue_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/queue/queue.proto\x12\x05queue\"\"\n" +
-	"\x10MoveToTopRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"-\n" +
-	"\x11MoveToTopResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2R\n" +
-	"\x10QueueGrpcService\x12>\n" +
-	"\tMoveToTop\x12\x17.queue.MoveToTopRequest\x1a\x18.queue.MoveToTopResponseB0Z.webby/room-queue-service/internal/grpc/queuepbb\x06proto3"
+	"\x17proto/queue/queue.proto\x12\x05queue\x1a\x1bgoogle/protobuf/empty.proto\"K\n" +
+	"\x0fMakeNextRequest\x12\x16\n" +
+	"\x06roomID\x18\x01 \x01(\tR\x06roomID\x12 \n" +
+	"\vqueueItemID\x18\x02 \x01(\tR\vqueueItemID2N\n" +
+	"\x10QueueGrpcService\x12:\n" +
+	"\bMakeNext\x12\x16.queue.MakeNextRequest\x1a\x16.google.protobuf.EmptyB0Z.webby/room-queue-service/internal/grpc/queuepbb\x06proto3"
 
 var (
 	file_proto_queue_queue_proto_rawDescOnce sync.Once
@@ -133,14 +97,14 @@ func file_proto_queue_queue_proto_rawDescGZIP() []byte {
 	return file_proto_queue_queue_proto_rawDescData
 }
 
-var file_proto_queue_queue_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_queue_queue_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_proto_queue_queue_proto_goTypes = []any{
-	(*MoveToTopRequest)(nil),  // 0: queue.MoveToTopRequest
-	(*MoveToTopResponse)(nil), // 1: queue.MoveToTopResponse
+	(*MakeNextRequest)(nil), // 0: queue.MakeNextRequest
+	(*emptypb.Empty)(nil),   // 1: google.protobuf.Empty
 }
 var file_proto_queue_queue_proto_depIdxs = []int32{
-	0, // 0: queue.QueueGrpcService.MoveToTop:input_type -> queue.MoveToTopRequest
-	1, // 1: queue.QueueGrpcService.MoveToTop:output_type -> queue.MoveToTopResponse
+	0, // 0: queue.QueueGrpcService.MakeNext:input_type -> queue.MakeNextRequest
+	1, // 1: queue.QueueGrpcService.MakeNext:output_type -> google.protobuf.Empty
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -159,7 +123,7 @@ func file_proto_queue_queue_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_queue_queue_proto_rawDesc), len(file_proto_queue_queue_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

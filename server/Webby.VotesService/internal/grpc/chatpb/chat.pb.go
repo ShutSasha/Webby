@@ -24,7 +24,6 @@ const (
 type GetChatIDByRoomIDRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RoomID        string                 `protobuf:"bytes,1,opt,name=roomID,proto3" json:"roomID,omitempty"`
-	UserID        string                 `protobuf:"bytes,2,opt,name=userID,proto3" json:"userID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -62,13 +61,6 @@ func (*GetChatIDByRoomIDRequest) Descriptor() ([]byte, []int) {
 func (x *GetChatIDByRoomIDRequest) GetRoomID() string {
 	if x != nil {
 		return x.RoomID
-	}
-	return ""
-}
-
-func (x *GetChatIDByRoomIDRequest) GetUserID() string {
-	if x != nil {
-		return x.UserID
 	}
 	return ""
 }
@@ -121,10 +113,9 @@ var File_proto_chat_chat_proto protoreflect.FileDescriptor
 
 const file_proto_chat_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/chat/chat.proto\x12\x04chat\"J\n" +
+	"\x15proto/chat/chat.proto\x12\x04chat\"2\n" +
 	"\x18GetChatIDByRoomIDRequest\x12\x16\n" +
-	"\x06roomID\x18\x01 \x01(\tR\x06roomID\x12\x16\n" +
-	"\x06userID\x18\x02 \x01(\tR\x06userID\"0\n" +
+	"\x06roomID\x18\x01 \x01(\tR\x06roomID\"0\n" +
 	"\x16ChatIDByRoomIDResponse\x12\x16\n" +
 	"\x06chatID\x18\x02 \x01(\tR\x06chatID2d\n" +
 	"\x0fChatGrpcService\x12Q\n" +

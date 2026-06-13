@@ -57,9 +57,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	voteRepo := repository.NewRepository(rdb)
 
-	memberClient, err := grpcserver.NewMemberClient(
-		cfg.Grpc.RoomServiceAddress,
-	)
+	memberClient, err := grpcserver.NewMemberClient(cfg.Grpc.RoomServiceAddress)
 	if err != nil {
 		logger.Error(
 			"room service gRPC connection failed (member)",
@@ -69,9 +67,7 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer memberClient.Close()
 
-	roomClient, err := grpcserver.NewRoomClient(
-		cfg.Grpc.RoomServiceAddress,
-	)
+	roomClient, err := grpcserver.NewRoomClient(cfg.Grpc.RoomServiceAddress)
 	if err != nil {
 		logger.Error(
 			"room service gRPC connection failed (room)",
@@ -84,26 +80,20 @@ func run(ctx context.Context, w io.Writer) error {
 	chatClient, err := grpcserver.NewChatClient(cfg.Grpc.ChatServiceAddress)
 	if err != nil {
 		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
-		chatClient = nil
+		return err
 	}
 	defer chatClient.Close()
 
-	var queueClient *grpcserver.QueueClient
-	if cfg.Grpc.QueueServiceAddress != "" {
-		queueClient, err = grpcserver.NewQueueClient(
-			cfg.Grpc.QueueServiceAddress,
+	queueClient, err := grpcserver.NewQueueClient(cfg.Grpc.QueueServiceAddress)
+	if err != nil {
+		logger.Warn(
+			"queue service gRPC connection failed "+
+				"— vote queue features disabled",
+			slog.String("error", err.Error()),
 		)
-		if err != nil {
-			logger.Warn(
-				"queue service gRPC connection failed "+
-					"— vote queue features disabled",
-				slog.String("error", err.Error()),
-			)
-			queueClient = nil
-		} else {
-			defer queueClient.Close()
-		}
+		return err
 	}
+	defer queueClient.Close()
 
 	voteService := services.New(voteRepo, roomClient, chatClient, memberClient, queueClient, publisher)
 

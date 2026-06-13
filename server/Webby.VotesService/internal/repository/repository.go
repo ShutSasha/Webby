@@ -314,3 +314,40 @@ func (r *repository) CastVote(ctx context.Context, voteID, userID uuid.UUID, cho
 
 	return nil
 }
+
+func (r *repository) CreateVotingForNextVideo(ctx context.Context, roomID uuid.UUID) error {
+	const op = "repository.CreateVotingForNextVideo"
+	key := "rooms:nextvideo"
+
+	cmd := r.client.SAdd(ctx, key, roomID.String())
+	if cmd.Err() != nil {
+		return fmt.Errorf("%s: create voting: %w", op, cmd.Err())
+	}
+
+	return nil
+}
+
+func (r *repository) GetNextVideoResults(ctx context.Context, roomID uuid.UUID) (map[uuid.UUID]int, error) {
+	const op = "repository.GetNextVideoResults"
+	log := logger.FromContext(ctx).With("op", op)
+
+	votesKey := fmt.Sprintf("votings:%s:user_choices", roomID)
+
+	allVotes, err := r.client.HGetAll(ctx, votesKey).Result()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	results := make(map[uuid.UUID]int, 0)
+	for _, choice := range allVotes {
+		choiceID, parseErr := uuid.Parse(choice)
+		if parseErr != nil {
+			log.Warn("Failed to parse choidce ID, removing from set", "choice", choice)
+			r.client.SRem(ctx, votesKey, choice)
+			continue
+		}
+		results[choiceID]++
+	}
+
+	return results, nil
+}

@@ -12,6 +12,7 @@ type service interface {
 	ResolveVoting(ctx context.Context, roomID, userID, voteID uuid.UUID, rightChoice string) error
 	ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]models.EnrichedVoting, error)
 	CastVote(ctx context.Context, roomID, voteID, userID uuid.UUID, choice string) error
+	CreateVotingForNextVideo(ctx context.Context, roomID, userID uuid.UUID) error
 }
 
 type handler struct {

@@ -157,13 +157,8 @@ func (s *chatService) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*model
 	return chat, nil
 }
 
-func (s *chatService) GetChatIDByRoomID(ctx context.Context, roomID, userID uuid.UUID) (uuid.UUID, error) {
+func (s *chatService) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
 	const op = "services.chatService.GetChatIDByRoomID"
-
-	isMember, err := s.roomMemberExister.Exists(ctx, roomID, userID)
-	if err != nil || !isMember {
-		return uuid.Nil, fmt.Errorf("%s: forbidden %w", op, apperrors.ErrNotMemeber)
-	}
 
 	id, err := s.chatRepository.GetChatIDByRoomID(ctx, roomID)
 	if err != nil {

@@ -35,12 +35,11 @@ func (c *chatClient) Close() error {
 	return c.conn.Close()
 }
 
-func (m *chatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (uuid.UUID, error) {
+func (m *chatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
 	const op = "grpc.chatClient.GetChatIDByRoomID"
 
 	resp, err := m.client.GetChatIDByRoomID(ctx, &chatpb.GetChatIDByRoomIDRequest{
 		RoomID: roomID.String(),
-		UserID: userID.String(),
 	})
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s: %w", op, err)

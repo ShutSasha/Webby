@@ -17,8 +17,8 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 	{
 		api.GET("", handler.List)
 		api.POST("/right-choice", handler.CreateRightChoiceVoting)
+		api.POST("/next-video", handler.CreateNextVideoVoting)
 		api.POST("/:voteId/resolve", handler.ResolveVoting)
-		// api.POST("/next-video", handler.CreateNextVideoVoting)
 		api.POST("/:voteId/vote", handler.CastVote)
 	}
 
