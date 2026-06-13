@@ -15,12 +15,11 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 	api := router.Group("/api/rooms/:id/votes")
 	api.Use(requireAuth)
 	{
-		api.POST("", handler.Create)
 		api.GET("", handler.List)
-		api.GET("/:voteId", handler.Get)
-		api.POST("/:voteId/cast", handler.Cast)
-		api.DELETE("/:voteId/cast", handler.Unvote)
-		api.DELETE("/:voteId", handler.Delete)
+		api.POST("/right-choice", handler.CreateRightChoiceVoting)
+		api.POST("/:voteId/resolve", handler.ResolveVoting)
+		// api.POST("/next-video", handler.CreateNextVideoVoting)
+		api.POST("/:voteId/vote", handler.CastVote)
 	}
 
 	router.GET("/swagger", swaggerUI)

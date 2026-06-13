@@ -112,20 +112,26 @@ func (s *chatGrpcServer) AddChatMember(ctx context.Context, req *chatpb.AddChatM
 	return &chatpb.AddChatMemberResponse{}, nil
 }
 
-func (s *chatGrpcServer) GetChatIDByRoomID(
-	ctx context.Context,
-	req *chatpb.GetChatIDByRoomIDRequest,
-) (*chatpb.ChatIDByRoomIDResponse, error) {
+func (s *chatGrpcServer) GetChatIDByRoomID(ctx context.Context, req *chatpb.GetChatIDByRoomIDRequest) (*chatpb.ChatIDByRoomIDResponse, error) {
 	const op = "grpc.ChatGrpcServer.GetChatIDByRoomID"
 	log := s.logger.With("op", op)
 
 	roomID, err := uuid.Parse(req.GetRoomID())
 	if err != nil {
+		log.Error("gRPC GetChatIDByRoomID failed",
+			slog.String("roomID", roomID.String()),
+			slog.String("error", err.Error()),
+		)
 		return nil, status.Errorf(codes.InvalidArgument, "%s: invalid room_id: %v", op, err)
 	}
 
 	userID, err := uuid.Parse(req.GetUserID())
 	if err != nil {
+		log.Error("gRPC GetChatIDByRoomID failed",
+			slog.String("roomID", roomID.String()),
+			slog.String("userID", userID.String()),
+			slog.String("error", err.Error()),
+		)
 		return nil, status.Errorf(codes.InvalidArgument, "%s: invalid user_id: %v", op, err)
 	}
 

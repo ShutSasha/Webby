@@ -9,11 +9,11 @@ import (
 )
 
 type Config struct {
-	Env              string     `yaml:"env" env-default:"local" env:"ENV"`
-	ConnectionString string     `yaml:"connectionString" env:"CONNECTION_STRING"`
-	JwtSecret        string     `yaml:"jwtSecret" env:"JWT_SECRET"`
-	Http             HttpConfig `yaml:"http"`
-	Grpc             GrpcConfig `yaml:"grpc"`
+	Env       string      `yaml:"env" env-default:"local" env:"ENV"`
+	JwtSecret string      `yaml:"jwtSecret" env:"JWT_SECRET"`
+	Http      HttpConfig  `yaml:"http"`
+	Grpc      GrpcConfig  `yaml:"grpc"`
+	Redis     RedisConfig `yaml:"redis"`
 }
 
 type HttpConfig struct {
@@ -25,8 +25,15 @@ type HttpConfig struct {
 type GrpcConfig struct {
 	Host                string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
 	Port                int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
+	ChatServiceAddress  string `yaml:"chatServiceAddress" env-default:"localhost:5008" env:"GRPC_CHAT_SERVICE_ADDRESS"`
 	RoomServiceAddress  string `yaml:"roomServiceAddress" env-default:"localhost:5006" env:"GRPC_ROOM_SERVICE_ADDRESS"`
 	QueueServiceAddress string `yaml:"queueServiceAddress" env-default:"localhost:5007" env:"GRPC_QUEUE_SERVICE_ADDRESS"`
+}
+
+type RedisConfig struct {
+	Addr     string `yaml:"addr" env-default:"localhost:6379" env:"REDIS_ADDR"`
+	Password string `yaml:"password" env-default:"" env:"REDIS_PASSWORD"`
+	DB       int    `yaml:"db" env-default:"0" env:"REDIS_DB"`
 }
 
 func MustLoad() *Config {

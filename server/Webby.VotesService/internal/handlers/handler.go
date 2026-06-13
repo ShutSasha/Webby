@@ -2,32 +2,22 @@ package handlers
 
 import (
 	"context"
-	"webby/vote-service/internal/services"
+	"webby/vote-service/internal/models"
 
 	"github.com/google/uuid"
 )
 
-type Service interface {
-	CreateVote(
-		ctx context.Context,
-		roomId, userId uuid.UUID,
-		voteType, voteText string,
-		durationSeconds int,
-		choices []services.CreateChoiceInput,
-	) (*services.VoteDetail, error)
-	ListVotes(ctx context.Context, roomId, userId uuid.UUID) ([]services.VoteDetail, error)
-	GetVote(ctx context.Context, voteId, userId uuid.UUID) (*services.VoteDetail, error)
-	CastVote(ctx context.Context, voteId, choiceId, userId uuid.UUID) (*services.VoteDetail, error)
-	RemoveVote(ctx context.Context, voteId, userId uuid.UUID) (*services.VoteDetail, error)
-	DeleteVote(ctx context.Context, voteId, userId uuid.UUID) error
+type service interface {
+	CreateWithRightChoice(ctx context.Context, roomID, userID uuid.UUID, voteText string, duration int, choices []string) error
+	ResolveVoting(ctx context.Context, roomID, userID, voteID uuid.UUID, rightChoice string) error
+	ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]models.EnrichedVoting, error)
+	CastVote(ctx context.Context, roomID, voteID, userID uuid.UUID, choice string) error
 }
 
 type handler struct {
-	service Service
+	service service
 }
 
-func New(service Service) handler {
-	return handler{
-		service: service,
-	}
+func New(service service) handler {
+	return handler{service}
 }

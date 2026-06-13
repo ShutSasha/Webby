@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "webby/vote-service/internal/grpc/chatpb";
+
+service ChatGrpcService {
+  rpc GetChatIDByRoomID(GetChatIDByRoomIDRequest) returns (ChatIDByRoomIDResponse);
+}
+
+message GetChatIDByRoomIDRequest {
+  string roomID = 1;
+  string userID = 2;
+}
+
+message ChatIDByRoomIDResponse {
+  string chatID = 2;
+}
