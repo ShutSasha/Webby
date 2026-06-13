@@ -78,6 +78,54 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/votes/next-video",
+      "DownstreamScheme": "http",
+      "Priority": 11,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/votes/next-video",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/votes/next-video/vote",
+      "DownstreamScheme": "http",
+      "Priority": 11,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/votes/next-video/vote",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/has-next-video-voting",
+      "DownstreamScheme": "http",
+      "Priority": 11,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/has-next-video-voting",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
     }
   ]
 }

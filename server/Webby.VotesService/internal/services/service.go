@@ -318,7 +318,8 @@ func (s *service) CreateVotingForNextVideo(ctx context.Context, roomID, userID u
 	}
 
 	envelope := eventEnvelope{
-		Type: eventTypeNextVideoVotingStarted,
+		Type:    eventTypeNextVideoVotingStarted,
+		Payload: map[string]string{"roomId": roomID.String()},
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
 	if err := s.publisher.Publish(ctx, topic, envelope); err != nil {
@@ -328,8 +329,11 @@ func (s *service) CreateVotingForNextVideo(ctx context.Context, roomID, userID u
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(15*time.Second))
 	s.activeTimers.Store(roomID, cancel)
 	go func(asyncCtx context.Context, rID, cID uuid.UUID) {
+		defer cancel()
 		defer s.activeTimers.Delete(rID)
+
 		bgLog := logger.FromContext(asyncCtx).With("op", op+"_async")
+
 		<-asyncCtx.Done()
 
 		videoResults, err := s.repository.GetNextVideoResults(context.Background(), rID)
@@ -358,7 +362,7 @@ func (s *service) CreateVotingForNextVideo(ctx context.Context, roomID, userID u
 			Payload: map[string]string{"winnerId": winnerID.String()},
 		}
 		topic := fmt.Sprintf("chat:%s", cID.String())
-		if err := s.publisher.Publish(ctx, topic, resultsEnvelope); err != nil {
+		if err := s.publisher.Publish(context.Background(), topic, resultsEnvelope); err != nil {
 			log.Error("failed to publish next video voting results", slog.String("err", err.Error()))
 		}
 	}(timeoutCtx, roomID, chatID)

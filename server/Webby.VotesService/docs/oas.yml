@@ -261,6 +261,128 @@ paths:
         "500":
           $ref: "#/components/responses/InternalError"
 
+  /api/rooms/{id}/votes/next-video:
+    post:
+      tags:
+        - Votes
+      summary: Create a next video voting
+      description: |
+        Create a voting for selecting the next video to play in the room. Only the room host can create this voting.
+
+        The voting automatically expires after 15 seconds, at which point the `NEXT_VIDEO_VOTING_RESULTS` event is sent 
+        with the UUID of the queue item that received the most votes.
+
+        **Requires authentication and host privileges.**
+
+        **WebSocket Event**: `NEXT_VIDEO_VOTING_STARTED` will be broadcasted to all room participants when the voting is created.
+
+        For information on how to subscribe to and handle these WebSocket events, see the 
+        [WsGateway documentation](/index.html?urls.primaryName=WsGateway).
+      operationId: createNextVideoVoting
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: Next video voting created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not the room host.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/rooms/{id}/votes/next-video/vote:
+    post:
+      tags:
+        - Votes
+      summary: Vote for the next video
+      description: |
+        Cast a vote for a queue item as the next video to play. Each user can vote once per next-video voting session.
+
+        **Requires authentication and room membership.**
+      operationId: voteForNext
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteForNextRequest"
+      responses:
+        "200":
+          description: Vote cast successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not a room member.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/rooms/{id}/has-next-video-voting:
+    get:
+      tags:
+        - Votes
+      summary: Check if room has active next video voting
+      description: |
+        Check whether there is an active next-video voting session in the room.
+
+        **Requires authentication and room membership.**
+      operationId: hasNextVideoVoting
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: Successfully checked voting status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HasNextVideoVotingResponse"
+        "400":
+          description: Invalid room ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not a room member.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -439,3 +561,35 @@ components:
             type: string
           example:
             field: "error message"
+
+    VoteForNextRequest:
+      type: object
+      required:
+        - queueItemId
+      properties:
+        queueItemId:
+          type: string
+          format: uuid
+          description: The queue item ID to vote for as the next video.
+          example: "550e8400-e29b-41d4-a716-446655440002"
+
+    HasNextVideoVotingResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Checked if room has next video voting"
+        data:
+          type: object
+          properties:
+            hasNextVideoVoting:
+              type: boolean
+              description: Whether there is an active next-video voting session in the room.
+              example: true
+        errors:
+          type: object
+          nullable: true
+          example: null

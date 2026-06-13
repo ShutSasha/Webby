@@ -21,7 +21,7 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 		api.POST("/votes/:voteId/vote", handler.CastVote)
 		api.POST("/votes/next-video", handler.CreateNextVideoVoting)
 		api.POST("/votes/next-video/vote", handler.VoteForNext)
-		api.POST("/has-next-video-voting", handler.HasNextVideoVoting)
+		api.GET("/has-next-video-voting", handler.HasNextVideoVoting)
 	}
 
 	router.GET("/swagger", swaggerUI)
