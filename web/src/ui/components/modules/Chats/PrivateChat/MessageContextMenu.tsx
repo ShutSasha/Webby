@@ -12,9 +12,10 @@ type Props = {
   onClose: () => void
   onCopy: () => void
   onDelete: () => void
+  onEdit: () => void
 }
 
-export default function MessageContextMenu({ isOpen, x, y, isOwnMessage, onClose, onCopy, onDelete }: Props) {
+export default function MessageContextMenu({ isOpen, x, y, isOwnMessage, onClose, onCopy, onDelete, onEdit }: Props) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -61,15 +62,27 @@ export default function MessageContextMenu({ isOpen, x, y, isOwnMessage, onClose
       </button>
 
       {isOwnMessage && (
-        <button
-          onClick={() => {
-            onDelete()
-            onClose()
-          }}
-          className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-neutral-700/50 transition-colors"
-        >
-          Delete message
-        </button>
+        <>
+          <button
+            onClick={() => {
+              onEdit()
+              onClose()
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors"
+          >
+            Edit message
+          </button>
+
+          <button
+            onClick={() => {
+              onDelete()
+              onClose()
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-neutral-700/50 transition-colors"
+          >
+            Delete message
+          </button>
+        </>
       )}
     </div>,
     document.body,

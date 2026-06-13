@@ -112,6 +112,32 @@ export const useChatWebSocket = (chatId: string) => {
           return { ...oldData, pages: newPages }
         })
       })
+
+      socket.on('MESSAGE_UPDATED', (payload: ChatMessage) => {
+        if (!payload || !payload.id) return
+
+        queryClient.setQueryData(['chat-messages', chatId], (oldData: any) => {
+          if (!oldData || !oldData.pages) return oldData
+
+          const newPages = oldData.pages.map((page: any) => {
+            if (!page.data || !page.data.items) return page
+
+            return {
+              ...page,
+              data: {
+                ...page.data,
+                items: page.data.items.map((msg: any) =>
+                  msg.id === payload.id
+                    ? { ...msg, content: payload.content, isEdited: payload.isEdited ?? true }
+                    : msg,
+                ),
+              },
+            }
+          })
+
+          return { ...oldData, pages: newPages }
+        })
+      })
     }
 
     connectSocket()

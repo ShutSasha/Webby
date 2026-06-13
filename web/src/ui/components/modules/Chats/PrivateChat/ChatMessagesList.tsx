@@ -13,9 +13,10 @@ import MessageContextMenu from './MessageContextMenu'
 type Props = {
   chatId: string
   currentUserId: string | undefined
+  onEditMessage: (msg: { id: string; content: string }) => void
 }
 
-export default function ChatMessagesList({ chatId, currentUserId }: Props) {
+export default function ChatMessagesList({ chatId, currentUserId, onEditMessage }: Props) {
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useGetChatMessagesQuery(chatId)
   const { mutate: deleteMessage, isPending: isDeletingMessage, variables: deleteVars } = useDeleteMessageMutation()
 
@@ -66,6 +67,12 @@ export default function ChatMessagesList({ chatId, currentUserId }: Props) {
     }
   }
 
+  const handleEdit = () => {
+    if (contextMenu.messageId && contextMenu.content) {
+      onEditMessage({ id: contextMenu.messageId, content: contextMenu.content })
+    }
+  }
+
   return (
     <>
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col-reverse gap-2 relative">
@@ -94,13 +101,15 @@ export default function ChatMessagesList({ chatId, currentUserId }: Props) {
                     }`}
                 >
                   <p className="text-[15px] leading-relaxed break-all whitespace-pre-wrap">{msg.content}</p>
-                  <span
-                    className={`text-[10px] shrink-0 translate-y-0.5 ${
+
+                  <div
+                    className={`text-[10px] shrink-0 translate-y-0.5 flex gap-1.5 items-center ${
                       isMe ? 'text-emerald-900/75' : 'text-neutral-600'
                     }`}
                   >
-                    {formatTime(msg.createdAt)}
-                  </span>
+                    {msg.isEdited && <span>edited</span>}
+                    <span>{formatTime(msg.createdAt)}</span>
+                  </div>
                 </div>
               </div>
             )
@@ -134,6 +143,7 @@ export default function ChatMessagesList({ chatId, currentUserId }: Props) {
         onClose={() => setContextMenu(prev => ({ ...prev, isOpen: false }))}
         onCopy={handleCopy}
         onDelete={handleDelete}
+        onEdit={handleEdit}
       />
     </>
   )

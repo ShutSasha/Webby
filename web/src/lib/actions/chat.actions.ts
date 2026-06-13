@@ -182,3 +182,27 @@ export async function deleteMessageAction(chatId: string, messageId: string): Pr
     }
   }
 }
+
+export async function editMessageAction(
+  chatId: string,
+  messageId: string,
+  content: string,
+): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.patch<BaseServerResponse<null>>(
+      `${endpoint}/${chatId}/messages/${messageId}`,
+      { content },
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('EDIT_MESSAGE_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to edit message',
+      errors: parseAxiosError(error),
+    }
+  }
+}

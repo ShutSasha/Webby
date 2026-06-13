@@ -21,6 +21,7 @@ type Props = {
 }
 
 export default function ChatArea({ chatId }: Props) {
+  const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(null)
   const { data: session } = useSession()
   const currentUserId = session?.user?.id
 
@@ -122,8 +123,8 @@ export default function ChatArea({ chatId }: Props) {
         </div>
       </div>
 
-      <ChatMessagesList chatId={chatId} currentUserId={currentUserId} />
-      <ChatMessageInput chatId={chatId} />
+      <ChatMessagesList chatId={chatId} currentUserId={currentUserId} onEditMessage={setEditingMessage} />
+      <ChatMessageInput chatId={chatId} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} />
 
       {/* Delete Confirmation Modal */}
       <Modal isOpen={isDeleteModalOpen} onClose={() => !isDeleting && setIsDeleteModalOpen(false)}>
