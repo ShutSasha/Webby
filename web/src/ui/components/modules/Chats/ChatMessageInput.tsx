@@ -23,6 +23,15 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
 
   const isPending = isSending || isEditing
 
+  const prevPendingRef = useRef(isPending)
+
+  useEffect(() => {
+    if (prevPendingRef.current && !isPending) {
+      inputRef.current?.focus()
+    }
+    prevPendingRef.current = isPending
+  }, [isPending])
+
   useEffect(() => {
     if (editingMessage) {
       setMessageText(editingMessage.content)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import SendIcon from '@/assets/icons/shared/send_message.svg'
 import { useSendMessageMutation } from '@/lib/hooks/api/chat/useSendMessage'
@@ -12,9 +12,19 @@ type Props = {
 
 export default function ChatInput({ chatId }: Props) {
   const [content, setContent] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
   const addToast = useToastStore(state => state.addToast)
 
   const { mutate: sendMessage, isPending } = useSendMessageMutation()
+
+  const prevPendingRef = useRef(isPending)
+
+  useEffect(() => {
+    if (prevPendingRef.current && !isPending) {
+      inputRef.current?.focus()
+    }
+    prevPendingRef.current = isPending
+  }, [isPending])
 
   const handleSend = (e?: React.FormEvent) => {
     e?.preventDefault()
@@ -25,7 +35,7 @@ export default function ChatInput({ chatId }: Props) {
       { chatId, content: content.trim() },
       {
         onSuccess: () => {
-          setContent('') 
+          setContent('')
         },
         onError: error => {
           addToast(error.message || 'Failed to send message', 'error')
@@ -44,6 +54,7 @@ export default function ChatInput({ chatId }: Props) {
   return (
     <form onSubmit={handleSend} className="relative">
       <input
+        ref={inputRef}
         value={content}
         onChange={e => setContent(e.target.value)}
         onKeyDown={handleKeyDown}
