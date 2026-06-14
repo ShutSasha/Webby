@@ -47,6 +47,7 @@ type repository interface {
 	GetNextVideoResults(ctx context.Context, roomID uuid.UUID) (map[uuid.UUID]int, error)
 	VoteForNextVideo(ctx context.Context, roomID, userID, queueItemID uuid.UUID) error
 	HasNextVideoVoting(ctx context.Context, roomID uuid.UUID) (bool, error)
+	GetUserVote(ctx context.Context, voteID, userID uuid.UUID) (*string, error)
 }
 
 type roomHostGetter interface {
@@ -249,8 +250,15 @@ func (s *service) ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]
 	for _, v := range votes {
 		choices, err := s.repository.GetChoicesForVoting(ctx, v.ID)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", op, err)
+			return nil, fmt.Errorf("%s: get choices: %w", op, err)
 		}
+
+		myVote, err := s.repository.GetUserVote(ctx, v.ID, userID)
+		if err != nil {
+			return nil, fmt.Errorf("%s: get user vote: %w", op, err)
+		}
+
+		isLocked := v.Status != "active"
 
 		enrichedVoting := models.EnrichedVoting{
 			ID:        v.ID,
@@ -258,6 +266,8 @@ func (s *service) ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]
 			Duration:  v.Duration,
 			CreatedAt: v.CreatedAt,
 			Choices:   choices,
+			IsLocked:  isLocked,
+			MyVote:    myVote,
 		}
 
 		log.Debug("List enriched votings", "voting", enrichedVoting)

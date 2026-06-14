@@ -20,15 +20,6 @@ type ApiResponse[T any] struct {
 	Errors  map[string]string `json:"errors"`
 }
 
-func NewResponse[T any](success bool, message string, data *T, errors map[string]string) ApiResponse[T] {
-	return ApiResponse[T]{
-		Success: success,
-		Message: message,
-		Data:    data,
-		Errors:  errors,
-	}
-}
-
 type PaginatedResponse[T any] struct {
 	Items []T `json:"items"`
 	Page  int `json:"page"`
