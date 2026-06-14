@@ -36,7 +36,8 @@ try
     }).AddJsonProtocol(options => { options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
 
     services.AddGrpc(options => { options.Interceptors.Add<GrpcExceptionInterceptor>(); });
-
+    services.ConfigureGrpcConnections(configuration);
+    
     services.AddRepositories();
     services.AddServices();
     services.AddProviders();

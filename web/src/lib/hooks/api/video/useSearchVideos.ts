@@ -17,22 +17,28 @@ export const useSearchVideosQuery = (searchQuery: string, searchPlatform?: 'Webb
     queryFn: async ({ pageParam }) => {
       const { page, token, seed } = pageParam as PageParam
 
-      return await searchVideos(searchQuery, page, PAGE_SIZE, searchPlatform, token, seed)
+      const res = await searchVideos(searchQuery, page, PAGE_SIZE, searchPlatform, token, seed)
+
+      return res
     },
 
     initialPageParam: { page: 1 } as PageParam,
 
-    getNextPageParam: (lastPage, allPages) => {
-      const token = lastPage?.data?.nextPageToken
+    getNextPageParam: lastPage => {
+      if (!lastPage?.data) return undefined
+
+      const token = lastPage.data.nextPageToken
       if (token) {
-        return { page: allPages.length + 1, token }
+        return { page: lastPage.data.page + 1, token }
       }
 
-      const items = lastPage?.data?.items || []
-      if (items.length === PAGE_SIZE) {
+      const { page, pageSize, totalCount, contentSeed } = lastPage.data
+      const hasMore = page * pageSize < totalCount
+
+      if (hasMore) {
         return {
-          page: allPages.length + 1,
-          seed: lastPage?.data?.contentSeed,
+          page: page + 1,
+          seed: contentSeed,
         }
       }
 

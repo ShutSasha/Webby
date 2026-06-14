@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -96,7 +97,7 @@ func TestDeleteFromQueue(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().DeleteFromQueue(
 					mock.Anything, itemID, userID,
-				).Return(apperrors.ErrForbidden).Once()
+				).Return(apperrors.ErrNotRoomMember).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody: func(t *testing.T, body string) {
@@ -126,7 +127,7 @@ func TestDeleteFromQueue(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().DeleteFromQueue(
 					mock.Anything, itemID, userID,
-				).Return(apperrors.ErrInternal).Once()
+				).Return(errors.New("internal")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody: func(t *testing.T, body string) {

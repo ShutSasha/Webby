@@ -4,79 +4,60 @@ import { MouseEvent } from 'react'
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
 
 import TrashIcon from '@/assets/icons/ic_trash.svg'
 import PauseIcon from '@/assets/icons/Player/pause.svg'
 import PlayIcon from '@/assets/icons/Player/play.svg'
+import { useTogglePlaylistMediaMutation } from '@/lib/hooks/api/playlist/useTogglePlaylistMedia'
 import { useTogglePlaylistVideoMutation } from '@/lib/hooks/api/playlist/useTogglePlaylistVideo'
 import { cn } from '@/lib/utils/general.utils'
 import { usePlayerPlayStore } from '@/stores/player.store'
+import { usePlaylistStore } from '@/stores/playlist.store'
 import { useToastStore } from '@/stores/toast-store'
+import { MediaType } from '@/types/general.types'
 
 interface Props {
   id: string
   title: string
   thumbnail: string
   playlistId: string
-  optimisticId: string | null
-  onOptimisticClick: () => void
   isOwner: boolean
   userId: string
+  mediaType: MediaType
 }
 
-export default function VideoItem({
-  id,
-  title,
-  thumbnail,
-  playlistId,
-  optimisticId,
-  onOptimisticClick,
-  isOwner,
-  userId,
-}: Props) {
+export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, userId, mediaType }: Props) {
   const playing = usePlayerPlayStore(state => state.playing)
   const togglePlay = usePlayerPlayStore(state => state.togglePlay)
   const addToast = useToastStore(state => state.addToast)
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const actualVideoId = searchParams.get('v')
 
-  const isActuallyActive = actualVideoId === id
-  const isOptimisticallyActive = optimisticId === id
+  const activeResourceId = usePlaylistStore(state => state.activeResourceId)
+  const setActiveResourceId = usePlaylistStore(state => state.setActiveResourceId)
+  const setActiveMediaType = usePlaylistStore(state => state.setActiveMediaType)
 
-  const isActive = isActuallyActive || isOptimisticallyActive
+  const isActive = activeResourceId === id
 
-  const isLoading = isOptimisticallyActive && !isActuallyActive
-
-  const { mutate: toggleVideo, isPending } = useTogglePlaylistVideoMutation(userId)
+  const { mutate: toggleMedia, isPending } = useTogglePlaylistMediaMutation(userId)
 
   const handleToggle = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-
+    e.stopPropagation()
     if (isPending) return
 
-    toggleVideo(
-      { playlistId, videoId: id },
+    toggleMedia(
+      { playlistId, mediaId: id, mediaType },
       {
-        onError: () => {
-          addToast(`Failed to delete video in playlist`, 'error')
-        },
+        onError: () => addToast(`Failed to delete media from playlist`, 'error'),
       },
     )
   }
 
-  const handlePlayPause = (e: MouseEvent<HTMLButtonElement>) => {
+  const handlePlayPause = (e: MouseEvent<HTMLDivElement | HTMLButtonElement>) => {
     e.preventDefault()
 
-    if (isLoading) return
-
     if (!isActive) {
-      onOptimisticClick()
-
-      router.push(`/playlists/${playlistId}?v=${id}`, { scroll: false })
-
+      setActiveResourceId(id)
+      setActiveMediaType(mediaType)
       if (!playing) togglePlay()
       return
     }
@@ -91,19 +72,14 @@ export default function VideoItem({
       transition={{ duration: 0.3, ease: 'easeOut' }}
       layout
     >
-      <Link
-        href={`/playlists/${playlistId}?v=${id}`}
-        onClick={() => {
-          if (!isActive) onOptimisticClick()
-        }}
+      <div
+        onClick={handlePlayPause}
         className={cn(
           `flex items-center justify-between p-2 rounded-xl bg-neutral-800/50 hover:bg-neutral-800 transition-all
           duration-300 border-b-2 border-transparent group cursor-pointer`,
-          isActuallyActive && 'border-emerald-500 bg-neutral-800',
-          isOptimisticallyActive && 'border-amber-500 bg-neutral-800',
+          isActive && 'border-emerald-500 bg-neutral-800',
           !isOwner && 'gap-2',
         )}
-        scroll={false}
       >
         <div className="flex items-center gap-3 overflow-hidden">
           <Image
@@ -130,16 +106,11 @@ export default function VideoItem({
 
         <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
           <button
-            className={cn(
-              'p-1.5 group/play rounded-full cursor-pointer flex items-center justify-center',
-              !isLoading && 'hover:bg-neutral-300/10',
-              isLoading && 'hover:bg-none',
-            )}
+            className="p-1.5 group/play hover:bg-neutral-300/10 rounded-full cursor-pointer flex items-center
+              justify-center"
             onClick={handlePlayPause}
           >
-            {isLoading ? (
-              <div className="size-4 border-2 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
-            ) : playing && isActuallyActive ? (
+            {playing && isActive ? (
               <PauseIcon
                 className={`size-4 stroke-[1.5px] ${isActive ? 'text-neutral-300' : 'text-neutral-500'}
                   group-hover/play:text-neutral-300`}
@@ -151,6 +122,7 @@ export default function VideoItem({
               />
             )}
           </button>
+
           {isOwner && (
             <button
               className="group/trash p-1.5 text-neutral-500 hover:text-red-500 transition-colors hover:bg-red-500/10
@@ -168,7 +140,7 @@ export default function VideoItem({
             </button>
           )}
         </div>
-      </Link>
+      </div>
     </motion.div>
   )
 }

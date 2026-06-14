@@ -9,7 +9,6 @@ service ChatGrpcService {
   rpc GetChatByRoomID(GetChatByRoomIdRequest) returns (ChatResponse);
   rpc GetChatIDByRoomID(GetChatIDByRoomIDRequest) returns (ChatIDByRoomIDResponse);
   rpc AddChatMember(AddChatMemberRequest) returns (AddChatMemberResponse);
-  rpc SaveMessage(SaveMessageRequest) returns (SaveMessageResponse);
 }
 
 message CreateChatRequest {
@@ -25,16 +24,6 @@ message AddChatMemberRequest {
   string userID = 2;
 }
 
-message SaveMessageRequest {
-  string chatID = 1;
-  string userID = 2;
-  string content = 3;
-}
-
-message SaveMessageResponse {
-  string messageID = 1;
-}
-
 message ChatResponse {
   string id = 1;
   string roomID = 2;
@@ -44,7 +33,6 @@ message AddChatMemberResponse {}
 
 message GetChatIDByRoomIDRequest {
   string roomID = 1;
-  string userID = 2;
 }
 
 message ChatIDByRoomIDResponse {

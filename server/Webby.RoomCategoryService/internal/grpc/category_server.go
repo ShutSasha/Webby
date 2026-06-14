@@ -6,24 +6,24 @@ import (
 	"webby/room-category-service/internal/grpc/categorypb"
 )
 
-type CategoryService interface {
+type categoryService interface {
 	Exists(ctx context.Context, name string) (bool, error)
 }
 
-type CategoryServer struct {
+type categoryServer struct {
 	categorypb.UnimplementedCategoryGrpcServiceServer
-	service CategoryService
+	service categoryService
 }
 
-func NewCategoryServer(service CategoryService) *CategoryServer {
-	return &CategoryServer{service: service}
+func NewCategoryServer(service categoryService) *categoryServer {
+	return &categoryServer{service: service}
 }
 
-func (s *CategoryServer) CategoryExists(
+func (s *categoryServer) CategoryExists(
 	ctx context.Context,
 	req *categorypb.CategoryExistsRequest,
 ) (*categorypb.CategoryExistsResponse, error) {
-	const op = "grpc.CategoryServer.CategoryExists"
+	const op = "grpc.categoryServer.CategoryExists"
 
 	exists, err := s.service.Exists(ctx, req.GetName())
 	if err != nil {

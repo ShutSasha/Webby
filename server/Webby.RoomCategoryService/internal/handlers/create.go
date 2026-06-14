@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby/room-category-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,17 +16,14 @@ type createResponse struct {
 
 func (h *handler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("operation", "handlers.Сreate")
 
 	var req createRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Debug("validation error", slog.Any("err", err))
 		HandleValidationError(c, err)
 		return
 	}
 
 	if err := h.service.Create(ctx, req.Name); err != nil {
-		log.Error("create category error", slog.Any("err", err))
 		HandleAppError(c, "Create category error", err)
 		return
 	}

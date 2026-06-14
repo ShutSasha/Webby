@@ -3,11 +3,36 @@
 option csharp_namespace="Webby.VideoService.VideoGrpcServer";
 
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
 
 service VideoGrpcService {
   rpc CheckVideoExists (CheckVideoExistRequest) returns (google.protobuf.BoolValue);
+  rpc GetUserStatistic (GetUserStatisticRequest) returns (GetUserStatisticResponse);
 }
 
 message CheckVideoExistRequest{
   string videoId = 1;
+}
+
+message GetUserStatisticRequest {
+  string user_id = 1;
+  optional int32 year = 2;
+  optional int32 month = 3;
+}
+
+message TagStatistic {
+  string tag_name = 1;
+  int32 watch_count = 2;
+}
+
+message DailyWatchActivity {
+  google.protobuf.Timestamp date = 1;
+  int32 views_count = 2;
+}
+
+message GetUserStatisticResponse {
+  int32 total_watched_videos = 1;
+  int64 total_watch_time = 2;
+  repeated TagStatistic top_tags = 3;
+  repeated DailyWatchActivity watch_activity_trend = 4;
 }

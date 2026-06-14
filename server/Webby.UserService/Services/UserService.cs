@@ -2,11 +2,13 @@
 using Grpc.Core;
 using UserService.AchievementGrpcClient;
 using Webby.NotificationService.GrpcClient;
+using Webby.UserService.Clients;
 using Webby.UserService.Consts;
 using Webby.UserService.Dtos.Achievement;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Dtos.Notification;
 using Webby.UserService.Dtos.Search;
+using Webby.UserService.Dtos.Statistic;
 using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Helpers.Response;
 using Webby.UserService.Interfaces.Helpers;
@@ -23,6 +25,7 @@ public class UserService : IUserService
    private readonly IUserPremiumRepository _userPremiumRepository;
    private readonly NotificationGrpcService.NotificationGrpcServiceClient _notificationGrpcServiceClient;
    private readonly AchievementGrpcService.AchievementGrpcServiceClient _achievementGrpcServiceClient;
+   private readonly VideoGrpcService.VideoGrpcServiceClient _videoGrpcServiceClient;
    private readonly INotificationFactory _notificationFactory;
    private readonly ILogger<UserService> _logger;
    
@@ -31,7 +34,7 @@ public class UserService : IUserService
    public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService,
       IUserPremiumRepository userPremiumRepository, NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient,
       INotificationFactory notificationFactory,AchievementGrpcService.AchievementGrpcServiceClient achievementGrpcServiceClient,
-      ILogger<UserService> logger)
+      ILogger<UserService> logger, VideoGrpcService.VideoGrpcServiceClient videoGrpcServiceClient)
    {
       _userRepository = userRepository;
       _mapper = mapper;
@@ -41,6 +44,7 @@ public class UserService : IUserService
       _notificationFactory = notificationFactory;
       _achievementGrpcServiceClient = achievementGrpcServiceClient;
       _logger = logger;
+      _videoGrpcServiceClient = videoGrpcServiceClient;
    }
    
    public async Task<UserProfileResponse> GetUserInformation(Guid userId)
@@ -274,6 +278,52 @@ public class UserService : IUserService
          Page = searchOptions.Page,
          PageSize = searchOptions.PageSize
       };
+   }
+
+   public async Task<Guid> DeleteUser(Guid userId)
+   {
+      var user = await _userRepository.FindById(userId) ??
+                 throw new ApiException("Delete user error", 404, "User wasn't found");
+
+      return await _userRepository.DeleteAsync(userId);
+   }
+
+   public async Task<UserStatisticDto> GetUserStatistic(Guid userId, int? year, int? month)
+   {
+      var grpcRequest = new GetUserStatisticRequest
+      {
+         UserId = userId.ToString()
+      };
+
+      if (year.HasValue) grpcRequest.Year = year.Value;
+      if (month.HasValue) grpcRequest.Month = month.Value;
+
+      try
+      {
+         var grpcResponse = await _videoGrpcServiceClient.GetUserStatisticAsync(grpcRequest);
+
+         return new UserStatisticDto
+         {
+            TotalWatchedVideos = grpcResponse.TotalWatchedVideos,
+            TotalWatchTime = grpcResponse.TotalWatchTime,
+            TopTags = grpcResponse.TopTags
+               .Select(t => new TagStatisticDto(t.TagName, t.WatchCount))
+               .ToList(),
+            WatchActivityTrend = grpcResponse.WatchActivityTrend
+               .Select(w => new DailyViewsDto(w.Date.ToDateTime(), w.ViewsCount))
+               .ToList()
+         };
+      }
+      catch (RpcException ex)
+      {
+         if (ex.StatusCode == StatusCode.InvalidArgument)
+         {
+            throw new ApiException("Validation error", 400, ex.Status.Detail);
+         }
+
+         _logger.LogError(ex, "Failed to fetch user statistics from VideoService via gRPC for user {UserId}", userId);
+         throw new ApiException("Internal error", 500, "Failed to fetch statistics from video service");
+      }
    }
 
    private async Task SendNotification(SendNotificationDto notificationDto) 

@@ -1,5 +1,7 @@
 'use client'
 
+import { useSession } from 'next-auth/react'
+
 import { useUserFollowersQuery } from '@/lib/hooks/api/user/useUserFollowers'
 import EmptyState from '@/ui/components/shared/EmptyState'
 
@@ -12,6 +14,7 @@ type Props = {
 
 export default function FollowersContainer({ id }: Props) {
   const { data: followers, isError, isLoading } = useUserFollowersQuery(id)
+  const { data: session } = useSession()
 
   if (isLoading) {
     return <FollowsContainerSkeleton />
@@ -39,7 +42,13 @@ export default function FollowersContainer({ id }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
       {followers.map(follower => (
-        <FollowItem key={follower.userId} {...follower} isFollow={false} userProfileId={id} />
+        <FollowItem
+          key={follower.userId}
+          {...follower}
+          isFollow={false}
+          userProfileId={id}
+          currentUserId={session?.user.id}
+        />
       ))}
     </div>
   )

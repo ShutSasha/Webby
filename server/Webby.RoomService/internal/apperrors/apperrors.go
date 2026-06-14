@@ -3,9 +3,10 @@ package apperrors
 import "errors"
 
 var (
-	ErrNotFound     = errors.New("resource not found")
-	ErrConflict     = errors.New("resource already exists")
-	ErrInvalidInput = errors.New("invalid input")
-	ErrForbidden    = errors.New("forbidden")
-	ErrInternal     = errors.New("internal server error")
+	ErrNotHost            = errors.New("not host")
+	ErrNotMember          = errors.New("not member")
+	ErrRemoveHost         = errors.New("only host can perform")
+	ErrRoomNotFound       = errors.New("room not found")
+	ErrCategoryNotFound   = errors.New("category not found")
+	ErrRoomMemberNotFound = errors.New("room member not found")
 )

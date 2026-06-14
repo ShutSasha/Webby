@@ -17,4 +17,6 @@ public interface INotificationService
    Task ChangeReadStatus(Guid userId, List<Guid> notificationIds);
    Task<GetNotificationsCountResponse> GetUsersNotificationsCount(Guid userId);
    Task<PagedResponse<Notification>> GetUserNotifications(Guid userId, PaginationRequest request);
+   Task<string> GenerateOneTimeTicket(Guid userId);
+   
 }

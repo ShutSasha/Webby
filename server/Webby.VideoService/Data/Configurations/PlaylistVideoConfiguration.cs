@@ -9,26 +9,41 @@ public class PlaylistVideoConfiguration : IEntityTypeConfiguration<PlaylistVideo
    public void Configure(EntityTypeBuilder<PlaylistVideo> builder)
    {
       builder.ToTable("PlaylistVideos");
-      
-      builder.HasKey(pv => pv.PlaylistVideoId);
-      
-      builder.HasOne(pv => pv.Playlist)
-         .WithMany(p => p.PlaylistVideos)
-         .HasForeignKey(pv => pv.PlaylistId)
-         .OnDelete(DeleteBehavior.Cascade);
-      
-      builder.HasOne(pv => pv.Video)
-         .WithMany()
-         .HasForeignKey(pv => pv.VideoId)
+
+      builder.HasKey(x => x.PlaylistVideoId);
+
+      builder.HasOne(x => x.Playlist)
+         .WithMany(x => x.PlaylistVideos)
+         .HasForeignKey(x => x.PlaylistId)
          .OnDelete(DeleteBehavior.Cascade);
 
-      builder.Property(pv => pv.VideoPlatform)
+      builder.Property(x => x.Platform)
+         .HasConversion<string>()
+         .IsRequired();
+
+      builder.Property(x => x.MediaType)
          .HasConversion<string>()
          .IsRequired();
       
-      builder.HasIndex(pv => pv.VideoId);
-      builder.HasIndex(pv => pv.ExternalVideoId);
-      
-      builder.HasIndex(pv => new { pv.PlaylistId, pv.VideoId, pv.ExternalVideoId }).IsUnique();
+      builder.HasOne(x => x.Video)
+         .WithMany()
+         .HasForeignKey(x => x.InternalContentId)
+         .OnDelete(DeleteBehavior.Cascade);
+
+      builder.Property(x => x.ExternalContentId)
+         .HasMaxLength(255);
+
+      builder.HasIndex(x => x.PlaylistId);
+
+      builder.HasIndex(x => x.InternalContentId);
+
+      builder.HasIndex(x => x.ExternalContentId);
+
+      builder.HasIndex(x => new
+      {
+         x.PlaylistId,
+         x.InternalContentId,
+         x.ExternalContentId
+      }).IsUnique();
    }
 }

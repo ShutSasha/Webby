@@ -7,39 +7,42 @@ import (
 	"webby/room-queue-service/internal/apperrors"
 	"webby/room-queue-service/internal/models"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type QueueItemRepository struct {
+type queueItemRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewQueueItemRepository(db *pgxpool.Pool) *QueueItemRepository {
-	return &QueueItemRepository{db: db}
+func NewQueueItemRepository(db *pgxpool.Pool) *queueItemRepository {
+	return &queueItemRepository{db}
 }
 
-func (r *QueueItemRepository) Create(
-	ctx context.Context, item *models.QueueItem,
-) (uuid.UUID, int, error) {
-	const op = "repository.QueueItemRepository.Create"
+func (r *queueItemRepository) Create(ctx context.Context, item *models.QueueItem) (uuid.UUID, int, error) {
+	const op = "repository.queueItemRepository.Create"
 
-	if item == nil {
-		return uuid.Nil, -1, fmt.Errorf(
-			"%s: %w: item cannot be nil", op, apperrors.ErrInvalidInput,
-		)
+	query := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Insert("queue_items").
+		Columns("room_id", "video_id", "position", "is_active").
+		Values(
+			item.RoomID,
+			item.VideoID,
+			sq.Expr("(SELECT COALESCE(MAX(position), 0) + 1 FROM queue_items WHERE room_id = ?)", item.RoomID),
+			sq.Expr("(CASE WHEN (SELECT MAX(position) FROM queue_items WHERE room_id = ?) IS NULL THEN true ELSE false END)", item.RoomID),
+		).
+		Suffix("RETURNING id, position, is_active")
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return uuid.Nil, -1, fmt.Errorf("%s: build query: %w", op, err)
 	}
 
-	query := `
-		INSERT INTO queue_items (room_id, video_id, position)
-		VALUES ($1, $2, (SELECT COALESCE(MAX(position), 0) + 1
-			FROM queue_items WHERE room_id = $1))
-		RETURNING id, position
-	`
-
-	err := r.db.QueryRow(ctx, query, item.RoomID, item.VideoID).Scan(&item.ID, &item.Position)
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&item.ID, &item.Position, &item.IsActive)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -53,14 +56,8 @@ func (r *QueueItemRepository) Create(
 	return item.ID, item.Position, nil
 }
 
-func (r *QueueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, error) {
-	const op = "repository.QueueItemRepository.Delete"
-
-	if id == uuid.Nil {
-		return -1, fmt.Errorf(
-			"%s: %w: invalid queue item id", op, apperrors.ErrInvalidInput,
-		)
-	}
+func (r *queueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, error) {
+	const op = "repository.queueItemRepository.Delete"
 
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
@@ -70,9 +67,20 @@ func (r *QueueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, er
 
 	var roomID uuid.UUID
 	var position int
-	err = tx.QueryRow(
-		ctx, `SELECT room_id, position FROM queue_items WHERE id = $1`, id,
-	).Scan(&roomID, &position)
+	var isActive bool
+
+	selectQuery := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Select("room_id", "position", "is_active").
+		From("queue_items").
+		Where(sq.Eq{"id": id})
+
+	sql, args, err := selectQuery.ToSql()
+	if err != nil {
+		return -1, fmt.Errorf("%s: build query: %w", op, err)
+	}
+
+	err = tx.QueryRow(ctx, sql, args...).Scan(&roomID, &position, &isActive)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return -1, fmt.Errorf(
@@ -83,17 +91,78 @@ func (r *QueueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, er
 		return -1, fmt.Errorf("%s: get item: %w", op, err)
 	}
 
-	if _, err = tx.Exec(ctx, `DELETE FROM queue_items WHERE id = $1`, id); err != nil {
+	deleteQuery := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Delete("queue_items").
+		Where(sq.Eq{"id": id})
+
+	sql, args, err = deleteQuery.ToSql()
+	if err != nil {
+		return -1, fmt.Errorf("%s: build delete query: %w", op, err)
+	}
+
+	if _, err = tx.Exec(ctx, sql, args...); err != nil {
 		return -1, fmt.Errorf("%s: delete failed: %w", op, err)
 	}
 
-	if _, err = tx.Exec(
-		ctx,
-		`UPDATE queue_items SET position = position - 1
-		 WHERE room_id = $1 AND position > $2`,
-		roomID, position,
-	); err != nil {
+	shiftQuery := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Update("queue_items").
+		Set("position", sq.Expr("position - 1")).
+		Where(sq.And{
+			sq.Eq{"room_id": roomID},
+			sq.Gt{"position": position},
+		})
+
+	sql, args, err = shiftQuery.ToSql()
+	if err != nil {
+		return -1, fmt.Errorf("%s: build shift query: %w", op, err)
+	}
+
+	if _, err = tx.Exec(ctx, sql, args...); err != nil {
 		return -1, fmt.Errorf("%s: shift positions: %w", op, err)
+	}
+
+	if isActive {
+		activateQuery := sq.StatementBuilder.
+			PlaceholderFormat(sq.Dollar).
+			Update("queue_items").
+			Set("is_active", true).
+			Where(sq.And{
+				sq.Eq{"room_id": roomID},
+				sq.Eq{"position": position},
+			})
+
+		sql, args, err = activateQuery.ToSql()
+		if err != nil {
+			return -1, fmt.Errorf("%s: build activate query: %w", op, err)
+		}
+
+		cmdTag, err := tx.Exec(ctx, sql, args...)
+		if err != nil {
+			return -1, fmt.Errorf("%s: set active to next: %w", op, err)
+		}
+
+		if cmdTag.RowsAffected() == 0 {
+			maxPosQuery := sq.StatementBuilder.
+				PlaceholderFormat(sq.Dollar).
+				Update("queue_items").
+				Set("is_active", true).
+				Where(sq.And{
+					sq.Eq{"room_id": roomID},
+					sq.Expr("position = (SELECT MAX(position) FROM queue_items WHERE room_id = ?)", roomID),
+				})
+
+			sql, args, err = maxPosQuery.ToSql()
+			if err != nil {
+				return -1, fmt.Errorf("%s: build max pos query: %w", op, err)
+			}
+
+			_, err = tx.Exec(ctx, sql, args...)
+			if err != nil {
+				return -1, fmt.Errorf("%s: set active to last: %w", op, err)
+			}
+		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
@@ -103,24 +172,22 @@ func (r *QueueItemRepository) Delete(ctx context.Context, id uuid.UUID) (int, er
 	return position, nil
 }
 
-func (r *QueueItemRepository) GetById(
-	ctx context.Context, id uuid.UUID,
-) (*models.QueueItem, error) {
-	const op = "repository.QueueItemRepository.GetById"
+func (r *queueItemRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.QueueItem, error) {
+	const op = "repository.queueItemRepository.GetByID"
 
-	if id == uuid.Nil {
-		return nil, fmt.Errorf(
-			"%s: %w: invalid queue item id", op, apperrors.ErrInvalidInput,
-		)
+	query := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Select("id", "room_id", "video_id", "is_active", "position", "created_at").
+		From("queue_items").
+		Where(sq.Eq{"id": id})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build query: %w", op, err)
 	}
 
-	query := `
-		SELECT id, room_id, video_id, is_active, position, created_at
-		FROM queue_items
-		WHERE id = $1
-	`
 	var item models.QueueItem
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err = r.db.QueryRow(ctx, sql, args...).Scan(
 		&item.ID,
 		&item.RoomID,
 		&item.VideoID,
@@ -130,10 +197,7 @@ func (r *QueueItemRepository) GetById(
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf(
-				"%s: queue item %s: %w",
-				op, id.String(), apperrors.ErrQueueItemNotFound,
-			)
+			return nil, fmt.Errorf("%s: %w", op, apperrors.ErrQueueItemNotFound)
 		}
 		return nil, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -141,25 +205,25 @@ func (r *QueueItemRepository) GetById(
 	return &item, nil
 }
 
-func (r *QueueItemRepository) ListByRoom(
-	ctx context.Context, roomID uuid.UUID,
-	offset, limit int,
-) ([]models.QueueItem, int, error) {
-	const op = "repository.QueueItemRepository.ListByRoom"
+func (r *queueItemRepository) ListByRoom(ctx context.Context, roomID uuid.UUID, offset, limit int) ([]models.QueueItem, int, error) {
+	const op = "repository.queueItemRepository.ListByRoom"
 
-	if roomID == uuid.Nil {
-		return nil, -1, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
+	query := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Select("id", "room_id", "video_id", "is_active", "position", "created_at",
+			"COUNT(*) OVER() as total_count").
+		From("queue_items").
+		Where(sq.Eq{"room_id": roomID}).
+		OrderBy("position ASC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, -1, fmt.Errorf("%s: build query: %w", op, err)
 	}
 
-	query := `
-        SELECT id, room_id, video_id, is_active, position, created_at, 
-               COUNT(*) OVER() as total_count
-        FROM queue_items
-        WHERE room_id = $1
-        ORDER BY position ASC
-        LIMIT $2 OFFSET $3
-    `
-	rows, err := r.db.Query(ctx, query, roomID, limit, offset)
+	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, -1, fmt.Errorf("%s: query failed: %w", op, err)
 	}
@@ -191,16 +255,8 @@ func (r *QueueItemRepository) ListByRoom(
 	return items, total, nil
 }
 
-func (r *QueueItemRepository) MoveToTop(
-	ctx context.Context, id uuid.UUID,
-) error {
-	const op = "repository.QueueItemRepository.MoveToTop"
-
-	if id == uuid.Nil {
-		return fmt.Errorf(
-			"%s: %w: invalid queue item id", op, apperrors.ErrInvalidInput,
-		)
-	}
+func (r *queueItemRepository) MoveToTop(ctx context.Context, id uuid.UUID) error {
+	const op = "repository.queueItemRepository.MoveToTop"
 
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
@@ -208,42 +264,63 @@ func (r *QueueItemRepository) MoveToTop(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	var roomId uuid.UUID
-	var currentPos int
-	err = tx.QueryRow(
-		ctx,
-		`SELECT room_id, position FROM queue_items WHERE id = $1`,
-		id,
-	).Scan(&roomId, &currentPos)
+	var roomID uuid.UUID
+	var currentPosition int
+
+	selectQuery := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Select("room_id", "position").
+		From("queue_items").
+		Where(sq.Eq{"id": id})
+
+	sql, args, err := selectQuery.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build query: %w", op, err)
+	}
+
+	err = tx.QueryRow(ctx, sql, args...).Scan(&roomID, &currentPosition)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return fmt.Errorf(
-				"%s: queue item %s: %w",
-				op, id.String(), apperrors.ErrQueueItemNotFound,
-			)
+			return fmt.Errorf("%s: %w", op, apperrors.ErrQueueItemNotFound)
 		}
 		return fmt.Errorf("%s: get item: %w", op, err)
 	}
 
-	if currentPos == 1 {
+	if currentPosition == 1 {
 		return nil
 	}
 
-	_, err = tx.Exec(
-		ctx,
-		`UPDATE queue_items SET position = position + 1
-		 WHERE room_id = $1 AND position < $2`,
-		roomId, currentPos,
-	)
+	shiftQuery := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Update("queue_items").
+		Set("position", sq.Expr("position + 1")).
+		Where(sq.And{
+			sq.Eq{"room_id": roomID},
+			sq.Lt{"position": currentPosition},
+		})
+
+	sql, args, err = shiftQuery.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build shift query: %w", op, err)
+	}
+
+	_, err = tx.Exec(ctx, sql, args...)
 	if err != nil {
 		return fmt.Errorf("%s: shift positions: %w", op, err)
 	}
 
-	_, err = tx.Exec(
-		ctx,
-		`UPDATE queue_items SET position = 1 WHERE id = $1`,
-		id,
-	)
+	moveQuery := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Update("queue_items").
+		Set("position", 1).
+		Where(sq.Eq{"id": id})
+
+	sql, args, err = moveQuery.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build move query: %w", op, err)
+	}
+
+	_, err = tx.Exec(ctx, sql, args...)
 	if err != nil {
 		return fmt.Errorf("%s: update position: %w", op, err)
 	}
@@ -255,15 +332,8 @@ func (r *QueueItemRepository) MoveToTop(
 	return nil
 }
 
-func (r *QueueItemRepository) ActivateVideo(
-	ctx context.Context,
-	roomID, itemID uuid.UUID,
-) (int, int, error) {
-	const op = "repository.QueueItemRepository.ActivateVideo"
-
-	if itemID == uuid.Nil {
-		return -1, -1, fmt.Errorf("%s: %w: invalid item id", op, apperrors.ErrInvalidInput)
-	}
+func (r *queueItemRepository) ActivateVideo(ctx context.Context, roomID, itemID uuid.UUID) (int, int, error) {
+	const op = "repository.queueItemRepository.ActivateVideo"
 
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
@@ -271,9 +341,19 @@ func (r *QueueItemRepository) ActivateVideo(
 	}
 	defer tx.Rollback(ctx)
 
-	itemQuery := `SELECT position FROM queue_items WHERE id = $1`
-	var currPosition int
-	if err = tx.QueryRow(ctx, itemQuery, itemID).Scan(&currPosition); err != nil {
+	selectQuery := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Select("position").
+		From("queue_items").
+		Where(sq.Eq{"id": itemID})
+
+	sql, args, err := selectQuery.ToSql()
+	if err != nil {
+		return -1, -1, fmt.Errorf("%s: build query: %w", op, err)
+	}
+
+	var currentPosition int
+	if err = tx.QueryRow(ctx, sql, args...).Scan(&currentPosition); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return -1, -1, fmt.Errorf(
 				"%s: queue item %s: %w",
@@ -283,25 +363,43 @@ func (r *QueueItemRepository) ActivateVideo(
 		return -1, -1, fmt.Errorf("%s: get item: %w", op, err)
 	}
 
-	updatePreviousQuery := `
-        UPDATE queue_items
-        SET is_active = FALSE
-        WHERE room_id = $1 AND is_active = TRUE AND id != $2
-        RETURNING position
-    `
+	updatePreviousQuery := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Update("queue_items").
+		Set("is_active", false).
+		Where(sq.And{
+			sq.Eq{"room_id": roomID},
+			sq.Eq{"is_active": true},
+			sq.NotEq{"id": itemID},
+		}).
+		Suffix("RETURNING position")
+
+	sql, args, err = updatePreviousQuery.ToSql()
+	if err != nil {
+		return -1, -1, fmt.Errorf("%s: build update query: %w", op, err)
+	}
+
 	prevPosition := -1
-	if err = tx.QueryRow(ctx, updatePreviousQuery, roomID, itemID).Scan(&prevPosition); err != nil {
+	if err = tx.QueryRow(ctx, sql, args...).Scan(&prevPosition); err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return -1, -1, fmt.Errorf("%s: update previous failed: %w", op, err)
 		}
 	}
 
-	updateCurrentQuery := `
-        UPDATE queue_items
-        SET is_active = TRUE
-        WHERE id = $1 AND is_active = FALSE
-    `
-	commandTag, err := tx.Exec(ctx, updateCurrentQuery, itemID)
+	updateCurrentQuery := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Update("queue_items").
+		Set("is_active", true).
+		Where(sq.And{
+			sq.Eq{"id": itemID},
+			sq.Eq{"is_active": false},
+		})
+	sql, args, err = updateCurrentQuery.ToSql()
+	if err != nil {
+		return -1, -1, fmt.Errorf("%s: build update current query: %w", op, err)
+	}
+
+	commandTag, err := tx.Exec(ctx, sql, args...)
 	if err != nil {
 		return -1, -1, fmt.Errorf("%s: set current active: %w", op, err)
 	}
@@ -313,28 +411,126 @@ func (r *QueueItemRepository) ActivateVideo(
 		return -1, -1, fmt.Errorf("%s: commit: %w", op, err)
 	}
 
-	return prevPosition, currPosition, nil
+	return prevPosition, currentPosition, nil
 }
 
-func (r *QueueItemRepository) DeactivateQueue(ctx context.Context, roomID uuid.UUID) (int, error) {
-	const op = "repository.QueueItemRepository.DeactivateQueue"
+func (r *queueItemRepository) MakeNext(ctx context.Context, roomID, queueItemID uuid.UUID) ([]int, error) {
+	const op = "queueItemRepository.MakeNext"
 
-	if roomID == uuid.Nil {
-		return -1, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to begin transaction: %w", op, err)
+	}
+	defer tx.Rollback(ctx)
+
+	activeSql, activeArgs, err := sq.Select("position").
+		From("queue_items").
+		Where(sq.Eq{"room_id": roomID, "is_active": true}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to build active position query: %w", op, err)
 	}
 
-	query := `
-		UPDATE queue_items
-		SET is_active = FALSE
-		WHERE room_id = $1 AND is_active = TRUE
-		RETURNING position
-	`
-	position := -1
-	if err := r.db.QueryRow(ctx, query, roomID).Scan(&position); err != nil {
-		if !errors.Is(err, pgx.ErrNoRows) {
-			return -1, fmt.Errorf("%s: deactivate queue failed: %w", op, err)
+	var activePosition int
+	err = tx.QueryRow(ctx, activeSql, activeArgs...).Scan(&activePosition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to get active position: %w", op, err)
+	}
+
+	prevSql, prevArgs, err := sq.Select("position").
+		From("queue_items").
+		Where(sq.Eq{"room_id": roomID, "id": queueItemID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to build prev position query: %w", op, err)
+	}
+
+	var prevPosition int
+	err = tx.QueryRow(ctx, prevSql, prevArgs...).Scan(&prevPosition)
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to get prev position: %w", op, err)
+	}
+
+	var positions []int
+
+	if prevPosition == activePosition || prevPosition == activePosition+1 {
+		return []int{}, nil
+	}
+
+	if prevPosition > activePosition {
+		shiftSql, shiftArgs, err := sq.Update("queue_items").
+			Set("position", sq.Expr("position + 1")).
+			Where(sq.Eq{"room_id": roomID}).
+			Where(sq.Gt{"position": activePosition}).
+			Where(sq.Lt{"position": prevPosition}).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to build forward shift query: %w", op, err)
+		}
+
+		_, err = tx.Exec(ctx, shiftSql, shiftArgs...)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to shift intermediate queue items forward: %w", op, err)
+		}
+
+		moveSql, moveArgs, err := sq.Update("queue_items").
+			Set("position", activePosition+1).
+			Where(sq.Eq{"id": queueItemID}).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to build forward move query: %w", op, err)
+		}
+
+		_, err = tx.Exec(ctx, moveSql, moveArgs...)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to update target queue item forward: %w", op, err)
+		}
+
+		for i := activePosition + 1; i <= prevPosition; i++ {
+			positions = append(positions, i)
+		}
+	} else if prevPosition < activePosition {
+		shiftSql, shiftArgs, err := sq.Update("queue_items").
+			Set("position", sq.Expr("position - 1")).
+			Where(sq.Eq{"room_id": roomID}).
+			Where(sq.Gt{"position": prevPosition}).
+			Where(sq.LtOrEq{"position": activePosition}).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to build backward shift query: %w", op, err)
+		}
+
+		_, err = tx.Exec(ctx, shiftSql, shiftArgs...)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to shift intermediate queue items backward: %w", op, err)
+		}
+
+		moveSql, moveArgs, err := sq.Update("queue_items").
+			Set("position", activePosition).
+			Where(sq.Eq{"id": queueItemID}).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to build backward move query: %w", op, err)
+		}
+
+		_, err = tx.Exec(ctx, moveSql, moveArgs...)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to update target queue item backward: %w", op, err)
+		}
+		for i := prevPosition; i <= activePosition; i++ {
+			positions = append(positions, i)
 		}
 	}
 
-	return position, nil
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("%s: failed to commit transaction: %w", op, err)
+	}
+
+	return positions, nil
 }

@@ -1,2 +1,4 @@
 node_modules
 server/Webby.VideoService/ffprobe.exe
+tests/.env.test.local
+**/__pycache__/

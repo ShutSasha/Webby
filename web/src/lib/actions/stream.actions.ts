@@ -3,7 +3,7 @@
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse } from '@/types/general.types'
-import { SearchStreamsResponse } from '@/types/stream.types'
+import { SearchStreamsResponse, Stream } from '@/types/stream.types'
 
 const endpoint = '/streams'
 
@@ -30,6 +30,21 @@ export async function searchStreams(
       data: null,
       success: false,
       message: 'Failed to retrieve streams',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function getStreamInfo(streamerId: string): Promise<BaseServerResponse<Stream>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<Stream>>(`${endpoint}/${streamerId}`)
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_STREAM_INFO_ERROR', error, true)
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve stream information',
       errors: parseAxiosError(error),
     }
   }

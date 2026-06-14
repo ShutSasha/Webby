@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type QueueClient struct {
+type queueClient struct {
 	client queuepb.QueueGrpcServiceClient
 	conn   *grpc.ClientConn
 }
 
-func NewQueueClient(address string) (*QueueClient, error) {
+func NewQueueClient(address string) (*queueClient, error) {
 	conn, err := grpc.NewClient(
 		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -28,26 +28,25 @@ func NewQueueClient(address string) (*QueueClient, error) {
 
 	client := queuepb.NewQueueGrpcServiceClient(conn)
 
-	return &QueueClient{
+	return &queueClient{
 		client: client,
 		conn:   conn,
 	}, nil
 }
 
-func (q *QueueClient) Close() error {
+func (q *queueClient) Close() error {
 	return q.conn.Close()
 }
 
-func (q *QueueClient) MoveToTop(
-	ctx context.Context, id uuid.UUID,
-) error {
-	_, err := q.client.MoveToTop(
-		ctx, &queuepb.MoveToTopRequest{
-			Id: id.String(),
-		},
-	)
+func (q *queueClient) MakeNext(ctx context.Context, roomID, queueItemID uuid.UUID) error {
+	const op = "queueClient.MakeNext"
+
+	_, err := q.client.MakeNext(ctx, &queuepb.MakeNextRequest{
+		RoomID:      roomID.String(),
+		QueueItemID: queueItemID.String(),
+	})
 	if err != nil {
-		return fmt.Errorf("move to top %s: %w", id.String(), err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil

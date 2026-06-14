@@ -13,15 +13,14 @@ import (
 	"sync"
 	"time"
 	"webby/vote-service/internal/config"
-	"webby/vote-service/internal/database"
 	grpcserver "webby/vote-service/internal/grpc"
-	"webby/vote-service/internal/grpc/votepb"
 	httpserver "webby/vote-service/internal/handlers"
+	"webby/vote-service/internal/publisher"
 	"webby/vote-service/internal/repository"
 	"webby/vote-service/internal/services"
 	"webby/vote-service/pkg/slogpretty"
 
-	"google.golang.org/grpc"
+	"github.com/redis/go-redis/v9"
 )
 
 const (
@@ -46,23 +45,19 @@ func run(ctx context.Context, w io.Writer) error {
 	cfg := config.MustLoad()
 	logger := setupLogger(cfg.Env, w)
 
-	db, err := database.New(cfg.ConnectionString)
-	if err != nil {
-		logger.Error(
-			"database connection failed",
-			slog.String("error", err.Error()),
-		)
-		return err
-	}
-	defer db.Close()
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	defer rdb.Close()
 
-	logger.Info("database connected successfully")
+	publisher := publisher.New(rdb)
+	logger.Info("redis connected successfully")
 
-	voteRepo := repository.NewVoteRepository(db)
+	voteRepo := repository.NewRepository(rdb)
 
-	memberClient, err := grpcserver.NewMemberClient(
-		cfg.Grpc.RoomServiceAddress,
-	)
+	memberClient, err := grpcserver.NewMemberClient(cfg.Grpc.RoomServiceAddress)
 	if err != nil {
 		logger.Error(
 			"room service gRPC connection failed (member)",
@@ -72,9 +67,7 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer memberClient.Close()
 
-	roomClient, err := grpcserver.NewRoomClient(
-		cfg.Grpc.RoomServiceAddress,
-	)
+	roomClient, err := grpcserver.NewRoomClient(cfg.Grpc.RoomServiceAddress)
 	if err != nil {
 		logger.Error(
 			"room service gRPC connection failed (room)",
@@ -84,26 +77,25 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer roomClient.Close()
 
-	var queueClient *grpcserver.QueueClient
-	if cfg.Grpc.QueueServiceAddress != "" {
-		queueClient, err = grpcserver.NewQueueClient(
-			cfg.Grpc.QueueServiceAddress,
-		)
-		if err != nil {
-			logger.Warn(
-				"queue service gRPC connection failed "+
-					"— vote queue features disabled",
-				slog.String("error", err.Error()),
-			)
-			queueClient = nil
-		} else {
-			defer queueClient.Close()
-		}
+	chatClient, err := grpcserver.NewChatClient(cfg.Grpc.ChatServiceAddress)
+	if err != nil {
+		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
+		return err
 	}
+	defer chatClient.Close()
 
-	voteService := services.New(
-		voteRepo, memberClient, roomClient, queueClient,
-	)
+	queueClient, err := grpcserver.NewQueueClient(cfg.Grpc.QueueServiceAddress)
+	if err != nil {
+		logger.Warn(
+			"queue service gRPC connection failed "+
+				"— vote queue features disabled",
+			slog.String("error", err.Error()),
+		)
+		return err
+	}
+	defer queueClient.Close()
+
+	voteService := services.New(voteRepo, roomClient, chatClient, memberClient, queueClient, publisher)
 
 	logger.Info("services initialized")
 
@@ -132,37 +124,6 @@ func run(ctx context.Context, w io.Writer) error {
 		}
 	}()
 
-	grpcListener, err := net.Listen(
-		"tcp",
-		net.JoinHostPort(
-			cfg.Grpc.Host, strconv.Itoa(cfg.Grpc.Port),
-		),
-	)
-	if err != nil {
-		logger.Error("grpc listen failed", slog.Any("error", err))
-		return err
-	}
-
-	grpcSrv := grpc.NewServer()
-	votepb.RegisterVoteGrpcServiceServer(
-		grpcSrv,
-		grpcserver.NewVoteServer(voteRepo),
-	)
-
-	go func() {
-		logger.Info(
-			"gRPC server listening",
-			slog.String("host", cfg.Grpc.Host),
-			slog.Int("port", cfg.Grpc.Port),
-		)
-		if err := grpcSrv.Serve(grpcListener); err != nil {
-			logger.Error(
-				"error serving grpc",
-				slog.Any("error", err),
-			)
-		}
-	}()
-
 	var wg sync.WaitGroup
 	wg.Go(func() {
 		<-ctx.Done()
@@ -177,7 +138,6 @@ func run(ctx context.Context, w io.Writer) error {
 				slog.Any("error", err),
 			)
 		}
-		grpcSrv.GracefulStop()
 		logger.Info("server stopped gracefully")
 	})
 	wg.Wait()

@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -19,26 +17,22 @@ type addMembersBody struct {
 
 func (h *handler) AddMembers(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("op", "handlers.AddMembers")
 
 	var uri addMembersUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
 		HandleValidationError(c, err)
 		return
 	}
 
 	var body addMembersBody
 	if err := c.ShouldBindJSON(&body); err != nil {
-		log.Debug("body validation error", slog.Any("err", err))
 		HandleValidationError(c, err)
 		return
 	}
 
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	if err := h.service.AddMembers(ctx, roomID, userID, body.UserIDs); err != nil {
-		log.Error("add members error", slog.Any("err", err))
+	if err := h.roomMemberService.AddMembers(ctx, roomID, userID, body.UserIDs); err != nil {
 		HandleAppError(c, "Add member error", err)
 		return
 	}

@@ -1,8 +1,6 @@
 ﻿using Grpc.Core;
 using Webby.MediaService.GrpcServer;
 using Webby.VideoService.Constants;
-using Webby.VideoService.Dtos.Platforms.Enums;
-using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Helpers.Converters;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Interfaces.Services;
@@ -71,10 +69,10 @@ public class MediaGrpcService : MediaService.GrpcServer.MediaService.MediaServic
          case SystemPlatforms.Twitch:
          {
             var stream = await _twitchSearchService.FindById(actualId);
-
+            
             return new VideoResponse()
             {
-               Id = stream.StreamId,
+               Id = stream.StreamerId,
                Thumbnail = stream.PreviewUrl,
                Title = stream.Name,
                VideoUrl = stream.StreamUrl

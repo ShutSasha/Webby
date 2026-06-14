@@ -110,8 +110,6 @@ export default function PlayerBottomControls({
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">
-        {isRoom && <PlayerSyncButton />}
-
         <button type="button" onClick={onToggleSettings} className="cursor-pointer group/settings">
           <SettingsIcon
             className={`w-5 h-5 md:w-6 md:h-6 transition-colors duration-300 stroke-[1.5px] ${

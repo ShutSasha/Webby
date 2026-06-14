@@ -2,434 +2,408 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"math"
+	"log/slog"
+	"sync"
 	"time"
 	"webby/vote-service/internal/apperrors"
 	"webby/vote-service/internal/models"
+	"webby/vote-service/pkg/logger"
 
 	"github.com/google/uuid"
 )
 
-type VoteRepository interface {
-	CreateVote(ctx context.Context, vote *models.Vote) (uuid.UUID, error)
-	CreateChoice(
-		ctx context.Context, choice *models.VoteChoice,
-	) (uuid.UUID, error)
-	DeleteVote(ctx context.Context, id uuid.UUID) error
-	GetVoteById(ctx context.Context, id uuid.UUID) (*models.Vote, error)
-	ListByRoom(
-		ctx context.Context, roomId uuid.UUID,
-	) ([]models.Vote, error)
-	GetChoicesByVoteId(
-		ctx context.Context, voteId uuid.UUID,
-	) ([]models.VoteChoice, error)
-	GetChoiceById(
-		ctx context.Context, choiceId uuid.UUID,
-	) (*models.VoteChoice, error)
-	CastVote(ctx context.Context, choiceId, userId uuid.UUID) error
-	RemoveUserVote(
-		ctx context.Context, voteId, userId uuid.UUID,
-	) error
-	GetUserVoteForVote(
-		ctx context.Context, voteId, userId uuid.UUID,
-	) (*uuid.UUID, error)
+type votingResults struct {
+	VotingID    uuid.UUID   `json:"votingId"`
+	RightChoice string      `json:"rightChoice"`
+	Winners     []uuid.UUID `json:"winners"`
 }
 
-type MemberChecker interface {
-	Exists(ctx context.Context, roomId, userId uuid.UUID) (bool, error)
+type eventEnvelope struct {
+	Type    string `json:"type"`
+	Payload any    `json:"payload"`
 }
 
-type RoomHostGetter interface {
-	GetRoomHost(ctx context.Context, roomId uuid.UUID) (uuid.UUID, error)
+const (
+	eventTypeVotingStarted          = "VOTING_STARTED"
+	eventTypeVotingResults          = "VOTING_RESULTS"
+	eventTypeVotingLocked           = "VOTING_LOCKED"
+	eventTypeNextVideoVotingStarted = "NEXT_VIDEO_VOTING_STARTED"
+	eventTypeNextVideoVotingResult  = "NEXT_VIDEO_VOTING_RESULTS"
+)
+
+type repository interface {
+	CreateVoteWithRightChoice(ctx context.Context, vote *models.Vote) error
+	SaveChoices(ctx context.Context, vodeID uuid.UUID, choices []string) error
+	GetVotingUserWinners(ctx context.Context, voteID uuid.UUID, rightChoice string) ([]uuid.UUID, error)
+	ListByRoom(ctx context.Context, roomID uuid.UUID) ([]models.Vote, error)
+	GetChoicesForVoting(ctx context.Context, voteID uuid.UUID) ([]string, error)
+	IsChoiceValid(ctx context.Context, voteID uuid.UUID, rightChoice string) (bool, error)
+	SetVotingRightOption(ctx context.Context, roomID, voteID uuid.UUID, rightChoice string) error
+	MarkVoteAsLocked(ctx context.Context, voteID uuid.UUID) error
+	CastVote(ctx context.Context, voteID, userID uuid.UUID, choice string) error
+	CreateVotingForNextVideo(ctx context.Context, roomID uuid.UUID) error
+	GetNextVideoResults(ctx context.Context, roomID uuid.UUID) (map[uuid.UUID]int, error)
+	VoteForNextVideo(ctx context.Context, roomID, userID, queueItemID uuid.UUID) error
+	HasNextVideoVoting(ctx context.Context, roomID uuid.UUID) (bool, error)
 }
 
-type QueueItemMover interface {
-	MoveToTop(ctx context.Context, id uuid.UUID) error
+type roomHostGetter interface {
+	GetRoomHost(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
 }
 
-type CreateChoiceInput struct {
-	Name        string
-	IsCorrect   bool
-	QueueItemId *uuid.UUID
+type chatRetriever interface {
+	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
 }
 
-type VoteChoiceDetail struct {
-	Id          uuid.UUID  `json:"id"`
-	Name        string     `json:"name"`
-	Votes       int        `json:"votes"`
-	Percentage  float64    `json:"percentage"`
-	IsCorrect   bool       `json:"isCorrect"`
-	QueueItemId *uuid.UUID `json:"queueItemId"`
+type memberChecker interface {
+	Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error)
 }
 
-type VoteDetail struct {
-	Id                uuid.UUID          `json:"id"`
-	RoomId            uuid.UUID          `json:"roomId"`
-	Type              string             `json:"type"`
-	VoteText          string             `json:"voteText"`
-	CreatedAt         time.Time          `json:"createdAt"`
-	DurationSeconds   int                `json:"durationSeconds"`
-	ExpiresAt         time.Time          `json:"expiresAt"`
-	IsExpired         bool               `json:"isExpired"`
-	TotalVotes        int                `json:"totalVotes"`
-	UserVotedChoiceId *uuid.UUID         `json:"userVotedChoiceId"`
-	WinnerId          *uuid.UUID         `json:"winnerId"`
-	Choices           []VoteChoiceDetail `json:"choices"`
+type queueItemMover interface {
+	MakeNext(ctx context.Context, roomID, queueItemID uuid.UUID) error
 }
 
-type Service struct {
-	voteRepo       VoteRepository
-	memberChecker  MemberChecker
-	roomHostGetter RoomHostGetter
-	queueItemMover QueueItemMover
+type publisher interface {
+	Publish(ctx context.Context, channel string, payload any) error
 }
 
-func New(
-	voteRepo VoteRepository,
-	memberChecker MemberChecker,
-	roomHostGetter RoomHostGetter,
-	queueItemMover QueueItemMover,
-) *Service {
-	return &Service{
-		voteRepo:       voteRepo,
+type service struct {
+	repository     repository
+	roomHostGetter roomHostGetter
+	chatRetriever  chatRetriever
+	memberChecker  memberChecker
+	queueItemMover queueItemMover
+	publisher      publisher
+
+	activeTimers sync.Map
+}
+
+func New(repository repository, roomHostGetter roomHostGetter, chatRetriever chatRetriever, memberChecker memberChecker, queueItemMover queueItemMover, publisher publisher) *service {
+	return &service{
+		repository:     repository,
 		memberChecker:  memberChecker,
+		chatRetriever:  chatRetriever,
 		roomHostGetter: roomHostGetter,
 		queueItemMover: queueItemMover,
+		publisher:      publisher,
+
+		activeTimers: sync.Map{},
 	}
 }
 
-func (s *Service) CreateVote(
-	ctx context.Context,
-	roomId, userId uuid.UUID,
-	voteType, voteText string,
-	durationSeconds int,
-	choices []CreateChoiceInput,
-) (*VoteDetail, error) {
-	hostId, err := s.roomHostGetter.GetRoomHost(ctx, roomId)
+func (s *service) CreateWithRightChoice(ctx context.Context, roomID, userID uuid.UUID, voteText string, duration int, choices []string) error {
+	const op = "service.CreateWithRightChoice"
+	log := logger.FromContext(ctx).With("op", op)
+
+	hostID, err := s.roomHostGetter.GetRoomHost(ctx, roomID)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("%s: get room host %w", op, err)
 	}
-	if hostId != userId {
-		return nil, apperrors.ErrForbidden
+	if hostID != userID {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
 	}
 
-	if voteType != "poll" && voteType != "next_video" {
-		return nil, fmt.Errorf(
-			"%w: type must be 'poll' or 'next_video'",
-			apperrors.ErrInvalidInput,
-		)
-	}
-	if len(choices) < 2 {
-		return nil, fmt.Errorf(
-			"%w: at least 2 choices required",
-			apperrors.ErrInvalidInput,
-		)
+	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	vote := &models.Vote{
-		RoomId:          roomId,
-		Type:            voteType,
-		VoteText:        voteText,
-		DurationSeconds: durationSeconds,
+		ID:        uuid.New(),
+		RoomID:    roomID,
+		VoteText:  voteText,
+		CreatedAt: time.Now(),
+		Duration:  duration,
 	}
-
-	_, err = s.voteRepo.CreateVote(ctx, vote)
+	err = s.repository.CreateVoteWithRightChoice(ctx, vote)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("%s: create vote %w", op, err)
 	}
 
-	for _, ci := range choices {
-		choice := &models.VoteChoice{
-			VoteId:      vote.Id,
-			Name:        ci.Name,
-			IsCorrect:   ci.IsCorrect,
-			QueueItemId: ci.QueueItemId,
-		}
-		_, err := s.voteRepo.CreateChoice(ctx, choice)
-		if err != nil {
-			return nil, err
-		}
+	err = s.repository.SaveChoices(ctx, vote.ID, choices)
+	if err != nil {
+		return fmt.Errorf("%s: save choices %w", op, err)
 	}
 
-	return s.enrichVote(ctx, vote, userId)
+	envelope := eventEnvelope{
+		Type: eventTypeVotingStarted,
+		Payload: models.EnrichedVoting{
+			ID:        vote.ID,
+			VoteText:  voteText,
+			Duration:  duration,
+			CreatedAt: vote.CreatedAt,
+			Choices:   choices,
+		},
+	}
+	topic := fmt.Sprintf("chat:%s", chatID.String())
+	err = s.publisher.Publish(ctx, topic, envelope)
+	if err != nil {
+		log.Error("Could not notify about voting", slog.String("err", err.Error()))
+	}
+
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(duration)*time.Second)
+
+	s.activeTimers.Store(vote.ID, cancel)
+	go func(asyncCtx context.Context, vID uuid.UUID, chatTopic string) {
+		defer s.activeTimers.Delete(vID)
+		bgLog := logger.FromContext(asyncCtx).With(slog.String("op", op+"_async"))
+
+		<-asyncCtx.Done()
+
+		if errors.Is(asyncCtx.Err(), context.Canceled) {
+			bgLog.Info("voting timer cancelled manually")
+			return
+		}
+
+		err := s.repository.MarkVoteAsLocked(context.Background(), vID)
+		if err == nil {
+			lockEnvelope := eventEnvelope{
+				Type:    eventTypeVotingLocked,
+				Payload: map[string]string{"votingId": vID.String()},
+			}
+			s.publisher.Publish(context.Background(), chatTopic, lockEnvelope)
+		}
+	}(timeoutCtx, vote.ID, topic)
+
+	return nil
 }
 
-func (s *Service) ListVotes(
-	ctx context.Context, roomId, userId uuid.UUID,
-) ([]VoteDetail, error) {
-	exists, err := s.memberChecker.Exists(ctx, roomId, userId)
+func (s *service) ResolveVoting(ctx context.Context, roomID, userID, voteID uuid.UUID, rightChoice string) error {
+	const op = "service.ResolveVoting"
+	log := logger.FromContext(ctx).With("op", op)
+
+	hostID, err := s.roomHostGetter.GetRoomHost(ctx, roomID)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if hostID != userID {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
+	}
+
+	isValid, err := s.repository.IsChoiceValid(ctx, voteID, rightChoice)
+	if err != nil {
+		return fmt.Errorf("%s: validate choice: %w", op, err)
+	}
+	if !isValid {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrInvalidChoice)
+	}
+
+	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: get chat: %w", op, err)
+	}
+
+	if cancelInf, ok := s.activeTimers.LoadAndDelete(voteID); ok {
+		cancel := cancelInf.(context.CancelFunc)
+		cancel()
+	}
+
+	err = s.repository.SetVotingRightOption(ctx, roomID, voteID, rightChoice)
+	if err != nil {
+		return fmt.Errorf("%s: set right option: %w", op, err)
+	}
+
+	userIDs, err := s.repository.GetVotingUserWinners(ctx, voteID, rightChoice)
+	if err != nil {
+		return fmt.Errorf("%s: get winners: %w", op, err)
+	}
+
+	resultsEnvelope := eventEnvelope{
+		Type: eventTypeVotingResults,
+		Payload: votingResults{
+			VotingID:    voteID,
+			RightChoice: rightChoice,
+			Winners:     userIDs,
+		},
+	}
+	topic := fmt.Sprintf("chat:%s", chatID.String())
+	if err := s.publisher.Publish(ctx, topic, resultsEnvelope); err != nil {
+		log.Error("failed to publish votingResults", slog.String("err", err.Error()))
+	}
+
+	return nil
+}
+
+func (s *service) ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]models.EnrichedVoting, error) {
+	const op = "service.ListVotes"
+	log := logger.FromContext(ctx).With("op", op)
+
+	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%s, %w", op, err)
 	}
 	if !exists {
-		return nil, apperrors.ErrForbidden
+		return nil, fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
 	}
 
-	votes, err := s.voteRepo.ListByRoom(ctx, roomId)
+	votes, err := s.repository.ListByRoom(ctx, roomID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s, %w", op, err)
 	}
 
-	details := make([]VoteDetail, 0, len(votes))
+	log.Debug("Retrieving votes", "votes", votes)
+
+	enrichedVotings := make([]models.EnrichedVoting, 0, len(votes))
 	for _, v := range votes {
-		d, err := s.enrichVote(ctx, &v, userId)
+		choices, err := s.repository.GetChoicesForVoting(ctx, v.ID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%s: %w", op, err)
 		}
-		details = append(details, *d)
+
+		enrichedVoting := models.EnrichedVoting{
+			ID:        v.ID,
+			VoteText:  v.VoteText,
+			Duration:  v.Duration,
+			CreatedAt: v.CreatedAt,
+			Choices:   choices,
+		}
+
+		log.Debug("List enriched votings", "voting", enrichedVoting)
+
+		enrichedVotings = append(enrichedVotings, enrichedVoting)
 	}
 
-	return details, nil
+	return enrichedVotings, nil
 }
 
-func (s *Service) GetVote(
-	ctx context.Context, voteId, userId uuid.UUID,
-) (*VoteDetail, error) {
-	vote, err := s.voteRepo.GetVoteById(ctx, voteId)
-	if err != nil {
-		return nil, err
-	}
+func (s *service) CastVote(ctx context.Context, roomID, voteID, userID uuid.UUID, choice string) error {
+	const op = "service.CastVote"
 
-	exists, err := s.memberChecker.Exists(ctx, vote.RoomId, userId)
+	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("%s, %w", op, err)
 	}
 	if !exists {
-		return nil, apperrors.ErrForbidden
+		return fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
 	}
 
-	return s.enrichVote(ctx, vote, userId)
+	isValid, err := s.repository.IsChoiceValid(ctx, voteID, choice)
+	if err != nil {
+		return fmt.Errorf("%s: validate choice: %w", op, err)
+	}
+	if !isValid {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrInvalidChoice)
+	}
+
+	err = s.repository.CastVote(ctx, voteID, userID, choice)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }
 
-func (s *Service) CastVote(
-	ctx context.Context, voteId, choiceId, userId uuid.UUID,
-) (*VoteDetail, error) {
-	vote, err := s.voteRepo.GetVoteById(ctx, voteId)
+func (s *service) CreateVotingForNextVideo(ctx context.Context, roomID, userID uuid.UUID) error {
+	const op = "service.CreateVotingForNextVideo"
+	log := logger.FromContext(ctx).With("op", op)
+
+	hostID, err := s.roomHostGetter.GetRoomHost(ctx, roomID)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if userID != hostID {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
 	}
 
-	exists, err := s.memberChecker.Exists(ctx, vote.RoomId, userId)
+	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, roomID)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = s.repository.CreateVotingForNextVideo(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	envelope := eventEnvelope{
+		Type:    eventTypeNextVideoVotingStarted,
+		Payload: map[string]string{"roomId": roomID.String()},
+	}
+	topic := fmt.Sprintf("chat:%s", chatID.String())
+	if err := s.publisher.Publish(ctx, topic, envelope); err != nil {
+		log.Error("failed to publish next video voting", slog.String("err", err.Error()))
+	}
+
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(15*time.Second))
+	s.activeTimers.Store(roomID, cancel)
+	go func(asyncCtx context.Context, rID, cID uuid.UUID) {
+		defer cancel()
+		defer s.activeTimers.Delete(rID)
+
+		bgLog := logger.FromContext(asyncCtx).With("op", op+"_async")
+
+		<-asyncCtx.Done()
+
+		videoResults, err := s.repository.GetNextVideoResults(context.Background(), rID)
+		if err != nil {
+			bgLog.Error("Failed to get video results", "err", err.Error())
+			return
+		}
+
+		winnerID := uuid.Nil
+		votes := 0
+		for id, count := range videoResults {
+			if count > votes {
+				winnerID = id
+				votes = count
+			}
+		}
+
+		err = s.queueItemMover.MakeNext(context.Background(), rID, winnerID)
+		if err != nil {
+			bgLog.Error("Failed to make video next", "err", err.Error())
+			return
+		}
+
+		resultsEnvelope := eventEnvelope{
+			Type:    eventTypeNextVideoVotingResult,
+			Payload: map[string]string{"winnerId": winnerID.String()},
+		}
+		topic := fmt.Sprintf("chat:%s", cID.String())
+		if err := s.publisher.Publish(context.Background(), topic, resultsEnvelope); err != nil {
+			log.Error("failed to publish next video voting results", slog.String("err", err.Error()))
+		}
+	}(timeoutCtx, roomID, chatID)
+
+	return nil
+}
+
+func (s *service) VoteForNextVideo(ctx context.Context, roomID, userID, queueItemID uuid.UUID) error {
+	const op = "service.VoteForNextVideo"
+
+	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
+	if err != nil {
+		return fmt.Errorf("%s, %w", op, err)
 	}
 	if !exists {
-		return nil, apperrors.ErrForbidden
+		return fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
 	}
 
-	expiresAt := vote.CreatedAt.Add(
-		time.Duration(vote.DurationSeconds) * time.Second,
-	)
-	if time.Now().After(expiresAt) {
-		return nil, fmt.Errorf(
-			"%w: vote has expired", apperrors.ErrInvalidInput,
-		)
-	}
-
-	choice, err := s.voteRepo.GetChoiceById(ctx, choiceId)
+	err = s.repository.VoteForNextVideo(ctx, roomID, userID, queueItemID)
 	if err != nil {
-		return nil, err
-	}
-	if choice.VoteId != voteId {
-		return nil, fmt.Errorf(
-			"%w: choice does not belong to this vote",
-			apperrors.ErrInvalidInput,
-		)
+		return fmt.Errorf("%s, %w", op, err)
 	}
 
-	existing, err := s.voteRepo.GetUserVoteForVote(ctx, voteId, userId)
-	if err != nil {
-		return nil, err
-	}
-	if existing != nil {
-		return nil, fmt.Errorf(
-			"%w: user has already voted", apperrors.ErrConflict,
-		)
-	}
-
-	if err := s.voteRepo.CastVote(ctx, choiceId, userId); err != nil {
-		return nil, err
-	}
-
-	return s.enrichVote(ctx, vote, userId)
+	return nil
 }
 
-func (s *Service) RemoveVote(
-	ctx context.Context, voteId, userId uuid.UUID,
-) (*VoteDetail, error) {
-	vote, err := s.voteRepo.GetVoteById(ctx, voteId)
-	if err != nil {
-		return nil, err
-	}
+func (s *service) HasNextVideoVoting(ctx context.Context, roomID, userID uuid.UUID) (bool, error) {
+	const op = "service.HasNextVideoVoting"
 
-	exists, err := s.memberChecker.Exists(ctx, vote.RoomId, userId)
+	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
 	if err != nil {
-		return nil, err
+		return false, fmt.Errorf("%s, %w", op, err)
 	}
 	if !exists {
-		return nil, apperrors.ErrForbidden
+		return false, fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
 	}
 
-	expiresAt := vote.CreatedAt.Add(
-		time.Duration(vote.DurationSeconds) * time.Second,
-	)
-	if time.Now().After(expiresAt) {
-		return nil, fmt.Errorf(
-			"%w: vote has expired", apperrors.ErrInvalidInput,
-		)
-	}
-
-	if err := s.voteRepo.RemoveUserVote(ctx, voteId, userId); err != nil {
-		return nil, err
-	}
-
-	return s.enrichVote(ctx, vote, userId)
-}
-
-func (s *Service) DeleteVote(
-	ctx context.Context, voteId, userId uuid.UUID,
-) error {
-	vote, err := s.voteRepo.GetVoteById(ctx, voteId)
+	hasVoting, err := s.repository.HasNextVideoVoting(ctx, roomID)
 	if err != nil {
-		return err
+		return false, fmt.Errorf("%s, %w", op, err)
 	}
 
-	hostId, err := s.roomHostGetter.GetRoomHost(ctx, vote.RoomId)
-	if err != nil {
-		return err
-	}
-	if hostId != userId {
-		return apperrors.ErrForbidden
-	}
-
-	return s.voteRepo.DeleteVote(ctx, voteId)
-}
-
-func (s *Service) enrichVote(
-	ctx context.Context, vote *models.Vote, userId uuid.UUID,
-) (*VoteDetail, error) {
-	choices, err := s.voteRepo.GetChoicesByVoteId(ctx, vote.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	userChoiceId, err := s.voteRepo.GetUserVoteForVote(
-		ctx, vote.Id, userId,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	expiresAt := vote.CreatedAt.Add(
-		time.Duration(vote.DurationSeconds) * time.Second,
-	)
-	isExpired := time.Now().After(expiresAt)
-
-	totalVotes := 0
-	for _, c := range choices {
-		totalVotes += c.Votes
-	}
-
-	choiceDetails := make([]VoteChoiceDetail, len(choices))
-	for i, c := range choices {
-		pct := 0.0
-		if totalVotes > 0 {
-			pct = math.Round(
-				float64(c.Votes) / float64(totalVotes) * 100,
-			)
-		}
-		choiceDetails[i] = VoteChoiceDetail{
-			Id:          c.Id,
-			Name:        c.Name,
-			Votes:       c.Votes,
-			Percentage:  pct,
-			IsCorrect:   c.IsCorrect,
-			QueueItemId: c.QueueItemId,
-		}
-	}
-
-	var winnerId *uuid.UUID
-	if isExpired && vote.Type == "next_video" {
-		winnerId = s.computeWinner(ctx, vote, choices)
-		if winnerId != nil && s.queueItemMover != nil {
-			for _, c := range choices {
-				if c.Id == *winnerId && c.QueueItemId != nil {
-					_ = s.queueItemMover.MoveToTop(
-						ctx, *c.QueueItemId,
-					)
-					break
-				}
-			}
-		}
-	}
-
-	return &VoteDetail{
-		Id:                vote.Id,
-		RoomId:            vote.RoomId,
-		Type:              vote.Type,
-		VoteText:          vote.VoteText,
-		CreatedAt:         vote.CreatedAt,
-		DurationSeconds:   vote.DurationSeconds,
-		ExpiresAt:         expiresAt,
-		IsExpired:         isExpired,
-		TotalVotes:        totalVotes,
-		UserVotedChoiceId: userChoiceId,
-		WinnerId:          winnerId,
-		Choices:           choiceDetails,
-	}, nil
-}
-
-func (s *Service) computeWinner(
-	ctx context.Context,
-	vote *models.Vote,
-	choices []models.VoteChoice,
-) *uuid.UUID {
-	if len(choices) == 0 {
-		return nil
-	}
-
-	hostId, err := s.roomHostGetter.GetRoomHost(ctx, vote.RoomId)
-	if err != nil {
-		maxVotes := -1
-		var winner uuid.UUID
-		for _, c := range choices {
-			if c.Votes > maxVotes {
-				maxVotes = c.Votes
-				winner = c.Id
-			}
-		}
-		return &winner
-	}
-
-	maxVotes := 0
-	for _, c := range choices {
-		if c.Votes > maxVotes {
-			maxVotes = c.Votes
-		}
-	}
-
-	tied := []models.VoteChoice{}
-	for _, c := range choices {
-		if c.Votes == maxVotes {
-			tied = append(tied, c)
-		}
-	}
-
-	if len(tied) == 1 {
-		return &tied[0].Id
-	}
-
-	hostChoiceId, _ := s.voteRepo.GetUserVoteForVote(
-		ctx, vote.Id, hostId,
-	)
-	if hostChoiceId != nil {
-		for _, c := range tied {
-			if c.Id == *hostChoiceId {
-				return &c.Id
-			}
-		}
-	}
-
-	return &tied[0].Id
+	return hasVoting, nil
 }

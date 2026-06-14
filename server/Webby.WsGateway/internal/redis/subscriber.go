@@ -13,27 +13,32 @@ import (
 	"webby/wsgateway/internal/ws"
 )
 
-type Envelope struct {
+type envelope struct {
 	Type    string          `json:"type"`
 	Payload json.RawMessage `json:"payload"`
 }
 
-type Subscriber struct {
-	logger *slog.Logger
-	rdb    *redis.Client
-	ws     *ws.Server
-	patt   string
+type subscriber struct {
+	logger      *slog.Logger
+	redisClient *redis.Client
+	wsServer    *ws.Server
+	pattern     string
 }
 
-func NewSubscriber(logger *slog.Logger, rdb *redis.Client, wsSrv *ws.Server, pattern string) *Subscriber {
-	return &Subscriber{logger: logger, rdb: rdb, ws: wsSrv, patt: pattern}
+func NewSubscriber(logger *slog.Logger, redisClient *redis.Client, wsServer *ws.Server, pattern string) *subscriber {
+	return &subscriber{
+		logger:      logger,
+		redisClient: redisClient,
+		wsServer:    wsServer,
+		pattern:     pattern,
+	}
 }
 
-func (s *Subscriber) Run(ctx context.Context) error {
-	pubsub := s.rdb.PSubscribe(ctx, s.patt)
+func (s *subscriber) Run(ctx context.Context) error {
+	pubsub := s.redisClient.PSubscribe(ctx, s.pattern)
 	defer pubsub.Close()
 
-	s.logger.Info("redis subscriber started", slog.String("pattern", s.patt))
+	s.logger.Info("redis subscriber started", slog.String("pattern", s.pattern))
 
 	ch := pubsub.Channel()
 	for {
@@ -49,14 +54,14 @@ func (s *Subscriber) Run(ctx context.Context) error {
 	}
 }
 
-func (s *Subscriber) handle(channel, payload string) {
+func (s *subscriber) handle(channel, payload string) {
 	chatID, err := chatIDFromChannel(channel)
 	if err != nil {
 		s.logger.Warn("redis: bad channel", slog.String("channel", channel))
 		return
 	}
 
-	var env Envelope
+	var env envelope
 	if err := json.Unmarshal([]byte(payload), &env); err != nil {
 		s.logger.Warn("redis: bad envelope", slog.String("err", err.Error()))
 		return
@@ -75,7 +80,7 @@ func (s *Subscriber) handle(channel, payload string) {
 		}
 	}
 
-	s.ws.BroadcastToRoom(chatID, env.Type, raw)
+	s.wsServer.BroadcastToRoom(chatID, env.Type, raw)
 }
 
 func chatIDFromChannel(ch string) (uuid.UUID, error) {

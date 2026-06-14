@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -22,10 +21,10 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupAddMembersRouter(mockService *handlermocks.MockService) *gin.Engine {
+func setupAddMembersRouter(mockRoomService *handlermocks.MockroomService, mockMemberService *handlermocks.MockroomMemberService, mockSyncService *handlermocks.MocksynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockService)
+	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
 	router.POST("/api/rooms/:id/members", func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "userID", c.GetHeader("X-User-ID"))
 		ctx = logger.ToContext(ctx, log)
@@ -46,7 +45,7 @@ func TestAddMembers(t *testing.T) {
 		roomIdPath     string
 		requestBody    any
 		userID         string
-		mockSetup      func(*handlermocks.MockService)
+		mockSetup      func(*handlermocks.MockroomMemberService)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
@@ -57,8 +56,10 @@ func TestAddMembers(t *testing.T) {
 				"userIds": []string{member1.String(), member2.String()},
 			},
 			userID: userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().AddMembers(mock.Anything, roomID, mock.Anything, userID).Return(nil).Once()
+			mockSetup: func(ms *handlermocks.MockroomMemberService) {
+				ms.EXPECT().AddMembers(mock.Anything, roomID, userID, mock.MatchedBy(func(ids []uuid.UUID) bool {
+					return len(ids) == 2
+				})).Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 			validateBody:   assertSuccessResponse,
@@ -68,7 +69,7 @@ func TestAddMembers(t *testing.T) {
 			roomIdPath:     "not-a-uuid",
 			requestBody:    map[string]any{"userIds": []string{member1.String()}},
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockroomMemberService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -77,7 +78,7 @@ func TestAddMembers(t *testing.T) {
 			roomIdPath:     roomID.String(),
 			requestBody:    map[string]any{"userIds": []string{}},
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockroomMemberService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -86,7 +87,7 @@ func TestAddMembers(t *testing.T) {
 			roomIdPath:     roomID.String(),
 			requestBody:    map[string]any{"userIds": []string{"not-uuid"}},
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockroomMemberService) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorResponse,
 		},
@@ -97,8 +98,10 @@ func TestAddMembers(t *testing.T) {
 				"userIds": []string{member1.String()},
 			},
 			userID: userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().AddMembers(mock.Anything, roomID, mock.Anything, userID).Return(apperrors.ErrForbidden).Once()
+			mockSetup: func(ms *handlermocks.MockroomMemberService) {
+				ms.EXPECT().AddMembers(mock.Anything, roomID, userID, mock.MatchedBy(func(ids []uuid.UUID) bool {
+					return len(ids) == 1
+				})).Return(apperrors.ErrNotHost).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody:   assertErrorResponse,
@@ -107,10 +110,12 @@ func TestAddMembers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockService := handlermocks.NewMockService(t)
-			tt.mockSetup(mockService)
+			mockRoomService := handlermocks.NewMockroomService(t)
+			mockMemberService := handlermocks.NewMockroomMemberService(t)
+			mockSyncService := handlermocks.NewMocksynchronizeService(t)
+			tt.mockSetup(mockMemberService)
 
-			router := setupAddMembersRouter(mockService)
+			router := setupAddMembersRouter(mockRoomService, mockMemberService, mockSyncService)
 
 			bodyBytes, _ := json.Marshal(tt.requestBody)
 			req := httptest.NewRequest(http.MethodPost, "/api/rooms/"+tt.roomIdPath+"/members", bytes.NewReader(bodyBytes))
@@ -128,10 +133,10 @@ func TestAddMembers(t *testing.T) {
 	}
 }
 
-func setupRemoveMemberRouter(mockService *handlermocks.MockService) *gin.Engine {
+func setupRemoveMemberRouter(mockRoomService *handlermocks.MockroomService, mockMemberService *handlermocks.MockroomMemberService, mockSyncService *handlermocks.MocksynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockService)
+	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
 	router.DELETE("/api/rooms/:id/members/:memberId", func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "userID", c.GetHeader("X-User-ID"))
 		ctx = logger.ToContext(ctx, log)
@@ -151,7 +156,7 @@ func TestRemoveMember(t *testing.T) {
 		roomIdPath     string
 		memberIdPath   string
 		userID         string
-		mockSetup      func(*handlermocks.MockService)
+		mockSetup      func(*handlermocks.MockroomMemberService)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
@@ -160,7 +165,7 @@ func TestRemoveMember(t *testing.T) {
 			roomIdPath:   roomID.String(),
 			memberIdPath: memberID.String(),
 			userID:       userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
+			mockSetup: func(ms *handlermocks.MockroomMemberService) {
 				ms.EXPECT().RemoveMember(mock.Anything, roomID, memberID, userID).Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
@@ -171,7 +176,7 @@ func TestRemoveMember(t *testing.T) {
 			roomIdPath:     "invalid",
 			memberIdPath:   memberID.String(),
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockroomMemberService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -179,7 +184,7 @@ func TestRemoveMember(t *testing.T) {
 			roomIdPath:     roomID.String(),
 			memberIdPath:   "invalid",
 			userID:         userID.String(),
-			mockSetup:      func(ms *handlermocks.MockService) {},
+			mockSetup:      func(ms *handlermocks.MockroomMemberService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -187,8 +192,8 @@ func TestRemoveMember(t *testing.T) {
 			roomIdPath:   roomID.String(),
 			memberIdPath: memberID.String(),
 			userID:       userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
-				ms.EXPECT().RemoveMember(mock.Anything, roomID, memberID, userID).Return(apperrors.ErrForbidden).Once()
+			mockSetup: func(ms *handlermocks.MockroomMemberService) {
+				ms.EXPECT().RemoveMember(mock.Anything, roomID, memberID, userID).Return(apperrors.ErrNotHost).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 		},
@@ -197,9 +202,9 @@ func TestRemoveMember(t *testing.T) {
 			roomIdPath:   roomID.String(),
 			memberIdPath: memberID.String(),
 			userID:       userID.String(),
-			mockSetup: func(ms *handlermocks.MockService) {
+			mockSetup: func(ms *handlermocks.MockroomMemberService) {
 				ms.EXPECT().RemoveMember(mock.Anything, roomID, memberID, userID).
-					Return(fmt.Errorf("%w: cannot remove the host from the room", apperrors.ErrInvalidInput)).Once()
+					Return(apperrors.ErrRemoveHost).Once()
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -207,10 +212,12 @@ func TestRemoveMember(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockService := handlermocks.NewMockService(t)
-			tt.mockSetup(mockService)
+			mockRoomService := handlermocks.NewMockroomService(t)
+			mockMemberService := handlermocks.NewMockroomMemberService(t)
+			mockSyncService := handlermocks.NewMocksynchronizeService(t)
+			tt.mockSetup(mockMemberService)
 
-			router := setupRemoveMemberRouter(mockService)
+			router := setupRemoveMemberRouter(mockRoomService, mockMemberService, mockSyncService)
 
 			req := httptest.NewRequest(http.MethodDelete, "/api/rooms/"+tt.roomIdPath+"/members/"+tt.memberIdPath, nil)
 			req.Header.Set("X-User-ID", tt.userID)

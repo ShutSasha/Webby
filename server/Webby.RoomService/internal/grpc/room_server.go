@@ -9,20 +9,20 @@ import (
 	"github.com/google/uuid"
 )
 
-type RoomGetter interface {
+type roomGetter interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Room, error)
 }
 
-type RoomServer struct {
+type roomServer struct {
 	roompb.UnimplementedRoomGrpcServiceServer
-	roomGetter RoomGetter
+	roomGetter roomGetter
 }
 
-func NewRoomServer(roomGetter RoomGetter) *RoomServer {
-	return &RoomServer{roomGetter: roomGetter}
+func NewRoomServer(roomGetter roomGetter) *roomServer {
+	return &roomServer{roomGetter: roomGetter}
 }
 
-func (s *RoomServer) GetRoomHost(ctx context.Context, req *roompb.GetRoomHostRequest) (*roompb.GetRoomHostResponse, error) {
+func (s *roomServer) GetRoomHost(ctx context.Context, req *roompb.GetRoomHostRequest) (*roompb.GetRoomHostResponse, error) {
 	const op = "grpc.RoomService.GetRoomHost"
 	roomID, err := uuid.Parse(req.GetRoomId())
 	if err != nil {
@@ -33,7 +33,5 @@ func (s *RoomServer) GetRoomHost(ctx context.Context, req *roompb.GetRoomHostReq
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &roompb.GetRoomHostResponse{
-		HostId: room.HostID.String(),
-	}, nil
+	return &roompb.GetRoomHostResponse{HostId: room.HostID.String()}, nil
 }

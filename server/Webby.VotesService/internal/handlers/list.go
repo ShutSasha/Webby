@@ -1,48 +1,37 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby/vote-service/internal/services"
-	"webby/vote-service/pkg/logger"
+	"webby/vote-service/internal/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
+type listUri struct {
+	RoomID string `uri:"id" binding:"required,uuid"`
+}
+
 func (h *handler) List(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With(
-		slog.String("operation", "httpserver.votes.list"),
-	)
 
-	roomIdStr := c.Param("id")
-	roomId, err := uuid.Parse(roomIdStr)
-	if err != nil {
-		log.Debug("invalid room id", slog.Any("err", err))
-		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
-			Success: false,
-			Message: "Validation error",
-			Errors: map[string]string{
-				"id": "the room id format is not valid",
-			},
-		})
+	var uri listUri
+	if err := c.ShouldBindUri(&uri); err != nil {
+		HandleValidationError(c, err)
 		return
 	}
 
-	userIdStr := ctx.Value("userID").(string)
-	userId, _ := uuid.Parse(userIdStr)
-
-	votes, err := h.service.ListVotes(ctx, roomId, userId)
+	roomID, _ := uuid.Parse(uri.RoomID)
+	userID, _ := uuid.Parse(ctx.Value("userID").(string))
+	votings, err := h.service.ListVotings(ctx, roomID, userID)
 	if err != nil {
-		log.Error("list votes error", slog.Any("err", err))
-		HandleAppError(c, "List votes error", err)
+		HandleAppError(c, "List votings error", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, ApiResponse[[]services.VoteDetail]{
+	c.JSON(http.StatusOK, ApiResponse[[]models.EnrichedVoting]{
 		Success: true,
 		Message: "Votes retrieved",
-		Data:    &votes,
+		Data:    &votings,
 	})
 }

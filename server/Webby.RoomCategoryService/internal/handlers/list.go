@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby/room-category-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,35 +14,27 @@ type listQuery struct {
 
 func (h *handler) List(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("operation", "handlers.List")
 
 	var query listQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
 		HandleValidationError(c, err)
 		return
 	}
 
 	categories, total, err := h.service.List(ctx, query.Search, query.Page, query.Limit)
 	if err != nil {
-		log.Error("list categories error", slog.Any("err", err))
 		HandleAppError(c, "List categories error", err)
 		return
-	}
-
-	items := make([]string, len(categories))
-	for i, cat := range categories {
-		items[i] = cat.Name
 	}
 
 	c.JSON(http.StatusOK, ApiResponse[PaginatedResponse[string]]{
 		Success: true,
 		Message: "Categories retrieved successfully",
 		Data: &PaginatedResponse[string]{
-			Items: items,
+			Items: categories,
 			Page:  query.Page,
 			Limit: query.Limit,
-			Total: int(total),
+			Total: total,
 		},
 	})
 }

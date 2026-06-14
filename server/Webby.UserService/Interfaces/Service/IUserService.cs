@@ -1,5 +1,6 @@
 ﻿using Webby.UserService.Dtos;
 using Webby.UserService.Dtos.Search;
+using Webby.UserService.Dtos.Statistic;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Helpers.Response;
 using Webby.UserService.Models;
@@ -20,6 +21,8 @@ public interface IUserService
    Task<UserFollowingResponse> IsUserFollowing(Guid userId, Guid targetId);
    Task<GetUserSubscriptionResponse?> GetUserSubscription(Guid userId, bool isOwner);
    Task<PagedResponse<UserDto>> SearchUsers(SearchOptions searchOptions);
+   Task<Guid> DeleteUser(Guid userId);
+   Task<UserStatisticDto> GetUserStatistic(Guid userId, int? year, int? month);
    
 
 }

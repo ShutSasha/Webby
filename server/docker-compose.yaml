@@ -111,7 +111,15 @@ services:
       - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
-    container_name: webby/chat-service-service
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${RedisPassword}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - GRPC_PORT=5008
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:5006
+    depends_on:
+      - redis
+    container_name: webby-chat-service
 
   room-service:
     build:
@@ -125,6 +133,18 @@ services:
       - AWS_SECRET_KEY=${AwsSecretKey}
       - AWS_BUCKET=${AwsBucketName}
       - AWS_REGION=${AwsRegion}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=5006
+      - GRPC_MEDIA_SERVICE_ADDRESS=video-service:5005
+      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:5008
+      - GRPC_CATEGORY_SERVICE_ADDRESS=room-category-service:5009
+      - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:5007
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${RedisPassword}
+    depends_on:
+      - redis
     container_name: webby-room-service
 
   room-category-service:
@@ -135,6 +155,10 @@ services:
       - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=5009
     container_name: webby-room-category-service
 
   room-queue-service:
@@ -145,7 +169,18 @@ services:
       - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
-    container_name: webby/room-queue-service-service
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=5007
+      - GRPC_MEDIA_SERVICE_ADDRESS=video-service:5005
+      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:5008
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:5006
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${RedisPassword}
+    depends_on:
+      - redis
+    container_name: webby-room-queue-service
 
   votes-service:
     build:
@@ -155,6 +190,12 @@ services:
       - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=5010
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:5006
+      - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:5007
     container_name: webby-votes-service
 
   ws-gateway:
@@ -163,8 +204,16 @@ services:
       dockerfile: Webby.WsGateway/Dockerfile
     environment:
       - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - TOKEN_TTL=15m
       - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${RedisPassword}
+      - GRPC_CHAT=chat-service:5008
+      - GRPC_VOTES=votes-service:5010
+      - GRPC_ROOM=room-service:5006
     depends_on:
       - redis
     container_name: webby-ws-gateway

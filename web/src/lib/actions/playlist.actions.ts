@@ -2,17 +2,10 @@
 
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
-import { BaseServerResponse, Optional } from '@/types/general.types'
+import { BaseServerResponse, Optional, PaginatedData } from '@/types/general.types'
 import { Video } from '@/types/video.types'
 
 const endpoint = '/playlists'
-
-export type PaginatedData<T> = {
-  items: T[]
-  page: number
-  pageSize: number
-  totalCount: number
-}
 
 export type BasePlaylist = {
   playlistId: string
@@ -176,6 +169,72 @@ export async function togglePlaylistVideo(playlistId: string, videoId: string): 
       data: null,
       success: false,
       message: `Failed to toggle video in playlist`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function togglePlaylistStream(playlistId: string, streamId: string): Promise<BaseServerResponse<boolean>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<boolean>>(`${endpoint}/streams`, {
+      playlistId,
+      streamIds: [streamId],
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('TOGGLE_PLAYLIST_STREAM_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to toggle stream in playlist`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function bulkTogglePlaylistsVideo(
+  playlistIds: string[],
+  videoId: string,
+): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`${endpoint}/videos/bulk`, {
+      playlistIds,
+      videoIds: [videoId],
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('BULK_TOGGLE_VIDEOS_IN_PLAYLISTS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to update playlists`,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function bulkTogglePlaylistsStream(
+  playlistIds: string[],
+  streamId: string,
+): Promise<BaseServerResponse<boolean>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<boolean>>(`${endpoint}/streams/bulk`, {
+      playlistIds,
+      streamIds: [streamId],
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('BULK_TOGGLE_STREAMS_IN_PLAYLISTS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: `Failed to update playlists`,
       errors: parseAxiosError(error),
     }
   }

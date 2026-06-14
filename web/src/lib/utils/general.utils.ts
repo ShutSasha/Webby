@@ -83,3 +83,21 @@ export function clog(label: string, data?: any) {
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+export class ServerActionError extends Error {
+  errors?: Record<string, string> | null
+
+  constructor(message: string, errors?: Record<string, string> | null) {
+    super(message)
+    this.errors = errors
+    this.name = 'ServerActionError'
+  }
+}
+
+export const unwrapServerAction = <T>(response: BaseServerResponse<T>): T => {
+  if (!response.success) {
+    throw new ServerActionError(response.message || 'An error occurred', response.errors)
+  }
+
+  return response.data as T
+}

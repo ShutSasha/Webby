@@ -507,33 +507,26 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /api/rooms/{id}/members/{memberId}/points:
-    patch:
+  /api/rooms/{id}/members/points:
+    get:
       tags:
         - Members
-      summary: Update member points
-      description: Add or subtract points for a room member. Only the room host can update points.
-      operationId: updateMemberPoints
+      summary: Get member's points
+      description: Retrieve user points
+      operationId: getMemberPoints
       security:
         - bearerAuth: []
       parameters:
         - $ref: "#/components/parameters/RoomId"
-        - $ref: "#/components/parameters/MemberId"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdatePointsRequest"
       responses:
         "200":
-          description: Points updated
+          description: Member's points retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MemberDetailResponse"
+                $ref: "#/components/schemas/MemberPointsReposponse"
         "400":
-          description: Validation error or insufficient points
+          description: Invalid UUID format
           content:
             application/json:
               schema:
@@ -544,14 +537,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Forbidden — only host can update points
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
         "404":
-          description: Room or member not found
+          description: Room not found
           content:
             application/json:
               schema:
@@ -570,7 +557,7 @@ paths:
       summary: Synchronize room video playback
       description: |
         Initiate video synchronization for all room members. Only the room host can trigger synchronization.
-        
+
         **Flow:**
         1. Host calls this endpoint to start synchronization
         2. Server sends `REPORT_TIMECODE` event to all room members via WebSocket
@@ -628,7 +615,7 @@ paths:
       summary: Report current video timecode for synchronization
       description: |
         Report the current video playback timecode for synchronization.
-        
+
         **Usage:**
         1. Client receives `REPORT_TIMECODE` event via WebSocket with a `syncId`
         2. Client gets the current video timecode (in seconds)
@@ -891,6 +878,12 @@ components:
         thumbnail:
           type: string
 
+    MemberPoints:
+      type: object
+      properties:
+        points:
+          type: integer
+
     MyRoomListResponse:
       type: object
       properties:
@@ -965,6 +958,20 @@ components:
           example: Points updated successfully
         data:
           $ref: "#/components/schemas/MemberItem"
+        errors:
+          nullable: true
+
+    MemberPointsReposponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Points updated successfully
+        data:
+          $ref: "#/components/schemas/MemberPoints"
         errors:
           nullable: true
 

@@ -22,7 +22,7 @@ export default async function EditVideoPage({ params }: Props) {
     )
   }
 
-  if (!session || session.user.id !== response.data.user.userId) {
+  if (!session || session.user.id !== response.data?.user?.userId) {
     return (
       <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
         <EmptyState

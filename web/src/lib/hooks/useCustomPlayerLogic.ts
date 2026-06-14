@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { usePlayerPlayStore, usePlayerStore } from '@/stores/player.store'
+import { useRoomStore } from '@/stores/room.store'
 
-import { clog } from '../utils/general.utils'
+import { reportTimecodeAction } from '../actions/room.actions'
 
 type PlayerState = {
   pip: boolean
@@ -19,12 +20,14 @@ type PlayerState = {
   showSettings: boolean
   buffering: boolean
   isReady: boolean
+  error: string | null
 }
 
 export const useCustomPlayerLogic = (
   videoUrl: string,
   isPlatformMode: boolean,
   trackViewProgress?: (playedSeconds: number, duration: number) => void,
+  roomId?: string,
 ) => {
   const playerRef = useRef<HTMLVideoElement>(null)
   const playerContainerRef = useRef<HTMLDivElement>(null)
@@ -46,10 +49,13 @@ export const useCustomPlayerLogic = (
   const setPlaying = usePlayerPlayStore(state => state.setPlaying)
   const playing = usePlayerPlayStore(state => state.playing)
 
+  const isTwitch = videoUrl.includes('twitch.tv')
+  const isYoutube = videoUrl.includes('youtube.com')
+
   const initialState: PlayerState = {
     pip: false,
     light: false,
-    muted: false,
+    muted: isTwitch,
     played: 0,
     loaded: 0,
     duration: 0,
@@ -61,11 +67,15 @@ export const useCustomPlayerLogic = (
     showSettings: false,
     buffering: true,
     isReady: false,
+    error: null,
   }
 
   const [state, setState] = useState<PlayerState>(initialState)
+  const [prevUrl, setPrevUrl] = useState(videoUrl)
 
-  useEffect(() => {
+  if (prevUrl !== videoUrl) {
+    setPrevUrl(videoUrl)
+
     setState(prev => ({
       ...prev,
       played: 0,
@@ -73,16 +83,64 @@ export const useCustomPlayerLogic = (
       duration: 0,
       loadedSeconds: 0,
       playedSeconds: 0,
+      muted: isTwitch ? true : prev.muted,
+      isReady: false,
+      error: null,
+      buffering: true,
     }))
+  }
 
+  const syncTriggerId = useRoomStore(state => state.syncTriggerId)
+  const syncTargetTimecode = useRoomStore(state => state.syncTargetTimecode)
+  const setSyncTriggerId = useRoomStore(state => state.setSyncTriggerId)
+  const setSyncTargetTimecode = useRoomStore(state => state.setSyncTargetTimecode)
+
+  useEffect(() => {
+    if (!syncTriggerId || !roomId) return
+
+    const reportCurrentTime = async () => {
+      const player = playerRef.current
+      if (!player) return
+
+      const currentTime = Math.floor(player.currentTime || 0)
+
+      await reportTimecodeAction(roomId, syncTriggerId, currentTime)
+
+      setSyncTriggerId(null)
+    }
+
+    reportCurrentTime()
+  }, [syncTriggerId, roomId, setSyncTriggerId])
+
+  useEffect(() => {
+    if (syncTargetTimecode === null) return
+
+    const player = playerRef.current
+    if (player) {
+      const newTimeFraction = state.duration ? syncTargetTimecode / state.duration : 0
+
+      setState(prevState => ({
+        ...prevState,
+        played: newTimeFraction,
+        playedSeconds: syncTargetTimecode,
+      }))
+
+      player.currentTime = syncTargetTimecode
+    }
+
+    setSyncTargetTimecode(null)
+  }, [syncTargetTimecode, setSyncTargetTimecode, state.duration])
+
+  useEffect(() => {
     const hasInteracted = typeof navigator !== 'undefined' && (navigator as any).userActivation?.hasBeenActive
 
     if (hasInteracted === false) {
       setPlaying(false)
     } else {
-      setPlaying(true)
+      // block play for twitch, we should wait onReady event
+      setPlaying(isTwitch ? false : true)
     }
-  }, [videoUrl, setPlaying])
+  }, [videoUrl, setPlaying, isTwitch])
 
   useEffect(() => {
     const handleFsChange = () => {
@@ -260,56 +318,60 @@ export const useCustomPlayerLogic = (
     }
   }
 
-  const handleReactPlayerVolumeChange = (e: any, isPlatformMode: boolean) => {
+  // each player playform must control volume its own
+  const handlePlayerVolumeChange = (e: any, isPlatformMode: boolean) => {
     const target = e?.target
     if (!target) return
 
     const isNativeMuted = target.muted
     const nativeVolume = target.volume
 
-    clog(
-      `[Vol Event] isPlatform: ${isPlatformMode} | NativeMuted: ${isNativeMuted} | NativeVol: ${nativeVolume} | StateMuted: ${state.muted} | StateVol: ${baseUserVolume}`,
-    )
-
     if (state.muted === isNativeMuted && baseUserVolume === nativeVolume) {
       return
     }
 
-    if (isNativeMuted && !state.muted) {
-      if (baseUserVolume > 0) {
-        setPrevUserVolume(baseUserVolume)
-      }
-
-      setState(prev => ({ ...prev, muted: true }))
+    // ReactPlayer settings
+    if (!isPlatformMode && typeof nativeVolume === 'number') {
+      handleReactPlayerVolumeChange(nativeVolume, isNativeMuted)
       return
     }
 
-    if (!isNativeMuted && state.muted) {
-      if (isPlatformMode && nativeVolume <= 0.05) {
-        const volToRestore = prevVolume > 0 ? prevVolume : 1
-        setBaseUserVolume(volToRestore)
-      } else {
-        setBaseUserVolume(nativeVolume)
-        if (nativeVolume > 0) {
-          setPrevUserVolume(nativeVolume)
-        }
-      }
-      setState(prev => ({ ...prev, muted: false }))
+    if (isYoutube && typeof nativeVolume === 'number') {
+      handleYoutubeVolumeChange(nativeVolume, isNativeMuted)
       return
     }
 
-    if (typeof nativeVolume === 'number') {
-      setBaseUserVolume(nativeVolume)
-      setState(prev => ({ ...prev, muted: isNativeMuted }))
+    if (isTwitch && typeof nativeVolume === 'number') {
+      handleTwitchVolumeChange(nativeVolume, isNativeMuted)
+      return
+    }
+  }
 
-      if (nativeVolume > 0) {
-        setPrevUserVolume(nativeVolume)
-      }
+  const handleReactPlayerVolumeChange = (nativeVolume: number, isNativeMuted: boolean) => {
+    setState(prev => ({ ...prev, muted: isNativeMuted }))
+  }
+
+  const handleYoutubeVolumeChange = (nativeVolume: number, isNativeMuted: boolean) => {
+    setBaseUserVolume(nativeVolume)
+    setState(prev => ({ ...prev, muted: isNativeMuted }))
+
+    if (nativeVolume > 0) {
+      setPrevUserVolume(nativeVolume)
+    }
+  }
+
+  const handleTwitchVolumeChange = (nativeVolume: number, isNativeMuted: boolean) => {
+    setBaseUserVolume(nativeVolume)
+    setState(prev => ({ ...prev, muted: isNativeMuted }))
+
+    if (nativeVolume > 0) {
+      setPrevUserVolume(nativeVolume)
     }
   }
 
   const handleReactPlayerReady = () => {
     const videoElement = playerRef.current
+    const isTwitchVideo = videoUrl.includes('twitch.tv')
 
     if (videoElement) {
       const isActuallyLoaded = videoElement.readyState >= 3
@@ -317,13 +379,23 @@ export const useCustomPlayerLogic = (
       setState(prev => ({
         ...prev,
         buffering: !isActuallyLoaded,
-        isReady: isActuallyLoaded,
+        isReady: isActuallyLoaded || isTwitchVideo, // twitch API works another so we just force true on this event
       }))
 
       videoElement.onwaiting = () => setState(prev => ({ ...prev, buffering: true }))
       videoElement.onloadeddata = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
       videoElement.onplaying = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
       videoElement.oncanplay = () => setState(prev => ({ ...prev, buffering: false, isReady: true }))
+    } else if (isTwitchVideo) {
+      setState(prev => ({ ...prev, buffering: false, isReady: true }))
+    }
+
+    // autoplay for twitch
+    if (isTwitchVideo) {
+      const hasInteracted = typeof navigator !== 'undefined' && (navigator as any).userActivation?.hasBeenActive
+      if (hasInteracted !== false) {
+        setPlaying(true)
+      }
     }
   }
 
@@ -358,10 +430,39 @@ export const useCustomPlayerLogic = (
     const target = e?.target as HTMLVideoElement | undefined
     if (target?.error) {
       console.error('Video Media Error. Code:', target.error.code, 'Message:', target.error.message)
+
+      let errorMessage = 'An unknown error occurred while loading the video.'
+      switch (target.error.code) {
+        case 1:
+          errorMessage = 'Video loading was aborted.'
+          break
+        case 2:
+          errorMessage = 'A network error caused the video download to fail.'
+          break
+        case 3:
+          errorMessage = 'The video playback was aborted due to a corruption problem.'
+          break
+        case 4:
+          errorMessage = 'The video format is not supported or the file cannot be found.'
+          break
+      }
+
+      setState(prev => ({
+        ...prev,
+        error: errorMessage,
+        buffering: false,
+        isReady: false,
+      }))
       return
     }
 
     console.error('Unhandled ReactPlayer Error:', e)
+    setState(prev => ({
+      ...prev,
+      error: 'Failed to play video. Please try again later.',
+      buffering: false,
+      isReady: false,
+    }))
   }
 
   return {
@@ -376,7 +477,7 @@ export const useCustomPlayerLogic = (
     uiState: {
       isFullScreen,
       showCustomControls,
-      playing,
+      playing: isTwitch && !state.isReady ? false : playing,
       baseUserVolume,
     },
     actions: {
@@ -396,7 +497,7 @@ export const useCustomPlayerLogic = (
       toggleFullScreen,
       handleMouseMove,
       handleMouseLeave,
-      handleReactPlayerVolumeChange,
+      handlePlayerVolumeChange,
       handleReactPlayerReady,
       handleReactPlayerPlay,
       handleReactPlayerPause,

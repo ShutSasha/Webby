@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -158,7 +159,7 @@ func TestAddToQueue(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().AddToQueue(
 					mock.Anything, roomID, userID, entityID.String(),
-				).Return(uuid.Nil, -1, apperrors.ErrForbidden).Once()
+				).Return(uuid.Nil, -1, apperrors.ErrNotRoomMember).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody: func(t *testing.T, body string) {
@@ -197,7 +198,7 @@ func TestAddToQueue(t *testing.T) {
 			mockSetup: func(ms *handlermocks.MockService) {
 				ms.EXPECT().AddToQueue(
 					mock.Anything, roomID, userID, entityID.String(),
-				).Return(uuid.Nil, -1, apperrors.ErrInternal).Once()
+				).Return(uuid.Nil, -1, errors.New("internal")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
 			validateBody: func(t *testing.T, body string) {

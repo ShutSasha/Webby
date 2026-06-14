@@ -3,7 +3,9 @@ import { memo, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 
+import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
 import { EntityType, FALLBACK_MAP, getRoute } from '@/lib/utils/global-search-modal.utils'
+import { MediaType } from '@/types/general.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import { SearchCardMenu } from './SearchCardMenu'
@@ -17,6 +19,7 @@ type Props = {
   thumbnail: string
   type: EntityType
   showAddButton?: boolean
+  mediaType: MediaType
   onCloseSearchModal: () => void
 }
 
@@ -27,6 +30,7 @@ const GlobalSearchCard = ({
   thumbnail,
   type,
   showAddButton = true,
+  mediaType,
   onCloseSearchModal,
 }: Props) => {
   const { data: session } = useSession()
@@ -39,6 +43,14 @@ const GlobalSearchCard = ({
   const handleNavigateTo = () => {
     onCloseSearchModal()
   }
+
+  if (!id) {
+    return null
+  }
+
+  const safeTitle = title || 'Untitled'
+  const safeSubtitle = subtitle || 'Unknown details'
+  const safeThumbnail = thumbnail || DEFAULT_VIDEO_THUMBNAIL
 
   const targetUrl = getRoute(type, id)
 
@@ -56,8 +68,8 @@ const GlobalSearchCard = ({
               ${type === 'User' ? 'w-12 h-12 rounded-full' : 'w-24 h-14 rounded-lg'}`}
           >
             <SafeImage
-              src={thumbnail}
-              alt={title}
+              src={safeThumbnail}
+              alt={safeTitle}
               fallbackType={FALLBACK_MAP[type]}
               width={160}
               height={90}
@@ -67,8 +79,8 @@ const GlobalSearchCard = ({
             />
           </div>
           <div className="flex flex-col overflow-hidden">
-            <h4 className="text-sm font-semibold text-neutral-200 truncate">{title}</h4>
-            <p className="text-xs text-neutral-500 truncate mt-0.5">{subtitle}</p>
+            <h4 className="text-sm font-semibold text-neutral-200 truncate">{safeTitle}</h4>
+            <p className="text-xs text-neutral-500 truncate mt-0.5">{safeSubtitle}</p>
           </div>
         </div>
 
@@ -85,6 +97,7 @@ const GlobalSearchCard = ({
           onClose={() => setIsPlaylistModalOpen(false)}
           videoId={id}
           userId={currentUserId}
+          mediaType={mediaType}
         />
       )}
     </>

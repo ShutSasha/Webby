@@ -1,28 +1,52 @@
 'use client'
 
 import SyncIcon from '@/assets/icons/Player/sync.svg'
+import { initiateSyncAction } from '@/lib/actions/room.actions'
 import { cn } from '@/lib/utils/general.utils'
+import { useRoomStore } from '@/stores/room.store'
 
 type Props = {
+  roomId: string
   className?: string
-  // onClick?: () => void
 }
 
-export default function PlayerSyncButton({ className }: Props) {
+export default function PlayerSyncButton({ roomId, className }: Props) {
+  const isSyncCooldown = useRoomStore(state => state.isSyncCooldown)
+  const setSyncCooldown = useRoomStore(state => state.setSyncCooldown)
+
+  const handleSyncClick = async () => {
+    if (!roomId || isSyncCooldown) return
+
+    setSyncCooldown(true)
+    initiateSyncAction(roomId)
+
+    setTimeout(() => {
+      setSyncCooldown(false)
+    }, 1100)
+  }
+
   return (
     <button
       type="button"
+      onClick={handleSyncClick}
+      disabled={isSyncCooldown || !roomId}
       className={cn(
-        'group/sync cursor-pointer p-1.5 -ml-1.5 rounded-full transition-colors hover:bg-white/10',
+        'group flex items-center gap-2 shrink-0 px-3 py-2 md:px-4 md:py-2 rounded-full',
+        'transition-all duration-300 ease-out text-nowrap',
+        'bg-transparent text-neutral-400',
+        !isSyncCooldown && 'hover:bg-neutral-800 hover:text-neutral-100 cursor-pointer',
+        isSyncCooldown && 'opacity-60 cursor-not-allowed',
         className,
       )}
-      title="Synchronize playback"
-      // onClick={onClick}
+      title={isSyncCooldown ? 'Sync is on cooldown' : 'Synchronize playback'}
     >
       <SyncIcon
-        className="w-5 h-5 md:w-6 md:h-6 text-neutral-300 transition-colors duration-300
-          group-hover/sync:text-emerald-500 stroke-[1.5px]"
+        className={cn(
+          'size-4 stroke-[1.5px] transition-all duration-300',
+          isSyncCooldown && 'animate-spin text-emerald-500',
+        )}
       />
+      <span className="text-sm font-medium leading-none">{isSyncCooldown ? 'syncing...' : 'sync video'}</span>
     </button>
   )
 }

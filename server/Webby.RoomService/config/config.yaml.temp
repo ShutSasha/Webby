@@ -2,6 +2,11 @@ env: "local"
 connectionString: "{{UriConnectionString}}"
 jwtSecret: "{{JwtAccessSecretKey}}"
 
+worker:
+  points_per_tick: 67
+  interval: 1m
+  zombie_ttl: 2m
+
 http:
   host: "localhost"
   port: 8080
@@ -20,6 +25,7 @@ grpc:
   chatServiceAddress: "localhost:50051"
   categoryServiceAddress: "localhost:50052"
   queueServiceAddress: "localhost:50053"
+  notificationServiceAddress: "localhost:5007"
 
 redis:
   addr: "localhost:6379"

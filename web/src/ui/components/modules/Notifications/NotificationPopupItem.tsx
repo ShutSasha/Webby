@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { motion, useAnimation } from 'framer-motion'
+import Link from 'next/link'
 
 import PlayCircleIcon from '@/assets/icons/Notifications/circle-play.svg'
 import InfoIcon from '@/assets/icons/Notifications/info.svg'
@@ -63,6 +64,8 @@ export default function NotificationPopupItem({ popup }: Props) {
     }
   }, [])
 
+  const isRoomInvite = popup.targetType === 'Room' && popup.title === 'Room invitation'
+
   return (
     <motion.div
       layout
@@ -83,6 +86,17 @@ export default function NotificationPopupItem({ popup }: Props) {
       <div className="flex flex-col flex-1 gap-1 pr-6">
         <h4 className="text-sm font-semibold text-neutral-100">{popup.title}</h4>
         <p className="text-[13px] text-neutral-400 leading-snug line-clamp-2">{popup.message}</p>
+
+        {isRoomInvite && popup.targetIdentifier && (
+          <Link
+            href={`/rooms/${popup.targetIdentifier}`}
+            onClick={() => removePopup(popup.popupId)}
+            className="mt-1.5 w-max px-4 py-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white
+              text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+          >
+            Join Room
+          </Link>
+        )}
       </div>
 
       <button

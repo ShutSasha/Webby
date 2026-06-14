@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby/room-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -25,20 +23,17 @@ type getResponse struct {
 
 func (h *handler) Get(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("operation", "handlers.Get")
 
 	var uri getUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.Any("err", err))
 		HandleValidationError(c, err)
 		return
 	}
 
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	room, err := h.service.GetByID(ctx, roomID, userID)
+	room, err := h.roomService.GetDetails(ctx, roomID, userID)
 	if err != nil {
-		log.Error("retrieve room error", slog.String("err", err.Error()))
 		HandleAppError(c, "Get room error", err)
 		return
 	}

@@ -7,40 +7,62 @@ import (
 	"webby/room-service/internal/apperrors"
 	"webby/room-service/internal/models"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type RoomMemberRepository struct {
+type roomMemberRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewRoomMemberRepository(db *pgxpool.Pool) *RoomMemberRepository {
-	return &RoomMemberRepository{db: db}
+func NewRoomMemberRepository(db *pgxpool.Pool) *roomMemberRepository {
+	return &roomMemberRepository{db: db}
 }
 
-func (r *RoomMemberRepository) Create(ctx context.Context, member *models.RoomMember) error {
-	const op = "repository.RoomMemberRepository.Create"
+func (r *roomMemberRepository) Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error) {
+	const op = "repository.roomMemberRepository.Exists"
 
-	if member == nil {
-		return fmt.Errorf("%s: %w: member cannot be nil", op, apperrors.ErrInvalidInput)
+	query, args, err := sq.Select("1").
+		From("room_members").
+		Where(sq.Eq{
+			"room_id": roomID,
+			"user_id": userID,
+		}).
+		Limit(1).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return false, fmt.Errorf("%s: failed to build query: %w", op, err)
 	}
 
-	if member.RoomId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
+	var dummy int
+	err = r.db.QueryRow(ctx, query, args...).Scan(&dummy)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+		return false, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
-	if member.UserId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
+	return true, nil
+}
+
+func (r *roomMemberRepository) EnsureMember(ctx context.Context, roomID, userID uuid.UUID) error {
+	const op = "repository.roomMemberRepository.EnsureMember"
+
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Insert("room_members").
+		Columns("room_id", "user_id", "room_points").
+		Values(roomID, userID, 0).
+		Suffix("ON CONFLICT (room_id, user_id) DO NOTHING").
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build failed: %w", op, err)
 	}
 
-	query := `
-		INSERT INTO room_members (room_id, user_id, room_points)
-		VALUES ($1, $2, $3)
-	`
-
-	_, err := r.db.Exec(ctx, query, member.RoomId, member.UserId, member.RoomPoints)
+	_, err = r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
@@ -48,51 +70,8 @@ func (r *RoomMemberRepository) Create(ctx context.Context, member *models.RoomMe
 	return nil
 }
 
-func (r *RoomMemberRepository) Exists(ctx context.Context, roomId, userId uuid.UUID) (bool, error) {
-	const op = "repository.RoomMemberRepository.Exists"
-
-	if roomId == uuid.Nil {
-		return false, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
-
-	if userId == uuid.Nil {
-		return false, fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
-	}
-
-	query := `SELECT EXISTS(SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2)`
-
-	var exists bool
-	err := r.db.QueryRow(ctx, query, roomId, userId).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("%s: query failed: %w", op, err)
-	}
-
-	return exists, nil
-}
-
-func (r *RoomMemberRepository) EnsureMember(ctx context.Context, roomID, userID uuid.UUID) error {
-	const op = "repository.RoomMemberRepository.EnsureMember"
-
-	query := `
-		INSERT INTO room_members (room_id, user_id, room_points)
-		VALUES ($1, $2, 0)
-		ON CONFLICT (room_id, user_id) DO NOTHING
-	`
-
-	_, err := r.db.Exec(ctx, query, roomID, userID)
-	if err != nil {
-		return fmt.Errorf("%s: execution failed: %w", op, err)
-	}
-
-	return nil
-}
-
-func (r *RoomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
-	const op = "repository.RoomMemberRepository.ListByRoom"
-
-	if roomId == uuid.Nil {
-		return nil, 0, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
+func (r *roomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
+	const op = "repository.roomMemberRepository.ListByRoom"
 
 	if page < 1 {
 		page = 1
@@ -105,42 +84,46 @@ func (r *RoomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID,
 	}
 
 	offset := (page - 1) * limit
+	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	whereClause := `WHERE rm.room_id = $1`
-	countArgs := []any{roomId}
-	paramN := 2
+	countBuilder := builder.
+		Select("COUNT(*)").
+		From("room_members rm").
+		Join("\"Users\" u ON rm.user_id = u.\"UserId\"").
+		Where(sq.Eq{"rm.room_id": roomId})
+
+	dataBuilder := builder.
+		Select("u.\"UserId\"", "u.\"Username\"", "u.\"AvatarUrl\"", "rm.room_points").
+		From("room_members rm").
+		Join("\"Users\" u ON rm.user_id = u.\"UserId\"").
+		Where(sq.Eq{"rm.room_id": roomId}).
+		OrderBy("rm.room_points DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	if search != "" {
-		whereClause += fmt.Sprintf(` AND u."Username" ILIKE $%d`, paramN)
-		countArgs = append(countArgs, "%"+search+"%")
-		paramN++
+		pattern := "%" + search + "%"
+		countBuilder = countBuilder.Where(sq.Expr("u.\"Username\" ILIKE ?", pattern))
+		dataBuilder = dataBuilder.Where(sq.Expr("u.\"Username\" ILIKE ?", pattern))
 	}
 
-	countQuery := fmt.Sprintf(`
-		SELECT COUNT(*)
-		FROM room_members rm
-		JOIN "Users" u ON rm.user_id = u."UserId"
-		%s
-	`, whereClause)
+	countSQL, countArgs, err := countBuilder.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
 	var total int64
-	err := r.db.QueryRow(ctx, countQuery, countArgs...).Scan(&total)
+	err = r.db.QueryRow(ctx, countSQL, countArgs...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: count query failed: %w", op, err)
 	}
 
-	dataQuery := fmt.Sprintf(`
-		SELECT u."UserId", u."Username", u."AvatarUrl", rm.room_points
-		FROM room_members rm
-		JOIN "Users" u ON rm.user_id = u."UserId"
-		%s
-		ORDER BY rm.room_points DESC
-		LIMIT $%d OFFSET $%d
-	`, whereClause, paramN, paramN+1)
+	dataSQL, dataArgs, err := dataBuilder.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
 
-	dataArgs := append(countArgs, limit, offset)
-
-	rows, err := r.db.Query(ctx, dataQuery, dataArgs...)
+	rows, err := r.db.Query(ctx, dataSQL, dataArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: data query failed: %w", op, err)
 	}
@@ -168,72 +151,88 @@ func (r *RoomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID,
 	return members, total, nil
 }
 
-func (r *RoomMemberRepository) Delete(ctx context.Context, roomId, userId uuid.UUID) error {
-	const op = "repository.RoomMemberRepository.Delete"
+func (r *roomMemberRepository) Delete(ctx context.Context, roomID, userID uuid.UUID) error {
+	const op = "repository.roomMemberRepository.Delete"
 
-	if roomId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Delete("room_members").
+		Where(sq.Eq{"room_id": roomID, "user_id": userID}).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build failed: %w", op, err)
 	}
 
-	if userId == uuid.Nil {
-		return fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
-	}
-
-	query := `DELETE FROM room_members WHERE room_id = $1 AND user_id = $2`
-
-	tag, err := r.db.Exec(ctx, query, roomId, userId)
+	tag, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("%s: member not found in room: %w", op, apperrors.ErrNotFound)
+		return fmt.Errorf("%s: %w", op, apperrors.ErrRoomMemberNotFound)
 	}
 
 	return nil
 }
 
-func (r *RoomMemberRepository) UpdatePoints(ctx context.Context, roomId, userId uuid.UUID, delta int) (*models.RoomMemberInfo, error) {
-	const op = "repository.RoomMemberRepository.UpdatePoints"
+func (r *roomMemberRepository) AddPointsBulk(ctx context.Context, userIDs []uuid.UUID, pointsToAdd int) (map[uuid.UUID]int, error) {
+	const op = "repository.roomMemberRepository.AddPointsBulk"
 
-	if roomId == uuid.Nil {
-		return nil, fmt.Errorf("%s: %w: invalid room id", op, apperrors.ErrInvalidInput)
-	}
-
-	if userId == uuid.Nil {
-		return nil, fmt.Errorf("%s: %w: invalid user id", op, apperrors.ErrInvalidInput)
-	}
-
-	query := `
-		UPDATE room_members
-		SET room_points = room_points + $3
-		WHERE room_id = $1 AND user_id = $2 AND room_points + $3 >= 0
-		RETURNING (SELECT u."UserId" FROM "Users" u WHERE u."UserId" = room_members.user_id),
-			(SELECT u."Username" FROM "Users" u WHERE u."UserId" = room_members.user_id),
-			(SELECT u."AvatarUrl" FROM "Users" u WHERE u."UserId" = room_members.user_id),
-			room_points
-	`
-
-	var member models.RoomMemberInfo
-	err := r.db.QueryRow(ctx, query, roomId, userId, delta).Scan(
-		&member.UserID,
-		&member.Username,
-		&member.AvatarUrl,
-		&member.RoomPoints,
-	)
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Update("room_members").
+		Set("room_points", sq.Expr("room_points + ?", pointsToAdd)).
+		Where(sq.Eq{"user_id": userIDs}).
+		Suffix("RETURNING user_id, room_points").
+		ToSql()
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			exists, exErr := r.Exists(ctx, roomId, userId)
-			if exErr != nil {
-				return nil, fmt.Errorf("%s: %w", op, exErr)
-			}
-			if exists {
-				return nil, fmt.Errorf("%s: %w: insufficient points", op, apperrors.ErrInvalidInput)
-			}
-			return nil, fmt.Errorf("%s: member not found in room: %w", op, apperrors.ErrNotFound)
-		}
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
 		return nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
+	defer rows.Close()
 
-	return &member, nil
+	updatedTotals := make(map[uuid.UUID]int, len(userIDs))
+
+	for rows.Next() {
+		var uID uuid.UUID
+		var totalPoints int
+
+		if err := rows.Scan(&uID, &totalPoints); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		updatedTotals[uID] = totalPoints
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return updatedTotals, nil
+}
+
+func (r *roomMemberRepository) GetMemberPoints(ctx context.Context, roomID, userID uuid.UUID) (int, error) {
+	const op = "repository.roomMemberRepository.GetMemberPoints"
+
+	sql, args, err := sq.Select("room_points").
+		From("room_members").
+		Where(sq.And{
+			sq.Eq{"room_id": roomID},
+			sq.Eq{"user_id": userID},
+		}).PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	var points int
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&points)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, fmt.Errorf("%s: %w", op, apperrors.ErrRoomMemberNotFound)
+		}
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return points, nil
 }

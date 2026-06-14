@@ -51,7 +51,7 @@ func TestCreateCategory(t *testing.T) {
 		requestBody    any
 		customBody     string
 		contentType    string
-		mockSetup      func(*handlermocks.MockService)
+		mockSetup      func(*handlermocks.Mockservice)
 		expectedStatus int
 		validateBody   func(t *testing.T, body string)
 	}{
@@ -60,7 +60,7 @@ func TestCreateCategory(t *testing.T) {
 			requestBody: createCategoryRequest{
 				Name: "Gaming",
 			},
-			mockSetup: func(mc *handlermocks.MockService) {
+			mockSetup: func(mc *handlermocks.Mockservice) {
 				mc.EXPECT().Create(mock.Anything, "Gaming").Return(nil).Once()
 			},
 			expectedStatus: http.StatusCreated,
@@ -73,7 +73,7 @@ func TestCreateCategory(t *testing.T) {
 			requestBody: createCategoryRequest{
 				Name: "Go",
 			},
-			mockSetup: func(mc *handlermocks.MockService) {
+			mockSetup: func(mc *handlermocks.Mockservice) {
 				mc.EXPECT().Create(mock.Anything, "Go").Return(nil).Once()
 			},
 			expectedStatus: http.StatusCreated,
@@ -86,7 +86,7 @@ func TestCreateCategory(t *testing.T) {
 			requestBody: createCategoryRequest{
 				Name: "12345678901234567890123456789012345678901234567890",
 			},
-			mockSetup: func(mc *handlermocks.MockService) {
+			mockSetup: func(mc *handlermocks.Mockservice) {
 				mc.EXPECT().Create(mock.Anything, "12345678901234567890123456789012345678901234567890").Return(nil).Once()
 			},
 			expectedStatus: http.StatusCreated,
@@ -99,8 +99,8 @@ func TestCreateCategory(t *testing.T) {
 			requestBody: createCategoryRequest{
 				Name: "Gaming",
 			},
-			mockSetup: func(mc *handlermocks.MockService) {
-				mc.EXPECT().Create(mock.Anything, "Gaming").Return(fmt.Errorf("%w: category already exists", apperrors.ErrConflict)).Once()
+			mockSetup: func(mc *handlermocks.Mockservice) {
+				mc.EXPECT().Create(mock.Anything, "Gaming").Return(fmt.Errorf("%w: category already exists", apperrors.ErrCategoryAlreadyExists)).Once()
 			},
 			expectedStatus: http.StatusConflict,
 			validateBody: func(t *testing.T, body string) {
@@ -110,7 +110,7 @@ func TestCreateCategory(t *testing.T) {
 		{
 			name:           "Failure - Malformed JSON",
 			customBody:     `{"name": "Gaming"`,
-			mockSetup:      func(mc *handlermocks.MockService) {},
+			mockSetup:      func(mc *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorResponse(t, body)
@@ -119,7 +119,7 @@ func TestCreateCategory(t *testing.T) {
 		{
 			name:           "Failure - Completely Invalid Payload",
 			customBody:     `random non-json text string`,
-			mockSetup:      func(mc *handlermocks.MockService) {},
+			mockSetup:      func(mc *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorResponse(t, body)
@@ -130,7 +130,7 @@ func TestCreateCategory(t *testing.T) {
 			requestBody: createCategoryRequest{
 				Name: "G",
 			},
-			mockSetup:      func(mc *handlermocks.MockService) {},
+			mockSetup:      func(mc *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorWithValidation(t, body)
@@ -141,7 +141,7 @@ func TestCreateCategory(t *testing.T) {
 			requestBody: createCategoryRequest{
 				Name: "123456789012345678901234567890123456789012345678901",
 			},
-			mockSetup:      func(mc *handlermocks.MockService) {},
+			mockSetup:      func(mc *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorWithValidation(t, body)
@@ -150,7 +150,7 @@ func TestCreateCategory(t *testing.T) {
 		{
 			name:           "Failure - Missing Name Field",
 			customBody:     `{"title": "Gaming"}`,
-			mockSetup:      func(mc *handlermocks.MockService) {},
+			mockSetup:      func(mc *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorWithValidation(t, body)
@@ -159,7 +159,7 @@ func TestCreateCategory(t *testing.T) {
 		{
 			name:           "Failure - Empty JSON Body",
 			customBody:     `{}`,
-			mockSetup:      func(mc *handlermocks.MockService) {},
+			mockSetup:      func(mc *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorWithValidation(t, body)
@@ -168,7 +168,7 @@ func TestCreateCategory(t *testing.T) {
 		{
 			name:           "Failure - Name is Null",
 			customBody:     `{"name": null}`,
-			mockSetup:      func(mc *handlermocks.MockService) {},
+			mockSetup:      func(mc *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorWithValidation(t, body)
@@ -177,7 +177,7 @@ func TestCreateCategory(t *testing.T) {
 		{
 			name:           "Failure - Name is an Integer Type",
 			customBody:     `{"name": 12345}`,
-			mockSetup:      func(mc *handlermocks.MockService) {},
+			mockSetup:      func(mc *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorResponse(t, body)
@@ -188,7 +188,7 @@ func TestCreateCategory(t *testing.T) {
 			requestBody: createCategoryRequest{
 				Name: "",
 			},
-			mockSetup:      func(mc *handlermocks.MockService) {},
+			mockSetup:      func(mc *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorWithValidation(t, body)
@@ -199,7 +199,7 @@ func TestCreateCategory(t *testing.T) {
 			requestBody: createCategoryRequest{
 				Name: "   ",
 			},
-			mockSetup:      func(mc *handlermocks.MockService) {},
+			mockSetup:      func(mc *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorWithValidation(t, body)
@@ -210,7 +210,7 @@ func TestCreateCategory(t *testing.T) {
 			requestBody: createCategoryRequest{
 				Name: "Gaming",
 			},
-			mockSetup: func(mc *handlermocks.MockService) {
+			mockSetup: func(mc *handlermocks.Mockservice) {
 				mc.EXPECT().Create(mock.Anything, "Gaming").Return(fmt.Errorf("db error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -222,7 +222,7 @@ func TestCreateCategory(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockService := handlermocks.NewMockService(t)
+			mockService := handlermocks.NewMockservice(t)
 			tt.mockSetup(mockService)
 			h := handlers.New(mockService)
 

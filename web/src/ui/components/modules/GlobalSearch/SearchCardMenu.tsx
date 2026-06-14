@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 
+import { useParams, usePathname } from 'next/navigation'
+
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
+import { useAddQueueItemMutation } from '@/lib/hooks/api/room/useAddQueueItem'
 import { clog } from '@/lib/utils/general.utils'
 import { EntityType } from '@/lib/utils/global-search-modal.utils'
 
@@ -14,8 +17,16 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const checkCanAddToPlaylist = (type: EntityType) => type === 'Video' || type === 'YouTube'
-  const checkCanAddToRoom = (type: EntityType) => ['Video', 'YouTube', 'Playlist', 'Stream'].includes(type)
+  const params = useParams()
+  const pathname = usePathname()
+
+  const isRoomPage = pathname?.startsWith('/rooms/')
+  const roomId = isRoomPage ? (params?.id as string | undefined) : undefined
+
+  const { mutate: addQueueItem, isPending } = useAddQueueItemMutation()
+
+  const canAddToPlaylist = ['Video', 'YouTube', 'Stream'].includes(type)
+  const canAddToRoom = !!roomId && ['Video', 'YouTube', 'Playlist', 'Stream'].includes(type)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -43,8 +54,24 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
   const handleAddToRoom = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setIsOpen(false)
-    clog(`[Room] TODO: Add ${type} with ID to Room:`, id)
+
+    if (!roomId || isPending) return
+
+    addQueueItem(
+      { roomId, videoId: id },
+      {
+        onSuccess: res => {
+          if (res.success) {
+            setIsOpen(false)
+            clog(`[Room] Successfully added ${type} with ID to Room:`, id)
+          }
+        },
+      },
+    )
+  }
+
+  if (!canAddToPlaylist && !canAddToRoom) {
+    return null
   }
 
   return (
@@ -63,7 +90,7 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
             shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
           onClick={e => e.preventDefault()}
         >
-          {checkCanAddToPlaylist(type) && (
+          {canAddToPlaylist && (
             <button
               onClick={handleAddToPlaylist}
               className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors
@@ -73,13 +100,14 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
             </button>
           )}
 
-          {checkCanAddToRoom(type) && (
+          {canAddToRoom && (
             <button
               onClick={handleAddToRoom}
-              className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors
-                flex items-center gap-3 cursor-pointer"
+              disabled={isPending}
+              className={`w-full text-left px-4 py-2 text-sm text-neutral-200 transition-colors flex items-center gap-3
+              ${isPending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neutral-700/50 cursor-pointer'}`}
             >
-              <span>Add to room</span>
+              <span>{isPending ? 'Adding...' : 'Add to room'}</span>
             </button>
           )}
         </div>

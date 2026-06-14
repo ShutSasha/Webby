@@ -21,6 +21,7 @@ import (
 	"webby/room-service/internal/publisher"
 	"webby/room-service/internal/repository"
 	"webby/room-service/internal/services"
+	"webby/room-service/internal/workers"
 	"webby/room-service/pkg/slogpretty"
 
 	"github.com/redis/go-redis/v9"
@@ -68,14 +69,8 @@ func run(ctx context.Context, w io.Writer) error {
 	defer rdb.Close()
 
 	publisher := publisher.New(rdb)
-	redisRepository := repository.NewRedisRepo(rdb)
-
-	mediaClient, err := grpcClient.NewMediaClient(cfg.Grpc.MediaServiceAddress)
-	if err != nil {
-		logger.Error("media service gRPC connection failed", slog.String("error", err.Error()))
-		return err
-	}
-	defer mediaClient.Close()
+	timecodesRepository := repository.NewTimecodesRepo(rdb)
+	roomPresenceRepository := repository.NewRedisPresenceRepository(rdb)
 
 	chatClient, err := grpcClient.NewChatClient(cfg.Grpc.ChatServiceAddress)
 	if err != nil {
@@ -92,19 +87,20 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer categoryClient.Close()
 
-	roomService := services.NewRoomService(
-		roomRepository, roomMemberRepository, fileStorage,
-		chatClient, categoryClient,
-		publisher, redisRepository,
-	)
+	notificationClient, err := grpcClient.NewNotificationClient(cfg.Grpc.NotificationServiceAddress)
+	if err != nil {
+		logger.Error("notification service gRPC connection failed", slog.String("error", err.Error()))
+		return err
+	}
+	defer notificationClient.Close()
 
 	logger.Info("repositories initialized")
 
-	server := handlers.NewServer(
-		cfg,
-		logger,
-		roomService,
-	)
+	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, categoryClient, chatClient)
+	roomMemberService := services.NewRoomMemberService(roomRepository, roomMemberRepository, chatClient, notificationClient)
+	syncService := services.NewSynchronizeService(chatClient, publisher, timecodesRepository, roomMemberRepository)
+
+	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
 		ReadTimeout:  cfg.Http.Timeout,
@@ -152,6 +148,10 @@ func run(ctx context.Context, w io.Writer) error {
 			logger.Error("error serving grpc", slog.Any("error", err))
 		}
 	}()
+
+	worker := workers.NewPointsWorker(roomPresenceRepository, roomMemberRepository, publisher, logger, cfg.Worker.Interval, cfg.Worker.PointsPerTick, cfg.Worker.ZombieTTL)
+
+	go worker.Run(ctx)
 
 	var wg sync.WaitGroup
 	wg.Go(func() {

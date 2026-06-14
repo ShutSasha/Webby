@@ -17,16 +17,24 @@ import PlayerSettingsMenu from './PlayerSettingsMenu'
 type PlayerProps = {
   videoUrl: string
   videoId?: string
+  roomId?: string
   isRoom?: boolean
 }
 
-export default function CustomPlayer({ videoUrl, videoId, isRoom = false }: PlayerProps) {
+export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false }: PlayerProps) {
   const isMounted = useIsClient()
-  const isPlatformMode = usePlayerControls(videoUrl)
-
+  const isPlatformModeHook = usePlayerControls(videoUrl)
   const trackViewProgress = useVideoViewTracker(videoId)
 
-  const { refs, state, setState, uiState, actions } = useCustomPlayerLogic(videoUrl, isPlatformMode, trackViewProgress)
+  const isTwitch = videoUrl.includes('twitch.tv')
+  const isPlatformMode = isPlatformModeHook || isTwitch
+
+  const { refs, state, setState, uiState, actions } = useCustomPlayerLogic(
+    videoUrl,
+    isPlatformMode,
+    trackViewProgress,
+    roomId,
+  )
 
   usePlayerHotkeys({
     playerRef: refs.playerRef,
@@ -49,8 +57,8 @@ export default function CustomPlayer({ videoUrl, videoId, isRoom = false }: Play
       ref={refs.playerContainerRef}
       onMouseMove={actions.handleMouseMove}
       onMouseLeave={actions.handleMouseLeave}
-      className={`group relative w-full bg-transparent overflow-hidden transition-all
-        ${uiState.isFullScreen ? 'w-screen h-screen rounded-0' : 'aspect-video rounded-2xl'}
+      className={`group relative w-full bg-transparent transition-all
+        ${uiState.isFullScreen ? 'w-screen h-screen' : 'aspect-video'} ${!isTwitch ? 'rounded-2xl overflow-hidden' : ''}
         ${!isPlatformMode && !uiState.showCustomControls ? 'cursor-none' : 'cursor-default'}`}
     >
       <ReactPlayer
@@ -71,7 +79,7 @@ export default function CustomPlayer({ videoUrl, videoId, isRoom = false }: Play
         onProgress={actions.handleProgress}
         onTimeUpdate={actions.handleTimeUpdate}
         onDurationChange={actions.handleDurationChange}
-        onVolumeChange={(e)=>actions.handleReactPlayerVolumeChange(e, isPlatformMode)}
+        onVolumeChange={e => actions.handlePlayerVolumeChange(e, isPlatformMode)}
         onReady={actions.handleReactPlayerReady}
         onPlay={actions.handleReactPlayerPlay}
         onPause={actions.handleReactPlayerPause}
@@ -79,10 +87,25 @@ export default function CustomPlayer({ videoUrl, videoId, isRoom = false }: Play
         onError={actions.handleReactPlayerError}
       />
 
-      {!isPlatformMode && <PlayerLoader isReady={state.isReady} buffering={state.buffering} />}
+      {state.error && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 text-center px-4">
+          <svg className="w-12 h-12 text-red-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <p className="text-neutral-200 font-semibold text-lg">Playback Error</p>
+          <p className="text-neutral-400 text-sm mt-1">{state.error}</p>
+        </div>
+      )}
+
+      {!state.error && !isPlatformMode && <PlayerLoader isReady={state.isReady} buffering={state.buffering} />}
 
       {/* Overlay */}
-      {state.isReady && !isPlatformMode && (
+      {!state.error && state.isReady && !isPlatformMode && (
         <div
           className={`absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent transition-opacity
           duration-400 ease-in-out ${uiState.showCustomControls ? 'opacity-100' : 'opacity-0'}`}
