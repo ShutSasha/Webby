@@ -104,5 +104,7 @@ public class ComplaintService : IComplaintService
       
       return _mapper.Map<List<ComplaintDto>>(userComplaints);
    }
-   
+
+   public async Task<Complaint?> FindById(Guid complaintId)
+   => await _complaintRepository.FindById(complaintId); 
 }

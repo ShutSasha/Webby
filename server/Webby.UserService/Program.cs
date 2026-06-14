@@ -1,8 +1,11 @@
 using System.Text.Json.Serialization;
 using Amazon.S3;
 using Serilog;
+using Webby.UserService.ComplaintGrpcService;
 using Webby.UserService.Extensions;
 using Webby.UserService.Middlewares;
+using Webby.UserService.Services;
+using ComplaintGrpcService = Webby.UserService.Services.Grpc.ComplaintGrpcService;
 using UserGrpcService = Webby.UserService.Services.Grpc.UserGrpcService;
 
 try
@@ -35,7 +38,7 @@ try
     services.AddRepositories();
     services.AddServices();
     services.AddHelpers();
-    services.AddGrpc();
+    services.AddGrpc(options => { options.Interceptors.Add<GrpcExceptionInterceptor>();});
 
 
     services.AddControllers().AddJsonOptions(options =>
@@ -63,6 +66,7 @@ try
 
     app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
     app.MapGrpcService<UserGrpcService>().EnableGrpcWeb();
+    app.MapGrpcService<ComplaintGrpcService>().EnableGrpcWeb();
 
 
     app.MapControllers();
