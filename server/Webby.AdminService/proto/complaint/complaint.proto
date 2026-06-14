@@ -1,0 +1,23 @@
+syntax="proto3";
+
+option go_package = "webby/admin-service/internal/grpc/notificationpb";
+
+import "google/protobuf/timestamp.proto";
+
+service ComplaintGrpcService{
+  rpc GetComplaintByID(GetComplaintByIDRequest) returns (GetComplaintByIDResponse);
+}
+
+message GetComplaintByIDRequest{
+  string complaintID = 1;
+}
+
+message GetComplaintByIDResponse {
+ string complaintID = 1;
+ string authorId = 2;
+ string targetType = 3;
+ string targetId = 4;
+ string reasonType = 5;
+ string additionalInfo = 6;
+ google.protobuf.Timestamp createdAt =  7;
+}
