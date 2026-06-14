@@ -12,6 +12,7 @@ type Vote struct {
 	VoteText  string    `redis:"vote_text"`
 	Duration  int       `redis:"duration"`
 	CreatedAt time.Time `redis:"created_at"`
+	Status    string    `json:"status"`
 }
 
 type EnrichedVoting struct {
@@ -19,5 +20,7 @@ type EnrichedVoting struct {
 	VoteText  string    `json:"voteText"`
 	Duration  int       `json:"duration"`
 	CreatedAt time.Time `json:"createdAt"`
+	IsLocked  bool      `json:"isLocked"`
+	MyVote    *string   `json:"myVote,omitempty"`
 	Choices   []string  `json:"choices"`
 }

@@ -199,6 +199,7 @@ func (r *repository) GetVoteByID(ctx context.Context, id uuid.UUID) (*models.Vot
 		VoteText:  res["vote_text"],
 		Duration:  duration,
 		CreatedAt: createdAt,
+		Status:    res["status"],
 	}
 
 	log.Debug("Retrieve vote from redis", "vote", vote)
@@ -378,4 +379,19 @@ func (r *repository) HasNextVideoVoting(ctx context.Context, roomID uuid.UUID) (
 	}
 
 	return hasVoting, nil
+}
+
+func (r *repository) GetUserVote(ctx context.Context, voteID, userID uuid.UUID) (*string, error) {
+	const op = "repository.GetUserVote"
+	votesKey := fmt.Sprintf("votings:%s:user_choices", voteID)
+
+	choice, err := r.client.HGet(ctx, votesKey, userID.String()).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &choice, nil
 }

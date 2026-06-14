@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -24,18 +22,15 @@ type addResponse struct {
 
 func (h *handler) Add(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("operation", "handler.Add")
 
 	var uri addUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("uri validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
 
 	var body addBody
 	if err := c.ShouldBindJSON(&body); err != nil {
-		log.Debug("body validation error", slog.String("err", err.Error()))
 		HandleValidationError(c, err)
 		return
 	}
@@ -44,7 +39,6 @@ func (h *handler) Add(c *gin.Context) {
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	itemID, position, err := h.service.AddToQueue(ctx, roomID, userID, body.VideoID)
 	if err != nil {
-		log.Error("add to queue error", slog.String("err", err.Error()))
 		HandleAppError(c, "Add to queue error", err)
 		return
 	}

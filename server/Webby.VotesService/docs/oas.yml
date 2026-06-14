@@ -502,6 +502,12 @@ components:
           type: string
           format: date-time
           description: When the vote was created
+        isLocked:
+          type: boolean
+          description: Is ability to vote locked
+        myChoice:
+          type: string
+          description: User's choice (if it is present)
         choices:
           type: array
           items:
