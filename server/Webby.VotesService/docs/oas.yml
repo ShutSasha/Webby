@@ -591,10 +591,17 @@ components:
         data:
           type: object
           properties:
-            hasNextVideoVoting:
+            exists:
               type: boolean
               description: Whether there is an active next-video voting session in the room.
               example: true
+            duration:
+              type: integer
+              description: how long is voting (seconds).
+              example: 20
+            expiresAt:
+              type: date-time
+              description: when voting is closing.
         errors:
           type: object
           nullable: true
