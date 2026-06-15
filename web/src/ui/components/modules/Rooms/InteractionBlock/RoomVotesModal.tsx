@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 
+import { useQueryClient } from '@tanstack/react-query'
+
 import { useCastVoteMutation } from '@/lib/hooks/api/vote/useCastVote'
 import { useCreateRightChoiceVoteMutation } from '@/lib/hooks/api/vote/useCreateRightChoiceVote'
 import { useGetRoomVotesQuery } from '@/lib/hooks/api/vote/useGetRoomVotes'
@@ -19,6 +21,8 @@ type ViewState = 'LIST' | 'CREATE' | 'DETAILS'
 export default function RoomVotesModal({ roomId, isHost }: Props) {
   const isVotesModalOpen = useRoomStore(state => state.isVotesModalOpen)
   const setVotesModalOpen = useRoomStore(state => state.setVotesModalOpen)
+
+  const queryClient = useQueryClient()
 
   const [view, setView] = useState<ViewState>('LIST')
   const [selectedVoteId, setSelectedVoteId] = useState<string | null>(null)
@@ -120,7 +124,10 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
                   <h4 className="font-medium text-neutral-200 group-hover:text-emerald-400 transition-colors">
                     {vote.voteText}
                   </h4>
-                  <p className="text-xs text-neutral-500 mt-2">{vote.choices.length} options</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-xs text-neutral-500">{vote.choices.length} options</p>
+                    {vote.myVote && <p className="text-[10px] text-emerald-500/80 font-medium">Voted</p>}
+                  </div>
                 </div>
               ))
             )}
@@ -235,27 +242,51 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
               const isResolved = !!currentVote.rightChoice
               const isWinner = currentVote.rightChoice === choice
 
+              const isMyChoice = currentVote.myVote === choice
+              const hasVoted = !!currentVote.myVote
+
               return (
                 <button
                   key={index}
                   onClick={() => {
-                    if (!currentVote.isLocked) {
+                    if (!currentVote.isLocked && !hasVoted) {
                       castVote({ roomId, voteId: currentVote.id, choice })
+
+                      queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+                        if (!Array.isArray(oldData)) {
+                          return oldData
+                        }
+
+                        const newData = oldData.map((vote: any) => {
+                          if (vote.id === currentVote.id) {
+                            return { ...vote, myVote: choice }
+                          }
+                          return vote
+                        })
+
+                        return newData
+                      })
                     }
                   }}
-                  disabled={currentVote.isLocked || isCasting}
-                  className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${
+                  disabled={currentVote.isLocked || isCasting || hasVoted}
+                  className={`w-full text-left px-4 py-3 rounded-xl border transition-all cursor-pointer
+                  disabled:cursor-not-allowed ${
                     isWinner
                       ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 font-semibold'
-                      : isResolved
-                        ? 'bg-neutral-900 border-neutral-800 text-neutral-600'
-                        : currentVote.isLocked
-                          ? 'bg-neutral-800 border-neutral-700 text-neutral-400 cursor-not-allowed'
-                          : `bg-[#141414] border-neutral-800 text-neutral-200 hover:border-neutral-600
-                            hover:bg-neutral-800`
+                      : isMyChoice && !isResolved
+                        ? 'bg-neutral-800 border-emerald-500/50 text-emerald-500'
+                        : isResolved
+                          ? 'bg-neutral-900 border-neutral-800 text-neutral-600'
+                          : currentVote.isLocked || hasVoted
+                            ? 'bg-neutral-800/50 border-neutral-800 text-neutral-500'
+                            : `bg-[#141414] border-neutral-800 text-neutral-200 hover:border-neutral-600
+                              hover:bg-neutral-800`
                   }`}
                 >
-                  {choice}
+                  <div className="flex justify-between items-center">
+                    <span>{choice}</span>
+                    {isMyChoice && <span className="text-xs text-emerald-500 font-medium">Your vote</span>}
+                  </div>
                 </button>
               )
             })}
