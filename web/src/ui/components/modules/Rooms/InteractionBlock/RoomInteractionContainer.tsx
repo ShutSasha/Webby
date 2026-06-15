@@ -11,9 +11,9 @@ import ActiveVoteOverlay from './ActiveVoteOverlay'
 import RoomChatContainer from './Chat/RoomChatContainer'
 import RoomPlaylists from './Playlists/RoomPlaylists'
 import RoomInteractionHeader from './RoomInteractionHeader'
-import RoomVotesModal from './RoomVotesModal'
 import RoomSettings from './Settings/RoomSettings'
 import RoomUsers from './UsersList/RoomUsers'
+import RoomVotesModal from './Votes/RoomVotesModal'
 
 type Props = {
   chatId: string
