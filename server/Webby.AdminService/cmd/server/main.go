@@ -12,16 +12,13 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	"webby/room-category-service/internal/config"
-	"webby/room-category-service/internal/database"
-	grpcserver "webby/room-category-service/internal/grpc"
-	"webby/room-category-service/internal/grpc/categorypb"
-	httpserver "webby/room-category-service/internal/handlers"
-	"webby/room-category-service/internal/repository"
-	"webby/room-category-service/internal/services"
-	"webby/room-category-service/pkg/slogpretty"
-
-	"google.golang.org/grpc"
+	"webby/admin-service/internal/config"
+	"webby/admin-service/internal/database"
+	grpcClient "webby/admin-service/internal/grpc"
+	httpserver "webby/admin-service/internal/handlers"
+	"webby/admin-service/internal/repository"
+	"webby/admin-service/internal/services"
+	"webby/admin-service/pkg/slogpretty"
 )
 
 const (
@@ -43,10 +40,10 @@ func run(ctx context.Context, w io.Writer) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
-	config := config.MustLoad()
-	logger := setupLogger(config.Env, w)
+	cfg := config.MustLoad()
+	logger := setupLogger(cfg.Env, w)
 
-	db, err := database.New(config.ConnectionString)
+	db, err := database.New(cfg.ConnectionString)
 	if err != nil {
 		logger.Error("database connection failed", slog.String("error", err.Error()))
 		return err
@@ -56,49 +53,47 @@ func run(ctx context.Context, w io.Writer) error {
 
 	logger.Info("database connected successfully")
 
-	categoryRepository := repository.New(db)
-	categoryService := services.New(categoryRepository)
+	repository := repository.New(db)
 
-	server := httpserver.NewServer(
-		config,
-		logger,
-		categoryService,
-	)
+	complaintClient, err := grpcClient.NewComplaintClient(cfg.Grpc.ComplaintServiceAddress)
+	if err != nil {
+		logger.Error("complaint service gRPC connection failed", slog.String("error", err.Error()))
+		return err
+	}
+	defer complaintClient.Close()
+
+	mediaClient, err := grpcClient.NewMediaClient(cfg.Grpc.MediaServiceAddress)
+	if err != nil {
+		logger.Error("media gRPC connection failed", slog.String("error", err.Error()))
+		return err
+	}
+	defer mediaClient.Close()
+
+	notificationClient, err := grpcClient.NewNotificationClient(cfg.Grpc.NotificationServiceAddress)
+	if err != nil {
+		logger.Error("notification service gRPC connection failed", slog.String("error", err.Error()))
+		return err
+	}
+	defer notificationClient.Close()
+
+	categoryService := services.New(repository, complaintClient, mediaClient, notificationClient)
+
+	server := httpserver.NewServer(cfg, logger, categoryService)
 	httpServer := &http.Server{
-		Addr:         net.JoinHostPort(config.Http.Host, strconv.Itoa(config.Http.Port)),
-		ReadTimeout:  config.Http.Timeout,
-		WriteTimeout: config.Http.Timeout,
+		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
+		ReadTimeout:  cfg.Http.Timeout,
+		WriteTimeout: cfg.Http.Timeout,
 		Handler:      server,
 	}
 
 	go func() {
 		logger.Info(
 			"Server listening",
-			slog.String("host", config.Http.Host),
-			slog.Int("port", config.Http.Port),
+			slog.String("host", cfg.Http.Host),
+			slog.Int("port", cfg.Http.Port),
 		)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("error listening and serving", slog.Any("error", err))
-		}
-	}()
-
-	grpcListener, err := net.Listen("tcp", net.JoinHostPort(config.Grpc.Host, strconv.Itoa(config.Grpc.Port)))
-	if err != nil {
-		logger.Error("grpc listen failed", slog.Any("error", err))
-		return err
-	}
-
-	grpcSrv := grpc.NewServer()
-	categorypb.RegisterCategoryGrpcServiceServer(grpcSrv, grpcserver.NewCategoryServer(categoryService))
-
-	go func() {
-		logger.Info(
-			"gRPC server listening",
-			slog.String("host", config.Grpc.Host),
-			slog.Int("port", config.Grpc.Port),
-		)
-		if err := grpcSrv.Serve(grpcListener); err != nil {
-			logger.Error("error serving grpc", slog.Any("error", err))
 		}
 	}()
 
@@ -111,7 +106,6 @@ func run(ctx context.Context, w io.Writer) error {
 		if err := httpServer.Shutdown(shutdownCtx); err != nil {
 			logger.Error("error shutting down http server", slog.Any("error", err))
 		}
-		grpcSrv.GracefulStop()
 		logger.Info("server stopped gracefully")
 	})
 	wg.Wait()

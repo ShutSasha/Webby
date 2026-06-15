@@ -23,8 +23,11 @@ type HttpConfig struct {
 }
 
 type GrpcConfig struct {
-	Host string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
-	Port int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
+	Host                       string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
+	Port                       int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
+	MediaServiceAddress        string `yaml:"mediaServiceAddress" env-default:"localhost:5005" env:"GRPC_MEDIA_SERVICE_ADDRESS"`
+	ComplaintServiceAddress    string `yaml:"complaintServiceAddress" env-default:"localhost:5005" env:"GRPC_COMPLAINT_SERVICE_ADDRESS"`
+	NotificationServiceAddress string `yaml:"notificationServiceAddress" env-default:"localhost:5007" env:"GRPC_NOTIFICATION_SERVICE_ADDRESS"`
 }
 
 func MustLoad() *Config {

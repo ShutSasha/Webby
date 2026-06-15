@@ -8,3 +8,6 @@ http:
 grpc:
   host: "localhost"
   port: 50052
+  mediaServiceAddress: "localhost:5005"
+  complaintServiceAddress: "localhost:5004"
+  notificationServiceAddress: "localhost:5007"

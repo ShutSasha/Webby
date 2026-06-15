@@ -11,6 +11,10 @@ type denyUri struct {
 	ComplaintID string `uri:"id" binding:"required,uuid"`
 }
 
+type denyBody struct {
+	Reason string `json:"reason" binding:"required,notblank"`
+}
+
 func (h *handler) Deny(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -20,9 +24,15 @@ func (h *handler) Deny(c *gin.Context) {
 		return
 	}
 
+	var body denyBody
+	if err := c.ShouldBindJSON(&body); err != nil {
+		HandleValidationError(c, err)
+		return
+	}
+
 	complaintID, _ := uuid.Parse(uri.ComplaintID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	err := h.service.DenyComplaint(ctx, complaintID, userID)
+	err := h.service.DenyComplaint(ctx, complaintID, userID, body.Reason)
 	if err != nil {
 		HandleAppError(c, "Deny complaint error", err)
 		return

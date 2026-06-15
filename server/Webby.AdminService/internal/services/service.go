@@ -10,8 +10,7 @@ import (
 
 type repository interface {
 	ListComplaints(ctx context.Context, offset, limit int) ([]models.Complaint, int, error)
-	AcceptComplaint(ctx context.Context, complaintID, userID uuid.UUID) error
-	DenyComplaint(ctx context.Context, complaintID, userID uuid.UUID) error
+	ResolveComplaint(ctx context.Context, complaintID, userID uuid.UUID, isAccepted bool) error
 }
 
 type complaintGetter interface {
@@ -84,7 +83,7 @@ func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.
 		message = fmt.Sprintf("Your video \"%s\" violates our platform rules. We have decided to ban it.", video.Title)
 	}
 
-	err = s.repository.AcceptComplaint(ctx, complaintID, userID)
+	err = s.repository.ResolveComplaint(ctx, complaintID, userID, true)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -112,7 +111,7 @@ func (s *service) DenyComplaint(ctx context.Context, complaintID, userID uuid.UU
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = s.repository.DenyComplaint(ctx, complaintID, userID)
+	err = s.repository.ResolveComplaint(ctx, complaintID, userID, false)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
