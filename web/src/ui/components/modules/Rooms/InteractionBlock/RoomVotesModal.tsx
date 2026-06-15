@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -32,7 +32,11 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
   const [duration, setDuration] = useState(120)
   const [choices, setChoices] = useState(['', ''])
 
-  const [hostSelectedCorrect, setHostSelectedCorrect] = useState<string | null>(null)
+  const [hostSelectedCorrect, setHostSelectedCorrect] = useState<string>('')
+
+  useEffect(() => {
+    setHostSelectedCorrect('')
+  }, [selectedVoteId])
 
   const { data, isLoading } = useGetRoomVotesQuery(roomId)
   const votes = data || []
@@ -49,6 +53,7 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
       setVoteText('')
       setDuration(120)
       setChoices(['', ''])
+      setHostSelectedCorrect('')
     }, 300)
   }
 
@@ -295,12 +300,12 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
             <div className="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex flex-col gap-3">
               <p className="text-sm text-emerald-400 font-medium">Select correct answer to publish results:</p>
               <select
-                value={hostSelectedCorrect || ''}
+                value={hostSelectedCorrect}
                 onChange={e => setHostSelectedCorrect(e.target.value)}
                 className="w-full bg-[#141414] border border-neutral-800 text-neutral-200 rounded-lg px-3 py-2
                   outline-none"
               >
-                <option value="" disabled>
+                <option value="" disabled hidden>
                   Select option...
                 </option>
                 {currentVote.choices.map((choice, idx) => (
