@@ -9,4 +9,5 @@ var (
 	ErrInvalidChoice      = errors.New("invalid choice")
 	ErrVotingLocked       = errors.New("voting is locked")
 	ErrVotingAlreadyExist = errors.New("voting already exists")
+	ErrNoVoting           = errors.New("no voting")
 )
