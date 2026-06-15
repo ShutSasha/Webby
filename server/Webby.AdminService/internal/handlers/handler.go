@@ -10,6 +10,7 @@ import (
 type service interface {
 	ListComplaints(ctx context.Context, page, limit int) ([]models.Complaint, int, error)
 	AcceptComplaint(ctx context.Context, complaintID, userID uuid.UUID) error
+	DenyComplaint(ctx context.Context, complaintID, userID uuid.UUID) error
 }
 
 type handler struct {

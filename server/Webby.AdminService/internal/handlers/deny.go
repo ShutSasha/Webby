@@ -7,14 +7,14 @@ import (
 	"github.com/google/uuid"
 )
 
-type acceptUri struct {
+type denyUri struct {
 	ComplaintID string `uri:"id" binding:"required,uuid"`
 }
 
-func (h *handler) Accept(c *gin.Context) {
+func (h *handler) Deny(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	var uri acceptUri
+	var uri denyUri
 	if err := c.ShouldBindUri(&uri); err != nil {
 		HandleValidationError(c, err)
 		return
@@ -22,14 +22,14 @@ func (h *handler) Accept(c *gin.Context) {
 
 	complaintID, _ := uuid.Parse(uri.ComplaintID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	err := h.service.AcceptComplaint(ctx, complaintID, userID)
+	err := h.service.DenyComplaint(ctx, complaintID, userID)
 	if err != nil {
-		HandleAppError(c, "Accept complaint error", err)
+		HandleAppError(c, "Deny complaint error", err)
 		return
 	}
 
 	c.JSON(http.StatusOK, ApiResponse[struct{}]{
 		Success: true,
-		Message: "Complaint accepted",
+		Message: "Complaint denied",
 	})
 }

@@ -10,20 +10,35 @@ import (
 
 type repository interface {
 	ListComplaints(ctx context.Context, offset, limit int) ([]models.Complaint, int, error)
+	AcceptComplaint(ctx context.Context, complaintID, userID uuid.UUID) error
+	DenyComplaint(ctx context.Context, complaintID, userID uuid.UUID) error
+}
+
+type complaintGetter interface {
+	GetComplaintByID(ctx context.Context, complaintID uuid.UUID) (*models.Complaint, error)
+}
+
+type videoInfoGetter interface {
+	GetVideoByID(ctx context.Context, videoID uuid.UUID) (*models.Video, error)
+	GetAuthorIDByVideoID(ctx context.Context, videoID uuid.UUID) (uuid.UUID, error)
 }
 
 type notificationSender interface {
-	SendNotificationToUser(ctx context.Context, userID, targetID uuid.UUID) error
+	SendNotificationToUser(ctx context.Context, userID, targetID uuid.UUID, title, message string, complaintType string) error
 }
 
 type service struct {
 	repository         repository
+	complaintGetter    complaintGetter
+	videoInfoGetter    videoInfoGetter
 	notificationSender notificationSender
 }
 
-func New(repository repository, notificationSender notificationSender) *service {
+func New(repository repository, complaintGetter complaintGetter, videoInfoGetter videoInfoGetter, notificationSender notificationSender) *service {
 	return &service{
 		repository:         repository,
+		complaintGetter:    complaintGetter,
+		videoInfoGetter:    videoInfoGetter,
 		notificationSender: notificationSender,
 	}
 }
@@ -43,14 +58,76 @@ func (s *service) ListComplaints(ctx context.Context, page, limit int) ([]models
 func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.UUID) error {
 	const op = "service.AcceptComplaint"
 
-	
-
-	err := s.repository.AcceptComplaint(ctx, complaintID, userID)
+	complaint, err := s.complaintGetter.GetComplaintByID(ctx, complaintID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	s.notificationSender.SendNotificationToUser(ctx)
+	violaterID := uuid.Nil
+	message := ""
+	switch complaint.TargetType {
+	case "User":
+		violaterID = complaint.TargetID
+		message = "You were banned due to content restrictions"
+	case "Video":
+		video, err := s.videoInfoGetter.GetVideoByID(ctx, complaint.TargetID)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		videoAuthorID, err := s.videoInfoGetter.GetAuthorIDByVideoID(ctx, video.ID)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		violaterID = videoAuthorID
+		message = fmt.Sprintf("Your video \"%s\" violates our platform rules. We have decided to ban it.", video.Title)
+	}
+
+	err = s.repository.AcceptComplaint(ctx, complaintID, userID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = s.notificationSender.SendNotificationToUser(
+		ctx,
+		violaterID,
+		complaint.TargetID,
+		"Content violations",
+		message,
+		complaint.TargetType,
+	)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (s *service) DenyComplaint(ctx context.Context, complaintID, userID uuid.UUID, reason string) error {
+	const op = "service.DenyComplaint"
+
+	complaint, err := s.complaintGetter.GetComplaintByID(ctx, complaintID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = s.repository.DenyComplaint(ctx, complaintID, userID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = s.notificationSender.SendNotificationToUser(
+		ctx,
+		complaint.AuthorID,
+		complaint.TargetID,
+		"Content violations",
+		reason,
+		complaint.TargetType,
+	)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 
 	return nil
 }

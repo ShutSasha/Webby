@@ -6,6 +6,7 @@ import (
 	"webby/admin-service/internal/models"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -58,4 +59,22 @@ func (r *Repository) ListComplaints(ctx context.Context, offset, limit int) ([]m
 	}
 
 	return complaints, 0, nil
+}
+
+func (r *Repository) AcceptComplaint(ctx context.Context, complaintID, userID uuid.UUID) error {
+	const op = "repository.AcceptComplaint"
+
+	sql, args, err := sq.Insert("complaint_results").
+		Columns("complaint_id", "admin_id", "is_accepted").
+		Values(complaintID, userID, true).PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = r.db.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }

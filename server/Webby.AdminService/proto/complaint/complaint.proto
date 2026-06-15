@@ -1,6 +1,6 @@
 syntax="proto3";
 
-option go_package = "webby/admin-service/internal/grpc/notificationpb";
+option go_package = "webby/admin-service/internal/grpc/complaintpb";
 
 import "google/protobuf/timestamp.proto";
 
