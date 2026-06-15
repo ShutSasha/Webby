@@ -317,6 +317,14 @@ func (s *service) CreateVotingForNextVideo(ctx context.Context, roomID, userID u
 		return fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
 	}
 
+	hasVoting, err := s.repository.HasNextVideoVoting(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if hasVoting {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrVotingAlreadyExist)
+	}
+
 	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, roomID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -389,6 +397,14 @@ func (s *service) VoteForNextVideo(ctx context.Context, roomID, userID, queueIte
 	}
 	if !exists {
 		return fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
+	}
+
+	hasVoting, err := s.repository.HasNextVideoVoting(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if !hasVoting {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNoVoting)
 	}
 
 	err = s.repository.VoteForNextVideo(ctx, roomID, userID, queueItemID)
