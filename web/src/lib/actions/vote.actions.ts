@@ -104,3 +104,64 @@ export async function resolveVoteAction(
     }
   }
 }
+
+export async function createNextVideoVoteAction(roomId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/rooms/${roomId}/votes/next-video`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('CREATE_NEXT_VIDEO_VOTE_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to create next video vote',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function castNextVideoVoteAction(roomId: string, queueItemId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/rooms/${roomId}/votes/next-video/vote`, {
+      queueItemId,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('CAST_NEXT_VIDEO_VOTE_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to cast vote for next video',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export type CheckNextVideoVotingResponse = {
+  hasNextVideoVoting: boolean
+}
+
+export async function checkNextVideoVotingAction(
+  roomId: string,
+): Promise<BaseServerResponse<CheckNextVideoVotingResponse>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<CheckNextVideoVotingResponse>>(
+      `/rooms/${roomId}/has-next-video-voting`,
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('CHECK_NEXT_VIDEO_VOTING_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to check next video voting status',
+      errors: parseAxiosError(error),
+    }
+  }
+}

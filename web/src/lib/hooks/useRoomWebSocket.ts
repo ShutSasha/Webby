@@ -149,6 +149,26 @@ export const useRoomWebSocket = (
           )
         })
       })
+
+      socket.on('NEXT_VIDEO_VOTING_STARTED', () => {
+        queryClient.setQueryData(['has-next-video-voting', roomId], {
+          success: true,
+          message: 'Realtime update',
+          data: { hasNextVideoVoting: true },
+          errors: null,
+        })
+      })
+
+      socket.on('NEXT_VIDEO_VOTING_RESULTS', (payload: { winnerId: string }) => {
+        if (!payload) return
+
+        queryClient.setQueryData(['has-next-video-voting', roomId], {
+          success: true,
+          message: 'Realtime update',
+          data: { hasNextVideoVoting: false },
+          errors: null,
+        })
+      })
     }
 
     connectSocket()
