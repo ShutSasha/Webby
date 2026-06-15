@@ -104,4 +104,16 @@ public class MediaGrpcService : MediaService.GrpcServer.MediaService.MediaServic
 
       return response;
    }
+
+   public override async Task<GetAuthorIDByVideoIDResponse> GetAuthorIDByVideoID(GetAuthorIDByVideoIDRequest request, ServerCallContext context)
+   {
+      if (!Guid.TryParse(request.VideoID, out var videoIdGuid))
+      {
+         throw new ApiException("Get author error", 400, "Invalid video id type");
+      }
+      
+      var videoResult = await _videoService.GetVideoById(Guid.Parse(request.VideoID),showPrivate: true);
+      
+      return new GetAuthorIDByVideoIDResponse() { AuthorID = videoResult.UserId.ToString() };
+   }
 }
