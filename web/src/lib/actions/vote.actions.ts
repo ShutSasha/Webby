@@ -36,9 +36,10 @@ export type RoomVote = {
   duration: number
   createdAt: string
   choices: string[]
-  isLocked?: boolean
+  isLocked: boolean
   rightChoice?: string
   winners?: string[]
+  myVote?: string
 }
 
 export async function getRoomVotesAction(roomId: string): Promise<BaseServerResponse<RoomVote[]>> {

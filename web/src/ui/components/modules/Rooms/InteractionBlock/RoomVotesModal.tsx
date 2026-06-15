@@ -261,8 +261,7 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
             })}
           </div>
 
-      
-          {isHost && (
+          {isHost && currentVote.isLocked && !currentVote.rightChoice && (
             <div className="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex flex-col gap-3">
               <p className="text-sm text-emerald-400 font-medium">Select correct answer to publish results:</p>
               <select
@@ -292,6 +291,14 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
               >
                 {isResolving ? 'Resolving...' : 'Publish Results'}
               </button>
+            </div>
+          )}
+
+          {!isHost && currentVote.isLocked && !currentVote.rightChoice && (
+            <div className="mt-4 p-3 bg-neutral-800/50 rounded-xl border border-neutral-800">
+              <p className="text-sm text-neutral-400 text-center">
+                Voting is closed. Waiting for host to publish results...
+              </p>
             </div>
           )}
 
