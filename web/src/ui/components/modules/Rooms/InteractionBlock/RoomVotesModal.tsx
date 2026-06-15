@@ -8,6 +8,7 @@ import { useCastVoteMutation } from '@/lib/hooks/api/vote/useCastVote'
 import { useCreateRightChoiceVoteMutation } from '@/lib/hooks/api/vote/useCreateRightChoiceVote'
 import { useGetRoomVotesQuery } from '@/lib/hooks/api/vote/useGetRoomVotes'
 import { useResolveVoteMutation } from '@/lib/hooks/api/vote/useResolveVote'
+import { cn } from '@/lib/utils/general.utils'
 import { useRoomStore } from '@/stores/room.store'
 import Modal from '@/ui/components/shared/Modal'
 
@@ -45,7 +46,6 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
     setTimeout(() => {
       setView('LIST')
       setSelectedVoteId(null)
-
       setVoteText('')
       setDuration(120)
       setChoices(['', ''])
@@ -70,6 +70,10 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
 
   const currentVote = votes.find(v => v.id === selectedVoteId)
 
+  const isResolvedDetails = !!currentVote?.rightChoice
+  const isClosedDetails = !isResolvedDetails && currentVote?.isLocked
+  const isActiveDetails = !isResolvedDetails && !currentVote?.isLocked
+
   return (
     <Modal isOpen={isVotesModalOpen} onClose={handleClose} modalClasses="max-w-[480px]">
       {view === 'LIST' && (
@@ -93,43 +97,45 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
             ) : votes.length === 0 ? (
               <div className="text-neutral-500 text-center py-10">No polls have been created yet.</div>
             ) : (
-              votes.map(vote => (
-                <div
-                  key={vote.id}
-                  onClick={() => {
-                    setSelectedVoteId(vote.id)
-                    setView('DETAILS')
-                  }}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer group ${
-                    vote.rightChoice
-                      ? 'bg-neutral-800/30 border-neutral-800'
-                      : vote.isLocked
-                        ? 'bg-neutral-800/80 border-neutral-700 hover:bg-neutral-700'
-                        : 'bg-neutral-800 border-emerald-500/30 hover:border-emerald-500'
-                    }`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                        vote.rightChoice
-                          ? 'bg-neutral-800 text-neutral-500'
-                          : vote.isLocked
-                            ? 'bg-neutral-700 text-neutral-400'
-                            : 'bg-emerald-500/20 text-emerald-500'
-                        }`}
-                    >
-                      {vote.rightChoice ? 'Resolved' : vote.isLocked ? 'Closed' : 'Active'}
-                    </span>
+              votes.map(vote => {
+                const isResolved = !!vote.rightChoice
+                const isClosed = !isResolved && vote.isLocked
+                const isActive = !isResolved && !vote.isLocked
+
+                return (
+                  <div
+                    key={vote.id}
+                    onClick={() => {
+                      setSelectedVoteId(vote.id)
+                      setView('DETAILS')
+                    }}
+                    className={cn('p-4 rounded-xl border transition-all cursor-pointer group', {
+                      'bg-neutral-800/30 border-neutral-800': isResolved,
+                      'bg-neutral-800/80 border-neutral-700 hover:bg-neutral-700': isClosed,
+                      'bg-neutral-800 border-emerald-500/30 hover:border-emerald-500': isActive,
+                    })}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <span
+                        className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md', {
+                          'bg-neutral-800 text-neutral-500': isResolved,
+                          'bg-neutral-700 text-neutral-400': isClosed,
+                          'bg-emerald-500/20 text-emerald-500': isActive,
+                        })}
+                      >
+                        {isResolved ? 'Resolved' : isClosed ? 'Closed' : 'Active'}
+                      </span>
+                    </div>
+                    <h4 className="font-medium text-neutral-200 group-hover:text-emerald-400 transition-colors">
+                      {vote.voteText}
+                    </h4>
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-neutral-500">{vote.choices.length} options</p>
+                      {vote.myVote && <p className="text-[10px] text-emerald-500/80 font-medium">Voted</p>}
+                    </div>
                   </div>
-                  <h4 className="font-medium text-neutral-200 group-hover:text-emerald-400 transition-colors">
-                    {vote.voteText}
-                  </h4>
-                  <div className="flex justify-between items-center mt-2">
-                    <p className="text-xs text-neutral-500">{vote.choices.length} options</p>
-                    {vote.myVote && <p className="text-[10px] text-emerald-500/80 font-medium">Voted</p>}
-                  </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </div>
@@ -225,25 +231,30 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
 
           <div className="mb-6 flex items-center gap-2">
             <span
-              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                currentVote.rightChoice
-                  ? 'bg-neutral-800 text-neutral-500'
-                  : currentVote.isLocked
-                    ? 'bg-neutral-700 text-neutral-400'
-                    : 'bg-emerald-500/20 text-emerald-500'
-              }`}
+              className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md', {
+                'bg-neutral-800 text-neutral-500': isResolvedDetails,
+                'bg-neutral-700 text-neutral-400': isClosedDetails,
+                'bg-emerald-500/20 text-emerald-500': isActiveDetails,
+              })}
             >
-              {currentVote.rightChoice ? 'Resolved' : currentVote.isLocked ? 'Closed' : 'Active'}
+              {isResolvedDetails ? 'Resolved' : isClosedDetails ? 'Closed' : 'Active'}
             </span>
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-2">
             {currentVote.choices.map((choice, index) => {
-              const isResolved = !!currentVote.rightChoice
               const isWinner = currentVote.rightChoice === choice
-
               const isMyChoice = currentVote.myVote === choice
               const hasVoted = !!currentVote.myVote
+
+              const getOptionClasses = () => {
+                if (isWinner) return 'bg-emerald-500/10 border-emerald-500 text-emerald-400 font-semibold'
+                if (isMyChoice && !isResolvedDetails) return 'bg-neutral-800 border-emerald-500/50 text-emerald-500'
+                if (isResolvedDetails) return 'bg-neutral-900 border-neutral-800 text-neutral-600'
+                if (currentVote.isLocked || hasVoted) return 'bg-neutral-800/50 border-neutral-800 text-neutral-500'
+
+                return 'bg-[#141414] border-neutral-800 text-neutral-200 hover:border-neutral-600 hover:bg-neutral-800'
+              }
 
               return (
                 <button
@@ -253,35 +264,23 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
                       castVote({ roomId, voteId: currentVote.id, choice })
 
                       queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
-                        if (!Array.isArray(oldData)) {
-                          return oldData
-                        }
+                        if (!Array.isArray(oldData)) return oldData
 
-                        const newData = oldData.map((vote: any) => {
+                        return oldData.map((vote: any) => {
                           if (vote.id === currentVote.id) {
                             return { ...vote, myVote: choice }
                           }
                           return vote
                         })
-
-                        return newData
                       })
                     }
                   }}
                   disabled={currentVote.isLocked || isCasting || hasVoted}
-                  className={`w-full text-left px-4 py-3 rounded-xl border transition-all cursor-pointer
-                  disabled:cursor-not-allowed ${
-                    isWinner
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 font-semibold'
-                      : isMyChoice && !isResolved
-                        ? 'bg-neutral-800 border-emerald-500/50 text-emerald-500'
-                        : isResolved
-                          ? 'bg-neutral-900 border-neutral-800 text-neutral-600'
-                          : currentVote.isLocked || hasVoted
-                            ? 'bg-neutral-800/50 border-neutral-800 text-neutral-500'
-                            : `bg-[#141414] border-neutral-800 text-neutral-200 hover:border-neutral-600
-                              hover:bg-neutral-800`
-                  }`}
+                  className={cn(
+                    `w-full text-left px-4 py-3 rounded-xl border transition-all cursor-pointer
+                    disabled:cursor-not-allowed`,
+                    getOptionClasses(),
+                  )}
                 >
                   <div className="flex justify-between items-center">
                     <span>{choice}</span>
@@ -292,7 +291,7 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
             })}
           </div>
 
-          {isHost && currentVote.isLocked && !currentVote.rightChoice && (
+          {isHost && isClosedDetails && (
             <div className="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex flex-col gap-3">
               <p className="text-sm text-emerald-400 font-medium">Select correct answer to publish results:</p>
               <select
@@ -325,7 +324,7 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
             </div>
           )}
 
-          {!isHost && currentVote.isLocked && !currentVote.rightChoice && (
+          {!isHost && isClosedDetails && (
             <div className="mt-4 p-3 bg-neutral-800/50 rounded-xl border border-neutral-800">
               <p className="text-sm text-neutral-400 text-center">
                 Voting is closed. Waiting for host to publish results...
