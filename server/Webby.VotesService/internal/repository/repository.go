@@ -316,11 +316,17 @@ func (r *repository) CastVote(ctx context.Context, voteID, userID uuid.UUID, cho
 	return nil
 }
 
-func (r *repository) CreateVotingForNextVideo(ctx context.Context, roomID uuid.UUID) error {
+func (r *repository) CreateVotingForNextVideo(ctx context.Context, roomID uuid.UUID, duration int) error {
 	const op = "repository.CreateVotingForNextVideo"
-	key := "rooms:nextvideo"
+	nextVotingsKey := "rooms:nextvideo"
+	votingKey := fmt.Sprintf("rooms:nextvideo:%s", roomID.String())
 
-	err := r.client.SAdd(ctx, key, roomID.String()).Err()
+	err := r.client.SAdd(ctx, nextVotingsKey, roomID.String()).Err()
+	if err != nil {
+		return fmt.Errorf("%s: add voting: %w", op, err)
+	}
+
+	err = r.client.HSet(ctx, votingKey, "duration", duration, "created_at", time.Now()).Err()
 	if err != nil {
 		return fmt.Errorf("%s: create voting: %w", op, err)
 	}
@@ -369,16 +375,42 @@ func (r *repository) VoteForNextVideo(ctx context.Context, roomID, userID, queue
 	return nil
 }
 
-func (r *repository) HasNextVideoVoting(ctx context.Context, roomID uuid.UUID) (bool, error) {
-	const op = "repository.HasNextVideoVoting"
+func (r *repository) GetNextVideoVoting(ctx context.Context, roomID uuid.UUID) (*models.NextVideoInfo, error) {
+	const op = "repository.GetNextVideoVoting"
+	nextVotingsKey := "rooms:nextvideo"
+	votingKey := fmt.Sprintf("rooms:nextvideo:%s", roomID.String())
 
-	key := "rooms:nextvideo"
-	hasVoting, err := r.client.SIsMember(ctx, key, roomID.String()).Result()
+	hasVoting, err := r.client.SIsMember(ctx, nextVotingsKey, roomID.String()).Result()
 	if err != nil {
-		return false, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	if !hasVoting {
+		return &models.NextVideoInfo{
+			Exists: false,
+		}, nil
 	}
 
-	return hasVoting, nil
+	durationStr, err := r.client.HGet(ctx, votingKey, "duration").Result()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	duration, _ := strconv.Atoi(durationStr)
+
+	createdAtStr, err := r.client.HGet(ctx, votingKey, "created_at").Result()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	createdAt, err := time.Parse(time.RFC3339Nano, createdAtStr)
+	if err != nil {
+		return nil, fmt.Errorf("%s: parse created_at: %w", op, err)
+	}
+
+	expiresAt := createdAt.Add(time.Duration(duration) * time.Second)
+	return &models.NextVideoInfo{
+		Exists:    true,
+		Duration:  &duration,
+		ExpiresAt: &expiresAt,
+	}, nil
 }
 
 func (r *repository) GetUserVote(ctx context.Context, voteID, userID uuid.UUID) (*string, error) {
