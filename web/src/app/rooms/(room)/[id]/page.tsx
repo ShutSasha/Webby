@@ -24,13 +24,15 @@ export default async function RoomPage({ params }: Props) {
     )
   }
 
+  const hostId = room.hostId
+
   return (
     <div className="flex flex-col">
       <RoomWebSocketManager roomId={id} chatId={room.chatId} />
       <div className="flex gap-5">
         <RoomPlayerContainer roomId={id} />
 
-        <RoomInteractionContainer chatId={room.chatId} />
+        <RoomInteractionContainer chatId={room.chatId} hostId={hostId} />
       </div>
       <div className="flex gap-5">
         <div className="w-full flex justify-between items-center mt-3 mb-2">

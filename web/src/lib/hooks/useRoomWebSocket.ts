@@ -106,6 +106,49 @@ export const useRoomWebSocket = (
           })
         }
       })
+
+      socket.on('VOTING_STARTED', (payload: any) => {
+        if (!payload || !payload.id) return
+
+        queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+          if (!Array.isArray(oldData)) return [payload]
+
+          return [payload, ...oldData]
+        })
+      })
+
+      socket.on('VOTE_CASTED', (payload: any) => {
+        queryClient.invalidateQueries({ queryKey: ['room-votes', roomId] })
+      })
+
+      socket.on('VOTING_LOCKED', (payload: { votingId: string }) => {
+        if (!payload || !payload.votingId) return
+
+        queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+          if (!Array.isArray(oldData)) return oldData
+
+          return oldData.map((vote: any) => (vote.id === payload.votingId ? { ...vote, isLocked: true } : vote))
+        })
+      })
+
+      socket.on('VOTING_RESULTS', (payload: { votingId: string; rightChoice: string; winners: string[] }) => {
+        if (!payload || !payload.votingId) return
+
+        queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+          if (!Array.isArray(oldData)) return oldData
+
+          return oldData.map((vote: any) =>
+            vote.id === payload.votingId
+              ? {
+                  ...vote,
+                  isLocked: true,
+                  rightChoice: payload.rightChoice,
+                  winners: payload.winners,
+                }
+              : vote,
+          )
+        })
+      })
     }
 
     connectSocket()

@@ -16,6 +16,9 @@ interface RoomState {
   setSyncTargetTimecode: (timecode: number | null) => void
   setSyncCooldown: (isOnCooldown: boolean) => void
   setOptimisticPendingId: (id: string | null) => void
+
+  isVotesModalOpen: boolean
+  setVotesModalOpen: (isOpen: boolean) => void
 }
 
 export const useRoomStore = create<RoomState>(set => ({
@@ -31,4 +34,7 @@ export const useRoomStore = create<RoomState>(set => ({
   setSyncTargetTimecode: timecode => set({ syncTargetTimecode: timecode }),
   setSyncCooldown: isOnCooldown => set({ isSyncCooldown: isOnCooldown }),
   setOptimisticPendingId: id => set({ optimisticPendingId: id }),
+
+  isVotesModalOpen: false,
+  setVotesModalOpen: isOpen => set({ isVotesModalOpen: isOpen }),
 }))
