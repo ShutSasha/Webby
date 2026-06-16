@@ -1,3 +1,5 @@
 resources:
-  - service-token-secret.yaml
-  - infisical-secret.yaml
+  - machine-identity-secret.yaml
+  - infisical-connection.yaml
+  - infisical-auth.yaml
+  - infisical-static-secret.yaml

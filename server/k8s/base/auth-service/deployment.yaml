@@ -12,60 +12,62 @@ spec:
       labels:
         app: auth-service
     spec:
+      imagePullSecrets:
+        - name: ocir-secret
       containers:
-      - name: auth-service
-        image: docker-registry/server-auth-service:latest
-        ports:
-        - containerPort: 5001
-        env:
-        - name: ASPNETCORE_ENVIRONMENT
-          value: "Production"
-        - name: ConnectionStrings__AppDbContext
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: DatabaseConnectionString
-        - name: SenderData__SenderPassword
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: SenderPassword
-        - name: SenderData__SenderEmail
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: SenderEmail
-        - name: JwtOptions__AccessSecretKey
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: JwtAccessSecretKey
-        - name: JwtOptions__AccessExpiresDuration
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: JwtAccessExpiresDuration
-        - name: AutoMapper__LicenseKey
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: AutoMapperLicenseKey
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
-        livenessProbe:
-          httpGet:
-            path: /livez
-            port: 5001
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 5001
-          initialDelaySeconds: 10
-          periodSeconds: 10
+        - name: auth-service
+          image: eu-frankfurt-1.ocir.io/fr3wma7oqvij/webby-auth-service:latest
+          ports:
+            - containerPort: 5001
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: ConnectionStrings__AppDbContext
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: DatabaseConnectionString
+            - name: SenderData__SenderPassword
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: SenderPassword
+            - name: SenderData__SenderEmail
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: SenderEmail
+            - name: JwtOptions__AccessSecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: JwtAccessSecretKey
+            - name: JwtOptions__AccessExpiresDuration
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: JwtAccessExpiresDuration
+            - name: AutoMapper__LicenseKey
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: AutoMapperLicenseKey
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 5001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 5001
+            initialDelaySeconds: 10
+            periodSeconds: 10

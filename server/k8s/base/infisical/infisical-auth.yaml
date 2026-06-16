@@ -1,0 +1,20 @@
+apiVersion: secrets.infisical.com/v1beta1
+kind: InfisicalAuth
+metadata:
+  name: infisical-universal-auth
+  namespace: default
+spec:
+  infisicalConnectionRef:
+    name: infisical-cloud-connection
+    namespace: default
+
+  method: "universal"
+  universal:
+    clientIdRef:
+      name: infisical-machine-identity
+      namespace: default
+      key: clientId
+    clientSecretRef:
+      name: infisical-machine-identity
+      namespace: default
+      key: clientSecret

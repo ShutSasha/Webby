@@ -1,33 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification-service
+  name: api-gateway
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: notification-service
+      app: api-gateway
   template:
     metadata:
       labels:
-        app: notification-service
+        app: api-gateway
     spec:
       imagePullSecrets:
         - name: ocir-secret
       containers:
-        - name: notification-service
-          image: eu-frankfurt-1.ocir.io/fr3wma7oqvij/webby-notification-service:latest
+        - name: api-gateway
+          image: eu-frankfurt-1.ocir.io/fr3wma7oqvij/webby-api-gateway:latest
           ports:
-            - containerPort: 5006 # REST
-            - containerPort: 5007 # GRPC
+            - containerPort: 8080
           env:
             - name: ASPNETCORE_ENVIRONMENT
               value: "Production"
-            - name: ConnectionStrings__AppDbContext
-              valueFrom:
-                secretKeyRef:
-                  name: webby-secrets
-                  key: DatabaseConnectionString
             - name: JwtOptions__AccessSecretKey
               valueFrom:
                 secretKeyRef:
@@ -48,12 +42,12 @@ spec:
           livenessProbe:
             httpGet:
               path: /livez
-              port: 5006
+              port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /readyz
-              port: 5006
+              port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10

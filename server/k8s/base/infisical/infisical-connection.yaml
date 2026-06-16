@@ -1,0 +1,7 @@
+apiVersion: secrets.infisical.com/v1beta1
+kind: InfisicalConnection
+metadata:
+  name: infisical-cloud-connection
+  namespace: default
+spec:
+  address: https://eu.infisical.com

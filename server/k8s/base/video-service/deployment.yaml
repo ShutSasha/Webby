@@ -12,77 +12,84 @@ spec:
       labels:
         app: video-service
     spec:
+      imagePullSecrets:
+        - name: ocir-secret
       containers:
-      - name: video-service
-        image: docker-registry/server-video-service:latest
-        ports:
-        - containerPort: 5003  # REST
-        - containerPort: 5005  # gRPC
-        env:
-        - name: ASPNETCORE_ENVIRONMENT
-          value: "Production"
-        - name: ConnectionStrings__AppDbContext
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: DatabaseConnectionString
-        - name: AwsOptions__AccessKey
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: AwsAccessKey
-        - name: AwsOptions__SecretKey
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: AwsSecretKey
-        - name: AwsOptions__BucketName
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: AwsBucketName
-        - name: AwsOptions__Region
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: AwsRegion
-        - name: ExternalServices__YoutubeOptions__ApiKey
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: YouTubeApiKey
-        - name: ExternalServices__TwitchOptions__ClientId
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: TwitchIdClient
-        - name: ExternalServices__TwitchOptions__ClientSecret
-          valueFrom:
-            secretKeyRef:
-              name: webby-secrets
-              key: TwitchSecretKey
-        - name: ExternalServices__TwitchOptions__ThumbnailWidth
-          value: "1280"
-        - name: ExternalServices__TwitchOptions__ThumbnailHeight
-          value: "720"
-        - name: GrpcClients__UserServiceUrl
-          value: "http://user-service:5004" # ADD TO INFISICAL SECRET
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
-        livenessProbe:
-          httpGet:
-            path: /livez
-            port: 5003
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 5003
-          initialDelaySeconds: 10
-          periodSeconds: 10
+        - name: video-service
+          image: eu-frankfurt-1.ocir.io/fr3wma7oqvij/webby-video-service:latest
+          ports:
+            - containerPort: 5003 # REST
+            - containerPort: 5005 # gRPC
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: ConnectionStrings__AppDbContext
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: DatabaseConnectionString
+            - name: ConnectionStrings__Redis
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RedisDbConnectionString
+            - name: AwsOptions__AccessKey
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: AwsAccessKey
+            - name: AwsOptions__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: AwsSecretKey
+            - name: AwsOptions__BucketName
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: AwsBucketName
+            - name: AwsOptions__Region
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: AwsRegion
+            - name: ExternalServices__YoutubeOptions__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: YouTubeApiKey
+            - name: ExternalServices__TwitchOptions__ClientId
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: TwitchIdClient
+            - name: ExternalServices__TwitchOptions__ClientSecret
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: TwitchSecretKey
+            - name: ExternalServices__TwitchOptions__ThumbnailWidth
+              value: "1280"
+            - name: ExternalServices__TwitchOptions__ThumbnailHeight
+              value: "720"
+            - name: GrpcClients__UserServiceUrl
+              value: "http://user-service:5004" # ADD TO INFISICAL SECRET
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 5003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 5003
+            initialDelaySeconds: 10
+            periodSeconds: 10
