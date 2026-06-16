@@ -125,7 +125,7 @@ public static class ApiExtension
       });
       serviceCollection.AddGrpcClient<AchievementGrpcService.AchievementGrpcServiceClient>(o =>
       {
-         o.Address = new Uri("http://localhost:5009");
+         o.Address = new Uri(configuration["GrpcClients:AchievementServiceUrl"]);
       }).AddInterceptor<GrpcClientExceptionInterceptor>();
       
    }

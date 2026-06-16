@@ -34,6 +34,7 @@ services:
       - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
       - JwtOptions__AccessSecretKey=${JwtAccessSecretKey}
       - JwtOptions__AccessExpiresDuration=${JwtAccessExpiresDuration}
+      - GrpcClients__UserServiceUrl=${UserGrpcServiceUrl}
     container_name: webby-notification-service
     
   user-service: 
@@ -51,11 +52,12 @@ services:
       - PaymentOptions__PaymentPublicKey=${StripePublishableKey}
       - PaymentOptions__PaymentSecretKey=${StripeSecretKey}
       - PaymentOptions__PaymentWebhookKey=${StripeWebhookKey}
-      - PaymentOptions__SuccessUrl=http://localhost:3000/payment/success
-      - PaymentOptions__CancelUrl=http://localhost:3000/payment/failed
+      - PaymentOptions__SuccessUrl=${PaymentSuccessUrl}
+      - PaymentOptions__CancelUrl=${PaymentCancelUrl}
       - AutoMapper__LicenseKey=${AutoMapperLicenseKey}
-      - GrpcClients__VideoServiceUrl=http://video-service:5005
-      - GrpcClients__NotificationServiceUrl=http://video-service:5007
+      - GrpcClients__VideoServiceUrl=${VideoGrpcServiceUrl}
+      - GrpcClients__NotificationServiceUrl=${NotificationGrpcServiceUrl}
+      - GrpcClients__AchievementServiceUrl=${AchievementGrpcServiceUrl}
     container_name: webby-user-service
 
   video-service:
@@ -65,7 +67,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
-      - ConnectionStrings__Redis=${RedisPassword}
+      - ConnectionStrings__Redis=${RedisDbConnectionString}
       - AwsOptions__AccessKey=${AwsAccessKey}
       - AwsOptions__SecretKey=${AwsSecretKey}
       - AwsOptions__BucketName=${AwsBucketName}
@@ -75,7 +77,7 @@ services:
       - ExternalServices__TwitchOptions__ClientSecret=${TwitchSecretKey}
       - ExternalServices__TwitchOptions__ThumbnailWidth=1280
       - ExternalServices__TwitchOptions__ThumbnailHeight=720
-      - GrpcClients__UserServiceUrl=http://user-service:5004
+      - GrpcClients__UserServiceUrl=${UserGrpcServiceUrl}
     container_name: webby-video-service
 
   achievement-service:
@@ -85,12 +87,12 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
-      - ConnectionStrings__Redis=${RedisPassword}
+      - ConnectionStrings__Redis=${RedisDbConnectionString}
       - AwsOptions__AccessKey=${AwsAccessKey}
       - AwsOptions__SecretKey=${AwsSecretKey}
       - AwsOptions__BucketName=${AwsBucketName}
       - AwsOptions__Region=${AwsRegion}
-
+    container_name: webby-achievement-service
 
   redis:
     image: redis:7-alpine
@@ -102,6 +104,24 @@ services:
     environment:
       - REDIS_PASSWORD=${RedisPassword}
     command: redis-server --requirepass ${RedisPassword}
+
+  web:
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+
+    container_name: webby-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - AUTH_TRUST_HOST=true
+      - NEXT_PUBLIC_API_URL=${ServerUrl}
+      - AUTH_SECRET=${WebAuthSecret}
+      - AUTH_GOOGLE_ID=${WebAuthGoogleId}
+      - AUTH_GOOGLE_SECRET=${WebGoogleAuthSecret}
+    restart: unless-stopped
 
   chat-service:
     build:

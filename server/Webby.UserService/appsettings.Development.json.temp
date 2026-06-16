@@ -21,8 +21,8 @@
     "PaymentPublicKey": "{{StripePublishableKey}}",
     "PaymentSecretKey": "{{StripeSecretKey}}",
     "PaymentWebhookKey": "{{StripeWebhookKey}}",
-    "SuccessUrl": "http://localhost:3000/payment/success",
-    "CancelUrl": "http://localhost:3000/payment/failed"
+    "SuccessUrl": "{{PaymentSuccessUrl}}",
+    "CancelUrl": "{{PaymentCancelUrl}}"
   },
   
  "AutoMapper":{
@@ -30,8 +30,9 @@
   },
   
   "GrpcClients": {
-    "VideoServiceUrl": "http://localhost:5005",
-    "NotificationServiceUrl": "http://localhost:5007"
+    "VideoServiceUrl": "{{VideoGrpcServiceUrl}}",
+    "NotificationServiceUrl": "{{NotificationGrpcServiceUrl}}"
+    "AchievementServiceUrl": "{{AchievementServiceUrl}}"
   }
   
 }

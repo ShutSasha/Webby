@@ -1,5 +1,5 @@
 ﻿{
-   "Routes":[
+   "Routes": [
       {
          "DownstreamPathTemplate": "/docs/achievement-service/v1/swagger.json",
          "DownstreamScheme": "http",
@@ -10,12 +10,13 @@
             }
          ],
          "UpstreamPathTemplate": "/achievement/swagger/v1/swagger.json",
-         "UpstreamHttpMethod": [ "GET" ],
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
          "AuthenticationOptions": {
             "AllowAnonymous": true
          }
       },
-
       {
          "DownstreamPathTemplate": "/api/achievements",
          "DownstreamScheme": "http",
@@ -30,7 +31,6 @@
             "GET"
          ]
       },
-
       {
          "DownstreamPathTemplate": "/api/achievements",
          "DownstreamScheme": "http",
@@ -42,7 +42,8 @@
          ],
          "UpstreamPathTemplate": "/api/achievements",
          "UpstreamHttpMethod": [
-            "POST","PUT"
+            "POST",
+            "PUT"
          ],
          "AuthenticationOptions": {
             "AuthenticationProviderKey": "Bearer"
@@ -51,9 +52,8 @@
             "Role": "Moderator"
          }
       },
-
       {
-         "DownstreamPathTemplate": "/api/achievements/{achievementId}",
+         "DownstreamPathTemplate": "/api/achievements/{id}",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
             {
@@ -61,7 +61,7 @@
                "Port": 5008
             }
          ],
-         "UpstreamPathTemplate": "/api/achievements/{achievementId}",
+         "UpstreamPathTemplate": "/api/achievements/{id}",
          "UpstreamHttpMethod": [
             "DELETE"
          ],
@@ -72,9 +72,8 @@
             "Role": "Moderator"
          }
       },
-
       {
-         "DownstreamPathTemplate": "/api/achievements/{userId}",
+         "DownstreamPathTemplate": "/api/achievements/{id}",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
             {
@@ -82,12 +81,11 @@
                "Port": 5008
             }
          ],
-         "UpstreamPathTemplate": "/api/achievements/{userId}",
+         "UpstreamPathTemplate": "/api/achievements/{id}",
          "UpstreamHttpMethod": [
             "GET"
          ]
       },
-      
       {
          "DownstreamPathTemplate": "/api/achievements/{achievementId}/users/{userId}/unlock",
          "DownstreamScheme": "http",
