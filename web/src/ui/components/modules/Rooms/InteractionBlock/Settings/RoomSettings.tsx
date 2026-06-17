@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useTransition, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
+import { useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 
+import { useGetRoomByIdQuery } from '@/lib/hooks/api/room/useGetRoomByIdQuery'
+import { useUpdateRoom } from '@/lib/hooks/api/room/useUpdateRoom'
 import { cn } from '@/lib/utils/general.utils'
-import { useToastStore } from '@/stores/toast-store'
 import Button from '@/ui/components/shared/Button'
 
 type RoomSettingsFields = {
@@ -18,12 +20,16 @@ const options: { value: 'public' | 'private'; label: string }[] = [
   { value: 'private', label: 'Private Room' },
 ]
 
-export default function RoomSettingsContainer() {
-  const [isPending, startTransition] = useTransition()
-  const addToast = useToastStore(state => state.addToast)
+export default function RoomSettings() {
+  const params = useParams()
+  const roomId = params?.id as string
 
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const { data: room, isLoading: isLoadingRoom } = useGetRoomByIdQuery(roomId)
+
+  const { mutate: updateRoom, isPending } = useUpdateRoom()
 
   const {
     register,
@@ -32,9 +38,9 @@ export default function RoomSettingsContainer() {
     watch,
     formState: { errors },
   } = useForm<RoomSettingsFields>({
-    defaultValues: {
-      roomName: '',
-      roomType: 'public',
+    values: {
+      roomName: room?.name || '',
+      roomType: room?.isPrivate ? 'private' : 'public',
     },
   })
 
@@ -51,10 +57,21 @@ export default function RoomSettingsContainer() {
   }, [])
 
   const onSubmit = (data: RoomSettingsFields) => {
-    startTransition(async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      addToast('Room settings updated successfully', 'success')
-    })
+    if (!roomId) return
+
+    const formData = new FormData()
+    formData.append('name', data.roomName)
+    formData.append('isPrivate', data.roomType === 'private' ? 'true' : 'false')
+
+    updateRoom({ roomId, formData })
+  }
+
+  if (isLoadingRoom) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="w-8 h-8 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -127,7 +144,7 @@ export default function RoomSettingsContainer() {
           type="submit"
           viewType={!isPending ? 'confirm' : 'loading'}
           disabled={isPending}
-          className="rounded-xl px-6 py-2 font-semibold"
+          className="rounded-xl px-6 py-2 font-semibold w-full md:w-auto"
         >
           {isPending ? 'Saving...' : 'Save'}
         </Button>

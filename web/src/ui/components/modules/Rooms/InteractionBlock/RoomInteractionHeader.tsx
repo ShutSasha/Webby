@@ -9,7 +9,11 @@ import SettingsIcon from '@/assets/icons/shared/settings.svg'
 import { cn } from '@/lib/utils/general.utils'
 import { TabType, useRoomStore } from '@/stores/room.store'
 
-export default function RoomInteractionHeader() {
+type Props = {
+  isHost: boolean
+}
+
+export default function RoomInteractionHeader({ isHost }: Props) {
   const tab = useRoomStore(state => state.tab)
   const setTab = useRoomStore(state => state.setTab)
 
@@ -38,7 +42,7 @@ export default function RoomInteractionHeader() {
       <div className="flex flex-row items-center gap-4">
         <TabButton type="chat" Icon={ChatsIcon} />
         <TabButton type="users" Icon={UsersIcon} />
-        <TabButton type="settings" Icon={SettingsIcon} />
+        {isHost && <TabButton type="settings" Icon={SettingsIcon} />}
       </div>
     </div>
   )

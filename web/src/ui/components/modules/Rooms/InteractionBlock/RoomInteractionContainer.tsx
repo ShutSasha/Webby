@@ -26,6 +26,7 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
   const tab = useRoomStore(state => state.tab)
   const isClient = useIsClient()
   const { data: session } = useSession()
+  const isHost = session?.user.id === hostId
 
   if (!isClient) {
     return (
@@ -43,7 +44,7 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
       className="flex flex-col flex-none bg-black rounded-2xl pt-1 pb-3 px-2 relative w-full h-[500px] xl:w-[300px]
         2xl:w-[340px] xl:h-0 xl:min-h-full"
     >
-      <RoomInteractionHeader />
+      <RoomInteractionHeader isHost={isHost} />
 
       <ActiveVoteOverlay roomId={roomId} />
 
@@ -52,7 +53,7 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
       {tab === 'users' && <RoomUsers />}
       {tab === 'settings' && <RoomSettings />}
 
-      <RoomVotesModal roomId={roomId} isHost={session?.user.id === hostId} />
+      <RoomVotesModal roomId={roomId} isHost={isHost} />
     </div>
   )
 }
