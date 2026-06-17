@@ -48,7 +48,7 @@ func (r *Repository) ListComplaints(ctx context.Context, offset, limit int) ([]m
 	complaints := make([]models.Complaint, 0, limit)
 	for rows.Next() {
 		var complaint models.Complaint
-		if err := rows.Scan(&complaint); err != nil {
+		if err := rows.Scan(&complaint.ID, &complaint.AuthorID, &complaint.TargetType, &complaint.TargetID, &complaint.ReasonType, &complaint.AdditionalInfo, &complaint.CreatedAt); err != nil {
 			return nil, 0, fmt.Errorf("%s: row scan failed: %w", op, err)
 		}
 		complaints = append(complaints, complaint)

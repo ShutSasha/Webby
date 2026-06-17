@@ -48,6 +48,7 @@ try
         c.SwaggerEndpoint("/ws/swagger/v1/swagger.json", "WsGateway");
         c.SwaggerEndpoint("/notification/swagger/v1/swagger.json", "NotificationService");
         c.SwaggerEndpoint("/achievement/swagger/v1/swagger.json", "AchievementService");
+        c.SwaggerEndpoint("/admin/swagger/v1/swagger.json", "AdminService");
         c.RoutePrefix = "";
         });
     });

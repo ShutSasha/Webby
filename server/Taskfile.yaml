@@ -75,19 +75,27 @@ tasks:
         cd ./Webby.RoomQueueService
         CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
         ./server.exe --config ./config/config.yaml
-  
+
   run_achievement_service:
     desc: "Run the C# AchievementService"
     cmds:
       - |
         cd ./Webby.AchievementService
         dotnet run -p:WarningLevel=0
-  
+
   run_ws_gateway:
     desc: "Run the Go WsGateway"
     cmds:
       - |
         cd ./Webby.WsGateway
+        CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
+        ./server.exe --config ./config/config.yaml
+
+  run_admin_service:
+    desc: "Run Admin Service"
+    cmds:
+      - |
+        cd ./Webby.AdminService
         CGO_ENABLED=0 go build -o server.exe ./cmd/server/main.go
         ./server.exe --config ./config/config.yaml
 
@@ -106,3 +114,4 @@ tasks:
       - run_achievement_service
       - run_vote_service
       - run_room_queue_service
+      - run_admin_service
