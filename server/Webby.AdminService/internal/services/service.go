@@ -19,7 +19,7 @@ type complaintGetter interface {
 
 type videoInfoGetter interface {
 	GetVideoByID(ctx context.Context, videoID uuid.UUID) (*models.Video, error)
-	GetAuthorIDByVideoID(ctx context.Context, videoID uuid.UUID) (uuid.UUID, error)
+	GetAuthorIDByVideoID(ctx context.Context, videoID string) (uuid.UUID, error)
 }
 
 type notificationSender interface {

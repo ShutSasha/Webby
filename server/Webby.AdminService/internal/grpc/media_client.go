@@ -47,16 +47,16 @@ func (c *mediaClient) GetVideoByID(ctx context.Context, videoID uuid.UUID) (*mod
 	}
 
 	return &models.Video{
-		ID:    videoID,
+		ID:    video.Id,
 		Title: video.Title,
 	}, nil
 }
 
-func (c *mediaClient) GetAuthorIDByVideoID(ctx context.Context, videoID uuid.UUID) (uuid.UUID, error) {
+func (c *mediaClient) GetAuthorIDByVideoID(ctx context.Context, videoID string) (uuid.UUID, error) {
 	const op = "grpc.mediaClient.GetAuthorIDByVideoID"
 
 	resp, err := c.client.GetAuthorIDByVideoID(ctx, &mediapb.GetAuthorIDByVideoIDRequest{
-		VideoID: videoID.String(),
+		VideoID: videoID,
 	})
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("%s %w", op, err)
