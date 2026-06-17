@@ -5,8 +5,11 @@ import { useState } from 'react'
 import { useRoomStore } from '@/stores/room.store'
 import Modal from '@/ui/components/shared/Modal'
 
+import CreateNextVideoVote from './CreateNextVideoVote'
 import CreateRightChoiceVote from './CreateRightChoiceVote'
+import NextVideoVoteDetails from './NextVideoVoteDetails'
 import RightChoiceVoteDetails from './RightChoiceVoteDetails'
+import SelectVoteType from './SelectVoteType'
 import VotesList from './VotesList'
 
 type Props = {
@@ -14,7 +17,13 @@ type Props = {
   isHost: boolean
 }
 
-export type VoteViewState = 'LIST' | 'CREATE_RIGHT_CHOICE' | 'DETAILS_RIGHT_CHOICE'
+export type VoteViewState =
+  | 'LIST'
+  | 'SELECT_TYPE'
+  | 'CREATE_RIGHT_CHOICE'
+  | 'CREATE_NEXT_VIDEO'
+  | 'DETAILS_RIGHT_CHOICE'
+  | 'DETAILS_NEXT_VIDEO'
 
 export default function RoomVotesModal({ roomId, isHost }: Props) {
   const isVotesModalOpen = useRoomStore(state => state.isVotesModalOpen)
@@ -31,23 +40,33 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
     }, 300)
   }
 
-  const handleSelectVote = (voteId: string, type: 'RIGHT_CHOICE') => {
+  const handleSelectVote = (voteId: string, type: 'RIGHT_CHOICE' | 'NEXT_VIDEO') => {
     setSelectedVoteId(voteId)
     if (type === 'RIGHT_CHOICE') setView('DETAILS_RIGHT_CHOICE')
+    if (type === 'NEXT_VIDEO') setView('DETAILS_NEXT_VIDEO')
   }
 
   return (
     <Modal isOpen={isVotesModalOpen} onClose={handleClose} modalClasses="max-w-[480px]">
       {view === 'LIST' && (
-        <VotesList
+        <VotesList roomId={roomId} isHost={isHost} onViewChange={setView} onSelectVote={handleSelectVote} />
+      )}
+
+      {view === 'SELECT_TYPE' && <SelectVoteType onSelect={setView} onBack={() => setView('LIST')} />}
+
+      {view === 'CREATE_NEXT_VIDEO' && (
+        <CreateNextVideoVote
           roomId={roomId}
-          isHost={isHost}
-          onViewChange={setView}
-          onSelectVote={id => handleSelectVote(id, 'RIGHT_CHOICE')}
+          onBack={() => setView('SELECT_TYPE')}
+          onSuccess={() => setView('DETAILS_NEXT_VIDEO')}
         />
       )}
 
-      {view === 'CREATE_RIGHT_CHOICE' && <CreateRightChoiceVote roomId={roomId} onBack={() => setView('LIST')} />}
+      {view === 'DETAILS_NEXT_VIDEO' && <NextVideoVoteDetails roomId={roomId} onBack={() => setView('LIST')} />}
+
+      {view === 'CREATE_RIGHT_CHOICE' && (
+        <CreateRightChoiceVote roomId={roomId} onBack={() => setView('SELECT_TYPE')} />
+      )}
 
       {view === 'DETAILS_RIGHT_CHOICE' && selectedVoteId && (
         <RightChoiceVoteDetails

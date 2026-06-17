@@ -107,15 +107,19 @@ export const useRoomWebSocket = (
         }
       })
 
-      socket.on('VOTING_STARTED', (payload: any) => {
-        if (!payload || !payload.id) return
+      socket.on(
+        'VOTING_STARTED',
+        (payload: { id: string; voteText: string; duration: number; expiresAt: string; choices: string[] }) => {
+          if (!payload || !payload.id) return
 
-        queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
-          if (!Array.isArray(oldData)) return [payload]
+          queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+            const newVote = { ...payload, isLocked: false }
 
-          return [payload, ...oldData]
-        })
-      })
+            if (!Array.isArray(oldData)) return [newVote]
+            return [newVote, ...oldData]
+          })
+        },
+      )
 
       socket.on('VOTE_CASTED', (payload: any) => {
         queryClient.invalidateQueries({ queryKey: ['room-votes', roomId] })
@@ -150,12 +154,11 @@ export const useRoomWebSocket = (
         })
       })
 
-      socket.on('NEXT_VIDEO_VOTING_STARTED', () => {
+      socket.on('NEXT_VIDEO_VOTING_STARTED', (payload: { duration: number; expiresAt: string }) => {
         queryClient.setQueryData(['has-next-video-voting', roomId], {
-          success: true,
-          message: 'Realtime update',
-          data: { hasNextVideoVoting: true },
-          errors: null,
+          exists: true,
+          duration: payload.duration,
+          expiresAt: payload.expiresAt,
         })
       })
 
@@ -163,10 +166,9 @@ export const useRoomWebSocket = (
         if (!payload) return
 
         queryClient.setQueryData(['has-next-video-voting', roomId], {
-          success: true,
-          message: 'Realtime update',
-          data: { hasNextVideoVoting: false },
-          errors: null,
+          exists: false,
+          duration: 0,
+          expiresAt: new Date().toISOString(),
         })
       })
     }

@@ -37,6 +37,7 @@ export type RoomVote = {
   createdAt: string
   choices: string[]
   isLocked: boolean
+  expiresAt: string
   rightChoice?: string
   winners?: string[]
   myVote?: string
@@ -142,7 +143,9 @@ export async function castNextVideoVoteAction(roomId: string, queueItemId: strin
 }
 
 export type CheckNextVideoVotingResponse = {
-  hasNextVideoVoting: boolean
+  exists: boolean
+  duration: number
+  expiresAt: string
 }
 
 export async function checkNextVideoVotingAction(
