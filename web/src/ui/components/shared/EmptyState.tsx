@@ -8,13 +8,15 @@ type EmptyStateProps = {
   description?: string
   className?: string
   icon?: React.ReactNode
+  disableFlex?: boolean
 }
 
-export default function EmptyState({ title, description, className, icon }: EmptyStateProps) {
+export default function EmptyState({ title, description, className, icon, disableFlex }: EmptyStateProps) {
   return (
     <div
       className={cn(
-        'flex flex-col flex-1 items-center justify-center w-full py-20 px-4 animate-in fade-in zoom-in-95 duration-500',
+        'flex flex-col items-center justify-center w-full py-20 px-4 animate-in fade-in zoom-in-95 duration-500',
+        !disableFlex && 'flex-1',
         className,
       )}
     >
