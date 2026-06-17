@@ -107,12 +107,22 @@ public class MediaGrpcService : MediaService.GrpcServer.MediaService.MediaServic
 
    public override async Task<GetAuthorIDByVideoIDResponse> GetAuthorIDByVideoID(GetAuthorIDByVideoIDRequest request, ServerCallContext context)
    {
-      if (!Guid.TryParse(request.VideoID, out var videoIdGuid))
+      var platformResult = PlatformPrefixToPlatformConverter.ParseLocalPlatform(request.VideoID);
+
+      if (platformResult == null)
+      {
+         throw new ApiException("Get author error", 400, "Invalid platform prefix type");
+      }
+      
+      
+      var (_, actualId) = platformResult.Value;
+      
+      if (!Guid.TryParse(actualId, out var videoIdGuid))
       {
          throw new ApiException("Get author error", 400, "Invalid video id type");
       }
       
-      var videoResult = await _videoService.GetVideoById(Guid.Parse(request.VideoID),showPrivate: true);
+      var videoResult = await _videoService.GetVideoById(videoIdGuid,showPrivate: true);
       
       return new GetAuthorIDByVideoIDResponse() { AuthorID = videoResult.UserId.ToString() };
    }
