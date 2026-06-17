@@ -339,7 +339,7 @@ func (s *service) CreateVotingForNextVideo(ctx context.Context, roomID, userID u
 		Type: eventTypeNextVideoVotingStarted,
 		Payload: map[string]any{
 			"duration": 20,
-			"exiresAt": time.Now().Add(time.Duration(20) * time.Second),
+			"expiresAt": time.Now().Add(time.Duration(20) * time.Second),
 		},
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
