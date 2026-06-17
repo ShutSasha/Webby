@@ -22,7 +22,7 @@ export default function SelectVoteType({ onSelect, onBack }: Props) {
             Next Video Vote
           </span>
           <span className="text-sm text-neutral-500 mt-1">
-            Start a quick 15-second vote to let the room choose the next video from the queue.
+            Start a quick 20-second vote to let the room choose the next video from the queue.
           </span>
         </button>
 

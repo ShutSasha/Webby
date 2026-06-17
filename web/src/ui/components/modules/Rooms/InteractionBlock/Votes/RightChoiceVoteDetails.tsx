@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCastVoteMutation } from '@/lib/hooks/api/vote/useCastVote'
 import { useGetRoomVotesQuery } from '@/lib/hooks/api/vote/useGetRoomVotes'
 import { useResolveVoteMutation } from '@/lib/hooks/api/vote/useResolveVote'
+import { useCountdown } from '@/lib/hooks/useCountdown'
 import { cn } from '@/lib/utils/general.utils'
 
 type Props = {
@@ -25,6 +26,11 @@ export default function RightChoiceVoteDetails({ roomId, voteId, isHost, onBack 
 
   const { mutate: castVote, isPending: isCasting } = useCastVoteMutation()
   const { mutate: resolveVote, isPending: isResolving } = useResolveVoteMutation()
+
+  const { progress, secondsLeft, isExpired } = useCountdown(
+    currentVote && !currentVote.isLocked ? currentVote.expiresAt : undefined,
+    currentVote && !currentVote.isLocked ? currentVote.duration : undefined,
+  )
 
   if (!currentVote) return null
 
@@ -57,16 +63,23 @@ export default function RightChoiceVoteDetails({ roomId, voteId, isHost, onBack 
     <div className="flex flex-col max-h-[60vh]">
       <h3 className="text-xl font-bold text-neutral-100 mb-2">{currentVote.voteText}</h3>
 
-      <div className="mb-6 flex items-center gap-2">
-        <span
-          className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md', {
-            'bg-neutral-800 text-neutral-500': isResolvedDetails,
-            'bg-neutral-700 text-neutral-400': isClosedDetails,
-            'bg-emerald-500/20 text-emerald-500': isActiveDetails,
-          })}
-        >
-          {isResolvedDetails ? 'Resolved' : isClosedDetails ? 'Closed' : 'Active'}
-        </span>
+      <div className="mb-6 flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <span
+            className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md', {
+              'bg-neutral-800 text-neutral-500': isResolvedDetails,
+              'bg-neutral-700 text-neutral-400': isClosedDetails,
+              'bg-emerald-500/20 text-emerald-500': isActiveDetails,
+            })}
+          >
+            {isResolvedDetails ? 'Resolved' : isClosedDetails ? 'Closed' : `Active • ${secondsLeft}s`}
+          </span>
+        </div>
+        {isActiveDetails && !isExpired && (
+          <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 transition-none" style={{ width: `${progress}%` }} />
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-2">

@@ -23,7 +23,7 @@ export default function CreateNextVideoVote({ roomId, onBack, onSuccess }: Props
     <div className="flex flex-col">
       <h3 className="text-xl font-bold text-neutral-100 mb-4">Next Video Voting</h3>
       <p className="text-neutral-400 mb-6">
-        This will immediately start a 15-second voting session. Users will be able to select any video currently in the
+        This will immediately start a 20-second voting session. Users will be able to select any video currently in the
         queue. The video with the most votes will automatically play next.
       </p>
 
@@ -40,7 +40,7 @@ export default function CreateNextVideoVote({ roomId, onBack, onSuccess }: Props
           className="flex-1 py-2.5 bg-purple-500 text-white font-semibold rounded-xl hover:bg-purple-600
             disabled:opacity-50 transition-colors"
         >
-          {isPending ? 'Starting...' : isNextVideoActive ? 'Already Active' : 'Start 15s Vote'}
+          {isPending ? 'Starting...' : isNextVideoActive ? 'Already Active' : 'Start 20s Vote'}
         </button>
       </div>
     </div>

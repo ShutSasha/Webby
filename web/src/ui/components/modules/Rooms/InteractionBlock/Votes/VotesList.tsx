@@ -53,7 +53,7 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
                   />
                   <span className="relative inline-flex rounded-full size-1.5 bg-purple-500" />
                 </span>
-                15s Quick Vote
+                Quick Vote
               </span>
             </div>
             <h4 className="font-medium text-neutral-200 group-hover:text-purple-400 transition-colors">

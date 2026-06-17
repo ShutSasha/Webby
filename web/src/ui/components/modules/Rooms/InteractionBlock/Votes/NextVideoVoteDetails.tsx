@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { useRoomQueueQuery } from '@/lib/hooks/api/room/useRoomQueueQuery'
 import { useCastNextVideoVoteMutation } from '@/lib/hooks/api/vote/useCastNextVideoVote'
 import { useCheckNextVideoVotingQuery } from '@/lib/hooks/api/vote/useCheckNextVideoVoting'
+import { useCountdown } from '@/lib/hooks/useCountdown'
 import { cn } from '@/lib/utils/general.utils'
 
 type Props = {
@@ -23,6 +24,11 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
 
   const [myVote, setMyVote] = useState<string | null>(null)
 
+  const { progress, secondsLeft, isExpired } = useCountdown(
+    isNextVideoActive ? hasNextVideoData?.expiresAt : undefined,
+    isNextVideoActive ? hasNextVideoData?.duration : undefined,
+  )
+
   useEffect(() => {
     if (hasNextVideoData && !isNextVideoActive) {
       onBack()
@@ -36,13 +42,20 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
     <div className="flex flex-col max-h-[60vh]">
       <h3 className="text-xl font-bold text-neutral-100 mb-2">Vote for Next Video</h3>
 
-      <div className="mb-4">
-        <span
-          className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-purple-500/20
-            text-purple-400"
-        >
-          Active (Closing soon)
-        </span>
+      <div className="mb-6 flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-purple-500/20
+              text-purple-400"
+          >
+            Active • {secondsLeft}s
+          </span>
+        </div>
+        {isNextVideoActive && !isExpired && (
+          <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
+            <div className="h-full bg-purple-500 transition-none" style={{ width: `${progress}%` }} />
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-2">
