@@ -106,6 +106,71 @@ export const useRoomWebSocket = (
           })
         }
       })
+
+      socket.on(
+        'VOTING_STARTED',
+        (payload: { id: string; voteText: string; duration: number; expiresAt: string; choices: string[] }) => {
+          if (!payload || !payload.id) return
+
+          queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+            const newVote = { ...payload, isLocked: false }
+
+            if (!Array.isArray(oldData)) return [newVote]
+            return [newVote, ...oldData]
+          })
+        },
+      )
+
+      socket.on('VOTE_CASTED', (payload: any) => {
+        queryClient.invalidateQueries({ queryKey: ['room-votes', roomId] })
+      })
+
+      socket.on('VOTING_LOCKED', (payload: { votingId: string }) => {
+        if (!payload || !payload.votingId) return
+
+        queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+          if (!Array.isArray(oldData)) return oldData
+
+          return oldData.map((vote: any) => (vote.id === payload.votingId ? { ...vote, isLocked: true } : vote))
+        })
+      })
+
+      socket.on('VOTING_RESULTS', (payload: { votingId: string; rightChoice: string; winners: string[] }) => {
+        if (!payload || !payload.votingId) return
+
+        queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+          if (!Array.isArray(oldData)) return oldData
+
+          return oldData.map((vote: any) =>
+            vote.id === payload.votingId
+              ? {
+                  ...vote,
+                  isLocked: true,
+                  rightChoice: payload.rightChoice,
+                  winners: payload.winners,
+                }
+              : vote,
+          )
+        })
+      })
+
+      socket.on('NEXT_VIDEO_VOTING_STARTED', (payload: { duration: number; expiresAt: string }) => {
+        queryClient.setQueryData(['has-next-video-voting', roomId], {
+          exists: true,
+          duration: payload.duration,
+          expiresAt: payload.expiresAt,
+        })
+      })
+
+      socket.on('NEXT_VIDEO_VOTING_RESULTS', (payload: { winnerId: string }) => {
+        if (!payload) return
+
+        queryClient.setQueryData(['has-next-video-voting', roomId], {
+          exists: false,
+          duration: 0,
+          expiresAt: new Date().toISOString(),
+        })
+      })
     }
 
     connectSocket()

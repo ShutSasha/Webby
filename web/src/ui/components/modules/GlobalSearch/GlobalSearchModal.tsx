@@ -119,11 +119,23 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
   const rawYT = ytData?.pages.flatMap(p => p.data?.items || []) || []
   const ytVideos = Array.from(new Map(rawYT.map(v => [v.videoId, v])).values())
 
-  const displayWebby = webbyExpanded ? webbyVideos : webbyVideos.slice(0, 3)
-  const displayYT = ytExpanded ? ytVideos : ytVideos.slice(0, 3)
-
   if (webbyLoading || ytLoading) return <Skeletons count={7} />
   if (webbyVideos.length === 0 && ytVideos.length === 0) return <EmptyState title="No videos found" />
+
+  const MAX_TOTAL_SLOTS = 7
+  const BASE_SLOTS = 3
+
+  let webbyLimit = BASE_SLOTS
+  let ytLimit = BASE_SLOTS
+
+  if (webbyVideos.length < BASE_SLOTS) {
+    ytLimit = MAX_TOTAL_SLOTS - webbyVideos.length
+  } else if (ytVideos.length < BASE_SLOTS) {
+    webbyLimit = MAX_TOTAL_SLOTS - ytVideos.length
+  }
+
+  const displayWebby = webbyExpanded ? webbyVideos : webbyVideos.slice(0, webbyLimit)
+  const displayYT = ytExpanded ? ytVideos : ytVideos.slice(0, ytLimit)
 
   return (
     <div className="flex flex-col gap-6 px-1">
@@ -145,7 +157,7 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
             ))}
           </div>
 
-          {!webbyExpanded && webbyVideos.length > 3 ? (
+          {!webbyExpanded && webbyVideos.length > webbyLimit ? (
             <button
               onClick={() => setWebbyExpanded(true)}
               className="text-sm text-emerald-500 hover:text-emerald-400 font-medium py-2.5 mt-2 text-center w-full
@@ -184,7 +196,7 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
             ))}
           </div>
 
-          {!ytExpanded && ytVideos.length > 3 ? (
+          {!ytExpanded && ytVideos.length > ytLimit ? (
             <button
               onClick={() => setYtExpanded(true)}
               className="text-sm text-emerald-500 hover:text-emerald-400 font-medium py-2.5 mt-2 text-center w-full
