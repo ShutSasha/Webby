@@ -40,7 +40,7 @@ func (c *mediaClient) GetVideoByID(ctx context.Context, videoID uuid.UUID) (*mod
 	const op = "grpc.mediaClient.GetVideoByID"
 
 	video, err := c.client.GetVideo(ctx, &mediapb.GetVideoRequest{
-		Id: videoID.String(),
+		Id: "wb_" + videoID.String(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%s %w", op, err)
