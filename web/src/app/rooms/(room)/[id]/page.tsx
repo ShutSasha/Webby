@@ -29,22 +29,22 @@ export default async function RoomPage({ params }: Props) {
   return (
     <div className="flex flex-col">
       <RoomWebSocketManager roomId={id} chatId={room.chatId} />
-      <div className="flex gap-5">
-        <RoomPlayerContainer roomId={id} />
 
-        <RoomInteractionContainer chatId={room.chatId} hostId={hostId} />
-      </div>
-      <div className="flex gap-5">
-        <div className="w-full flex justify-between items-center mt-3 mb-2">
-          <p className="text-neutral-300 text-[20px] font-bold">{room.name}</p>
+      <div className="flex flex-col xl:flex-row gap-5 w-full">
+        <div className="flex flex-col flex-1 min-w-0">
+          <RoomPlayerContainer roomId={id} />
 
-          <div className="flex items-center gap-2">
-            <PlayerSyncButton roomId={id} />
+          <div className="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center mt-3 mb-2 gap-4">
+            <p className="text-neutral-300 text-[20px] font-bold truncate">{room.name}</p>
 
-            <RoomInviteButton roomId={id} />
+            <div className="flex items-center gap-2 shrink-0">
+              <PlayerSyncButton roomId={id} />
+              <RoomInviteButton roomId={id} />
+            </div>
           </div>
         </div>
-        <div className="hidden xl:block xl:w-[300px] 2xl:w-[340px] flex-none"></div>
+
+        <RoomInteractionContainer chatId={room.chatId} hostId={hostId} />
       </div>
     </div>
   )

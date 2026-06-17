@@ -30,8 +30,8 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
   if (!isClient) {
     return (
       <div
-        className="hidden xl:block xl:w-[300px] 2xl:w-[340px] flex-none bg-black rounded-2xl py-1 px-2 items-center
-          justify-center"
+        className="flex items-center justify-center flex-none bg-black rounded-2xl py-1 px-2 w-full h-[500px]
+          xl:w-[300px] 2xl:w-[340px] xl:h-auto"
       >
         <PageLoading />
       </div>
@@ -40,8 +40,8 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
 
   return (
     <div
-      className="hidden xl:flex xl:flex-col xl:w-[300px] 2xl:w-[340px] flex-none bg-black rounded-2xl pt-1 pb-3 px-2 h-0
-        min-h-full relative"
+      className="flex flex-col flex-none bg-black rounded-2xl pt-1 pb-3 px-2 relative w-full h-[500px] xl:w-[300px]
+        2xl:w-[340px] xl:h-0 xl:min-h-full"
     >
       <RoomInteractionHeader />
 
