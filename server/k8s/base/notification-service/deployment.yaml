@@ -38,6 +38,11 @@ spec:
                 secretKeyRef:
                   name: webby-secrets
                   key: JwtAccessExpiresDuration
+            - name: GrpcClients__UserServiceUrl
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: UserGrpcServiceUrl
           resources:
             requests:
               memory: "128Mi"

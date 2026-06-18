@@ -8,3 +8,4 @@ resources:
   - redis/
   - infisical/
   - ingress/ 
+  - web/

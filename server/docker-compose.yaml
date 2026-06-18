@@ -109,7 +109,9 @@ services:
     build:
       context: ../web
       dockerfile: Dockerfile
-
+      args:
+        - NEXT_PUBLIC_API_URL=${ServerUrl}
+        - NEXT_PUBLIC_SIGNALR_URL=${SignalRUrl}
     container_name: webby-frontend
     ports:
       - "3000:3000"
@@ -118,6 +120,7 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
       - AUTH_TRUST_HOST=true
       - NEXT_PUBLIC_API_URL=${ServerUrl}
+      - NEXT_PUBLIC_SIGNALR_URL=${SignalRUrl}
       - AUTH_SECRET=${WebAuthSecret}
       - AUTH_GOOGLE_ID=${WebAuthGoogleId}
       - AUTH_GOOGLE_SECRET=${WebGoogleAuthSecret}

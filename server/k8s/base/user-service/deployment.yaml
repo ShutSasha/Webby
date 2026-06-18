@@ -69,18 +69,35 @@ spec:
                   name: webby-secrets
                   key: StripeWebhookKey
             - name: PaymentOptions__SuccessUrl
-              value: "http://localhost:3000/payment/success" # ADD TO INFISICAL SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: PaymentSuccessUrl
             - name: PaymentOptions__CancelUrl
-              value: "http://localhost:3000/payment/failed" # EDIT AND ADD TO INFISICAL SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: PaymentCancelUrl
             - name: AutoMapper__LicenseKey
               valueFrom:
                 secretKeyRef:
                   name: webby-secrets
                   key: AutoMapperLicenseKey
             - name: GrpcClients__VideoServiceUrl
-              value: "http://video-service:5005" # ADD TO INFISICAL SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: VideoGrpcServiceUrl
             - name: GrpcClients__NotificationServiceUrl
-              value: "http://notification-service:5007" # ADD TO INFISICAL SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: NotificationGrpcServiceUrl
+            - name: GrpcClients__AchievementServiceUrl
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: AchievementGrpcServiceUrl
           resources:
             requests:
               memory: "128Mi"

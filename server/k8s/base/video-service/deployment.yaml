@@ -73,7 +73,10 @@ spec:
             - name: ExternalServices__TwitchOptions__ThumbnailHeight
               value: "720"
             - name: GrpcClients__UserServiceUrl
-              value: "http://user-service:5004" # ADD TO INFISICAL SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: UserGrpcServiceUrl
           resources:
             requests:
               memory: "128Mi"
