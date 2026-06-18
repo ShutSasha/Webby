@@ -75,12 +75,8 @@ func formatErrorMessage(fe validator.FieldError) string {
 
 func mapAppErrorToStatus(err error) int {
 	switch {
-	case errors.Is(err, apperrors.ErrCategoryNotFound):
-		return http.StatusNotFound
-	case errors.Is(err, apperrors.ErrCategoryAlreadyExists):
-		return http.StatusConflict
-	case errors.Is(err, apperrors.ErrInvalidInput):
-		return http.StatusBadRequest
+	case errors.Is(err, apperrors.ErrAlreadyResolved):
+		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError
 	}
@@ -88,12 +84,8 @@ func mapAppErrorToStatus(err error) int {
 
 func mapAppErrorToClientMessage(err error) string {
 	switch {
-	case errors.Is(err, apperrors.ErrCategoryNotFound):
-		return "The requested category was not found"
-	case errors.Is(err, apperrors.ErrCategoryAlreadyExists):
-		return "A category with this name already exists"
-	case errors.Is(err, apperrors.ErrInvalidInput):
-		return "The provided input is invalid"
+	case errors.Is(err, apperrors.ErrAlreadyResolved):
+		return "This complaint is already resolved"
 	default:
 		return "An unexpected error occurred"
 	}

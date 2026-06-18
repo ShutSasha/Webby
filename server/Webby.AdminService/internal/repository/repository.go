@@ -2,23 +2,25 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"webby/admin-service/internal/models"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Repository struct {
+type repository struct {
 	db *pgxpool.Pool
 }
 
-func New(db *pgxpool.Pool) *Repository {
-	return &Repository{db: db}
+func New(db *pgxpool.Pool) *repository {
+	return &repository{db: db}
 }
 
-func (r *Repository) ListComplaints(ctx context.Context, offset, limit int) ([]models.Complaint, int, error) {
+func (r *repository) ListComplaints(ctx context.Context, offset, limit int) ([]models.Complaint, int, error) {
 	const op = "repository.ListComplaints"
 
 	query := sq.Select(
@@ -30,6 +32,7 @@ func (r *Repository) ListComplaints(ctx context.Context, offset, limit int) ([]m
 		"\"AdditionalInfo\"",
 		"\"CreatedAt\"",
 	).From("\"Complaints\"").
+		Where("NOT EXISTS (SELECT 1 FROM complaint_results cr WHERE cr.complaint_id = \"Complaints\".\"ComplaintId\")").
 		OrderBy("\"CreatedAt\" DESC").
 		Limit(uint64(limit)).
 		Offset(uint64(offset)).
@@ -61,7 +64,7 @@ func (r *Repository) ListComplaints(ctx context.Context, offset, limit int) ([]m
 	return complaints, 0, nil
 }
 
-func (r *Repository) ResolveComplaint(ctx context.Context, complaintID, userID uuid.UUID, isAccepted bool) error {
+func (r *repository) ResolveComplaint(ctx context.Context, complaintID, userID uuid.UUID, isAccepted bool) error {
 	const op = "repository.AcceptComplaint"
 
 	sql, args, err := sq.Insert("complaint_results").
@@ -77,4 +80,29 @@ func (r *Repository) ResolveComplaint(ctx context.Context, complaintID, userID u
 	}
 
 	return nil
+}
+
+func (r *repository) IsResolved(ctx context.Context, complaintID uuid.UUID) (bool, error) {
+	const op = "repository.IsResolved"
+
+	sql, args, err := sq.Select("1").
+		From("complaint_results").
+		Where(sq.Eq{"complaint_id": complaintID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return false, fmt.Errorf("%s: sql build failed: %w", op, err)
+	}
+
+	var isResolved int
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&isResolved)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+
+		return false, fmt.Errorf("%s: failed to execute: %w", op, err)
+	}
+
+	return true, nil
 }

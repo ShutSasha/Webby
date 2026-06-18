@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"webby/admin-service/internal/apperrors"
 	"webby/admin-service/internal/models"
 
 	"github.com/google/uuid"
@@ -15,6 +16,7 @@ type repository interface {
 
 type complaintGetter interface {
 	GetComplaintByID(ctx context.Context, complaintID uuid.UUID) (*models.Complaint, error)
+	IsResolved(ctx context.Context, complaintID uuid.UUID) (bool, error)
 }
 
 type videoInfoGetter interface {
@@ -56,6 +58,14 @@ func (s *service) ListComplaints(ctx context.Context, page, limit int) ([]models
 
 func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.UUID) error {
 	const op = "service.AcceptComplaint"
+
+	isAlreadyResolved, err := s.complaintGetter.IsResolved(ctx, complaintID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if isAlreadyResolved {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrAlreadyResolved)
+	}
 
 	complaint, err := s.complaintGetter.GetComplaintByID(ctx, complaintID)
 	if err != nil {
@@ -106,6 +116,14 @@ func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.
 func (s *service) DenyComplaint(ctx context.Context, complaintID, userID uuid.UUID, reason string) error {
 	const op = "service.DenyComplaint"
 
+	isAlreadyResolved, err := s.complaintGetter.IsResolved(ctx, complaintID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if isAlreadyResolved {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrAlreadyResolved)
+	}
+
 	complaint, err := s.complaintGetter.GetComplaintByID(ctx, complaintID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -121,7 +139,7 @@ func (s *service) DenyComplaint(ctx context.Context, complaintID, userID uuid.UU
 		complaint.AuthorID,
 		complaint.TargetID,
 		"Content violations",
-		reason,
+		fmt.Sprintf("Your complaint has been denied. Reason: %s", reason),
 		complaint.TargetType,
 	)
 	if err != nil {
