@@ -202,18 +202,20 @@ export function StudioVideoRow({ video }: Props) {
       </div>
 
       <div className="w-12 flex justify-end shrink-0 relative" ref={menuRef}>
-        <button
-          onClick={toggleMenu}
-          className={cn(
-            'p-1.5 -mr-1.5 -mt-1 rounded-full transition-all duration-300 cursor-pointer z-20',
-            'hover:bg-neutral-500/20 active:bg-neutral-500/40',
-            isMenuOpen
-              ? 'bg-neutral-500/20 text-neutral-300'
-              : 'text-neutral-400 opacity-0 group-hover:opacity-100 md:opacity-100',
-          )}
-        >
-          <MoreVertical className="size-5 text-neutral-300" />
-        </button>
+        {video.videoUploadStatus !== 'Canceled' && (
+          <button
+            onClick={toggleMenu}
+            className={cn(
+              'p-1.5 -mr-1.5 -mt-1 rounded-full transition-all duration-300 cursor-pointer z-20',
+              'hover:bg-neutral-500/20 active:bg-neutral-500/40',
+              isMenuOpen
+                ? 'bg-neutral-500/20 text-neutral-300'
+                : 'text-neutral-400 opacity-0 group-hover:opacity-100 md:opacity-100',
+            )}
+          >
+            <MoreVertical className="size-5 text-neutral-300" />
+          </button>
+        )}
 
         {isMenuOpen && (
           <div
@@ -237,14 +239,16 @@ export function StudioVideoRow({ video }: Props) {
             >
               <span>Edit</span>
             </button>
-            <button
-              className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors flex
-                items-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleDelete}
-              disabled={isPending}
-            >
-              <span>{isPending ? 'Deleting...' : 'Delete video'}</span>
-            </button>
+            {!isUploading && (
+              <button
+                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors flex
+                  items-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleDelete}
+                disabled={isPending}
+              >
+                <span>{isPending ? 'Deleting...' : 'Delete video'}</span>
+              </button>
+            )}
           </div>
         )}
       </div>
