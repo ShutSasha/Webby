@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 
-import { leaveComplaint } from '@/lib/actions/user.actions'
-import { cn, extractServerMessage } from '@/lib/utils/general.utils'
-import { useToastStore } from '@/stores/toast-store'
+import { useLeaveComplaintMutation } from '@/lib/hooks/api/user/useLeaveComplaintMutation'
+import { cn } from '@/lib/utils/general.utils'
 
 import Modal from './Modal'
 
@@ -14,7 +13,6 @@ export type TargetType = 'Video' | 'User'
 type ModalProps = {
   isOpen: boolean
   onClose: () => void
-  authorId: string | undefined
   targetId: string
   targetType: TargetType
 }
@@ -24,12 +22,14 @@ const COMPLAINT_REASONS: Record<TargetType, string[]> = {
   Video: ['Harassment or bullying', 'Violence', 'Explicit content', 'Scam or fraud', 'Misinformation', 'Other'],
 }
 
-export default function ComplaintModal({ isOpen, onClose, authorId, targetId, targetType }: ModalProps) {
-  const addToast = useToastStore(state => state.addToast)
+export default function ComplaintModal({ isOpen, onClose, targetId, targetType }: ModalProps) {
   const [step, setStep] = useState<Step>('REASON')
   const [selectedReason, setSelectedReason] = useState('')
   const [description, setDescription] = useState('')
-  const [loading, setLoading] = useState(false)
+
+  const { mutate: submitComplaint, isPending } = useLeaveComplaintMutation({
+    onSuccess: () => setStep('SUCCESS'),
+  })
 
   const currentReasons = COMPLAINT_REASONS[targetType] || []
 
@@ -48,28 +48,13 @@ export default function ComplaintModal({ isOpen, onClose, authorId, targetId, ta
     setStep('DETAILS')
   }
 
-  const handleSubmit = async () => {
-    setLoading(true)
-    try {
-      if (!authorId) {
-        addToast('The user is not authenticated', 'error')
-        return
-      }
-
-      const response = await leaveComplaint(targetId, selectedReason, targetType, description.trim())
-
-      if (response.success) {
-        setStep('SUCCESS')
-      } else {
-        const msg = extractServerMessage(response.errors)
-        addToast(msg ? msg : 'Error while leaving complaint occurred', 'error')
-      }
-    } catch (error) {
-      console.error('Failed to send report', error)
-      addToast('An unexpected error occurred', 'error')
-    } finally {
-      setLoading(false)
-    }
+  const handleSubmit = () => {
+    submitComplaint({
+      targetUserId: targetId,
+      reasonType: selectedReason,
+      targetType,
+      additionalInfo: description.trim(),
+    })
   }
 
   return (
@@ -111,18 +96,18 @@ export default function ComplaintModal({ isOpen, onClose, authorId, targetId, ta
                 Back
               </button>
               <button
-                disabled={loading}
+                disabled={isPending}
                 onClick={handleSubmit}
                 className={cn(
                   `flex-2 py-2 bg-emerald-500 hover:bg-emerald-400 rounded-xl text-neutral-900 font-medium
                   transition-all `,
                   {
-                    'cursor-pointer': loading === false,
-                    'cursor-not-allowed disabled:bg-neutral-700': loading === true,
+                    'cursor-pointer': !isPending,
+                    'cursor-not-allowed disabled:bg-neutral-700': isPending,
                   },
                 )}
               >
-                {loading ? 'Sending...' : 'Send Report'}
+                {isPending ? 'Sending...' : 'Send Report'}
               </button>
             </div>
           </>

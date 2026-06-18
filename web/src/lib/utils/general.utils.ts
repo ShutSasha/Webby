@@ -101,3 +101,17 @@ export const unwrapServerAction = <T>(response: BaseServerResponse<T>): T => {
 
   return response.data as T
 }
+
+export type IdPrefixType = 'wb' | 'yt'
+
+export const extractCleanId = (prefixedId: string, prefix: IdPrefixType): string => {
+  if (!prefixedId) return ''
+
+  const prefixStr = `${prefix}_`
+
+  if (prefixedId.startsWith(prefixStr)) {
+    return prefixedId.slice(prefixStr.length)
+  }
+
+  return prefixedId
+}

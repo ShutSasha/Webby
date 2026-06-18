@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 import MoreVertical from '@/assets/icons/shared/more-vertical.svg'
 import { formatTimeAgo, formatVideoTime } from '@/lib/utils/date.utils'
-import { cn } from '@/lib/utils/general.utils'
+import { cn, extractCleanId } from '@/lib/utils/general.utils'
 import { formatViews } from '@/lib/utils/video.utils'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
@@ -162,8 +162,7 @@ export default function VideoCard({
       <ComplaintModal
         isOpen={isComplaintOpen}
         onClose={() => setIsComplaintOpen(false)}
-        authorId={currentUserId}
-        targetId={videoId}
+        targetId={extractCleanId(videoId, 'wb')}
         targetType="Video"
       />
       <SaveToPlaylistModal

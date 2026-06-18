@@ -77,7 +77,7 @@ export default async function UserProfileInfo({ id }: { id: string }) {
           </div>
         )}
 
-        {session && !isOwner && <ComplaintButton authorId={session.user.id} targetId={id} targetType="User" />}
+        {session && !isOwner && <ComplaintButton targetId={id} targetType="User" />}
 
         {userData.pinnedUserAchievements.length > 0 && (
           <UserAchievements achivements={userData.pinnedUserAchievements} />
