@@ -96,11 +96,6 @@ func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.
 		violaterID = complaint.TargetID
 		message = "You were banned due to content restrictions"
 	case "Video":
-		err := s.videoBanner.BanVideo(ctx, complaint.TargetID)
-		if err != nil {
-			return fmt.Errorf("%s: %w", op, err)
-		}
-
 		video, err := s.mediaRetriever.GetVideoByID(ctx, complaint.TargetID)
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
@@ -113,6 +108,11 @@ func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.
 
 		violaterID = videoAuthorID
 		message = fmt.Sprintf("Your video \"%s\" violates our platform rules. We have decided to ban it.", video.Title)
+
+		err := s.videoBanner.BanVideo(ctx, complaint.TargetID)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
 	}
 
 	err = s.repository.ResolveComplaint(ctx, complaintID, userID, true)
