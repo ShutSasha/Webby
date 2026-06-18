@@ -82,7 +82,7 @@ export default async function Home({ searchParams }: Props) {
             min-h-[300px]"
         >
           <Image src={Banner} alt="banner" fill className="object-cover opacity-40" />
-          <div className="absolute inset-0 bg-neutral-950/50 z-0" />
+          <div className="absolute inset-0 bg-neutral-950/5 z-0" />
 
           <div className="relative z-10 flex flex-col gap-6 max-w-2xl">
             <div>
