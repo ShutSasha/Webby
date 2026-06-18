@@ -12,16 +12,24 @@ import (
 type repository interface {
 	ListComplaints(ctx context.Context, offset, limit int) ([]models.Complaint, int, error)
 	ResolveComplaint(ctx context.Context, complaintID, userID uuid.UUID, isAccepted bool) error
+	IsResolved(ctx context.Context, complaintID uuid.UUID) (bool, error)
 }
 
 type complaintGetter interface {
 	GetComplaintByID(ctx context.Context, complaintID uuid.UUID) (*models.Complaint, error)
-	IsResolved(ctx context.Context, complaintID uuid.UUID) (bool, error)
 }
 
-type videoInfoGetter interface {
+type mediaRetriever interface {
 	GetVideoByID(ctx context.Context, videoID uuid.UUID) (*models.Video, error)
 	GetAuthorIDByVideoID(ctx context.Context, videoID string) (uuid.UUID, error)
+}
+
+type videoBanner interface {
+	BanVideo(ctx context.Context, videoID uuid.UUID) error
+}
+
+type userBanner interface {
+	BanUser(ctx context.Context, userID uuid.UUID) error
 }
 
 type notificationSender interface {
@@ -31,15 +39,19 @@ type notificationSender interface {
 type service struct {
 	repository         repository
 	complaintGetter    complaintGetter
-	videoInfoGetter    videoInfoGetter
+	mediaRetriever     mediaRetriever
+	videoBanner        videoBanner
+	userBanner         userBanner
 	notificationSender notificationSender
 }
 
-func New(repository repository, complaintGetter complaintGetter, videoInfoGetter videoInfoGetter, notificationSender notificationSender) *service {
+func New(repository repository, complaintGetter complaintGetter, mediaRetriever mediaRetriever, videoBanner videoBanner, userBanner userBanner, notificationSender notificationSender) *service {
 	return &service{
 		repository:         repository,
 		complaintGetter:    complaintGetter,
-		videoInfoGetter:    videoInfoGetter,
+		mediaRetriever:     mediaRetriever,
+		videoBanner:        videoBanner,
+		userBanner:         userBanner,
 		notificationSender: notificationSender,
 	}
 }
@@ -59,7 +71,7 @@ func (s *service) ListComplaints(ctx context.Context, page, limit int) ([]models
 func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.UUID) error {
 	const op = "service.AcceptComplaint"
 
-	isAlreadyResolved, err := s.complaintGetter.IsResolved(ctx, complaintID)
+	isAlreadyResolved, err := s.repository.IsResolved(ctx, complaintID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -76,15 +88,25 @@ func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.
 	message := ""
 	switch complaint.TargetType {
 	case "User":
-		violaterID = complaint.TargetID
-		message = "You were banned due to content restrictions"
-	case "Video":
-		video, err := s.videoInfoGetter.GetVideoByID(ctx, complaint.TargetID)
+		err := s.userBanner.BanUser(ctx, complaint.TargetID)
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		videoAuthorID, err := s.videoInfoGetter.GetAuthorIDByVideoID(ctx, video.ID)
+		violaterID = complaint.TargetID
+		message = "You were banned due to content restrictions"
+	case "Video":
+		err := s.videoBanner.BanVideo(ctx, complaint.TargetID)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		video, err := s.mediaRetriever.GetVideoByID(ctx, complaint.TargetID)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		videoAuthorID, err := s.mediaRetriever.GetAuthorIDByVideoID(ctx, video.ID)
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
@@ -116,7 +138,7 @@ func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.
 func (s *service) DenyComplaint(ctx context.Context, complaintID, userID uuid.UUID, reason string) error {
 	const op = "service.DenyComplaint"
 
-	isAlreadyResolved, err := s.complaintGetter.IsResolved(ctx, complaintID)
+	isAlreadyResolved, err := s.repository.IsResolved(ctx, complaintID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

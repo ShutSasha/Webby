@@ -69,6 +69,20 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer mediaClient.Close()
 
+	videoClient, err := grpcClient.NewVideoClient(cfg.Grpc.MediaServiceAddress)
+	if err != nil {
+		logger.Error("video service gRPC connection failed", slog.String("error", err.Error()))
+		return err
+	}
+	defer videoClient.Close()
+
+	userClient, err := grpcClient.NewUserClient(cfg.Grpc.ComplaintServiceAddress)
+	if err != nil {
+		logger.Error("user service gRPC connection failed", slog.String("error", err.Error()))
+		return err
+	}
+	defer userClient.Close()
+
 	notificationClient, err := grpcClient.NewNotificationClient(cfg.Grpc.NotificationServiceAddress)
 	if err != nil {
 		logger.Error("notification service gRPC connection failed", slog.String("error", err.Error()))
@@ -76,7 +90,7 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer notificationClient.Close()
 
-	categoryService := services.New(repository, complaintClient, mediaClient, notificationClient)
+	categoryService := services.New(repository, complaintClient, mediaClient, videoClient, userClient, notificationClient)
 
 	server := httpserver.NewServer(cfg, logger, categoryService)
 	httpServer := &http.Server{

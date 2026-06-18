@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "webby/admin-service/internal/grpc/userpb";
+
+import "google/protobuf/empty.proto";
+
+service UserGrpcService {
+  rpc BanUser(BanUserRequest) returns (google.protobuf.Empty);
+}
+
+message BanUserRequest {
+    string userID = 1;
+}
