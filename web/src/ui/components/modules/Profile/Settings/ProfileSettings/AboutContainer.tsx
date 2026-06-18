@@ -29,7 +29,7 @@ export default function AboutContainer({ userId, about }: Props) {
         addToast('Profile information updated successfully!', 'success')
       }
 
-      if (!result.success && result?.errors) {
+      if (!result?.success && result?.errors) {
         for (const [, value] of Object.entries(result.errors)) {
           addToast(value, 'error')
         }
@@ -38,24 +38,26 @@ export default function AboutContainer({ userId, about }: Props) {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col">
       <textarea
         value={text}
         onChange={e => setText(e.target.value)}
-        placeholder="Type something about yourself"
+        placeholder="Type something about yourself..."
         disabled={isPending}
-        className="w-full rounded-[20px] p-4 border border-border bg-transparent ring-0 outline-0 h-[200px] resize-none
-          text-start align-top mb-4 transition-all focus:border-emerald-500 disabled:opacity-50"
+        className="w-full rounded-2xl p-5 border border-neutral-800/80 bg-neutral-950/50 h-40 resize-none text-start
+          align-top mb-5 text-neutral-200 placeholder:text-neutral-600 outline-none transition-all duration-300
+          hover:border-neutral-600 focus:border-emerald-500/50 focus:bg-neutral-900/80 disabled:opacity-50
+          disabled:cursor-not-allowed custom-scrollbar"
       />
 
-      <div className="flex items-center justify-center">
+      <div className="flex justify-end">
         <Button
           viewType={!isPending ? 'confirm' : 'loading'}
-          className={'rounded-xl font-medium min-w-[120px]'}
+          className="rounded-xl font-medium min-w-[140px]"
           onClick={handleSave}
-          disabled={isPending}
+          disabled={isPending || text === about}
         >
-          {isPending ? 'Saving...' : 'Save'}
+          {isPending ? 'Saving...' : 'Save changes'}
         </Button>
       </div>
     </div>

@@ -32,20 +32,43 @@ export default async function ProfileSettings({ params }: Props) {
     )
   }
 
-  // TODO: add condition for premium link, check for premium user state through getuser API
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full max-w-3xl mx-auto gap-8 pb-10">
       <UserHeader image={session.user.image} username={session.user.username} />
-      <div className="flex justify-between items-center my-1">
-        <p>User email: {userData.user.email}</p>
-        <UploadAvatarContainer />
-      </div>
-      <Link href={'/premium'} className="mb-3 text-emerald-500 underline w-fit">
-        Get premium
-      </Link>
 
-      <p className="mb-2">About:</p>
-      <AboutContainer userId={id} about={userData.user.about} />
+      <div className="flex flex-col bg-neutral-900/40 p-6 sm:p-8 rounded-3xl border border-neutral-800 shadow-sm">
+        <h2 className="text-sm font-bold text-neutral-500 uppercase tracking-wider mb-6">Account Details</h2>
+
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6">
+          <div className="flex flex-col gap-1">
+            <span className="text-sm text-neutral-400">Email address</span>
+            <span className="text-neutral-200 font-medium text-[16px]">{userData.user.email}</span>
+          </div>
+
+          <UploadAvatarContainer />
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-neutral-800 flex flex-col sm:flex-row justify-between items-center
+          gap-4">
+          <div className="flex flex-col">
+            <span className="text-neutral-200 font-medium">Subscription</span>
+            <span className="text-sm text-neutral-400">Upgrade to unlock exclusive features.</span>
+          </div>
+          <Link
+            href="/premium"
+            className="px-5 py-2.5 rounded-xl bg-linear-to-r from-emerald-500/10 to-emerald-500/5 border
+              border-emerald-500/20 text-emerald-400 font-semibold text-sm hover:from-emerald-500/20
+              hover:to-emerald-500/10 hover:border-emerald-500/40 transition-all duration-300"
+          >
+            Get Premium
+          </Link>
+        </div>
+      </div>
+
+      <div className="flex flex-col bg-neutral-900/40 p-6 sm:p-8 rounded-3xl border border-neutral-800 shadow-sm">
+        <h2 className="text-sm font-bold text-neutral-500 uppercase tracking-wider mb-6">About Me</h2>
+        <AboutContainer userId={id} about={userData.user.about} />
+      </div>
     </div>
   )
 }

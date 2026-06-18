@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth'
 
 import { authConfig } from '../auth.config'
-import { clog } from './lib/utils/general.utils'
+// import { clog } from './lib/utils/general.utils'
 
 const { auth } = NextAuth(authConfig)
 
@@ -12,7 +12,8 @@ export default auth(req => {
   const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/sign-up')
   const isOnSettings = nextUrl.pathname.endsWith('/settings') // TODO: change the pathname
 
-  clog(`Proxy: ${nextUrl.pathname} | LoggedIn: ${isLoggedIn}`)
+  // TODO: remove logs after tests
+  // clog(`Proxy: ${nextUrl.pathname} | LoggedIn: ${isLoggedIn}`)
 
   if (isAuthPage) {
     if (isLoggedIn) {

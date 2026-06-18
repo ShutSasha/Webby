@@ -16,42 +16,53 @@ export default function UploadAvatarContainer() {
       <input type="file" ref={refs.fileInputRef} onChange={actions.onSelectFile} accept="image/*" className="hidden" />
 
       {!state.imgSrc ? (
-        <Button viewType="confirm" className="rounded-xl font-medium" onClick={actions.triggerFileInput}>
-          Upload new avatar
+        <Button
+          viewType="cancel"
+          className="rounded-xl font-medium text-sm px-5 py-2"
+          onClick={actions.triggerFileInput}
+        >
+          Change Avatar
         </Button>
       ) : (
-        <div className="fixed inset-0 z-100 bg-black/80 flex flex-col items-center justify-center p-4">
-          <div className="bg-neutral-900 p-6 rounded-2xl max-w-lg w-full flex flex-col items-center gap-4">
-            <h3 className="text-white text-lg font-bold">Adjust your avatar</h3>
+        <div
+          className="fixed inset-0 z-100 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4
+            animate-in fade-in duration-200"
+        >
+          <div
+            className="bg-[#0A0A0A] p-8 rounded-3xl border border-neutral-800/50 shadow-2xl max-w-lg w-full flex
+              flex-col items-center gap-6 animate-in zoom-in-95 duration-300"
+          >
+            <h3 className="text-neutral-100 text-xl font-bold">Adjust your avatar</h3>
 
-            <ReactCrop
-              crop={state.crop}
-              onChange={c => actions.setCrop(c)}
-              onComplete={c => actions.setCompletedCrop(c)}
-              aspect={1}
-              circularCrop
-            >
-              <Image
-                ref={refs.imgRef}
-                src={state.imgSrc}
-                width={700}
-                height={500}
-                alt="Crop"
-                onLoad={actions.onImageLoad}
-                className="object-contain w-full h-full"
-              />
-            </ReactCrop>
+            <div className="bg-neutral-900/50 rounded-2xl overflow-hidden border border-neutral-800/50 p-2">
+              <ReactCrop
+                crop={state.crop}
+                onChange={c => actions.setCrop(c)}
+                onComplete={c => actions.setCompletedCrop(c)}
+                aspect={1}
+                circularCrop
+              >
+                <Image
+                  ref={refs.imgRef}
+                  src={state.imgSrc}
+                  width={500}
+                  height={500}
+                  alt="Crop"
+                  onLoad={actions.onImageLoad}
+                  className="object-contain max-h-[400px] w-full"
+                />
+              </ReactCrop>
+            </div>
 
-            <div className="flex gap-3 w-full">
-              <Button onClick={actions.cancelUpload} className="flex-1 bg-neutral-800 text-white" viewType="cancel">
+            <div className="flex gap-3 w-full mt-2">
+              <Button onClick={actions.cancelUpload} className="flex-1 rounded-xl" viewType="cancel">
                 Cancel
               </Button>
               <Button
                 onClick={actions.handleUpload}
                 disabled={state.isPending}
-                className={`flex-1 bg-emerald-500 text-neutral-900
-                  ${state.isPending ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                viewType="confirm"
+                className="flex-1 rounded-xl"
+                viewType={state.isPending ? 'loading' : 'confirm'}
               >
                 {state.isPending ? 'Saving...' : 'Save Avatar'}
               </Button>
