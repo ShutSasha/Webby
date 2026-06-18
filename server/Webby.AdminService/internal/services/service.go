@@ -109,7 +109,7 @@ func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.
 		violaterID = videoAuthorID
 		message = fmt.Sprintf("Your video \"%s\" violates our platform rules. We have decided to ban it.", video.Title)
 
-		err := s.videoBanner.BanVideo(ctx, complaint.TargetID)
+		err = s.videoBanner.BanVideo(ctx, complaint.TargetID)
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
