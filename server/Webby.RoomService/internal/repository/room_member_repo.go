@@ -268,7 +268,7 @@ func (r *roomMemberRepository) UnbanRoomMember(ctx context.Context, roomID, user
 func (r *roomMemberRepository) CountMembers(ctx context.Context, roomID uuid.UUID) (int, error) {
 	const op = "roomMemberRepository.CountMembers"
 
-	sql, args, err := sq.Select("COUNT(id)").
+	sql, args, err := sq.Select("COUNT()").
 		From("room_members").
 		Where(sq.Eq{"room_id": roomID}).
 		PlaceholderFormat(sq.Dollar).
