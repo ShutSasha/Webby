@@ -11,15 +11,20 @@ import (
 	"github.com/google/uuid"
 )
 
+const MaxRoomMembers = 20
+
 type roomRetriever interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Room, error)
 }
 
 type roomMemberRepository interface {
-	Delete(ctx context.Context, roomID, userID uuid.UUID) error
 	ListByRoom(ctx context.Context, roomID uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error)
 	EnsureMember(ctx context.Context, roomID, userID uuid.UUID) error
+	GetMemberStatus(ctx context.Context, roomID, userID uuid.UUID) (*models.MemberStatus, error)
 	GetMemberPoints(ctx context.Context, roomID, userID uuid.UUID) (int, error)
+	BanRoomMember(ctx context.Context, roomID, userID uuid.UUID) error
+	UnbanRoomMember(ctx context.Context, roomID, userID uuid.UUID) error
+	CountMembers(ctx context.Context, roomID uuid.UUID) (int, error)
 }
 
 type roomMemberChatManager interface {
@@ -52,10 +57,10 @@ func NewRoomMemberService(
 	}
 }
 
-func (svc *roomMemberService) AddMembers(ctx context.Context, roomID, hostID uuid.UUID, memberIDs []uuid.UUID) error {
-	const op = "services.RoomMemberService.AddMembers"
+func (s *roomMemberService) AddMembers(ctx context.Context, roomID, hostID uuid.UUID, memberIDs []uuid.UUID) error {
+	const op = "services.roomMemberService.AddMembers"
 
-	room, err := svc.roomRetriever.GetByID(ctx, roomID)
+	room, err := s.roomRetriever.GetByID(ctx, roomID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -64,57 +69,73 @@ func (svc *roomMemberService) AddMembers(ctx context.Context, roomID, hostID uui
 		return fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
 	}
 
-	for _, memberID := range memberIDs {
-		err := svc.roomMemberRepo.EnsureMember(ctx, roomID, memberID)
-		if err != nil {
-			return fmt.Errorf("%s: %w", op, err)
-		}
+	actualMemberCount, err := s.roomMemberRepo.CountMembers(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if MaxRoomMembers-actualMemberCount < len(memberIDs) {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrMaxMembersReached)
 	}
 
-	if svc.chatManager != nil {
-		chatID, err := svc.chatManager.GetChatByRoomID(ctx, roomID)
+	chatID, err := s.chatManager.GetChatByRoomID(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	for _, memberID := range memberIDs {
+		stats, err := s.roomMemberRepo.GetMemberStatus(ctx, roomID, memberID)
 		if err != nil {
-			slog.Warn("failed to get chat for room when adding members",
-				slog.String("roomID", roomID.String()),
+			slog.Error("failed to get member status",
+				slog.String("memberID", memberID.String()),
 				slog.String("error", err.Error()),
 			)
-		} else {
-			for _, memberID := range memberIDs {
-				err := svc.chatManager.AddChatMember(ctx, chatID, memberID)
-				if err != nil {
-					slog.Warn("failed to add room member as chat member",
-						slog.String("roomID", roomID.String()),
-						slog.String("chatID", chatID.String()),
-						slog.String("memberID", memberID.String()),
-						slog.String("error", err.Error()),
-					)
-				}
+			continue
+		}
 
-				err = svc.notificationClient.SendNotificationToUser(ctx, memberID, roomID)
-				if err != nil {
-					slog.Warn("failed to notify member",
-						slog.String("roomID", roomID.String()),
-						slog.String("chatID", chatID.String()),
-						slog.String("memberID", memberID.String()),
-						slog.String("error", err.Error()),
-					)
-				}
+		if stats.IsBanned {
+			err := s.roomMemberRepo.UnbanRoomMember(ctx, roomID, memberID)
+			if err != nil {
+				slog.Error("failed to unban member",
+					slog.String("memberID", memberID.String()),
+					slog.String("error", err.Error()),
+				)
+				continue
 			}
+		}
+
+		err = s.roomMemberRepo.EnsureMember(ctx, roomID, memberID)
+		if err != nil {
+			slog.Error("failed to ensure member",
+				slog.String("memberID", memberID.String()),
+				slog.String("error", err.Error()),
+			)
+			continue
+		}
+
+		err = s.chatManager.AddChatMember(ctx, chatID, memberID)
+		if err != nil {
+			slog.Warn("failed to add room member as chat member",
+				slog.String("memberID", memberID.String()),
+				slog.String("error", err.Error()),
+			)
+		}
+
+		err = s.notificationClient.SendNotificationToUser(ctx, memberID, roomID)
+		if err != nil {
+			slog.Warn("failed to notify member",
+				slog.String("memberID", memberID.String()),
+				slog.String("error", err.Error()),
+			)
 		}
 	}
 
 	return nil
 }
 
-func (svc *roomMemberService) ListMembers(
-	ctx context.Context,
-	roomID uuid.UUID,
-	page, limit int,
-	search string,
-) ([]models.RoomMemberInfo, int64, error) {
+func (s *roomMemberService) ListMembers(ctx context.Context, roomID uuid.UUID, page, limit int, search string) ([]models.RoomMemberInfo, int64, error) {
 	const op = "service.RoomMemberService.ListMembers"
 
-	members, total, err := svc.roomMemberRepo.ListByRoom(ctx, roomID, page, limit, search)
+	members, total, err := s.roomMemberRepo.ListByRoom(ctx, roomID, page, limit, search)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: %w", op, err)
 	}
@@ -122,10 +143,10 @@ func (svc *roomMemberService) ListMembers(
 	return members, total, nil
 }
 
-func (svc *roomMemberService) RemoveMember(ctx context.Context, roomID, memberID, hostID uuid.UUID) error {
+func (s *roomMemberService) RemoveMember(ctx context.Context, roomID, memberID, hostID uuid.UUID) error {
 	const op = "services.roomMemberService.RemoveMember"
 
-	room, err := svc.roomRetriever.GetByID(ctx, roomID)
+	room, err := s.roomRetriever.GetByID(ctx, roomID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -138,7 +159,7 @@ func (svc *roomMemberService) RemoveMember(ctx context.Context, roomID, memberID
 		return fmt.Errorf("%s: %w", op, apperrors.ErrRemoveHost)
 	}
 
-	err = svc.roomMemberRepo.Delete(ctx, roomID, memberID)
+	err = s.roomMemberRepo.BanRoomMember(ctx, roomID, memberID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -146,10 +167,10 @@ func (svc *roomMemberService) RemoveMember(ctx context.Context, roomID, memberID
 	return nil
 }
 
-func (svc *roomMemberService) GetMemberPoints(ctx context.Context, roomID, userID uuid.UUID) (int, error) {
+func (s *roomMemberService) GetMemberPoints(ctx context.Context, roomID, userID uuid.UUID) (int, error) {
 	const op = "services.roomMemberService.GetMemberPoints"
 
-	points, err := svc.roomMemberRepo.GetMemberPoints(ctx, roomID, userID)
+	points, err := s.roomMemberRepo.GetMemberPoints(ctx, roomID, userID)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}

@@ -9,4 +9,6 @@ var (
 	ErrRoomNotFound       = errors.New("room not found")
 	ErrCategoryNotFound   = errors.New("category not found")
 	ErrRoomMemberNotFound = errors.New("room member not found")
+	ErrBanned             = errors.New("banned")
+	ErrMaxMembersReached  = errors.New("max members reached")
 )

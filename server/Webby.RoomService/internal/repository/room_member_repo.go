@@ -21,32 +21,35 @@ func NewRoomMemberRepository(db *pgxpool.Pool) *roomMemberRepository {
 	return &roomMemberRepository{db: db}
 }
 
-func (r *roomMemberRepository) Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error) {
-	const op = "repository.roomMemberRepository.Exists"
+func (r *roomMemberRepository) GetMemberStatus(ctx context.Context, roomID, userID uuid.UUID) (*models.MemberStatus, error) {
+	const op = "repository.roomMemberRepository.GetMemberStatus"
 
-	query, args, err := sq.Select("1").
+	query, args, err := sq.Select("is_banned").
 		From("room_members").
 		Where(sq.Eq{
 			"room_id": roomID,
 			"user_id": userID,
 		}).
-		Limit(1).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
-		return false, fmt.Errorf("%s: failed to build query: %w", op, err)
+		return nil, fmt.Errorf("%s: failed to build query: %w", op, err)
 	}
 
-	var dummy int
-	err = r.db.QueryRow(ctx, query, args...).Scan(&dummy)
+	status := &models.MemberStatus{
+		IsMember: false,
+		IsBanned: false,
+	}
+	err = r.db.QueryRow(ctx, query, args...).Scan(&status.IsBanned)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return false, nil
+			return status, nil
 		}
-		return false, fmt.Errorf("%s: execution failed: %w", op, err)
+		return nil, fmt.Errorf("%s: execution failed: %w", op, err)
 	}
 
-	return true, nil
+	status.IsMember = true
+	return status, nil
 }
 
 func (r *roomMemberRepository) EnsureMember(ctx context.Context, roomID, userID uuid.UUID) error {
@@ -151,29 +154,6 @@ func (r *roomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID,
 	return members, total, nil
 }
 
-func (r *roomMemberRepository) Delete(ctx context.Context, roomID, userID uuid.UUID) error {
-	const op = "repository.roomMemberRepository.Delete"
-
-	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Delete("room_members").
-		Where(sq.Eq{"room_id": roomID, "user_id": userID}).
-		ToSql()
-	if err != nil {
-		return fmt.Errorf("%s: build failed: %w", op, err)
-	}
-
-	tag, err := r.db.Exec(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("%s: execution failed: %w", op, err)
-	}
-
-	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("%s: %w", op, apperrors.ErrRoomMemberNotFound)
-	}
-
-	return nil
-}
-
 func (r *roomMemberRepository) AddPointsBulk(ctx context.Context, userIDs []uuid.UUID, pointsToAdd int) (map[uuid.UUID]int, error) {
 	const op = "repository.roomMemberRepository.AddPointsBulk"
 
@@ -235,4 +215,76 @@ func (r *roomMemberRepository) GetMemberPoints(ctx context.Context, roomID, user
 	}
 
 	return points, nil
+}
+
+func (r *roomMemberRepository) BanRoomMember(ctx context.Context, roomID, userID uuid.UUID) error {
+	const op = "roomMemberReporitory.BanRoomMember"
+
+	sql, args, err := sq.Update("room_members").
+		Set("is_banned", true).
+		Where(sq.Eq{"room_id": roomID, "user_id": userID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	tag, err := r.db.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrRoomMemberNotFound)
+	}
+
+	return nil
+}
+
+func (r *roomMemberRepository) UnbanRoomMember(ctx context.Context, roomID, userID uuid.UUID) error {
+	const op = "roomMemberReporitory.UnbanRoomMember"
+
+	sql, args, err := sq.Update("room_members").
+		Set("is_banned", false).
+		Where(sq.Eq{"room_id": roomID, "user_id": userID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	tag, err := r.db.Exec(ctx, sql, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrRoomMemberNotFound)
+	}
+
+	return nil
+}
+
+func (r *roomMemberRepository) CountMembers(ctx context.Context, roomID uuid.UUID) (int, error) {
+	const op = "roomMemberRepository.CountMembers"
+
+	sql, args, err := sq.Select("COUNT(id)").
+		From("room_members").
+		Where(sq.Eq{"room_id": roomID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	var count int
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&count)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	return count, nil
 }

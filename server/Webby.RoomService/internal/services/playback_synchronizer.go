@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"webby/room-service/internal/apperrors"
+	"webby/room-service/internal/models"
 	"webby/room-service/pkg/logger"
 
 	"github.com/google/uuid"
@@ -26,7 +27,7 @@ type timecodesRepository interface {
 }
 
 type memberChecker interface {
-	Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error)
+	GetMemberStatus(ctx context.Context, roomID, userID uuid.UUID) (*models.MemberStatus, error)
 }
 
 type synchronizeService struct {
@@ -73,12 +74,15 @@ func (s *synchronizeService) Synchronize(ctx context.Context, userID, roomID uui
 	const op = "service.synchronizeService.Synchronize"
 	log := logger.FromContext(ctx).With(slog.String("op", op))
 
-	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
+	status, err := s.memberChecker.GetMemberStatus(ctx, roomID, userID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
-	if !exists {
+	if !status.IsMember {
 		return fmt.Errorf("%s: %w", op, apperrors.ErrNotMember)
+	}
+	if status.IsBanned {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrBanned)
 	}
 
 	chatID, err := s.chatIDRetriever.GetChatIDByRoomID(ctx, roomID)

@@ -7,3 +7,8 @@ type RoomMember struct {
 	UserId     uuid.UUID
 	RoomPoints int
 }
+
+type MemberStatus struct {
+	IsMember bool
+	IsBanned bool
+}

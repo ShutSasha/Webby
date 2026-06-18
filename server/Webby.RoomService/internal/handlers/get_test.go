@@ -54,7 +54,7 @@ func TestGetRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockroomService) {
-				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(&models.Room{
+				ms.EXPECT().AccessRoom(mock.Anything, roomID, userID).Return(&models.Room{
 					ID:        roomID,
 					HostID:    userID,
 					Category:  "Gaming",
@@ -85,7 +85,7 @@ func TestGetRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockroomService) {
-				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(nil, fmt.Errorf("room: %w", apperrors.ErrRoomNotFound)).Once()
+				ms.EXPECT().AccessRoom(mock.Anything, roomID, userID).Return(nil, fmt.Errorf("room: %w", apperrors.ErrRoomNotFound)).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 			validateBody:   assertErrorResponse,
@@ -95,7 +95,7 @@ func TestGetRoom(t *testing.T) {
 			roomIdPath: roomID.String(),
 			userID:     userID.String(),
 			mockSetup: func(ms *handlermocks.MockroomService) {
-				ms.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(nil, apperrors.ErrNotMember).Once()
+				ms.EXPECT().AccessRoom(mock.Anything, roomID, userID).Return(nil, apperrors.ErrNotMember).Once()
 			},
 			expectedStatus: http.StatusForbidden,
 			validateBody:   assertErrorResponse,
@@ -132,7 +132,7 @@ func TestGetRoomResponseFields(t *testing.T) {
 	mockRoomService := handlermocks.NewMockroomService(t)
 	mockMemberService := handlermocks.NewMockroomMemberService(t)
 	mockSyncService := handlermocks.NewMocksynchronizeService(t)
-	mockRoomService.EXPECT().GetDetails(mock.Anything, roomID, userID).Return(&models.Room{
+	mockRoomService.EXPECT().AccessRoom(mock.Anything, roomID, userID).Return(&models.Room{
 		ID:        roomID,
 		HostID:    userID,
 		Category:  "Music",

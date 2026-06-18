@@ -25,6 +25,66 @@ func (_m *MockroomService) EXPECT() *MockroomService_Expecter {
 	return &MockroomService_Expecter{mock: &_m.Mock}
 }
 
+// AccessRoom provides a mock function with given fields: ctx, roomID, userID
+func (_m *MockroomService) AccessRoom(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (*models.Room, error) {
+	ret := _m.Called(ctx, roomID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AccessRoom")
+	}
+
+	var r0 *models.Room
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (*models.Room, error)); ok {
+		return rf(ctx, roomID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *models.Room); ok {
+		r0 = rf(ctx, roomID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Room)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = rf(ctx, roomID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockroomService_AccessRoom_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AccessRoom'
+type MockroomService_AccessRoom_Call struct {
+	*mock.Call
+}
+
+// AccessRoom is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roomID uuid.UUID
+//   - userID uuid.UUID
+func (_e *MockroomService_Expecter) AccessRoom(ctx interface{}, roomID interface{}, userID interface{}) *MockroomService_AccessRoom_Call {
+	return &MockroomService_AccessRoom_Call{Call: _e.mock.On("AccessRoom", ctx, roomID, userID)}
+}
+
+func (_c *MockroomService_AccessRoom_Call) Run(run func(ctx context.Context, roomID uuid.UUID, userID uuid.UUID)) *MockroomService_AccessRoom_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockroomService_AccessRoom_Call) Return(_a0 *models.Room, _a1 error) *MockroomService_AccessRoom_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockroomService_AccessRoom_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) (*models.Room, error)) *MockroomService_AccessRoom_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function with given fields: ctx, room, thumbnailData, thumbnailFilename
 func (_m *MockroomService) Create(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string) (*models.Room, error) {
 	ret := _m.Called(ctx, room, thumbnailData, thumbnailFilename)
@@ -130,66 +190,6 @@ func (_c *MockroomService_Delete_Call) Return(_a0 error) *MockroomService_Delete
 }
 
 func (_c *MockroomService_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) error) *MockroomService_Delete_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetDetails provides a mock function with given fields: ctx, roomID, userID
-func (_m *MockroomService) GetDetails(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (*models.Room, error) {
-	ret := _m.Called(ctx, roomID, userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetDetails")
-	}
-
-	var r0 *models.Room
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (*models.Room, error)); ok {
-		return rf(ctx, roomID, userID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *models.Room); ok {
-		r0 = rf(ctx, roomID, userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Room)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
-		r1 = rf(ctx, roomID, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockroomService_GetDetails_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDetails'
-type MockroomService_GetDetails_Call struct {
-	*mock.Call
-}
-
-// GetDetails is a helper method to define mock.On call
-//   - ctx context.Context
-//   - roomID uuid.UUID
-//   - userID uuid.UUID
-func (_e *MockroomService_Expecter) GetDetails(ctx interface{}, roomID interface{}, userID interface{}) *MockroomService_GetDetails_Call {
-	return &MockroomService_GetDetails_Call{Call: _e.mock.On("GetDetails", ctx, roomID, userID)}
-}
-
-func (_c *MockroomService_GetDetails_Call) Run(run func(ctx context.Context, roomID uuid.UUID, userID uuid.UUID)) *MockroomService_GetDetails_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
-	})
-	return _c
-}
-
-func (_c *MockroomService_GetDetails_Call) Return(_a0 *models.Room, _a1 error) *MockroomService_GetDetails_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockroomService_GetDetails_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) (*models.Room, error)) *MockroomService_GetDetails_Call {
 	_c.Call.Return(run)
 	return _c
 }
