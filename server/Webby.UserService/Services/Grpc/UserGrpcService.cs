@@ -1,6 +1,7 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using UserService;
+using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Interfaces.Repository;
 
 namespace Webby.UserService.Services.Grpc;
@@ -122,4 +123,20 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
          IsFollowed = mutualFollows
       };
    }
+
+   public override async Task<Empty> BanUser(BanUserRequest request, ServerCallContext context)
+   {
+      if (!Guid.TryParse(request.UserID, out var userIdGuid))
+         throw new ApiException("Ban user error",400,"Invalid id format");
+
+      var user = await _userRepository.FindById(userIdGuid)
+                 ?? throw new ApiException("Ban user error", 404,"User wasn't found");
+
+      user.IsBanned = true;
+
+      await _userRepository.Update(user);
+
+      return new Empty();
+   }
+   
 }

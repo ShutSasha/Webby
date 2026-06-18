@@ -11,6 +11,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
       builder.ToTable("Users");
 
       builder.HasKey(u => u.UserId);
+
+      builder.Property(u => u.IsBanned)
+         .HasDefaultValue(false);
       
       builder.HasMany(u => u.Followers)
          .WithOne()

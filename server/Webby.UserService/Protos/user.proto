@@ -3,6 +3,7 @@ syntax = "proto3";
 option csharp_namespace = "UserService";
 
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
 
 service UserGrpcService {
   rpc GetUserById (GetUserRequest) returns (UserResponse);
@@ -12,6 +13,7 @@ service UserGrpcService {
   rpc CheckIfUserExist(CheckIfUserExistsRequest) returns (google.protobuf.BoolValue);
   rpc FindUserIDs(FindUserIDsRequest) returns (FindUserIDsResponse);
   rpc IsFollowed(IsFollowedRequest) returns (IsFollowedResponse);
+  rpc BanUser(BanUserRequest) returns (google.protobuf.Empty);
 }
 
 // REQUESTS
@@ -47,6 +49,10 @@ message FindUserIDsRequest {
 message IsFollowedRequest {
   string firstUserId = 1;
   string secondUserId = 2;
+}
+
+message BanUserRequest {
+  string userID = 1;
 }
 
 //RESPONSES
