@@ -1,6 +1,7 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using UserService;
+using Webby.NotificationService.GrpcClient;
 using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Interfaces.Repository;
 
@@ -10,13 +11,16 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
 {
    private readonly IUserRepository _userRepository;
    private readonly IUserPremiumRepository _userPremiumRepository;
+   private readonly NotificationGrpcService.NotificationGrpcServiceClient _notificationClient;
    private readonly ILogger<UserGrpcService> _logger;
 
-   public UserGrpcService(IUserRepository userRepository, ILogger<UserGrpcService> logger, IUserPremiumRepository userPremiumRepository)
+   public UserGrpcService(IUserRepository userRepository, ILogger<UserGrpcService> logger,
+      IUserPremiumRepository userPremiumRepository, NotificationGrpcService.NotificationGrpcServiceClient notificationClient)
    {
       _userRepository = userRepository;
       _logger = logger;
       _userPremiumRepository = userPremiumRepository;
+      _notificationClient = notificationClient;
    }
 
    public override async Task<UserResponse> GetUserById(GetUserRequest request, ServerCallContext context)
@@ -132,9 +136,15 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       var user = await _userRepository.FindById(userIdGuid)
                  ?? throw new ApiException("Ban user error", 404,"User wasn't found");
 
+
+      if (user.IsBanned)
+         return new Empty();
+
       user.IsBanned = true;
 
       await _userRepository.Update(user);
+
+      await _notificationClient.ReportBlockingAsync(new ReportBlockingRequest { UserId = request.UserID });
 
       return new Empty();
    }
