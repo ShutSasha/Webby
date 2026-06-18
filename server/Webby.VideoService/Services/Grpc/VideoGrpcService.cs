@@ -38,6 +38,21 @@ public class VideoGrpcService : VideoGrpcServer.VideoGrpcService.VideoGrpcServic
        return new BoolValue { Value = true };
    }
 
+   public override async Task<Empty> BanVideo(BanVideoRequest request, ServerCallContext context)
+   {
+       if (!Guid.TryParse(request.VideoID, out var videoIdGuid))
+           throw new ApiException("Ban video error", 400, "Invalid local video id type");
+
+       var video = await _videoRepository.FindById(videoIdGuid)
+                   ?? throw new ApiException("Ban video error", 404, "Video wasn't found");
+
+       video.IsBanned = true;
+
+       await _videoRepository.Update(video);
+
+       return new Empty();
+   }
+
    public override async Task<GetUserStatisticResponse> GetUserStatistic(GetUserStatisticRequest request, ServerCallContext context)
    {
        if (!Guid.TryParse(request.UserId, out var userId))
