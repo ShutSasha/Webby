@@ -19,7 +19,7 @@ export default function MobileNav() {
         {navMobileElements.map(item => (
           <li key={item.key} className="min-w-0">
             <MobileNavElement
-              href={item.href ?? '/'}
+              href={item.href || '/'}
               text={item.text}
               Icon={item.icon}
               iconSize={item.iconSize}

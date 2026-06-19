@@ -4,7 +4,7 @@ import { AuthRes } from '@/types/auth.types'
 
 import { serverLog } from './general.utils'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
 export const mapUserData = (target: any, source: any) => {
   target.id = source.userId ?? source.id
