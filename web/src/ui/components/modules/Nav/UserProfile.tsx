@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
 
@@ -10,6 +9,7 @@ import { cn } from '@/lib/utils/general.utils'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import { DesktopNavElement } from './DesktopNavElement'
+import SafeImage from '../../shared/SafeImage'
 
 type UserProfileProps = {
   isExpanded: boolean
@@ -60,8 +60,8 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
         href={`/profile/${session.user.id}`}
         className={cn('flex items-center justify-center', !isExpanded && 'group', isExpanded && 'gap-3')}
       >
-        <Image
-          src={session.user.image ?? 'https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg'}
+        <SafeImage
+          src={session.user.image}
           alt="user profile picture"
           width={100}
           height={100}
@@ -72,6 +72,7 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
             'object-cover rounded-full shrink-0 transition-all duration-300',
             !isExpanded && 'group-hover:ring-2 group-hover:ring-emerald-500/50',
           )}
+          fallbackType="user"
         />
 
         <div
