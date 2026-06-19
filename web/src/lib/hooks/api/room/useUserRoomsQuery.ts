@@ -4,7 +4,6 @@ import { getUserRooms } from '@/lib/actions/room.actions'
 
 const PAGE_SIZE = 10
 
-// TODO-ROOMS: check the hook later after server updates
 export const useUserRoomsQuery = (searchQuery: string = '') => {
   return useInfiniteQuery({
     queryKey: ['user-rooms', searchQuery],
