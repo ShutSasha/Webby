@@ -1,6 +1,6 @@
-import { redirect } from 'next/navigation'
-
+import LockIcon from '@/assets/icons/shared/lock.svg'
 import SettingsNavigation from '@/ui/components/modules/Profile/Settings/SettingsNavigation'
+import AuthPlaceholder from '@/ui/components/shared/AuthPlaceholder'
 import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
@@ -12,8 +12,15 @@ type Props = {
 export default async function Layout({ children, params }: Props) {
   const [{ id }, session] = await Promise.all([params, auth()])
 
-  if (!session?.user) {
-    redirect('/login')
+  if (!session) {
+    return (
+      <AuthPlaceholder
+        title="Sign in to access your settings"
+        description="Please log in to manage your account details, update your public profile description,
+        customize your display settings, and configure security preferences to keep your account safe."
+        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+      />
+    )
   }
 
   if (session.user.id !== id) {

@@ -21,7 +21,6 @@ export default function PremiumPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden pb-32 rounded-2xl">
-     
       <div
         className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-500/10 blur-[120px]
           pointer-events-none"

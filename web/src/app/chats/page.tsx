@@ -1,6 +1,22 @@
+import LockIcon from '@/assets/icons/shared/lock.svg'
 import MessagesSquareIcon from '@/assets/icons/shared/message-circle-more.svg'
+import AuthPlaceholder from '@/ui/components/shared/AuthPlaceholder'
+import { auth } from '@/workspace/auth'
 
-export default function ChatsEmptyPage() {
+export default async function ChatsEmptyPage() {
+  const session = await auth()
+
+  if (!session) {
+    return (
+      <AuthPlaceholder
+        title="Sign in to view your chats"
+        description="Please log in to access your secure inbox, read and reply to your direct messages, review your full chat history, 
+        and stay connected with your friends in real time."
+        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+      />
+    )
+  }
+
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-neutral-500 bg-neutral-900/20">
       <div className="size-16 rounded-2xl bg-neutral-800/50 flex items-center justify-center mb-4">

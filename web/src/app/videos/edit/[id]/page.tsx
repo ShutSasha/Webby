@@ -1,5 +1,7 @@
+import LockIcon from '@/assets/icons/shared/lock.svg'
 import { getVideoInfo } from '@/lib/actions/video.actions'
 import EditVideoContainer from '@/ui/components/modules/Videos/Edit/EditVideoContainer'
+import AuthPlaceholder from '@/ui/components/shared/AuthPlaceholder'
 import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
@@ -10,6 +12,16 @@ type Props = {
 export default async function EditVideoPage({ params }: Props) {
   const { id } = await params
   const [session, response] = await Promise.all([auth(), getVideoInfo(id)])
+
+  if (!session) {
+    return (
+      <AuthPlaceholder
+        title="Sign in to edit your videos"
+        description="Please log in to edit your custom video files."
+        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+      />
+    )
+  }
 
   if (!response.success || !response.data) {
     return (

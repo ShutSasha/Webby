@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 
+import LockIcon from '@/assets/icons/shared/lock.svg'
 import { getUser } from '@/lib/actions/user.actions'
 import AboutContainer from '@/ui/components/modules/Profile/Settings/ProfileSettings/AboutContainer'
 import UploadAvatarContainer from '@/ui/components/modules/Profile/Settings/ProfileSettings/UploadAvatarContainer'
 import UserHeader from '@/ui/components/modules/Profile/Settings/UserHeader'
+import AuthPlaceholder from '@/ui/components/shared/AuthPlaceholder'
 import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
@@ -17,8 +18,15 @@ export default async function ProfileSettings({ params }: Props) {
   const session = await auth()
   const userData = await getUser(id)
 
-  if (!session?.user) {
-    redirect('/login')
+  if (!session) {
+    return (
+      <AuthPlaceholder
+        title="Sign in to access your settings"
+        description="Please log in to manage your account details, update your public profile description,
+        customize your display settings, and configure security preferences to keep your account safe."
+        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+      />
+    )
   }
 
   if (!userData) {

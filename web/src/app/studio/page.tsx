@@ -1,6 +1,7 @@
+import LockIcon from '@/assets/icons/shared/lock.svg'
 import StudioVideosContainer from '@/ui/components/modules/Studio/StudioVideosContainer'
 import CreateVideoButton from '@/ui/components/modules/Videos/CreateVideoButton'
-import EmptyState from '@/ui/components/shared/EmptyState'
+import AuthPlaceholder from '@/ui/components/shared/AuthPlaceholder'
 import { auth } from '@/workspace/auth'
 
 export default async function StudioPage() {
@@ -8,12 +9,11 @@ export default async function StudioPage() {
 
   if (!session) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
-        <EmptyState
-          title="Sign in to view your content"
-          description="Please log in to manage your videos, playlists, and track your channel activity."
-        />
-      </div>
+      <AuthPlaceholder
+        title="Sign in to view your content"
+        description="Please log in to manage your videos, playlists, and track your channel activity."
+        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+      />
     )
   }
 

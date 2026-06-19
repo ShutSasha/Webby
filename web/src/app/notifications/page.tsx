@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from 'react'
 
+import { useSession } from 'next-auth/react'
+
 import BellIcon from '@/assets/icons/Notifications/bell.svg'
+import LockIcon from '@/assets/icons/shared/lock.svg'
 import { useDeleteNotification } from '@/lib/hooks/api/notifications/useDeleteNotification'
 import { useGetUnreadNotificationsQuery } from '@/lib/hooks/api/notifications/useGetUnreadNotificationsQuery'
 import { useGetUserNotificationsQuery } from '@/lib/hooks/api/notifications/useGetUserNotificationsQuery'
@@ -10,6 +13,7 @@ import { useSetNotificationsReadStatus } from '@/lib/hooks/api/notifications/use
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import NotificationCard from '@/ui/components/modules/Notifications/NotificationCard'
 import NotificationHeader from '@/ui/components/modules/Notifications/NotificationHeader'
+import AuthPlaceholder from '@/ui/components/shared/AuthPlaceholder'
 
 export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState<'All' | 'Unread'>('All')
@@ -42,6 +46,18 @@ export default function NotificationsPage() {
   }
 
   const hasUnreadToMark = notifications.some(n => n.notificationStatus === 'Unread')
+
+  const { data: session } = useSession()
+
+  if (!session) {
+    return (
+      <AuthPlaceholder
+        title="Sign in to view your notifications"
+        description="Please log in to check your recent activity, view updates from your channels, and manage your notification preferences all in one place."
+        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+      />
+    )
+  }
 
   return (
     <>

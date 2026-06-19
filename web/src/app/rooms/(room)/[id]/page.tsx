@@ -1,10 +1,13 @@
+import LockIcon from '@/assets/icons/shared/lock.svg'
 import { getRoomById } from '@/lib/actions/room.actions'
 import PlayerSyncButton from '@/ui/components/modules/Player/PlayerSyncButton'
 import RoomInteractionContainer from '@/ui/components/modules/Rooms/InteractionBlock/RoomInteractionContainer'
 import RoomInviteButton from '@/ui/components/modules/Rooms/RoomInviteButton'
 import RoomPlayerContainer from '@/ui/components/modules/Rooms/RoomPlayerContainer'
 import RoomWebSocketManager from '@/ui/components/modules/Rooms/RoomWebSocketManager'
+import AuthPlaceholder from '@/ui/components/shared/AuthPlaceholder'
 import EmptyState from '@/ui/components/shared/EmptyState'
+import { auth } from '@/workspace/auth'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -12,9 +15,19 @@ type Props = {
 
 export default async function RoomPage({ params }: Props) {
   const { id } = await params
-
+  const session = await auth()
   const roomResponse = await getRoomById(id)
   const room = roomResponse.data
+
+  if (!session) {
+    return (
+      <AuthPlaceholder
+        title="Sign in to view rooms"
+        description="Manage your custom rooms, adjust privacy settings, and host synchronized viewing sessions by logging into your account."
+        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+      />
+    )
+  }
 
   if (!room) {
     return (

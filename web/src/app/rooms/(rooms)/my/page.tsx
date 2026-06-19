@@ -12,7 +12,7 @@ export default async function Page({ searchParams }: Props) {
   const safeQuery = query || ''
   const session = await auth()
 
-  if (!session?.user) {
+  if (!session) {
     return (
       <AuthPlaceholder
         title="Sign in to view your rooms"

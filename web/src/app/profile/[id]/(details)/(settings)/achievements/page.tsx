@@ -1,9 +1,9 @@
-import { redirect } from 'next/navigation'
-
+import LockIcon from '@/assets/icons/shared/lock.svg'
 import { getUserAchievements } from '@/lib/actions/achievement.actions'
 import AchievementItem from '@/ui/components/modules/Profile/Settings/Achievements/AchievementItem'
 import Splitter from '@/ui/components/modules/Profile/Settings/Achievements/Splitter'
 import UserHeader from '@/ui/components/modules/Profile/Settings/UserHeader'
+import AuthPlaceholder from '@/ui/components/shared/AuthPlaceholder'
 import EmptyState from '@/ui/components/shared/EmptyState'
 import { auth } from '@/workspace/auth'
 
@@ -16,8 +16,15 @@ export default async function AchievementsPage({ params }: Props) {
   const session = await auth()
   const userAchievements = await getUserAchievements(userId)
 
-  if (!session?.user) {
-    redirect('/login')
+  if (!session) {
+    return (
+      <AuthPlaceholder
+        title="Sign in to view your achievements"
+        description="Please log in to unlock your trophy room. Track your completed milestones,
+        check your ongoing quest progress, and view all the exclusive badges you have earned on the platform."
+        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+      />
+    )
   }
 
   if (!userAchievements.success || !userAchievements.data) {
