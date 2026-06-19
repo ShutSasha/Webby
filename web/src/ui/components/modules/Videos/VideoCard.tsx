@@ -60,7 +60,9 @@ export default function VideoCard({
 
   return (
     <>
-      <Link href={`/videos/${videoId}`} className="group flex flex-col gap-3 cursor-pointer">
+      <div className="group flex flex-col gap-3 relative cursor-pointer">
+        <Link href={`/videos/${videoId}`} className="absolute inset-0 z-10 rounded-xl" aria-label={`Watch ${title}`} />
+
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-800">
           <Image
             src={previewUrl}
@@ -75,7 +77,7 @@ export default function VideoCard({
 
           <div
             className="absolute bottom-2 right-2 z-10 bg-black/80 px-1.5 py-0.5 rounded text-[11px] font-medium
-              text-neutral-100 tracking-wide"
+              text-neutral-100 tracking-wide pointer-events-none"
           >
             {formatVideoTime(duration)}
           </div>
@@ -87,7 +89,7 @@ export default function VideoCard({
             alt="Creator avatar"
             width={40}
             height={40}
-            className="size-10 rounded-full object-cover shrink-0 mt-0.5"
+            className="size-10 rounded-full object-cover shrink-0 mt-0.5 relative z-20"
             placeholder="blur"
             blurDataURL={BLUR_DATA_URLS['neutral900']}
           />
@@ -109,7 +111,7 @@ export default function VideoCard({
               </div>
             </div>
 
-            <div className="relative shrink-0" ref={menuRef}>
+            <div className="relative shrink-0 z-20" ref={menuRef}>
               <button
                 onClick={toggleMenu}
                 className={cn(
@@ -158,7 +160,8 @@ export default function VideoCard({
             </div>
           </div>
         </div>
-      </Link>
+      </div>
+
       <ComplaintModal
         isOpen={isComplaintOpen}
         onClose={() => setIsComplaintOpen(false)}

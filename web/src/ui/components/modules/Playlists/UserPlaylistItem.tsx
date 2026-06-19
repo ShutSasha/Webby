@@ -88,25 +88,33 @@ export default function UserPlaylistItem(props: Props) {
 
   return (
     <>
-      <Link href={`/playlists/${props.id}`} className="relative group cursor-pointer flex flex-col">
+      <div className="relative group cursor-pointer flex flex-col">
+        <Link
+          href={`/playlists/${props.id}`}
+          className="absolute inset-0 z-10 rounded-xl"
+          aria-label={`View playlist ${props.name}`}
+        />
+
         <div className="relative">
           <ImageBackground src={props.src} />
 
           <div
             className="absolute bg-black/80 rounded-lg px-2 py-1 top-1/35 right-1/40 group-hover:top-1/20
-              group-hover:right-1/25 transition-all duration-300 text-neutral-200 text-[12px]"
+              group-hover:right-1/25 transition-all duration-300 text-neutral-200 text-[12px] pointer-events-none"
           >
             {props.videoCount} videos
           </div>
         </div>
 
-        <div className="flex justify-between items-start gap-2">
+        <div className="flex justify-between items-start gap-2 pt-2 px-1">
           <div className="flex flex-col overflow-hidden">
             <p className="text-sm font-medium text-neutral-100 line-clamp-1">{props.name}</p>
-            <p className="text-[12px] text-neutral-500">{props.isPrivate ? 'Private' : 'Public'} &bull; Playlist</p>
+            <p className="text-[12px] text-neutral-500 mt-1">
+              {props.isPrivate ? 'Private' : 'Public'} &bull; Playlist
+            </p>
           </div>
 
-          <div className="relative shrink-0" ref={menuRef}>
+          <div className="relative shrink-0 z-20" ref={menuRef}>
             <button
               onClick={toggleMenu}
               className={cn(
@@ -145,7 +153,8 @@ export default function UserPlaylistItem(props: Props) {
             )}
           </div>
         </div>
-      </Link>
+      </div>
+
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         <form className="flex flex-col" onSubmit={handleUpdateSubmit}>
           <h3 className="text-neutral-300 text-center mb-4 font-semibold text-xl">Edit playlist</h3>

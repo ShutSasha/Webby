@@ -102,7 +102,13 @@ export default function UserRoomItem({ room }: Props) {
 
   return (
     <>
-      <Link href={`/rooms/${room.id}`} className="flex flex-col gap-3 group cursor-pointer relative">
+      <div className="flex flex-col gap-3 group cursor-pointer relative">
+        <Link
+          href={`/rooms/${room.id}`}
+          className="absolute inset-0 z-10 rounded-xl"
+          aria-label={`Enter ${room.name}`}
+        />
+
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-800">
           <Image
             src={room.thumbnail}
@@ -114,7 +120,10 @@ export default function UserRoomItem({ room }: Props) {
             placeholder="blur"
             blurDataURL={BLUR_DATA_URLS['neutral800']}
           />
-          <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md">
+
+          <div
+            className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md pointer-events-none"
+          >
             <p className="uppercase font-bold text-[10px] tracking-wider text-neutral-200 line-clamp-1 max-w-[100px]">
               {room.categoryName}
             </p>
@@ -132,7 +141,7 @@ export default function UserRoomItem({ room }: Props) {
             <p className="text-[12px] text-neutral-500 mt-1">{room.isPrivate ? 'Private' : 'Public'} &bull; Room</p>
           </div>
 
-          <div className="relative shrink-0" ref={menuRef}>
+          <div className="relative shrink-0 z-20" ref={menuRef}>
             <button
               onClick={toggleMenu}
               className={cn(
@@ -171,7 +180,7 @@ export default function UserRoomItem({ room }: Props) {
             )}
           </div>
         </div>
-      </Link>
+      </div>
 
       {/* Edit Modal */}
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
