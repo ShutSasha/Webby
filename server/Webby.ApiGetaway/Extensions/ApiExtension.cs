@@ -65,7 +65,7 @@ public static class ApiExtension
                   context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                   context.Response.ContentType = "application/json";
 
-                  var response = new ApiException("Unauthorized", 401);
+                  var response = new ApiException("You're not logged in. Sign in your account or sign up", 401);
 
                   await context.Response.WriteAsJsonAsync(response);
                }
@@ -94,7 +94,7 @@ public static class ApiExtension
          {
             context.Response.ContentType = "application/json";
 
-            var response = new ApiException("Unauthorized",401);
+            var response = new ApiException("You're not logged in. Sign in your account or sign up",401);
 
             await context.Response.WriteAsJsonAsync(response);
          }
@@ -103,7 +103,7 @@ public static class ApiExtension
          {
             context.Response.ContentType = "application/json";
 
-            var response = new ApiException("Forbidden",403);
+            var response = new ApiException("You don't have permission",403);
 
             await context.Response.WriteAsJsonAsync(response);
          }
