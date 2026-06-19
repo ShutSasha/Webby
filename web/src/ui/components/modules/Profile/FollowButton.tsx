@@ -6,7 +6,6 @@ import UserPlusIcon from '@/assets/icons/Profile/ic_user_plus.svg'
 import UserMinusIcon from '@/assets/icons/shared/minus.svg'
 import { useToggleFollowMutation } from '@/lib/hooks/api/user/useToggleFollow'
 import { cn } from '@/lib/utils/general.utils'
-import { useToastStore } from '@/stores/toast-store'
 
 interface Props {
   targetUserId: string
@@ -16,7 +15,6 @@ interface Props {
 
 export default function FollowButton({ targetUserId, initialIsFollowing, currentUserId }: Props) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing)
-  const addToast = useToastStore(state => state.addToast)
 
   const { mutate: toggleFollow, isPending } = useToggleFollowMutation(currentUserId)
 
@@ -27,9 +25,8 @@ export default function FollowButton({ targetUserId, initialIsFollowing, current
     setIsFollowing(!prevStatus)
 
     toggleFollow(targetUserId, {
-      onError: error => {
+      onError: _ => {
         setIsFollowing(prevStatus)
-        addToast(error.message || 'Something went wrong while following', 'error')
       },
     })
   }
