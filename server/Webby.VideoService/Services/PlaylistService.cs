@@ -129,7 +129,7 @@ public class PlaylistService : IPlaylistService
 
    public async Task<PlaylistDto> UpdatePlaylist(Guid requestUserId,UpdatePlaylistRequest request)
    {
-      var playlist = await _playlistRepository.FindById(request.PlaylistId);
+      var playlist = await _playlistRepository.FindByIdWithVideos(request.PlaylistId);
 
       if (playlist == null)
       {
