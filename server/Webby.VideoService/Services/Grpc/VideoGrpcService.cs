@@ -1,5 +1,7 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Webby.VideoService.Helpers.Converters;
+using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.VideoGrpcServer;
 
@@ -16,9 +18,24 @@ public class VideoGrpcService : VideoGrpcServer.VideoGrpcService.VideoGrpcServic
 
    public override async Task<BoolValue> CheckVideoExists(CheckVideoExistRequest request, ServerCallContext context)
    {
-      var video = await _videoRepository.FindById(Guid.Parse(request.VideoId));
+       if (!Guid.TryParse(request.RequestUserId, out var requestUserIdGuid))
+           throw new ApiException("Check video exist error", 400, "Invalid type of request user id");
 
-      return new BoolValue { Value = video != null };
+       var parseResult = PlatformPrefixToPlatformConverter.ParseLocalPlatform(request.VideoId)
+                         ?? throw new ApiException("Check video exist error", 400, "Invalid video prefix type");
+    
+       if (!Guid.TryParse(parseResult.ActualId, out var videoIdGuid))
+           throw new ApiException("Check video exist error", 400, "Invalid actual video id format");
+
+       var video = await _videoRepository.FindById(videoIdGuid);
+
+       if (video == null)
+           return new BoolValue { Value = false };
+
+       if (video.UserId == requestUserIdGuid)
+           throw new ApiException("Check video exist error", 400, "You can't leave complaint on your own video");
+   
+       return new BoolValue { Value = true };
    }
 
    public override async Task<GetUserStatisticResponse> GetUserStatistic(GetUserStatisticRequest request, ServerCallContext context)
