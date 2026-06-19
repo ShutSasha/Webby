@@ -4,7 +4,6 @@ import { useParams, usePathname } from 'next/navigation'
 
 import PlusIcon from '@/assets/icons/ic_plus_create.svg'
 import { useAddQueueItemMutation } from '@/lib/hooks/api/room/useAddQueueItem'
-import { clog } from '@/lib/utils/general.utils'
 import { EntityType } from '@/lib/utils/global-search-modal.utils'
 
 type Props = {
@@ -60,11 +59,8 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
     addQueueItem(
       { roomId, videoId: id },
       {
-        onSuccess: res => {
-          if (res.success) {
-            setIsOpen(false)
-            clog(`[Room] Successfully added ${type} with ID to Room:`, id)
-          }
+        onSuccess: () => {
+          setIsOpen(false)
         },
       },
     )

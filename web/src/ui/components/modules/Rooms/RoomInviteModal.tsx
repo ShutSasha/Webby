@@ -53,23 +53,7 @@ export default function RoomInviteModal({ roomId, isOpen, onClose }: Props) {
   const handleInvite = () => {
     if (selectedUserIds.size === 0 || isPending) return
 
-    addMembers(
-      { roomId, userIds: Array.from(selectedUserIds) },
-      {
-        onSuccess: res => {
-          if (res.success) {
-            addToast('Invitations sent successfully', 'success')
-            onClose()
-          } else {
-            const errorMessage = res.errors?.message || res.message || 'Failed to send invites'
-            addToast(errorMessage, 'error')
-          }
-        },
-        onError: error => {
-          addToast(error.message || 'An unexpected error occurred', 'error')
-        },
-      },
-    )
+    addMembers({ roomId, userIds: Array.from(selectedUserIds) })
   }
 
   return (
@@ -109,7 +93,7 @@ export default function RoomInviteModal({ roomId, isOpen, onClose }: Props) {
         </div>
 
         {/* Users Grid */}
-        <div className="grid grid-cols-4 content-start gap-y-5 gap-x-2 py-2 h-[320px] overflow-y-auto custom-scrollbar">
+        <div className="grid grid-cols-4 content-start gap-y-5 gap-x-2 py-2 h-80 overflow-y-auto custom-scrollbar">
           {isLoading && users.length === 0 ? (
             Array.from({ length: 12 }).map((_, i) => <UserSkeleton key={i} />)
           ) : users.length === 0 ? (

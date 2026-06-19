@@ -26,7 +26,7 @@ function UserPoints() {
 
   const { data, isLoading } = useGetRoomMemberPointsQuery(roomId)
 
-  const points = data?.data?.points ?? 0
+  const points = data?.points ?? 0
 
   return (
     <div
