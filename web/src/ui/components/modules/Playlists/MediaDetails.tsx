@@ -4,7 +4,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import LockIcon from '@/assets/icons/shared/lock.svg'
-import { extractCleanId } from '@/lib/utils/general.utils'
 import { MediaType } from '@/types/general.types'
 import { VideoSource } from '@/types/video.types'
 import { BLUR_DATA_URLS } from '@/ui/images'
@@ -93,7 +92,7 @@ export default function MediaDetails({
             {currentUserId && (
               <SaveToPlaylistButton userId={currentUserId} videoId={resourceId} mediaType={mediaType} />
             )}
-            <ComplaintButton targetId={extractCleanId(resourceId, 'wb')} targetType="Video" />
+            <ComplaintButton targetId={resourceId} targetType="Video" />
           </div>
         </div>
       )}
