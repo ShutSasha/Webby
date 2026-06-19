@@ -13,7 +13,7 @@ type Props = {
 export default function UserPlaylists({ userId, username }: Props) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchUserPlaylistsQuery(userId, '')
 
-  const playlists = data?.pages.flatMap(page => page?.data?.items || []) || []
+  const playlists = data?.pages.flatMap(page => page?.items || []) || []
 
   const lastElementRef = useInfiniteScroll({
     isLoading,

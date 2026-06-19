@@ -106,7 +106,7 @@ export default function UserPlaylistItem(props: Props) {
           </div>
         </div>
 
-        <div className="flex justify-between items-start gap-2 pt-2 px-1">
+        <div className="flex justify-between items-start gap-2">
           <div className="flex flex-col overflow-hidden">
             <p className="text-sm font-medium text-neutral-100 line-clamp-1">{props.name}</p>
             <p className="text-[12px] text-neutral-500 mt-1">

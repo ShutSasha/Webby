@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 
-import { DEFAULT_USER_THUMBNAIL, DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { DEFAULT_USER_THUMBNAIL, DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constasts'
 import { useSearchVideosQuery } from '@/lib/hooks/api/video/useSearchVideos'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 

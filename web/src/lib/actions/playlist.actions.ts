@@ -33,6 +33,11 @@ export type PlaylistInfo = {
   hiddenVideosCount: number
 }
 
+export type UpdatedPlaylist = BasePlaylist & {
+  isVideoAdded: boolean
+  userId: string
+}
+
 export async function getPlaylistInfo(playlistId: string): Promise<BaseServerResponse<PlaylistInfo>> {
   try {
     const { data: response } = await $api.get<BaseServerResponse<PlaylistInfo>>(`${endpoint}/${playlistId}/details`)
@@ -292,9 +297,9 @@ export async function updatePlaylistAction(
   playlistId: string,
   name: string,
   isPrivate: boolean,
-): Promise<BaseServerResponse<null>> {
+): Promise<BaseServerResponse<UpdatedPlaylist>> {
   try {
-    const { data: response } = await $api.patch<BaseServerResponse<null>>(`${endpoint}`, {
+    const { data: response } = await $api.patch<BaseServerResponse<UpdatedPlaylist>>(`${endpoint}`, {
       playlistId,
       name,
       isPrivate,

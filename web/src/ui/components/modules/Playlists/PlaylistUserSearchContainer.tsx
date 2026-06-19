@@ -21,7 +21,7 @@ export default function PlaylistUserSearchContainer({ userId, query }: Props) {
     true,
   )
 
-  const playlists = data?.pages.flatMap(page => page?.data?.items || []) || []
+  const playlists = data?.pages.flatMap(page => page?.items || []) || []
 
   const lastElementRef = useInfiniteScroll({
     isLoading,

@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 
 import MoreVertical from '@/assets/icons/shared/more-vertical.svg'
 import { checkVideoUploadStatusAction } from '@/lib/actions/video.actions'
-import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constasts'
 import { useCancelUploadVideo } from '@/lib/hooks/api/video/useCancelUploadVideo'
 import { useDeleteVideo } from '@/lib/hooks/api/video/useDeleteVideo'
 import { formatDate, formatVideoTime } from '@/lib/utils/date.utils'

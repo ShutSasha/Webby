@@ -6,7 +6,7 @@ import Image from 'next/image'
 
 import TrashIcon from '@/assets/icons/ic_trash.svg'
 import { activateQueueItemAction } from '@/lib/actions/room.actions'
-import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constasts'
 import { useRemoveQueueItemMutation } from '@/lib/hooks/api/room/useRemoveQueueItem'
 import { cn } from '@/lib/utils/general.utils'
 import { useRoomStore } from '@/stores/room.store'

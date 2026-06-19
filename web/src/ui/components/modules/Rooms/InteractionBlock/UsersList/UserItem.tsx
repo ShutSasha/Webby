@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 
 import DotsIcon from '@/assets/icons/shared/more-horizontal.svg'
-import { DEFAULT_USER_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { DEFAULT_USER_THUMBNAIL } from '@/lib/constants/url.constasts'
 import { useRemoveRoomMemberMutation } from '@/lib/hooks/api/room/useRemoveRoomMember'
 import { extractServerMessage } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'

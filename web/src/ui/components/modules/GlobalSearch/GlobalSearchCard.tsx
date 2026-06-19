@@ -3,7 +3,7 @@ import { memo, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 
-import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constasts'
 import { EntityType, FALLBACK_MAP, getRoute } from '@/lib/utils/global-search-modal.utils'
 import { MediaType } from '@/types/general.types'
 import { BLUR_DATA_URLS } from '@/ui/images'

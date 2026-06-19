@@ -260,7 +260,7 @@ function RoomsTab({ query, onCloseSearchModal }: { query: string; onCloseSearchM
 
 function PlaylistsTab({ query, onCloseSearchModal }: { query: string; onCloseSearchModal: () => void }) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchPlaylistsQuery(query)
-  const rawPlaylists = data?.pages.flatMap(p => p.data?.items || []) || []
+  const rawPlaylists = data?.pages.flatMap(p => p?.items || []) || []
   const playlists = Array.from(new Map(rawPlaylists.map(pl => [pl.playlistId, pl])).values())
 
   const lastElementRef = useInfiniteScroll({ isLoading, isFetchingNextPage, hasNextPage, fetchNextPage })

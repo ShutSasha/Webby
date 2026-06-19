@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 
-import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constasts'
 import { useGetUserVideosQuery } from '@/lib/hooks/api/video/useGetUserVideosQuery'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import { formatTimeAgo } from '@/lib/utils/date.utils'

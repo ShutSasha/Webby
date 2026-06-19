@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constamts'
+import { DEFAULT_VIDEO_THUMBNAIL } from '@/lib/constants/url.constasts'
 import { formatTimeAgo } from '@/lib/utils/date.utils'
 import { formatViews } from '@/lib/utils/video.utils'
 import { RecommendedVideo } from '@/types/video.types'
