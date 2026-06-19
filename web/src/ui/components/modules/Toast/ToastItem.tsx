@@ -72,7 +72,7 @@ export default function ToastItem({ id, message, type }: ToastItemProps) {
         },
       )}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 pr-3">
         {type === 'success' && <CheckCircle className="size-5 text-emerald-700" />}
         {type === 'info' && <InfoCircle className="size-5 text-purple-500" />}
         {type === 'error' && <XCircleIcon className="size-5 text-red-500" />}
