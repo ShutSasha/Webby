@@ -28,9 +28,7 @@ export const useCreateVideoLogic = () => {
 
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadVideoFile()
 
-  const { mutateAsync: createMetadata, isPending: isSaving } = useCreateVideoMetadata({
-    onSuccess: () => clearDraft(),
-  })
+  const { mutateAsync: createMetadata, isPending: isSaving } = useCreateVideoMetadata()
 
   const isClient = useIsClient()
   const [tagInput, setTagInput] = useState('')

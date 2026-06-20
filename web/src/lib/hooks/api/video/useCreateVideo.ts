@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AxiosProgressEvent } from 'axios'
-import { useRouter } from 'next/navigation' 
+import { useRouter } from 'next/navigation'
 
 import { createVideoMetadataAction } from '@/lib/actions/video.actions'
 import $api from '@/lib/config/api.config'
-import { extractServerMessage, serverLog } from '@/lib/utils/general.utils'
+import { extractServerMessage, ServerActionError, serverLog, unwrapServerAction } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
+import { useVideoDraftStore } from '@/stores/video-draft.store'
 import { BaseServerResponse } from '@/types/general.types'
 import { UploadVideoResponse } from '@/types/video.types'
 
@@ -44,8 +45,6 @@ export const useUploadVideoFile = () => {
       }
     },
     onSuccess: () => {
-      addToast('User video has been uploaded successfully', 'success')
-
       queryClient.invalidateQueries({
         predicate: query => query.queryKey[0] === 'user-videos' && query.queryKey[2] === true,
       })
@@ -56,34 +55,30 @@ export const useUploadVideoFile = () => {
   })
 }
 
-
-export const useCreateVideoMetadata = (options?: { onSuccess?: () => void }) => {
+export const useCreateVideoMetadata = () => {
   const addToast = useToastStore(state => state.addToast)
+  const clearDraft = useVideoDraftStore(state => state.clearDraft)
   const queryClient = useQueryClient()
   const router = useRouter()
 
   return useMutation({
-    mutationFn: async (formData: FormData) => await createVideoMetadataAction(formData),
-    onSuccess: response => {
-      if (response.success) {
-        addToast('Video successfully published!', 'success')
-
-        
-        router.push('/studio')
-
-        queryClient.invalidateQueries({ queryKey: ['user-videos'] })
-        queryClient.invalidateQueries({ queryKey: ['search-videos'] })
-
-        if (options?.onSuccess) {
-          options.onSuccess()
-        }
-      } else {
-        const msg = extractServerMessage(response.errors)
-        addToast(msg || 'Error publishing video', 'error')
-      }
+    mutationFn: async (formData: FormData) => {
+      return unwrapServerAction(await createVideoMetadataAction(formData))
     },
-    onError: () => {
-      addToast('Critical error while publishing', 'error')
+    onSuccess: () => {
+      router.push('/studio')
+
+      queryClient.invalidateQueries({ queryKey: ['user-videos'] })
+      queryClient.invalidateQueries({ queryKey: ['search-videos'] })
+
+      // setTimeout here for clear draft after redirect to studio page.
+      setTimeout(() => {
+        clearDraft()
+      }, 3000)
+    },
+    onError: (error: ServerActionError) => {
+      const errorMessage = extractServerMessage(error.errors) || error.message
+      addToast(errorMessage, 'error')
     },
   })
 }
