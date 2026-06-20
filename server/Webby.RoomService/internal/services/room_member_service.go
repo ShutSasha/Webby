@@ -7,11 +7,18 @@ import (
 
 	"webby/room-service/internal/apperrors"
 	"webby/room-service/internal/models"
+	"webby/room-service/pkg/logger"
 
 	"github.com/google/uuid"
 )
 
 const MaxRoomMembers = 20
+
+const eventRemoveMember = "REMOVE_MEMBER"
+
+type removeMemberPayload struct {
+	MemberID uuid.UUID `json:"memberId"`
+}
 
 type roomRetriever interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Room, error)
@@ -41,6 +48,8 @@ type roomMemberService struct {
 	roomMemberRepo     roomMemberRepository
 	chatManager        roomMemberChatManager
 	notificationClient notificationSender
+	chatIDRetriever    chatIDRetriever
+	eventPublisher     eventPublisher
 }
 
 func NewRoomMemberService(
@@ -48,12 +57,16 @@ func NewRoomMemberService(
 	roomMemberRepo roomMemberRepository,
 	chatClient roomMemberChatManager,
 	notificationClient notificationSender,
+	chatIDRetriever chatIDRetriever,
+	eventPublisher eventPublisher,
 ) *roomMemberService {
 	return &roomMemberService{
 		roomRetriever:      roomRepo,
 		roomMemberRepo:     roomMemberRepo,
 		chatManager:        chatClient,
 		notificationClient: notificationClient,
+		chatIDRetriever:    chatIDRetriever,
+		eventPublisher:     eventPublisher,
 	}
 }
 
@@ -145,6 +158,7 @@ func (s *roomMemberService) ListMembers(ctx context.Context, roomID uuid.UUID, p
 
 func (s *roomMemberService) RemoveMember(ctx context.Context, roomID, memberID, hostID uuid.UUID) error {
 	const op = "services.roomMemberService.RemoveMember"
+	log := logger.FromContext(ctx).With("op", op)
 
 	room, err := s.roomRetriever.GetByID(ctx, roomID)
 	if err != nil {
@@ -159,9 +173,25 @@ func (s *roomMemberService) RemoveMember(ctx context.Context, roomID, memberID, 
 		return fmt.Errorf("%s: %w", op, apperrors.ErrRemoveHost)
 	}
 
+	chatID, err := s.chatIDRetriever.GetChatIDByRoomID(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	err = s.roomMemberRepo.BanRoomMember(ctx, roomID, memberID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	removeMemberEnvelope := eventEnvelope[removeMemberPayload]{
+		Type: eventRemoveMember,
+		Payload: removeMemberPayload{
+			MemberID: memberID,
+		},
+	}
+	topic := fmt.Sprintf("chat:%s", chatID.String())
+	if err := s.eventPublisher.Publish(ctx, topic, removeMemberEnvelope); err != nil {
+		log.Error("failed to publish queue", slog.String("err", err.Error()))
 	}
 
 	return nil

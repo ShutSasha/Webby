@@ -233,7 +233,6 @@ func (r *roomMemberRepository) BanRoomMember(ctx context.Context, roomID, userID
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
-
 	if tag.RowsAffected() == 0 {
 		return fmt.Errorf("%s: %w", op, apperrors.ErrRoomMemberNotFound)
 	}
@@ -268,7 +267,7 @@ func (r *roomMemberRepository) UnbanRoomMember(ctx context.Context, roomID, user
 func (r *roomMemberRepository) CountMembers(ctx context.Context, roomID uuid.UUID) (int, error) {
 	const op = "roomMemberRepository.CountMembers"
 
-	sql, args, err := sq.Select("COUNT()").
+	sql, args, err := sq.Select("COUNT(user_id)").
 		From("room_members").
 		Where(sq.Eq{"room_id": roomID}).
 		PlaceholderFormat(sq.Dollar).

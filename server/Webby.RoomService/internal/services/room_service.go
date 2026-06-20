@@ -67,12 +67,7 @@ func NewRoomService(
 	}
 }
 
-func (s *roomService) Create(
-	ctx context.Context,
-	room *models.Room,
-	thumbnailData []byte,
-	thumbnailFilename string,
-) (*models.Room, error) {
+func (s *roomService) Create(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string) (*models.Room, error) {
 	const op = "services.roomService.Create"
 
 	exists, err := s.categoryChecker.Exists(ctx, room.Category)
