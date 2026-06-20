@@ -122,5 +122,19 @@ public class UserRepository : GenericRepository<User>, IUserRepository
       return count == 2;
    }
    
+   public async Task<Dictionary<int, int>> GetMonthlyRegistrationsCountAsync(DateTime startDate, DateTime endDate)
+   {
+      var groupedData = await _context.Users
+         .Where(u => u.CreatedAt >= startDate && u.CreatedAt < endDate)
+         .GroupBy(u => new { u.CreatedAt.Year, u.CreatedAt.Month })
+         .Select(g => new
+         {
+            Month = g.Key.Month,
+            Count = g.Count()
+         })
+         .ToListAsync();
+      
+      return groupedData.ToDictionary(x => x.Month, x => x.Count);
+   }
    
 }

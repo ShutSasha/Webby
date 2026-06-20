@@ -14,6 +14,10 @@ service UserGrpcService {
   rpc FindUserIDs(FindUserIDsRequest) returns (FindUserIDsResponse);
   rpc IsFollowed(IsFollowedRequest) returns (IsFollowedResponse);
   rpc BanUser(BanUserRequest) returns (google.protobuf.Empty);
+  rpc GetMonthlyRegistrations(google.protobuf.Empty) returns (GetMonthlyRegistrationsResponse);
+  rpc GetMonthlySubscriptions(google.protobuf.Empty) returns (GetMonthlySubscriptionsResponse);
+  rpc GetTotalRegistrations(google.protobuf.Empty) returns (GetTotalRegistrationsResponse);
+  rpc GetMonthRevenue(google.protobuf.Empty) returns (GetMonthRevenueResponse);
 }
 
 // REQUESTS
@@ -90,4 +94,20 @@ message FindUserIDsResponse {
 
 message IsFollowedResponse {
   bool isFollowed = 1;
+}
+
+message GetMonthlyRegistrationsResponse {
+  map<int32, int32> registrations = 1;
+}
+
+message GetMonthlySubscriptionsResponse {
+  map<int32, int32> subscriptions = 1;
+}
+
+message GetTotalRegistrationsResponse {
+  int32 totalRegistrations  = 1;
+}
+
+message GetMonthRevenueResponse {
+  int32 monthRevenue  = 1;
 }
