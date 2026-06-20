@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package room;
+
 option go_package = "webby/admin-service/internal/grpc/userpb";
 
 import "google/protobuf/empty.proto";
@@ -8,6 +10,8 @@ service UserGrpcService {
   rpc BanUser(BanUserRequest) returns (google.protobuf.Empty);
   rpc GetMonthlyRegistrations(google.protobuf.Empty) returns (GetMonthlyRegistrationsResponse);
   rpc GetMonthlySubscriptions(google.protobuf.Empty) returns (GetMonthlySubscriptionsResponse);
+  rpc GetTotalRegistrations(google.protobuf.Empty) returns (GetTotalRegistrationsResponse);
+	rpc GetMonthRevenue(google.protobuf.Empty) returns (GetMonthRevenueResponse);
 }
 
 message BanUserRequest {
@@ -20,4 +24,12 @@ message GetMonthlyRegistrationsResponse {
 
 message GetMonthlySubscriptionsResponse {
   map<int32, int32> subscriptions  = 1;
+}
+
+message GetTotalRegistrationsResponse {
+  int32 totalRegistrations  = 1;
+}
+
+message GetMonthRevenueResponse {
+  int32 monthRevenue  = 1;
 }

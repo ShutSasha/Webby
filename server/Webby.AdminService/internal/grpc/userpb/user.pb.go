@@ -154,6 +154,94 @@ func (x *GetMonthlySubscriptionsResponse) GetSubscriptions() map[int32]int32 {
 	return nil
 }
 
+type GetTotalRegistrationsResponse struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	TotalRegistrations int32                  `protobuf:"varint,1,opt,name=totalRegistrations,proto3" json:"totalRegistrations,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *GetTotalRegistrationsResponse) Reset() {
+	*x = GetTotalRegistrationsResponse{}
+	mi := &file_proto_user_user_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTotalRegistrationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTotalRegistrationsResponse) ProtoMessage() {}
+
+func (x *GetTotalRegistrationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_user_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTotalRegistrationsResponse.ProtoReflect.Descriptor instead.
+func (*GetTotalRegistrationsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_user_user_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetTotalRegistrationsResponse) GetTotalRegistrations() int32 {
+	if x != nil {
+		return x.TotalRegistrations
+	}
+	return 0
+}
+
+type GetMonthRevenueResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MonthRevenue  int32                  `protobuf:"varint,1,opt,name=monthRevenue,proto3" json:"monthRevenue,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMonthRevenueResponse) Reset() {
+	*x = GetMonthRevenueResponse{}
+	mi := &file_proto_user_user_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMonthRevenueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMonthRevenueResponse) ProtoMessage() {}
+
+func (x *GetMonthRevenueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_user_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMonthRevenueResponse.ProtoReflect.Descriptor instead.
+func (*GetMonthRevenueResponse) Descriptor() ([]byte, []int) {
+	return file_proto_user_user_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetMonthRevenueResponse) GetMonthRevenue() int32 {
+	if x != nil {
+		return x.MonthRevenue
+	}
+	return 0
+}
+
 var File_proto_user_user_proto protoreflect.FileDescriptor
 
 const file_proto_user_user_proto_rawDesc = "" +
@@ -170,11 +258,17 @@ const file_proto_user_user_proto_rawDesc = "" +
 	"\rsubscriptions\x18\x01 \x03(\v23.GetMonthlySubscriptionsResponse.SubscriptionsEntryR\rsubscriptions\x1a@\n" +
 	"\x12SubscriptionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x012\xef\x01\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"O\n" +
+	"\x1dGetTotalRegistrationsResponse\x12.\n" +
+	"\x12totalRegistrations\x18\x01 \x01(\x05R\x12totalRegistrations\"=\n" +
+	"\x17GetMonthRevenueResponse\x12\"\n" +
+	"\fmonthRevenue\x18\x01 \x01(\x05R\fmonthRevenue2\x85\x03\n" +
 	"\x0fUserGrpcService\x122\n" +
 	"\aBanUser\x12\x0f.BanUserRequest\x1a\x16.google.protobuf.Empty\x12S\n" +
 	"\x17GetMonthlyRegistrations\x12\x16.google.protobuf.Empty\x1a .GetMonthlyRegistrationsResponse\x12S\n" +
-	"\x17GetMonthlySubscriptions\x12\x16.google.protobuf.Empty\x1a .GetMonthlySubscriptionsResponseB*Z(webby/admin-service/internal/grpc/userpbb\x06proto3"
+	"\x17GetMonthlySubscriptions\x12\x16.google.protobuf.Empty\x1a .GetMonthlySubscriptionsResponse\x12O\n" +
+	"\x15GetTotalRegistrations\x12\x16.google.protobuf.Empty\x1a\x1e.GetTotalRegistrationsResponse\x12C\n" +
+	"\x0fGetMonthRevenue\x12\x16.google.protobuf.Empty\x1a\x18.GetMonthRevenueResponseB*Z(webby/admin-service/internal/grpc/userpbb\x06proto3"
 
 var (
 	file_proto_user_user_proto_rawDescOnce sync.Once
@@ -188,26 +282,32 @@ func file_proto_user_user_proto_rawDescGZIP() []byte {
 	return file_proto_user_user_proto_rawDescData
 }
 
-var file_proto_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_user_user_proto_goTypes = []any{
 	(*BanUserRequest)(nil),                  // 0: BanUserRequest
 	(*GetMonthlyRegistrationsResponse)(nil), // 1: GetMonthlyRegistrationsResponse
 	(*GetMonthlySubscriptionsResponse)(nil), // 2: GetMonthlySubscriptionsResponse
-	nil,                                     // 3: GetMonthlyRegistrationsResponse.RegistrationsEntry
-	nil,                                     // 4: GetMonthlySubscriptionsResponse.SubscriptionsEntry
-	(*emptypb.Empty)(nil),                   // 5: google.protobuf.Empty
+	(*GetTotalRegistrationsResponse)(nil),   // 3: GetTotalRegistrationsResponse
+	(*GetMonthRevenueResponse)(nil),         // 4: GetMonthRevenueResponse
+	nil,                                     // 5: GetMonthlyRegistrationsResponse.RegistrationsEntry
+	nil,                                     // 6: GetMonthlySubscriptionsResponse.SubscriptionsEntry
+	(*emptypb.Empty)(nil),                   // 7: google.protobuf.Empty
 }
 var file_proto_user_user_proto_depIdxs = []int32{
-	3, // 0: GetMonthlyRegistrationsResponse.registrations:type_name -> GetMonthlyRegistrationsResponse.RegistrationsEntry
-	4, // 1: GetMonthlySubscriptionsResponse.subscriptions:type_name -> GetMonthlySubscriptionsResponse.SubscriptionsEntry
+	5, // 0: GetMonthlyRegistrationsResponse.registrations:type_name -> GetMonthlyRegistrationsResponse.RegistrationsEntry
+	6, // 1: GetMonthlySubscriptionsResponse.subscriptions:type_name -> GetMonthlySubscriptionsResponse.SubscriptionsEntry
 	0, // 2: UserGrpcService.BanUser:input_type -> BanUserRequest
-	5, // 3: UserGrpcService.GetMonthlyRegistrations:input_type -> google.protobuf.Empty
-	5, // 4: UserGrpcService.GetMonthlySubscriptions:input_type -> google.protobuf.Empty
-	5, // 5: UserGrpcService.BanUser:output_type -> google.protobuf.Empty
-	1, // 6: UserGrpcService.GetMonthlyRegistrations:output_type -> GetMonthlyRegistrationsResponse
-	2, // 7: UserGrpcService.GetMonthlySubscriptions:output_type -> GetMonthlySubscriptionsResponse
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
+	7, // 3: UserGrpcService.GetMonthlyRegistrations:input_type -> google.protobuf.Empty
+	7, // 4: UserGrpcService.GetMonthlySubscriptions:input_type -> google.protobuf.Empty
+	7, // 5: UserGrpcService.GetTotalRegistrations:input_type -> google.protobuf.Empty
+	7, // 6: UserGrpcService.GetMonthRevenue:input_type -> google.protobuf.Empty
+	7, // 7: UserGrpcService.BanUser:output_type -> google.protobuf.Empty
+	1, // 8: UserGrpcService.GetMonthlyRegistrations:output_type -> GetMonthlyRegistrationsResponse
+	2, // 9: UserGrpcService.GetMonthlySubscriptions:output_type -> GetMonthlySubscriptionsResponse
+	3, // 10: UserGrpcService.GetTotalRegistrations:output_type -> GetTotalRegistrationsResponse
+	4, // 11: UserGrpcService.GetMonthRevenue:output_type -> GetMonthRevenueResponse
+	7, // [7:12] is the sub-list for method output_type
+	2, // [2:7] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -224,7 +324,7 @@ func file_proto_user_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_user_user_proto_rawDesc), len(file_proto_user_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

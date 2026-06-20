@@ -28,6 +28,7 @@ type GrpcConfig struct {
 	MediaServiceAddress        string `yaml:"mediaServiceAddress" env-default:"localhost:5005" env:"GRPC_MEDIA_SERVICE_ADDRESS"`
 	ComplaintServiceAddress    string `yaml:"complaintServiceAddress" env-default:"localhost:5004" env:"GRPC_COMPLAINT_SERVICE_ADDRESS"`
 	NotificationServiceAddress string `yaml:"notificationServiceAddress" env-default:"localhost:5007" env:"GRPC_NOTIFICATION_SERVICE_ADDRESS"`
+	RoomServiceAddress         string `yaml:"roomServiceAddress" env-default:"localhost:50054" env:"GRPC_ROOM_SERVICE_ADDRESS"`
 }
 
 func MustLoad() *Config {

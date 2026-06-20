@@ -106,3 +106,28 @@ func (r *complaintsRepository) IsResolved(ctx context.Context, complaintID uuid.
 
 	return true, nil
 }
+
+func (r *complaintsRepository) GetActiveReportsCount(ctx context.Context) (int, error) {
+	const op = "repository.GetActiveReportsCount"
+
+	sql, args, err := sq.Select("COUNT(\"ComplaintId\")").
+		From("\"Complaints\"").
+		Where("NOT EXISTS (SELECT 1 FROM complaint_results cr WHERE cr.complaint_id = \"Complaints\".\"ComplaintId\")").
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: build failed %w", op, err)
+	}
+
+	var activeComplaints int
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&activeComplaints)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, nil
+		}
+
+		return 0, fmt.Errorf("%s: failed to execute: %w", op, err)
+	}
+
+	return activeComplaints, nil
+}

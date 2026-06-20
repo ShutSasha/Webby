@@ -87,3 +87,25 @@ func (c *userClient) GetMonthlySubscriptions(ctx context.Context) (map[string]in
 
 	return subsStat, nil
 }
+
+func (c *userClient) GetTotalRegistrations(ctx context.Context) (int, error) {
+	const op = "grpc.userClient.GetTotalRegistrations"
+
+	resp, err := c.client.GetTotalRegistrations(ctx, &emptypb.Empty{})
+	if err != nil {
+		return 0, fmt.Errorf("%s %w", op, err)
+	}
+
+	return int(resp.GetTotalRegistrations()), nil
+}
+
+func (c *userClient) GetMonthRevenue(ctx context.Context) (int, error) {
+	const op = "grpc.userClient.GetMonthRevenue"
+
+	resp, err := c.client.GetMonthRevenue(ctx, &emptypb.Empty{})
+	if err != nil {
+		return 0, fmt.Errorf("%s %w", op, err)
+	}
+
+	return int(resp.GetMonthRevenue()), nil
+}

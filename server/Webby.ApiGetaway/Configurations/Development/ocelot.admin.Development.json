@@ -70,6 +70,63 @@
       "RoleClaimsRequirement": {
         "Role": "Admin"
       }
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/stats",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8085
+        }
+      ],
+      "UpstreamPathTemplate": "/api/stats",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/stats/registrations",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8085
+        }
+      ],
+      "UpstreamPathTemplate": "/api/stats/registrations",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/stats/subscriptions",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8085
+        }
+      ],
+      "UpstreamPathTemplate": "/api/stats/subscriptions",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
     }
   ]
 }

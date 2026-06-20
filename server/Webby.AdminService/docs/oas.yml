@@ -27,6 +27,13 @@ tags:
       Complaints are user reports about content violations, inappropriate behavior,
       or other policy breaches. Administrators can review the complete details
       and either accept (mark as valid) or deny (dismiss as unfounded) each complaint.
+  
+  - name: Statistics
+    description: |
+      Endpoints for retrieving platform statistics and analytics.
+      
+      These endpoints provide administrators with insights into platform metrics,
+      including registration trends, subscription data, and overall system statistics.
 
 components:
   securitySchemes:
@@ -248,6 +255,85 @@ components:
             This should clearly explain why the content/user was not in violation
             of policies and help the complainant understand the decision.
           example: "After review, this content does not violate our policies. Please refer to our community guidelines for more information."
+    
+    StatsResponse:
+      type: object
+      description: Generic statistics response containing key-value pairs
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Indicates whether the request was successful
+          example: true
+        
+        message:
+          type: string
+          description: Human-readable message about the operation
+          example: "Statistics retrieved successfully"
+        
+        data:
+          type: object
+          nullable: true
+          description: Key-value pairs containing statistics
+          additionalProperties:
+            type: integer
+          example:
+            totalRegistrations: 1250
+            monthRevenue: 450
+            totalRooms: 800
+            activeReportsCount: 800
+    
+    RegistrationsStatsResponse:
+      type: object
+      description: Registration statistics response
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        
+        message:
+          type: string
+          example: "Registrations retrieved successfully"
+        
+        data:
+          type: object
+          nullable: true
+          description: Registration statistics with key-value pairs
+          additionalProperties:
+            type: integer
+          example:
+            Jan: 45
+            Feb: 42
+    
+    SubscriptionsStatsResponse:
+      type: object
+      description: Subscription statistics response
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        
+        message:
+          type: string
+          example: "Subscriptions retrieved successfully"
+        
+        data:
+          type: object
+          nullable: true
+          description: Subscription statistics with key-value pairs
+          additionalProperties:
+            type: integer
+          example:
+            Jan: 45
+            Feb: 42
 
   responses:
     SuccessResponse:
@@ -598,6 +684,78 @@ paths:
         '404':
           description: Complaint not found or already processed
           $ref: '#/components/responses/NotFoundError'
+        
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/stats:
+    get:
+      tags:
+        - Statistics
+      summary: Get absolute platform statistics
+      description: |
+        Retrieve comprehensive statistics about the entire Webby platform.
+      
+      operationId: getAbsoluteStats
+      
+      responses:
+        '200':
+          description: Successfully retrieved absolute statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsResponse'
+        
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/stats/registrations:
+    get:
+      tags:
+        - Statistics
+      summary: Get user registration statistics
+      description: |
+        Retrieve detailed statistics about user registrations on the platform.
+      
+      operationId: getRegistrationsStats
+      
+      responses:
+        '200':
+          description: Successfully retrieved registration statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationsStatsResponse'
+        
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/stats/subscriptions:
+    get:
+      tags:
+        - Statistics
+      summary: Get subscription statistics
+      description: |
+        Retrieve detailed statistics about user subscriptions on the platform.
+      
+      operationId: getSubscriptionsStats
+      
+      responses:
+        '200':
+          description: Successfully retrieved subscription statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionsStatsResponse'
+        
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         
         '500':
           $ref: '#/components/responses/InternalServerError'

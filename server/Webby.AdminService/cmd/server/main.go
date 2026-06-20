@@ -53,7 +53,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	logger.Info("database connected successfully")
 
-	repository := repository.New(db)
+	complaintRepository := repository.New(db)
 
 	complaintClient, err := grpcClient.NewComplaintClient(cfg.Grpc.ComplaintServiceAddress)
 	if err != nil {
@@ -90,9 +90,17 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer notificationClient.Close()
 
-	categoryService := services.NewComplaintsService(repository, complaintClient, mediaClient, videoClient, userClient, notificationClient)
+	roomClient, err := grpcClient.NewRoomClient(cfg.Grpc.RoomServiceAddress)
+	if err != nil {
+		logger.Error("room service gRPC connection failed", slog.String("error", err.Error()))
+		return err
+	}
+	defer roomClient.Close()
 
-	server := httpserver.NewServer(cfg, logger, categoryService)
+	complaintService := services.NewComplaintsService(complaintRepository, complaintClient, mediaClient, videoClient, userClient, notificationClient)
+	statsService := services.NewStatsService(userClient, roomClient, complaintRepository)
+
+	server := httpserver.NewServer(cfg, logger, complaintService, statsService)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
 		ReadTimeout:  cfg.Http.Timeout,

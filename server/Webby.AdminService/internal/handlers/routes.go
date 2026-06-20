@@ -20,6 +20,7 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 			protected.GET("/complaints", handler.List)
 			protected.POST("/complaints/:id/accept", handler.Accept)
 			protected.POST("/complaints/:id/deny", handler.Deny)
+			protected.GET("/stats", handler.AbsoluteStats)
 			protected.GET("/stats/registrations", handler.RegistrationsStats)
 			protected.GET("/stats/subscriptions", handler.SubscriptionsStats)
 		}

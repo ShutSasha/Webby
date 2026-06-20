@@ -16,6 +16,7 @@ type complaintsService interface {
 type statsService interface {
 	RegistrationsStats(ctx context.Context) (map[string]int, error)
 	SubscriptionsStats(ctx context.Context) (map[string]int, error)
+	GetAbsoluteStats(ctx context.Context) (map[string]int, error)
 }
 
 type handler struct {

@@ -9,5 +9,6 @@ http:
   
 grpc:
   mediaServiceAddress: "localhost:5005"
+  roomServiceAddress: "localhost:50054"
   complaintServiceAddress: "localhost:5004"
   notificationServiceAddress: "localhost:5007"

@@ -23,6 +23,8 @@ const (
 	UserGrpcService_BanUser_FullMethodName                 = "/UserGrpcService/BanUser"
 	UserGrpcService_GetMonthlyRegistrations_FullMethodName = "/UserGrpcService/GetMonthlyRegistrations"
 	UserGrpcService_GetMonthlySubscriptions_FullMethodName = "/UserGrpcService/GetMonthlySubscriptions"
+	UserGrpcService_GetTotalRegistrations_FullMethodName   = "/UserGrpcService/GetTotalRegistrations"
+	UserGrpcService_GetMonthRevenue_FullMethodName         = "/UserGrpcService/GetMonthRevenue"
 )
 
 // UserGrpcServiceClient is the client API for UserGrpcService service.
@@ -32,6 +34,8 @@ type UserGrpcServiceClient interface {
 	BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetMonthlyRegistrations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMonthlyRegistrationsResponse, error)
 	GetMonthlySubscriptions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMonthlySubscriptionsResponse, error)
+	GetTotalRegistrations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetTotalRegistrationsResponse, error)
+	GetMonthRevenue(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMonthRevenueResponse, error)
 }
 
 type userGrpcServiceClient struct {
@@ -72,6 +76,26 @@ func (c *userGrpcServiceClient) GetMonthlySubscriptions(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *userGrpcServiceClient) GetTotalRegistrations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetTotalRegistrationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTotalRegistrationsResponse)
+	err := c.cc.Invoke(ctx, UserGrpcService_GetTotalRegistrations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userGrpcServiceClient) GetMonthRevenue(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMonthRevenueResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMonthRevenueResponse)
+	err := c.cc.Invoke(ctx, UserGrpcService_GetMonthRevenue_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserGrpcServiceServer is the server API for UserGrpcService service.
 // All implementations must embed UnimplementedUserGrpcServiceServer
 // for forward compatibility.
@@ -79,6 +103,8 @@ type UserGrpcServiceServer interface {
 	BanUser(context.Context, *BanUserRequest) (*emptypb.Empty, error)
 	GetMonthlyRegistrations(context.Context, *emptypb.Empty) (*GetMonthlyRegistrationsResponse, error)
 	GetMonthlySubscriptions(context.Context, *emptypb.Empty) (*GetMonthlySubscriptionsResponse, error)
+	GetTotalRegistrations(context.Context, *emptypb.Empty) (*GetTotalRegistrationsResponse, error)
+	GetMonthRevenue(context.Context, *emptypb.Empty) (*GetMonthRevenueResponse, error)
 	mustEmbedUnimplementedUserGrpcServiceServer()
 }
 
@@ -97,6 +123,12 @@ func (UnimplementedUserGrpcServiceServer) GetMonthlyRegistrations(context.Contex
 }
 func (UnimplementedUserGrpcServiceServer) GetMonthlySubscriptions(context.Context, *emptypb.Empty) (*GetMonthlySubscriptionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMonthlySubscriptions not implemented")
+}
+func (UnimplementedUserGrpcServiceServer) GetTotalRegistrations(context.Context, *emptypb.Empty) (*GetTotalRegistrationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTotalRegistrations not implemented")
+}
+func (UnimplementedUserGrpcServiceServer) GetMonthRevenue(context.Context, *emptypb.Empty) (*GetMonthRevenueResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMonthRevenue not implemented")
 }
 func (UnimplementedUserGrpcServiceServer) mustEmbedUnimplementedUserGrpcServiceServer() {}
 func (UnimplementedUserGrpcServiceServer) testEmbeddedByValue()                         {}
@@ -173,6 +205,42 @@ func _UserGrpcService_GetMonthlySubscriptions_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserGrpcService_GetTotalRegistrations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServiceServer).GetTotalRegistrations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserGrpcService_GetTotalRegistrations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServiceServer).GetTotalRegistrations(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserGrpcService_GetMonthRevenue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServiceServer).GetMonthRevenue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserGrpcService_GetMonthRevenue_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServiceServer).GetMonthRevenue(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserGrpcService_ServiceDesc is the grpc.ServiceDesc for UserGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -191,6 +259,14 @@ var UserGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMonthlySubscriptions",
 			Handler:    _UserGrpcService_GetMonthlySubscriptions_Handler,
+		},
+		{
+			MethodName: "GetTotalRegistrations",
+			Handler:    _UserGrpcService_GetTotalRegistrations_Handler,
+		},
+		{
+			MethodName: "GetMonthRevenue",
+			Handler:    _UserGrpcService_GetMonthRevenue_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
