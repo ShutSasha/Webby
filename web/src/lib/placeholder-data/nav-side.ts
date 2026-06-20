@@ -9,6 +9,7 @@ import BellIcon from '@/assets/icons/Nav/bell.svg'
 import StudioIcon from '@/assets/icons/Nav/bolt.svg'
 import ChatsIcon from '@/assets/icons/Nav/chats.svg'
 import PlaylistIcon from '@/assets/icons/Nav/list-video.svg'
+import ShieldIcon from '@/assets/icons/Nav/shield.svg'
 import VideosIcon from '@/assets/icons/Nav/tv-minimal-play.svg'
 import RoomsIcon from '@/assets/icons/Nav/tv.svg'
 
@@ -19,6 +20,7 @@ export type NavItem = {
   text: string
   iconSize: string
   action?: 'search' | 'other_action'
+  requireAdmin?: boolean
 }
 
 export const navDesktopElements: NavItem[] = [
@@ -34,6 +36,14 @@ export const navDesktopElements: NavItem[] = [
     icon: BellIcon,
     text: 'Notifications',
     iconSize: 'size-5 2xl:size-6',
+  },
+  {
+    key: 'admin',
+    href: '/admin',
+    icon: ShieldIcon,
+    text: 'Admin Panel',
+    iconSize: 'size-5 2xl:size-6',
+    requireAdmin: true,
   },
 ]
 

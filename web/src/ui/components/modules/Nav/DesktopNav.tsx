@@ -13,10 +13,16 @@ import { DesktopNavElement } from './DesktopNavElement'
 import { UserProfile } from './UserProfile'
 import GlobalSearchModal from '../GlobalSearch/GlobalSearchModal'
 
-export default function DesktopNav() {
+type Props = {
+  isAdmin?: boolean
+}
+
+export default function DesktopNav({ isAdmin }: Props) {
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false)
   const unreadCount = useNotificationPopupStore(state => state.unreadCount)
+
+  const visibleNavElements = navDesktopElements.filter(item => !item.requireAdmin || isAdmin)
 
   const toggleSideNav = () => setIsExpanded(prev => !prev)
 
@@ -74,7 +80,7 @@ export default function DesktopNav() {
           </div>
 
           <ul className="flex flex-col gap-1.5 list-none w-full flex-1">
-            {navDesktopElements.map(item => (
+            {visibleNavElements.map(item => (
               <li key={item.key}>
                 <DesktopNavElement
                   key={item.key}
