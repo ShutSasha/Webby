@@ -8,7 +8,15 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
+
+var months = map[int32]string{
+	1: "Jan", 2: "Feb", 3: "Mar",
+	4: "Apr", 5: "May", 6: "Jun",
+	7: "Jul", 8: "Aug", 9: "Sep",
+	10: "Oct", 11: "Nov", 12: "Dec",
+}
 
 type userClient struct {
 	client userpb.UserGrpcServiceClient
@@ -46,4 +54,36 @@ func (c *userClient) BanUser(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (c *userClient) GetMonthlyRegistrations(ctx context.Context) (map[string]int, error) {
+	const op = "grpc.userClient.GetMonthlyRegistrations"
+
+	stats, err := c.client.GetMonthlyRegistrations(ctx, &emptypb.Empty{})
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", op, err)
+	}
+
+	registerStats := make(map[string]int)
+	for month, registrations := range stats.GetRegistrations() {
+		registerStats[months[month]] = int(registrations)
+	}
+
+	return registerStats, nil
+}
+
+func (c *userClient) GetMonthlySubscriptions(ctx context.Context) (map[string]int, error) {
+	const op = "grpc.userClient.GetMonthlySubscriptions"
+
+	stats, err := c.client.GetMonthlySubscriptions(ctx, &emptypb.Empty{})
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", op, err)
+	}
+
+	subsStat := make(map[string]int)
+	for month, subs := range stats.GetSubscriptions() {
+		subsStat[months[month]] = int(subs)
+	}
+
+	return subsStat, nil
 }

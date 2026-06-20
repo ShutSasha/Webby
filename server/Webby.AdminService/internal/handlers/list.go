@@ -21,7 +21,7 @@ func (h *handler) List(c *gin.Context) {
 		return
 	}
 
-	items, total, err := h.service.ListComplaints(ctx, query.Page, query.Limit)
+	items, total, err := h.complaintsService.ListComplaints(ctx, query.Page, query.Limit)
 	if err != nil {
 		HandleAppError(c, "List complaints error", err)
 		return

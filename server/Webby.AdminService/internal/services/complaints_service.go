@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type repository interface {
+type complaintsRepository interface {
 	ListComplaints(ctx context.Context, offset, limit int) ([]models.Complaint, int, error)
 	ResolveComplaint(ctx context.Context, complaintID, userID uuid.UUID, isAccepted bool) error
 	IsResolved(ctx context.Context, complaintID uuid.UUID) (bool, error)
@@ -36,8 +36,8 @@ type notificationSender interface {
 	SendNotificationToUser(ctx context.Context, userID, targetID uuid.UUID, title, message string, complaintType string) error
 }
 
-type service struct {
-	repository         repository
+type complaintsSErvice struct {
+	repository         complaintsRepository
 	complaintGetter    complaintGetter
 	mediaRetriever     mediaRetriever
 	videoBanner        videoBanner
@@ -45,8 +45,8 @@ type service struct {
 	notificationSender notificationSender
 }
 
-func New(repository repository, complaintGetter complaintGetter, mediaRetriever mediaRetriever, videoBanner videoBanner, userBanner userBanner, notificationSender notificationSender) *service {
-	return &service{
+func NewComplaintsService(repository complaintsRepository, complaintGetter complaintGetter, mediaRetriever mediaRetriever, videoBanner videoBanner, userBanner userBanner, notificationSender notificationSender) *complaintsSErvice {
+	return &complaintsSErvice{
 		repository:         repository,
 		complaintGetter:    complaintGetter,
 		mediaRetriever:     mediaRetriever,
@@ -56,7 +56,7 @@ func New(repository repository, complaintGetter complaintGetter, mediaRetriever 
 	}
 }
 
-func (s *service) ListComplaints(ctx context.Context, page, limit int) ([]models.Complaint, int, error) {
+func (s *complaintsSErvice) ListComplaints(ctx context.Context, page, limit int) ([]models.Complaint, int, error) {
 	const op = "service.ListComplaints"
 
 	offset := (page - 1) * limit
@@ -68,7 +68,7 @@ func (s *service) ListComplaints(ctx context.Context, page, limit int) ([]models
 	return result, total, nil
 }
 
-func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.UUID) error {
+func (s *complaintsSErvice) AcceptComplaint(ctx context.Context, complaintID, userID uuid.UUID) error {
 	const op = "service.AcceptComplaint"
 
 	isAlreadyResolved, err := s.repository.IsResolved(ctx, complaintID)
@@ -135,7 +135,7 @@ func (s *service) AcceptComplaint(ctx context.Context, complaintID, userID uuid.
 	return nil
 }
 
-func (s *service) DenyComplaint(ctx context.Context, complaintID, userID uuid.UUID, reason string) error {
+func (s *complaintsSErvice) DenyComplaint(ctx context.Context, complaintID, userID uuid.UUID, reason string) error {
 	const op = "service.DenyComplaint"
 
 	isAlreadyResolved, err := s.repository.IsResolved(ctx, complaintID)

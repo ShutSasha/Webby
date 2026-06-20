@@ -6,8 +6,18 @@ import "google/protobuf/empty.proto";
 
 service UserGrpcService {
   rpc BanUser(BanUserRequest) returns (google.protobuf.Empty);
+  rpc GetMonthlyRegistrations(google.protobuf.Empty) returns (GetMonthlyRegistrationsResponse);
+  rpc GetMonthlySubscriptions(google.protobuf.Empty) returns (GetMonthlySubscriptionsResponse);
 }
 
 message BanUserRequest {
-    string userID = 1;
+  string userID = 1;
+}
+
+message GetMonthlyRegistrationsResponse {
+  map<int32, int32> registrations = 1;
+}
+
+message GetMonthlySubscriptionsResponse {
+  map<int32, int32> subscriptions  = 1;
 }

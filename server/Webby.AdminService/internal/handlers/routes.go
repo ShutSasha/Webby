@@ -14,12 +14,14 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 
 	api := router.Group("/api")
 	{
-		protected := api.Group("/complaints")
+		protected := api.Group("")
 		protected.Use(requireAuth)
 		{
-			protected.GET("", handler.List)
-			protected.POST("/:id/accept", handler.Accept)
-			protected.POST("/:id/deny", handler.Deny)
+			protected.GET("/complaints", handler.List)
+			protected.POST("/complaints/:id/accept", handler.Accept)
+			protected.POST("/complaints/:id/deny", handler.Deny)
+			protected.GET("/stats/registrations", handler.RegistrationsStats)
+			protected.GET("/stats/subscriptions", handler.SubscriptionsStats)
 		}
 	}
 

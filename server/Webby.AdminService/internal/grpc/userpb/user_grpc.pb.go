@@ -20,7 +20,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserGrpcService_BanUser_FullMethodName = "/UserGrpcService/BanUser"
+	UserGrpcService_BanUser_FullMethodName                 = "/UserGrpcService/BanUser"
+	UserGrpcService_GetMonthlyRegistrations_FullMethodName = "/UserGrpcService/GetMonthlyRegistrations"
+	UserGrpcService_GetMonthlySubscriptions_FullMethodName = "/UserGrpcService/GetMonthlySubscriptions"
 )
 
 // UserGrpcServiceClient is the client API for UserGrpcService service.
@@ -28,6 +30,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserGrpcServiceClient interface {
 	BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetMonthlyRegistrations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMonthlyRegistrationsResponse, error)
+	GetMonthlySubscriptions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMonthlySubscriptionsResponse, error)
 }
 
 type userGrpcServiceClient struct {
@@ -48,11 +52,33 @@ func (c *userGrpcServiceClient) BanUser(ctx context.Context, in *BanUserRequest,
 	return out, nil
 }
 
+func (c *userGrpcServiceClient) GetMonthlyRegistrations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMonthlyRegistrationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMonthlyRegistrationsResponse)
+	err := c.cc.Invoke(ctx, UserGrpcService_GetMonthlyRegistrations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userGrpcServiceClient) GetMonthlySubscriptions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMonthlySubscriptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMonthlySubscriptionsResponse)
+	err := c.cc.Invoke(ctx, UserGrpcService_GetMonthlySubscriptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserGrpcServiceServer is the server API for UserGrpcService service.
 // All implementations must embed UnimplementedUserGrpcServiceServer
 // for forward compatibility.
 type UserGrpcServiceServer interface {
 	BanUser(context.Context, *BanUserRequest) (*emptypb.Empty, error)
+	GetMonthlyRegistrations(context.Context, *emptypb.Empty) (*GetMonthlyRegistrationsResponse, error)
+	GetMonthlySubscriptions(context.Context, *emptypb.Empty) (*GetMonthlySubscriptionsResponse, error)
 	mustEmbedUnimplementedUserGrpcServiceServer()
 }
 
@@ -65,6 +91,12 @@ type UnimplementedUserGrpcServiceServer struct{}
 
 func (UnimplementedUserGrpcServiceServer) BanUser(context.Context, *BanUserRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method BanUser not implemented")
+}
+func (UnimplementedUserGrpcServiceServer) GetMonthlyRegistrations(context.Context, *emptypb.Empty) (*GetMonthlyRegistrationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMonthlyRegistrations not implemented")
+}
+func (UnimplementedUserGrpcServiceServer) GetMonthlySubscriptions(context.Context, *emptypb.Empty) (*GetMonthlySubscriptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMonthlySubscriptions not implemented")
 }
 func (UnimplementedUserGrpcServiceServer) mustEmbedUnimplementedUserGrpcServiceServer() {}
 func (UnimplementedUserGrpcServiceServer) testEmbeddedByValue()                         {}
@@ -105,6 +137,42 @@ func _UserGrpcService_BanUser_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserGrpcService_GetMonthlyRegistrations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServiceServer).GetMonthlyRegistrations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserGrpcService_GetMonthlyRegistrations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServiceServer).GetMonthlyRegistrations(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserGrpcService_GetMonthlySubscriptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserGrpcServiceServer).GetMonthlySubscriptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserGrpcService_GetMonthlySubscriptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserGrpcServiceServer).GetMonthlySubscriptions(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserGrpcService_ServiceDesc is the grpc.ServiceDesc for UserGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,6 +183,14 @@ var UserGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BanUser",
 			Handler:    _UserGrpcService_BanUser_Handler,
+		},
+		{
+			MethodName: "GetMonthlyRegistrations",
+			Handler:    _UserGrpcService_GetMonthlyRegistrations_Handler,
+		},
+		{
+			MethodName: "GetMonthlySubscriptions",
+			Handler:    _UserGrpcService_GetMonthlySubscriptions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

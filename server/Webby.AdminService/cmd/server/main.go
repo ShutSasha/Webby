@@ -90,7 +90,7 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer notificationClient.Close()
 
-	categoryService := services.New(repository, complaintClient, mediaClient, videoClient, userClient, notificationClient)
+	categoryService := services.NewComplaintsService(repository, complaintClient, mediaClient, videoClient, userClient, notificationClient)
 
 	server := httpserver.NewServer(cfg, logger, categoryService)
 	httpServer := &http.Server{

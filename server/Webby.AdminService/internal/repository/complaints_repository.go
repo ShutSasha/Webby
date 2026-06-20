@@ -12,15 +12,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type repository struct {
+type complaintsRepository struct {
 	db *pgxpool.Pool
 }
 
-func New(db *pgxpool.Pool) *repository {
-	return &repository{db: db}
+func New(db *pgxpool.Pool) *complaintsRepository {
+	return &complaintsRepository{db: db}
 }
 
-func (r *repository) ListComplaints(ctx context.Context, offset, limit int) ([]models.Complaint, int, error) {
+func (r *complaintsRepository) ListComplaints(ctx context.Context, offset, limit int) ([]models.Complaint, int, error) {
 	const op = "repository.ListComplaints"
 
 	query := sq.Select(
@@ -64,7 +64,7 @@ func (r *repository) ListComplaints(ctx context.Context, offset, limit int) ([]m
 	return complaints, 0, nil
 }
 
-func (r *repository) ResolveComplaint(ctx context.Context, complaintID, userID uuid.UUID, isAccepted bool) error {
+func (r *complaintsRepository) ResolveComplaint(ctx context.Context, complaintID, userID uuid.UUID, isAccepted bool) error {
 	const op = "repository.AcceptComplaint"
 
 	sql, args, err := sq.Insert("complaint_results").
@@ -82,7 +82,7 @@ func (r *repository) ResolveComplaint(ctx context.Context, complaintID, userID u
 	return nil
 }
 
-func (r *repository) IsResolved(ctx context.Context, complaintID uuid.UUID) (bool, error) {
+func (r *complaintsRepository) IsResolved(ctx context.Context, complaintID uuid.UUID) (bool, error) {
 	const op = "repository.IsResolved"
 
 	sql, args, err := sq.Select("1").

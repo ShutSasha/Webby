@@ -22,7 +22,7 @@ func (h *handler) Accept(c *gin.Context) {
 
 	complaintID, _ := uuid.Parse(uri.ComplaintID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	err := h.service.AcceptComplaint(ctx, complaintID, userID)
+	err := h.complaintsService.AcceptComplaint(ctx, complaintID, userID)
 	if err != nil {
 		HandleAppError(c, "Accept complaint error", err)
 		return

@@ -7,16 +7,25 @@ import (
 	"github.com/google/uuid"
 )
 
-type service interface {
+type complaintsService interface {
 	ListComplaints(ctx context.Context, page, limit int) ([]models.Complaint, int, error)
 	AcceptComplaint(ctx context.Context, complaintID, userID uuid.UUID) error
 	DenyComplaint(ctx context.Context, complaintID, userID uuid.UUID, reason string) error
 }
 
-type handler struct {
-	service service
+type statsService interface {
+	RegistrationsStats(ctx context.Context) (map[string]int, error)
+	SubscriptionsStats(ctx context.Context) (map[string]int, error)
 }
 
-func New(service service) handler {
-	return handler{service}
+type handler struct {
+	complaintsService complaintsService
+	statsService      statsService
+}
+
+func New(complaintsService complaintsService, statsService statsService) handler {
+	return handler{
+		complaintsService: complaintsService,
+		statsService:      statsService,
+	}
 }

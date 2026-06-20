@@ -15,7 +15,12 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func NewServer(config *config.Config, logger *slog.Logger, categoryRepo service) http.Handler {
+func NewServer(
+	config *config.Config,
+	logger *slog.Logger,
+	complaintsService complaintsService,
+	statsService statsService,
+) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
@@ -36,7 +41,7 @@ func NewServer(config *config.Config, logger *slog.Logger, categoryRepo service)
 	router.Use(gin.Recovery())
 	router.Use(cors.CORS())
 
-	handler := New(categoryRepo)
+	handler := New(complaintsService, statsService)
 	addRoutes(router, config, handler)
 
 	return router

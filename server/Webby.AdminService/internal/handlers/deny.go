@@ -32,7 +32,7 @@ func (h *handler) Deny(c *gin.Context) {
 
 	complaintID, _ := uuid.Parse(uri.ComplaintID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	err := h.service.DenyComplaint(ctx, complaintID, userID, body.Reason)
+	err := h.complaintsService.DenyComplaint(ctx, complaintID, userID, body.Reason)
 	if err != nil {
 		HandleAppError(c, "Deny complaint error", err)
 		return
