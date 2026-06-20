@@ -21,6 +21,7 @@ type roomRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	ListMy(ctx context.Context, userID uuid.UUID, page, limit int, search, category string) ([]models.Room, int64, error)
 	ListPublic(ctx context.Context, page, limit int, search, category string) ([]models.PublicRoom, int64, error)
+	GetTotalRooms(ctx context.Context) (int, error)
 }
 
 type roomMemberChecker interface {
@@ -190,7 +191,7 @@ func (s *roomService) ListMyRooms(
 	page, limit int,
 	search, category string,
 ) ([]models.Room, int64, error) {
-	const op = "services.RoomService.ListMyRooms"
+	const op = "services.roomService.ListMyRooms"
 
 	if strings.ToLower(category) == "all" {
 		category = ""
@@ -226,7 +227,7 @@ func (s *roomService) Update(
 	thumbnailData *[]byte,
 	isPrivate *bool,
 ) (*models.Room, error) {
-	const op = "services.RoomService.Update"
+	const op = "services.roomService.Update"
 
 	existingRoom, err := s.roomRepo.GetByID(ctx, roomID)
 	if err != nil {
@@ -269,7 +270,7 @@ func (s *roomService) Update(
 }
 
 func (s *roomService) Delete(ctx context.Context, roomID, userID uuid.UUID) error {
-	const op = "services.RoomService.Delete"
+	const op = "services.roomService.Delete"
 
 	room, err := s.roomRepo.GetByID(ctx, roomID)
 	if err != nil {
@@ -292,6 +293,17 @@ func (s *roomService) Delete(ctx context.Context, roomID, userID uuid.UUID) erro
 	}
 
 	return nil
+}
+
+func (s *roomService) GetTotalRooms(ctx context.Context) (int, error) {
+	const op = "services.roomService.GetTotalRooms"
+
+	totalRooms, err := s.roomRepo.GetTotalRooms(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return totalRooms, nil
 }
 
 func (s *roomService) generateThumbnailKey(filename string) string {
