@@ -9,7 +9,7 @@ import PageLoading from '@/ui/components/shared/PageLoading'
 
 import ActiveVoteOverlay from './ActiveVoteOverlay'
 import RoomChatContainer from './Chat/RoomChatContainer'
-import RoomPlaylists from './Playlists/RoomPlaylists'
+import RoomPlaylists from './Playlists/RoomQueue'
 import RoomInteractionHeader from './RoomInteractionHeader'
 import RoomSettings from './Settings/RoomSettings'
 import RoomUsers from './UsersList/RoomUsers'
@@ -48,8 +48,8 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
 
       <ActiveVoteOverlay roomId={roomId} />
 
+      {tab === 'queue' && <RoomPlaylists />}
       {tab === 'chat' && <RoomChatContainer chatId={chatId} />}
-      {tab === 'playlist' && <RoomPlaylists />}
       {tab === 'users' && <RoomUsers />}
       {tab === 'settings' && <RoomSettings />}
 

@@ -15,7 +15,7 @@ type Props = {
 export default function PlaylistItem({ playlistId, image, name, count, status, disabled, onToggle }: Props) {
   return (
     <div
-      className={`flex items-center justify-between py-2 px-2.5 mr-1 transition-all duration-300 ease-in-out rounded-xl
+      className={`flex items-center justify-between py-2 px-2.5 transition-all duration-300 ease-in-out rounded-xl
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'group cursor-pointer hover:bg-neutral-800/50'} `}
       onClick={() => {
         if (!disabled) onToggle(playlistId)

@@ -11,7 +11,7 @@ import { RoomQueueItem } from '@/types/room.types'
 
 import PlaylistItem from './PlaylistItem'
 
-export default function RoomPlaylists() {
+export default function RoomQueue() {
   const params = useParams()
   const roomId = params?.id as string
 
@@ -52,7 +52,7 @@ export default function RoomPlaylists() {
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2 pr-1 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2 scrollbar-hide">
         {isLoading && queueItems.length === 0 ? (
           <div className="flex justify-center py-10">
             <div className="size-6 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />

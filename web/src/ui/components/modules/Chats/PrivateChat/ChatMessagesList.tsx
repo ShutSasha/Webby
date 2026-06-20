@@ -75,7 +75,7 @@ export default function ChatMessagesList({ chatId, currentUserId, onEditMessage 
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col-reverse gap-2 relative">
+      <div className="flex-1 overflow-y-auto p-6 flex flex-col-reverse gap-2 relative">
         {isLoading && messages.length === 0 ? (
           <ChatMessagesListSkeleton />
         ) : (

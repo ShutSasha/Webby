@@ -37,7 +37,7 @@ export default function RoomInteractionHeader({ isHost }: Props) {
 
   return (
     <div className="border-b border-neutral-700/80 flex flex-row items-center justify-between py-2 px-3 mb-2">
-      <TabButton type="playlist" Icon={PlaylistIcon} />
+      <TabButton type="queue" Icon={PlaylistIcon} />
 
       <div className="flex flex-row items-center gap-4">
         <TabButton type="chat" Icon={ChatsIcon} />

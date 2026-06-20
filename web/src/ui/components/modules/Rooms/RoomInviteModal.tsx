@@ -92,8 +92,7 @@ export default function RoomInviteModal({ roomId, isOpen, onClose }: Props) {
           </button>
         </div>
 
-        {/* Users Grid */}
-        <div className="grid grid-cols-4 content-start gap-y-5 gap-x-2 py-2 h-80 overflow-y-auto custom-scrollbar">
+        <div className="grid grid-cols-4 content-start gap-y-5 gap-x-2 py-2 h-80 overflow-y-auto">
           {isLoading && users.length === 0 ? (
             Array.from({ length: 12 }).map((_, i) => <UserSkeleton key={i} />)
           ) : users.length === 0 ? (

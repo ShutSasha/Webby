@@ -67,10 +67,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
           <GlobalSearchTabs activeTab={activeTab} onChange={setActiveTab} />
         </div>
 
-        <div
-          className="flex-1 min-h-0 overflow-y-auto pb-6 relative scrollbar-thin scrollbar-track-red-400
-            scrollbar-thumb-white hover:scrollbar-thumb-neutral-300"
-        >
+        <div className="flex-1 min-h-0 overflow-y-auto pb-6 relative">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}

@@ -49,7 +49,7 @@ export default function ChatSidebar() {
       </div>
 
       {/* Chat List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-2 flex flex-col gap-1">
+      <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
         {isLoading && chats.length === 0 ? (
           Array.from({ length: 9 }).map((_, index) => <ChatItemSkeleton key={index} />)
         ) : chats.length > 0 ? (

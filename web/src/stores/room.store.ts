@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type TabType = 'playlist' | 'users' | 'settings' | 'chat'
+export type TabType = 'queue' | 'users' | 'settings' | 'chat'
 
 interface RoomState {
   tab: TabType
@@ -22,7 +22,7 @@ interface RoomState {
 }
 
 export const useRoomStore = create<RoomState>(set => ({
-  tab: 'playlist',
+  tab: 'queue',
   setTab: tab => set({ tab: tab }),
 
   syncTriggerId: null,

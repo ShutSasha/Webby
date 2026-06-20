@@ -107,7 +107,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
       <div className="flex flex-col w-full gap-4">
         <Search handleSearchChange={debouncedSearch} />
 
-        <div className="flex flex-col h-70 overflow-y-auto custom-scrollbar pr-1">
+        <div className="flex flex-col h-70 overflow-y-auto scrollbar-hide">
           {isLoading && playlists.length === 0 ? (
             <div className="flex flex-col gap-0.5 mt-1">
               {Array.from({ length: 5 }).map((_, i) => (
