@@ -143,4 +143,37 @@ describe('SaveToPlaylistModal Integration', () => {
 
     expect(screen.queryByText('Chill Vibes')).not.toBeInTheDocument()
   })
+
+  it('resets local state when modal is closed and reopened', async () => {
+    const user = userEvent.setup()
+
+    const { rerender } = render(
+      <SaveToPlaylistModal isOpen={true} onClose={mockOnClose} videoId="video-123" userId="user-1" mediaType="Video" />,
+    )
+
+    const chillVibesItem = screen.getByText('Chill Vibes').closest('div')
+    await user.click(chillVibesItem!)
+
+    const saveBtn = screen.getByRole('button', { name: /save/i })
+    expect(saveBtn).not.toBeDisabled()
+
+    rerender(
+      <SaveToPlaylistModal
+        isOpen={false}
+        onClose={mockOnClose}
+        videoId="video-123"
+        userId="user-1"
+        mediaType="Video"
+      />,
+    )
+
+    rerender(
+      <SaveToPlaylistModal isOpen={true} onClose={mockOnClose} videoId="video-123" userId="user-1" mediaType="Video" />,
+    )
+
+    const newSaveBtn = screen.getByRole('button', { name: /save/i })
+    expect(newSaveBtn).toBeDisabled()
+
+    expect(screen.getByText('5 videos')).toBeInTheDocument()
+  })
 })
