@@ -58,7 +58,7 @@ export const useRoomWebSocket = (
         }
       })
 
-      socket.on('QUEUE_UPDATED', (payload: { position: number[] }) => {
+      socket.on('QUEUE_UPDATED', () => {
         queryClient.invalidateQueries({ queryKey: ['room-queue', roomId] })
       })
 
@@ -121,7 +121,7 @@ export const useRoomWebSocket = (
         },
       )
 
-      socket.on('VOTE_CASTED', (payload: any) => {
+      socket.on('VOTE_CASTED', () => {
         queryClient.invalidateQueries({ queryKey: ['room-votes', roomId] })
       })
 
