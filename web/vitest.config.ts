@@ -5,11 +5,20 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: [
+      {
+        find: /.*\.svg$/,
+        replacement: path.resolve(__dirname, './src/__mocks__/svg.tsx'),
+      },
+      {
+        find: '@',
+        replacement: path.resolve(__dirname, './src'),
+      },
+    ],
+  },
   test: {
     environment: 'jsdom',
     globals: true,
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
   },
 })
