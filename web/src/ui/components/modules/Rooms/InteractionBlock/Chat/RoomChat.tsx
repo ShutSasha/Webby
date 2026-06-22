@@ -3,7 +3,7 @@
 import { useGetChatMessagesQuery } from '@/lib/hooks/api/chat/useGetChatMessages'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 
-import RoomChatMessage from './RoomChatMessage'
+import RoomChatMessage, { RoomChatMessageSkeleton } from './RoomChatMessage'
 
 type Props = {
   chatId: string
@@ -23,8 +23,10 @@ export default function RoomChat({ chatId }: Props) {
 
   if (isLoading && messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="size-6 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+      <div className="flex-1 overflow-hidden flex flex-col-reverse gap-2 pr-1">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <RoomChatMessageSkeleton key={`skeleton-${i}`} index={i} />
+        ))}
       </div>
     )
   }

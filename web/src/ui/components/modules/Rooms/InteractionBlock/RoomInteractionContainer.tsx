@@ -5,12 +5,12 @@ import { useSession } from 'next-auth/react'
 
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { useRoomStore } from '@/stores/room.store'
-import PageLoading from '@/ui/components/shared/PageLoading'
 
 import ActiveVoteOverlay from './ActiveVoteOverlay'
 import RoomChatContainer from './Chat/RoomChatContainer'
-import RoomPlaylists from './Playlists/RoomQueue'
+import RoomQueue from './Queue/RoomQueue'
 import RoomInteractionHeader from './RoomInteractionHeader'
+import RoomInteractionSkeleton from './RoomInteractionSkeleton'
 import RoomSettings from './Settings/RoomSettings'
 import RoomUsers from './UsersList/RoomUsers'
 import RoomVotesModal from './Votes/RoomVotesModal'
@@ -34,7 +34,7 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
         className="flex items-center justify-center flex-none bg-black rounded-2xl py-1 px-2 w-full h-[500px]
           xl:w-[300px] 2xl:w-[340px] xl:h-auto"
       >
-        <PageLoading />
+        <RoomInteractionSkeleton />
       </div>
     )
   }
@@ -48,7 +48,7 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
 
       <ActiveVoteOverlay roomId={roomId} />
 
-      {tab === 'queue' && <RoomPlaylists />}
+      {tab === 'queue' && <RoomQueue />}
       {tab === 'chat' && <RoomChatContainer chatId={chatId} />}
       {tab === 'users' && <RoomUsers />}
       {tab === 'settings' && <RoomSettings />}

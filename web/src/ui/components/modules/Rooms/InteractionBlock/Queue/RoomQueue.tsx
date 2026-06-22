@@ -9,7 +9,8 @@ import { useRoomQueueQuery } from '@/lib/hooks/api/room/useRoomQueueQuery'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import { RoomQueueItem } from '@/types/room.types'
 
-import PlaylistItem from './PlaylistItem'
+import QueueItem from './QueueItem'
+import QueueItemSkeleton from './QueueItemSkeleton'
 
 export default function RoomQueue() {
   const params = useParams()
@@ -54,8 +55,10 @@ export default function RoomQueue() {
 
       <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2 scrollbar-hide">
         {isLoading && queueItems.length === 0 ? (
-          <div className="flex justify-center py-10">
-            <div className="size-6 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <QueueItemSkeleton key={i} />
+            ))}
           </div>
         ) : filteredPlaylist.length === 0 ? (
           <p className="text-neutral-500 text-center py-10 text-sm">
@@ -66,7 +69,7 @@ export default function RoomQueue() {
             if (!video || !video.id) return null
 
             const isLast = filteredPlaylist.length === index + 1
-            const item = <PlaylistItem key={video.id} roomId={roomId} video={video} />
+            const item = <QueueItem key={video.id} roomId={roomId} video={video} />
 
             if (isLast) {
               return (

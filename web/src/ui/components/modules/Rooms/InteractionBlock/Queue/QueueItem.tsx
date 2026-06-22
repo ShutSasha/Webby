@@ -26,7 +26,7 @@ type Props = {
   isChild?: boolean
 }
 
-export default function PlaylistItem({ roomId, video, isChild = false }: Props) {
+export default function QueueItem({ roomId, video, isChild = false }: Props) {
   const [isOpen, setOpen] = useState(false)
 
   const optimisticPendingId = useRoomStore(state => state.optimisticPendingId)
@@ -142,7 +142,7 @@ export default function PlaylistItem({ roomId, video, isChild = false }: Props) 
       {video.isFolder && isOpen && video.children && (
         <div className="flex flex-col gap-2 mt-1 animate-in fade-in slide-in-from-top-2 duration-300">
           {video.children.map(child => (
-            <PlaylistItem key={child.id} video={child} roomId={roomId} isChild />
+            <QueueItem key={child.id} video={child} roomId={roomId} isChild />
           ))}
         </div>
       )}
