@@ -477,7 +477,7 @@ export const useCustomPlayerLogic = (
     uiState: {
       isFullScreen,
       showCustomControls,
-      playing: isTwitch && !state.isReady ? false : playing,
+      playing: playing,
       baseUserVolume,
     },
     actions: {

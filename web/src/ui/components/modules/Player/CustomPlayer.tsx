@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 import ReactPlayer from 'react-player'
 
 import { useCustomPlayerLogic } from '@/lib/hooks/useCustomPlayerLogic'
@@ -45,12 +47,31 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
     setState,
   })
 
-  if (!isMounted)
+  const [activeVideoUrl, setActiveVideoUrl] = useState(videoUrl)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+
+  useEffect(() => {
+    if (videoUrl !== activeVideoUrl) {
+      setIsTransitioning(true)
+
+      const timer = setTimeout(() => {
+        setActiveVideoUrl(videoUrl)
+        setIsTransitioning(false)
+      }, 100)
+
+      return () => clearTimeout(timer)
+    }
+  }, [videoUrl, activeVideoUrl])
+
+  const isActuallyReady = isMounted && !isTransitioning && videoUrl === activeVideoUrl
+
+  if (!isActuallyReady) {
     return (
       <div className="aspect-video bg-black w-full rounded-2xl flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
       </div>
     )
+  }
 
   return (
     <div
