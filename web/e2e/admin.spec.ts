@@ -4,8 +4,8 @@ test.describe('Admin Control Panel', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login')
 
-    await page.getByPlaceholder('Email').fill('darkvoin5@gmail.com')
-    await page.getByPlaceholder('Password').fill('qwerty123123')
+    await page.getByPlaceholder('Email').fill(process.env.TEST_USER_EMAIL!)
+    await page.getByPlaceholder('Password').fill(process.env.TEST_USER_PASSWORD!)
 
     await page.getByRole('button', { name: 'Log in' }).click()
 

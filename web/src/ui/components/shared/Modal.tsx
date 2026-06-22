@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { RemoveScroll } from 'react-remove-scroll'
 
+import { useIsClient } from '@/lib/hooks/useIsClient'
+
 interface Props {
   isOpen: boolean
   onClose: () => void
@@ -12,13 +14,25 @@ interface Props {
 }
 
 export default function Modal({ isOpen, onClose, children, modalClasses = '' }: Props) {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useIsClient()
 
   const [shouldRender, setShouldRender] = useState(isOpen)
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, onClose])
 
   useEffect(() => {
     if (isOpen) {

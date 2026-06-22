@@ -26,6 +26,7 @@ export default function RoomInteractionHeader({ isHost }: Props) {
 
     return (
       <Icon
+        data-testid={`tab-${type}`}
         onClick={() => toggleTab(type)}
         className={cn(
           'size-6 cursor-pointer transition-all duration-300 ease-in-out select-none stroke-[1.5px]',
