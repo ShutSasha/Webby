@@ -1,13 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-
 import ReactPlayer from 'react-player'
 
 import { useCustomPlayerLogic } from '@/lib/hooks/useCustomPlayerLogic'
-import { useIsClient } from '@/lib/hooks/useIsClient'
 import { usePlayerControls } from '@/lib/hooks/usePlayerControls'
 import { usePlayerHotkeys } from '@/lib/hooks/usePlayerHotkeys'
+import { useSafeVideoTransition } from '@/lib/hooks/useSafeVideoTransition'
 import { useVideoViewTracker } from '@/lib/hooks/useVideoViewTracker'
 
 import PlayerBottomControls from './PlayerBottomControls'
@@ -24,7 +22,11 @@ type PlayerProps = {
 }
 
 export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false }: PlayerProps) {
-  const isMounted = useIsClient()
+  const { isActuallyReady } = useSafeVideoTransition({
+    videoUrl,
+    delayMs: 800,
+  })
+
   const isPlatformModeHook = usePlayerControls(videoUrl)
   const trackViewProgress = useVideoViewTracker(videoId)
 
@@ -47,28 +49,10 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
     setState,
   })
 
-  const [activeVideoUrl, setActiveVideoUrl] = useState(videoUrl)
-  const [isTransitioning, setIsTransitioning] = useState(false)
-
-  useEffect(() => {
-    if (videoUrl !== activeVideoUrl) {
-      setIsTransitioning(true)
-
-      const timer = setTimeout(() => {
-        setActiveVideoUrl(videoUrl)
-        setIsTransitioning(false)
-      }, 100)
-
-      return () => clearTimeout(timer)
-    }
-  }, [videoUrl, activeVideoUrl])
-
-  const isActuallyReady = isMounted && !isTransitioning && videoUrl === activeVideoUrl
-
   if (!isActuallyReady) {
     return (
-      <div className="aspect-video bg-black w-full rounded-2xl flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+      <div className="aspect-video bg-black/80 w-full rounded-2xl flex items-center justify-center">
+        <div className="w-16 h-16 border-6 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
       </div>
     )
   }
@@ -78,7 +62,7 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
       ref={refs.playerContainerRef}
       onMouseMove={actions.handleMouseMove}
       onMouseLeave={actions.handleMouseLeave}
-      className={`group relative w-full bg-transparent transition-all
+      className={`group relative w-full bg-black transition-all
         ${uiState.isFullScreen ? 'w-screen h-screen' : 'aspect-video'} ${!isTwitch ? 'rounded-2xl overflow-hidden' : ''}
         ${!isPlatformMode && !uiState.showCustomControls ? 'cursor-none' : 'cursor-default'}`}
     >
