@@ -1,25 +1,32 @@
 import NextAuth from 'next-auth'
 
 import { authConfig } from '../auth.config'
-// import { clog } from './lib/utils/general.utils'
 
 const { auth } = NextAuth(authConfig)
 
 export default auth(req => {
   const { nextUrl } = req
   const isLoggedIn = !!req.auth
+  const userRole = req.auth?.user?.role
 
   const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/sign-up')
-  const isOnSettings = nextUrl.pathname.endsWith('/settings') // TODO: change the pathname
-
-  // TODO: remove logs after tests
-  // clog(`Proxy: ${nextUrl.pathname} | LoggedIn: ${isLoggedIn}`)
-
+  const isOnSettings = nextUrl.pathname.endsWith('/settings')
+  const isAdminPage = nextUrl.pathname.startsWith('/admin')
+  
   if (isAuthPage) {
     if (isLoggedIn) {
       return Response.redirect(new URL('/', nextUrl))
     }
     return
+  }
+
+  if (isAdminPage) {
+    if (!isLoggedIn) {
+      return Response.redirect(new URL('/login', nextUrl))
+    }
+    if (userRole !== 'Admin') {
+      return Response.redirect(new URL('/', nextUrl))
+    }
   }
 
   if (isOnSettings && !isLoggedIn) {
