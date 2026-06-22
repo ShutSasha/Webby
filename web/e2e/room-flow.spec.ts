@@ -4,7 +4,7 @@ test.describe('Room End-to-End Flow', () => {
   const uniqueRoomName = `E2E Test Room ${Date.now()}`
   const testMessage = 'Hello from Playwright E2E test!'
 
-  test('User can create room, add video, chat, and delete room', async ({ page }) => {
+  test('User can create room, add video, message to chat, and delete room', async ({ page }) => {
     await test.step('Login to the platform', async () => {
       await page.goto('/login')
       await page.getByPlaceholder('Email').fill(process.env.TEST_USER_EMAIL!)
