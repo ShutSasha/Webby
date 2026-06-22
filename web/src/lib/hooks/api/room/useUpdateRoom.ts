@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { updateRoomAction } from '@/lib/actions/room.actions'
-import { extractServerMessage } from '@/lib/utils/general.utils'
+import { extractServerMessage, ServerActionError, unwrapServerAction } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
 
 export const useUpdateRoom = (options?: { onSuccess?: () => void }) => {
@@ -9,18 +9,21 @@ export const useUpdateRoom = (options?: { onSuccess?: () => void }) => {
   const addToast = useToastStore(state => state.addToast)
 
   return useMutation({
-    mutationFn: async ({ roomId, formData }: { roomId: string; formData: FormData }) =>
-      await updateRoomAction(roomId, formData),
-    onSuccess: response => {
-      if (response.success) {
-        addToast('Room updated successfully', 'success')
-        queryClient.invalidateQueries({ queryKey: ['user-rooms'] })
-        queryClient.invalidateQueries({ queryKey: ['public-rooms'] })
-        if (options?.onSuccess) options.onSuccess()
-      } else {
-        addToast(extractServerMessage(response.errors) || 'Failed to update room', 'error')
-      }
+    mutationFn: async ({ roomId, formData }: { roomId: string; formData: FormData }) => {
+      return unwrapServerAction(await updateRoomAction(roomId, formData))
     },
-    onError: () => addToast('Critical error while updating room', 'error'),
+    onSuccess: (_, variables) => {
+      addToast('Room updated successfully', 'success')
+      queryClient.invalidateQueries({ queryKey: ['user-rooms'] })
+      queryClient.invalidateQueries({ queryKey: ['public-rooms'] })
+
+      queryClient.invalidateQueries({ queryKey: ['room', variables.roomId] })
+
+      if (options?.onSuccess) options.onSuccess()
+    },
+    onError: (error: ServerActionError) => {
+      const errorMessage = extractServerMessage(error.errors) || error.message || 'Failed to update room'
+      addToast(errorMessage, 'error')
+    },
   })
 }

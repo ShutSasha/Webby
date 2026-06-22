@@ -2,6 +2,7 @@ import LockIcon from '@/assets/icons/shared/lock.svg'
 import { getRoomById } from '@/lib/actions/room.actions'
 import PlayerSyncButton from '@/ui/components/modules/Player/PlayerSyncButton'
 import RoomInteractionContainer from '@/ui/components/modules/Rooms/InteractionBlock/RoomInteractionContainer'
+import RoomTitle from '@/ui/components/modules/Rooms/InteractionBlock/RoomTitle'
 import RoomInviteButton from '@/ui/components/modules/Rooms/RoomInviteButton'
 import RoomPlayerContainer from '@/ui/components/modules/Rooms/RoomPlayerContainer'
 import RoomWebSocketManager from '@/ui/components/modules/Rooms/RoomWebSocketManager'
@@ -48,7 +49,7 @@ export default async function RoomPage({ params }: Props) {
           <RoomPlayerContainer roomId={id} />
 
           <div className="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center mt-3 mb-2 gap-4">
-            <p className="text-neutral-300 text-[20px] font-bold truncate">{room.name}</p>
+            <RoomTitle roomId={id} initialName={room.name} />
 
             <div className="flex items-center gap-2 shrink-0">
               <PlayerSyncButton roomId={id} />
