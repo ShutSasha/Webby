@@ -59,7 +59,8 @@ public static class VideoQueryFilters
       return (
          @"
       (
-          ""IsPublished"" = TRUE
+          ""IsPublished"" = TRUE 
+         AND ""IsBanned"" = FALSE
           AND (
               ""IsPrivate"" = FALSE
               OR ""UserId"" = {2}
@@ -77,6 +78,7 @@ public static class VideoQueryFilters
          context => v => v.IsPublished == true
                          && (!v.IsPrivate || v.UserId == requestUserId)
                          && v.VideoUploadStatus == VideoStatus.Ready
+                         && !v.IsBanned
       );
    }
 }

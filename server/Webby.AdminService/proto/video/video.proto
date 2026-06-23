@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "webby/admin-service/internal/grpc/videopb";
+
+import "google/protobuf/empty.proto";
+
+service VideoGrpcService {
+  rpc BanVideo (BanVideoRequest) returns (google.protobuf.Empty);
+}
+
+message BanVideoRequest {
+    string videoID = 1;
+}

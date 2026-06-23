@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package media;
+
+option go_package = "webby/admin-service/internal/grpc/mediapb";
+
+service MediaService {
+  rpc GetVideo(GetVideoRequest) returns (VideoResponse);
+  rpc GetAuthorIDByVideoID(GetAuthorIDByVideoIDRequest) returns (GetAuthorIDByVideoIDResponse);
+}
+
+message GetVideoRequest {
+  string id = 1;
+}
+
+message VideoResponse {
+  string id = 1;
+  string title = 2;
+  string thumbnail = 3;
+  string videoUrl = 4;
+}
+
+message GetAuthorIDByVideoIDRequest {
+  string videoID = 1;
+}
+
+message GetAuthorIDByVideoIDResponse {
+  string authorID = 1;
+}

@@ -20,7 +20,7 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
       return await _context.Videos
          .Include(v => v.VideoTags)
          .ThenInclude(vt => vt.Tag)
-         .FirstAsync(v => v.VideoId == videoId);
+         .FirstOrDefaultAsync(v => v.VideoId == videoId && !v.IsBanned);
    }
 
    public async Task<int> CountUserVideos(Guid userId)
@@ -43,7 +43,10 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
       {
          if (!shouldShowDrafts)
          {
-            query = query.Where(v => v.IsPublished && v.VideoUploadStatus == VideoStatus.Ready);
+            query = query.Where(v =>
+                v.IsPublished &&
+                !v.IsBanned &&
+                v.VideoUploadStatus == VideoStatus.Ready);
          }
       }
       else
@@ -51,6 +54,7 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
          query = query.Where(v => 
             v.IsPublished && 
             !v.IsPrivate && 
+            !v.IsBanned &&
             v.VideoUploadStatus == VideoStatus.Ready);
       }
       
@@ -76,6 +80,7 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
    {
       return await _context.Videos.AnyAsync(v => playlistVideosIds.Contains(v.VideoId)
                                       && v.IsPrivate
+                                      && v.IsBanned
                                       && v.UserId != requestUserId);
    }
    
@@ -97,6 +102,7 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
                OR (
                    pv.""Platform"" = @webbyPlatform
                    AND v.""IsPublished"" = TRUE
+                    AND v.""IsBanned"" = FALSE
                    AND (v.""IsPrivate"" = FALSE OR v.""UserId"" = @requestUserId)
                    AND (
                        v.""VideoUploadStatus"" = @statusReady 
@@ -218,6 +224,7 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
        var query = _context.Videos
            .Where(v => v.IsPublished 
                     && !v.IsPrivate 
+                    && !v.IsBanned
                     && v.VideoUploadStatus == VideoStatus.Ready);
        
        if (currentVideoId.HasValue && currentVideoId.Value != Guid.Empty)

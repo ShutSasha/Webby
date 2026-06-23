@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"webby/room-service/internal/grpc/memberpb"
+	"webby/room-service/internal/models"
 
 	"github.com/google/uuid"
 )
 
 type memberChecker interface {
-	Exists(ctx context.Context, roomId, userId uuid.UUID) (bool, error)
+	GetMemberStatus(ctx context.Context, roomId, userId uuid.UUID) (*models.MemberStatus, error)
 }
 
 type memberServer struct {
@@ -34,10 +35,10 @@ func (s *memberServer) MemberExists(ctx context.Context, req *memberpb.MemberExi
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
+	status, err := s.memberChecker.GetMemberStatus(ctx, roomID, userID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &memberpb.MemberExistsResponse{Exists: exists}, nil
+	return &memberpb.MemberExistsResponse{Exists: status.IsMember}, nil
 }

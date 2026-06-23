@@ -23,11 +23,12 @@ Connect to the notifications hub using the following endpoint:
 
 The client should subscribe to the following events to receive updates from the server.
 
-| Event | Payload Type | Description |
-| :--- | :--- | :--- |
-| `UpdateUnreadNotificationsCount` | `Integer` | Receives the up-to-date count of unread notifications for the connected user. Usually emitted upon connection or after a new notification is created. |
-| `AuthError` | `String` | Receives an error message if the connection is rejected (e.g., "Unauthorized: Token is missing or expired"). The connection is aborted immediately after this event. |
-| `ReceiveNotification` | `Notification` | Broadcasts a new push notification to the user. |
+| Event | Payload Type   | Description                                                                                                                                                          |
+| :--- |:---------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `UpdateUnreadNotificationsCount` | `Integer`      | Receives the up-to-date count of unread notifications for the connected user. Usually emitted upon connection or after a new notification is created.                |
+| `AuthError` | `String`       | Receives an error message if the connection is rejected (e.g., "Unauthorized: Token is missing or expired"). The connection is aborted immediately after this event. |
+| `ReceiveNotification` | `Notification` | Broadcasts a new push notification to the user.                                                                                                                      |
+| `AccountSuspended` | `Guid`         | Broadcasts a system notification of user block.                                                                                                                      |
 
 ---
 

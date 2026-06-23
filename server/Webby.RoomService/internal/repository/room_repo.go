@@ -338,3 +338,27 @@ func (r *roomRepository) Update(ctx context.Context, room *models.Room) (uuid.UU
 
 	return room.ID, nil
 }
+
+func (r *roomRepository) GetTotalRooms(ctx context.Context) (int, error) {
+	const op = "repository.roomRepository.GetTotalRooms"
+
+	sql, args, err := sq.Select("COUNT(id)").
+		From("rooms").
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: sql build failed: %w", op, err)
+	}
+
+	var activeRooms int
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&activeRooms)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, nil
+		}
+
+		return 0, fmt.Errorf("%s: failed to execute: %w", op, err)
+	}
+
+	return activeRooms, nil
+}

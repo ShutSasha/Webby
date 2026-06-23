@@ -1,6 +1,8 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using UserService;
+using Webby.NotificationService.GrpcClient;
+using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Interfaces.Repository;
 
 namespace Webby.UserService.Services.Grpc;
@@ -9,13 +11,18 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
 {
    private readonly IUserRepository _userRepository;
    private readonly IUserPremiumRepository _userPremiumRepository;
+   private readonly IPaymentRepository _paymentRepository;
+   private readonly NotificationGrpcService.NotificationGrpcServiceClient _notificationClient;
    private readonly ILogger<UserGrpcService> _logger;
 
-   public UserGrpcService(IUserRepository userRepository, ILogger<UserGrpcService> logger, IUserPremiumRepository userPremiumRepository)
+   public UserGrpcService(IUserRepository userRepository, ILogger<UserGrpcService> logger,
+      IUserPremiumRepository userPremiumRepository, NotificationGrpcService.NotificationGrpcServiceClient notificationClient, IPaymentRepository paymentRepository)
    {
       _userRepository = userRepository;
       _logger = logger;
       _userPremiumRepository = userPremiumRepository;
+      _notificationClient = notificationClient;
+      _paymentRepository = paymentRepository;
    }
 
    public override async Task<UserResponse> GetUserById(GetUserRequest request, ServerCallContext context)
@@ -121,5 +128,97 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       {
          IsFollowed = mutualFollows
       };
+   }
+
+   public override async Task<Empty> BanUser(BanUserRequest request, ServerCallContext context)
+   {
+      if (!Guid.TryParse(request.UserID, out var userIdGuid))
+         throw new ApiException("Ban user error",400,"Invalid id format");
+
+      var user = await _userRepository.FindById(userIdGuid)
+                 ?? throw new ApiException("Ban user error", 404,"User wasn't found");
+
+
+      if (user.IsBanned)
+         return new Empty();
+
+      user.IsBanned = true;
+
+      await _userRepository.Update(user);
+
+      await _notificationClient.ReportBlockingAsync(new ReportBlockingRequest { UserId = request.UserID });
+
+      return new Empty();
+   }
+
+   public override async Task<GetMonthlyRegistrationsResponse> GetMonthlyRegistrations(Empty request, ServerCallContext context)
+   {
+      var (startDate, endDate) = GetYearDates();
+      
+      var monthlyData = new Dictionary<int, int>();
+      for (var i = 0; i < 12; i++)
+      {
+         var targetMonth = startDate.AddMonths(i).Month;
+         monthlyData[targetMonth] = 0;
+      }
+      
+      var registrationsFromDb = await _userRepository.GetMonthlyRegistrationsCountAsync(startDate, endDate);
+      
+      foreach (var reg in registrationsFromDb)
+      {
+         monthlyData[reg.Key] = reg.Value;
+      }
+
+      var response = new GetMonthlyRegistrationsResponse();
+      
+      foreach (var kvp in monthlyData)
+      {
+         response.Registrations.Add(kvp.Key, kvp.Value);
+      }
+
+      return response;
+   }
+
+   public override async Task<GetMonthlySubscriptionsResponse> GetMonthlySubscriptions(Empty request, ServerCallContext context)
+   {
+      var (startDate, endDate) = GetYearDates();
+      var response = new GetMonthlySubscriptionsResponse();
+      
+      for (var i = 0; i < 12; i++)
+      {
+         var targetMonth = startDate.AddMonths(i).Month;
+         response.Subscriptions[targetMonth] = 0;
+      }
+      
+      var revenueInDb = await _paymentRepository.GetMonthlySubscriptionRevenueAsync(startDate, endDate);
+      
+      foreach (var kvp in revenueInDb)
+      {
+         response.Subscriptions[kvp.Key] = (int)kvp.Value; 
+      }
+
+      return response;
+   }
+
+   public override async Task<GetTotalRegistrationsResponse> GetTotalRegistrations(Empty request, ServerCallContext context)
+   {
+      var totalRegistrationsCount = await _userRepository.CountAsync();
+      return new GetTotalRegistrationsResponse() { TotalRegistrations = totalRegistrationsCount };
+   }
+
+   public override async Task<GetMonthRevenueResponse> GetMonthRevenue(Empty request, ServerCallContext context)
+   {
+      var monthRevenue = await _paymentRepository.GetMonthRevenue();
+      return new GetMonthRevenueResponse() { MonthRevenue = monthRevenue };
+   }
+
+   private Tuple<DateTime,DateTime > GetYearDates()
+   {
+      var today = DateTime.UtcNow;
+
+      var startDate = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-11);
+      var endDate = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(1);
+
+      return new Tuple<DateTime, DateTime>(startDate, endDate);
    }
 }

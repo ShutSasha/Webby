@@ -9,7 +9,7 @@ import (
 
 type roomService interface {
 	Create(ctx context.Context, room *models.Room, thumbnailData []byte, thumbnailFilename string) (*models.Room, error)
-	GetDetails(ctx context.Context, roomID, userID uuid.UUID) (*models.Room, error)
+	AccessRoom(ctx context.Context, roomID, userID uuid.UUID) (*models.Room, error)
 	ListMyRooms(ctx context.Context, userID uuid.UUID, page, limit int, search, category string) ([]models.Room, int64, error)
 	ListPublicRooms(ctx context.Context, page, limit int, search, category string) ([]models.PublicRoom, int64, error)
 	Update(ctx context.Context, roomID, userID uuid.UUID, name, category, thumbnailFilename *string, thumbnailData *[]byte, isPrivate *bool) (*models.Room, error)

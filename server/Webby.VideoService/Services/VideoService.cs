@@ -58,14 +58,19 @@ public class VideoService : IVideoService
       _logger = logger;
    }
 
-   public async Task<Video> GetVideoById(Guid videoId)
+   public async Task<Video> GetVideoById(Guid videoId, bool showPrivate = false)
    {
       var video = await _videoRepository.FindById(videoId)
                   ?? throw new ApiException("Get video error", 404, "Video wasn't found");
 
-      if (video.IsPrivate)
+      if (video.IsPrivate && !showPrivate)
       {
          throw new ApiException("Get video error", 403, "Requested video is private");
+      }
+
+      if (video.IsBanned)
+      {
+         throw new ApiException("Get video error", 400, "Provided video is banned");
       }
 
       if (video.VideoUploadStatus is 
@@ -674,6 +679,7 @@ public class VideoService : IVideoService
          var webbyVideos = await _videoRepository
             .GetByPredicate(v => webbyIds.Contains(v.VideoId) && 
                                  !v.IsPrivate &&
+                                 !v.IsBanned &&
                                  v.IsPublished);
          
          if (webbyVideos != null && webbyVideos.Any())
@@ -794,7 +800,7 @@ public class VideoService : IVideoService
        {
            throw new ApiException("Get video statistic error", 403, "You don't have permission to get statistics for this video");
        }
-
+       
        var now = DateTime.UtcNow;
        var targetYear = year is > 0 ? year.Value : now.Year;
        var targetMonth = month is >= 1 and <= 12 ? month.Value : now.Month;

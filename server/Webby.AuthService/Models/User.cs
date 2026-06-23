@@ -10,5 +10,7 @@ public class User
    public string AvatarUrl { get; set; }
    public string VerificationCode { get; set; }
    public bool isVerified { get; set; }
+   public bool IsBanned { get; set; }
+   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
    public Role Role { get; set; }
 }

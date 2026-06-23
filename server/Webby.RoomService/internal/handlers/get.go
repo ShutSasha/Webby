@@ -32,7 +32,7 @@ func (h *handler) Get(c *gin.Context) {
 
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	room, err := h.roomService.GetDetails(ctx, roomID, userID)
+	room, err := h.roomService.AccessRoom(ctx, roomID, userID)
 	if err != nil {
 		HandleAppError(c, "Get room error", err)
 		return

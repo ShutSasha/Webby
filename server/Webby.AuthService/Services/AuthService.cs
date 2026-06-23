@@ -100,6 +100,12 @@ public class AuthService : IAuthService
          throw new ApiException("Login error", 400, errors);
       }
 
+      if (user.IsBanned)
+      {
+         errors["IsBanned"] = "Your account is blocked. Write to webbymailsystem@gmail.com to see details";
+         throw new ApiException("Login error", 403, errors);
+      }
+
       if (!_passwordHasher.Verify(request.Password, user.Password))
       {
          errors["password"] = user.Password != null 
@@ -172,6 +178,10 @@ public class AuthService : IAuthService
       
       if (user != null)
       {
+         if (user.IsBanned)
+            throw new ApiException("Google auth error", 403,
+               "You're blocked. Write to webbymailsystem@gmail.com to see details");
+         
          authToken = await _tokenService.GenerateToken(user);
          
          loginUserResponse.User = _mapper.Map<UserDto>(user);
@@ -180,6 +190,7 @@ public class AuthService : IAuthService
 
          return loginUserResponse;
       }
+      
       var newUser = new User
       {
          UserId = request.Id,
@@ -217,6 +228,12 @@ public class AuthService : IAuthService
       {
          errors["user"] = "User with specified id wasn't found";
          throw new ApiException("Refresh token error", 404, errors);
+      }
+
+      if (existingUser.IsBanned)
+      {
+         errors["IsBanned"] = "Your account is banned. Write to webbymailsystem@gmail.com to see details";
+         throw new ApiException("Refresh token error", 403, errors);
       }
 
       var authTokenModel = await _tokenService.GenerateToken(existingUser);

@@ -41,9 +41,7 @@ func TestDeleteCategory(t *testing.T) {
 		{
 			name:     "Failure_EmptyName",
 			pathName: "",
-			mockSetup: func(md *handlermocks.Mockservice) {
-				md.EXPECT().Delete(mock.Anything, "").Return(fmt.Errorf("%w: category name cannot be empty", apperrors.ErrInvalidInput)).Once()
-			},
+			mockSetup: func(md *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   validateErrorResponse,
 		},

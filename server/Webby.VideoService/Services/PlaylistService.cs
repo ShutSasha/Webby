@@ -258,7 +258,8 @@ public class PlaylistService : IPlaylistService
       }
 
       var unavailableWebbyCount = playlist.PlaylistVideos
-         .Count(pv => pv is { Platform: SystemPlatforms.Webby, Video.IsPrivate: true } && pv.Video.UserId != requestedUserId);
+         .Count(pv => pv is { Platform: SystemPlatforms.Webby, Video: not null } && 
+                      (pv.Video.IsBanned || (pv.Video.IsPrivate && pv.Video.UserId != requestedUserId)));
 
       return new GetPlaylistResponse
       {
@@ -357,8 +358,7 @@ public class PlaylistService : IPlaylistService
       var users = await _userClient.GetUsersByIdsAsync(new GetUsersRequest
          { UserIds = {userIds}}
       );
-
-
+      
       var usersDict = users.Users.ToDictionary(u => u.UserId, u => u);
          
       var tasks = detailedPlaylists
@@ -467,7 +467,7 @@ public class PlaylistService : IPlaylistService
            var availableItems = playlist.PlaylistVideos?
                .Where(pv =>
                    _externalContentFetcher.IsExternalContentAvailable(pv, externalData) ||
-                   (pv is { Platform: SystemPlatforms.Webby, Video: not null } && (!pv.Video.IsPrivate || pv.Video.UserId == requestUserId))
+                   (pv is { Platform: SystemPlatforms.Webby, Video: not null } && (!pv.Video.IsPrivate || pv.Video.UserId == requestUserId)) && (!pv.Video.IsBanned)
                )
                .OrderByDescending(pv => pv.CreatedAt)
                .ToList();
