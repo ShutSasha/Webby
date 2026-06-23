@@ -60,7 +60,7 @@ export function AnimatedTabsSkeleton({ count = 3, className, tabClassName }: Ske
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {Array.from({ length: count }).map((_, index) => (
-        <div key={index} className={cn('h-9 w-24 rounded-full bg-skeleton animate-pulse shrink-0', tabClassName)} />
+        <div key={index} className={cn('h-9 w-24 rounded-full bg-card animate-pulse shrink-0', tabClassName)} />
       ))}
     </div>
   )

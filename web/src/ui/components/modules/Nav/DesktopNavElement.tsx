@@ -38,7 +38,7 @@ export function DesktopNavElement({
   const elementClasses = cn(
     'relative group flex items-center rounded-xl transition-colors duration-300 ease-out cursor-pointer',
     isExpanded ? 'px-3 py-2.5' : '2xl:p-2.5 xl:p-2 p-1.5 py-2 justify-center',
-    isActive ? 'text-emerald-500 font-semibold' : 'text-neutral-400 hover:bg-neutral-800/60 hover:text-neutral-100',
+    isActive ? 'text-emerald-500 font-semibold' : 'text-muted-active hover:bg-card/60 hover:text-foreground-strong',
     className,
   )
 
@@ -66,7 +66,7 @@ export function DesktopNavElement({
         {!isExpanded && badgeCount !== undefined && badgeCount > 0 && (
           <div
             className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500
-              px-1 text-[10px] font-bold text-neutral-900 ring-1 ring-[#0A0A0A]"
+              px-1 text-[10px] font-bold text-surface ring-1 ring-surface"
           >
             {badgeCount > 9 ? '9+' : badgeCount}
           </div>
@@ -84,7 +84,7 @@ export function DesktopNavElement({
         {isExpanded && badgeCount !== undefined && badgeCount > 0 && (
           <div
             className="ml-4 flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-emerald-500 px-1.5
-              text-[12px] font-bold text-neutral-900 shrink-0 shadow-sm shadow-emerald-500/20"
+              text-[12px] font-bold text-surface shrink-0 shadow-sm shadow-emerald-500/20"
           >
             {badgeCount > 99 ? '99+' : badgeCount}
           </div>

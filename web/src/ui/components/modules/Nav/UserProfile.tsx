@@ -26,11 +26,7 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
   if (status === 'loading') {
     return (
       <div
-        className={cn(
-          iconSize,
-          'bg-neutral-800 animate-pulse rounded-full shrink-0',
-          isExpanded && 'w-full rounded-xl h-12',
-        )}
+        className={cn(iconSize, 'bg-card animate-pulse rounded-full shrink-0', isExpanded && 'w-full rounded-xl h-12')}
       />
     )
   }
@@ -53,7 +49,7 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
     <div
       className={cn(
         'flex items-center justify-center w-full rounded-xl transition-colors duration-300',
-        isExpanded ? 'justify-between px-2 py-1.5 hover:bg-neutral-800/60' : 'justify-center',
+        isExpanded ? 'justify-between px-2 py-1.5 hover:bg-card/60' : 'justify-center',
       )}
     >
       <Link
@@ -81,8 +77,8 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
             isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0',
           )}
         >
-          <span className="text-sm font-semibold text-neutral-200 truncate max-w-[120px]">{session.user.username}</span>
-          <span className="text-xs text-neutral-500">View profile</span>
+          <span className="text-sm font-semibold text-foreground truncate max-w-[120px]">{session.user.username}</span>
+          <span className="text-xs text-muted">View profile</span>
         </div>
       </Link>
 
