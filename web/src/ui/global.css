@@ -6,6 +6,7 @@
   --background: #f5f5f5; /* neutral-100 */
   --card: #f5f5f5; /* neutral-100 */
   --surface-subtle: rgba(229, 229, 229, 0.5); /* neutral-200 / 50% opacity */
+  --foreground-subtle: #737373; /* neutral-500 */
 
   /* Borders & Skeletons */
   --border: #e5e5e5; /* neutral-200 */
@@ -15,8 +16,19 @@
   /* Text & Content */
   --muted: #a3a3a3; /* neutral-400 */
   --muted-active: #a3a3a3; /* neutral-400 */
-  --foreground: #404040; /* neutral-700 */
-  --foreground-strong: #0a0a0a; /* neutral-900 */
+
+  --foreground-strong: #000000; /* neutral-950 */
+  --foreground: #0a0a0a; /* neutral-900  */
+  --foreground-secondary: #171717; /* neutral-800 */
+  --foreground-tertiary: #404040; /* neutral-700 */
+  --foreground-muted: #525252; /* neutral-600 */
+  --foreground-faint: #737373; /* neutral-500 */
+  --foreground-disabled: #a3a3a3; /* neutral-400 */
+  --foreground-ghost: #d4d4d4; /* neutral-300 */
+  --foreground-inverse-muted: #e5e5e5; /* neutral-200 */
+  --foreground-inverse-subtle: #f5f5f5; /* neutral-100 */
+  --foreground-inverse: #fafafa; /* neutral-50 */
+  --foreground-inverse-strong: #ffffff; /* white */
 
   /* Overlays */
   --overlay: transparent; /* white / 0% opacity */
@@ -28,6 +40,7 @@
   --background: #171717; /* neutral-800 */
   --card: #171717; /* neutral-800 */
   --surface-subtle: rgba(23, 23, 23, 0.5); /* neutral-800 / 50% opacity */
+  --foreground-subtle: #525252; /* neutral-600 */
 
   /* Borders & Skeletons */
   --border: #262626; /* neutral-800 variant */
@@ -38,8 +51,20 @@
 
   --muted: #737373; /* neutral-500 */
   --muted-active: #a3a3a3; /* neutral-400 */
-  --foreground: #d4d4d4; /* neutral-300 */
+
   --foreground-strong: #ffffff; /* white */
+  --foreground: #fafafa; /* neutral-50 */
+  --foreground-secondary: #f5f5f5; /* neutral-100 */
+  --foreground-tertiary: #e5e5e5; /* neutral-200 */
+  --foreground-subtle: #d4d4d4; /* neutral-300 */
+  --foreground-muted: #a3a3a3; /* neutral-400 */
+  --foreground-faint: #737373; /* neutral-500 */
+  --foreground-disabled: #525252; /* neutral-600 */
+  --foreground-ghost: #404040; /* neutral-700 */
+  --foreground-inverse-muted: #171717; /* neutral-800 */
+  --foreground-inverse-subtle: #0a0a0a; /* neutral-900 */
+  --foreground-inverse: #000000; /* neutral-950 */
+  --foreground-inverse-strong: #000000; /* black */
 
   /* Overlays */
   --overlay: rgba(0, 0, 0, 0.05); /* black / 5% opacity */
@@ -62,20 +87,35 @@ input::-ms-reveal {
 }
 
 @theme inline {
+  /* Surfaces & Backgrounds */
   --color-surface: var(--surface);
   --color-background: var(--background);
   --color-card: var(--card);
   --color-surface-subtle: var(--surface-subtle);
 
+  /* Borders & Skeletons */
   --color-border: var(--border);
   --color-skeleton: var(--skeleton);
   --color-skeleton-pulse: var(--skeleton-pulse);
 
+  /* UI Elements */
   --color-muted: var(--muted);
-  --color-foreground: var(--foreground);
-  --color-foreground-strong: var(--foreground-strong);
+  --color-muted-active: var(--muted-active);
 
-  --muted-active: var(--muted-active);
+  /* Text Colors Mapping */
+  --color-foreground-strong: var(--foreground-strong);
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-tertiary: var(--foreground-tertiary);
+  --color-foreground-subtle: var(--foreground-subtle);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-faint: var(--foreground-faint);
+  --color-foreground-disabled: var(--foreground-disabled);
+  --color-foreground-ghost: var(--foreground-ghost);
+  --color-foreground-inverse-muted: var(--foreground-inverse-muted);
+  --color-foreground-inverse-subtle: var(--foreground-inverse-subtle);
+  --color-foreground-inverse: var(--foreground-inverse);
+  --color-foreground-inverse-strong: var(--foreground-inverse-strong);
 
   --color-overlay: var(--overlay);
 
