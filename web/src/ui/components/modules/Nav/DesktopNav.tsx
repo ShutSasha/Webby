@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils/general.utils'
 import { useNotificationPopupStore } from '@/stores/notification-popup.store'
 
 import { DesktopNavElement } from './DesktopNavElement'
+import { ThemeToggleNavElement } from './ThemeToggleNavElement'
 import { UserProfile } from './UserProfile'
 import GlobalSearchModal from '../GlobalSearch/GlobalSearchModal'
 
@@ -95,6 +96,10 @@ export default function DesktopNav({ isAdmin }: Props) {
               </li>
             ))}
           </ul>
+
+          <div className="w-full mb-2">
+            <ThemeToggleNavElement isExpanded={isExpanded} />
+          </div>
 
           <div className="mt-auto pt-4 border-t border-neutral-800/50 w-full flex items-center justify-center">
             <UserProfile isExpanded={isExpanded} iconSize="size-10" />
