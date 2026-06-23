@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+import { useSession } from 'next-auth/react'
+
 import SendIcon from '@/assets/icons/shared/send_message.svg'
 import { useSendMessageMutation } from '@/lib/hooks/api/chat/useSendMessage'
 import { useToastStore } from '@/stores/toast-store'
@@ -11,33 +13,39 @@ type Props = {
 }
 
 export default function ChatInput({ chatId }: Props) {
+  const { data: session } = useSession()
   const [content, setContent] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const addToast = useToastStore(state => state.addToast)
 
-  const { mutate: sendMessage, isPending } = useSendMessageMutation()
-
-  const prevPendingRef = useRef(isPending)
+  const { mutate: sendMessage } = useSendMessageMutation()
 
   useEffect(() => {
-    if (prevPendingRef.current && !isPending) {
-      inputRef.current?.focus()
-    }
-    prevPendingRef.current = isPending
-  }, [isPending])
+    inputRef.current?.focus()
+  }, [])
 
   const handleSend = (e?: React.FormEvent) => {
     e?.preventDefault()
 
-    if (!content.trim() || isPending || !chatId) return
+    const trimmedContent = content.trim()
+    if (!trimmedContent || !chatId || !session?.user) return
+
+    setContent('')
+    inputRef.current?.focus()
 
     sendMessage(
-      { chatId, content: content.trim() },
       {
-        onSuccess: () => {
-          setContent('')
+        chatId,
+        content: trimmedContent,
+        sender: {
+          id: session.user.id,
+          username: session.user.username,
+          avatarUrl: session.user.image || '',
         },
+      },
+      {
         onError: error => {
+          setContent(trimmedContent)
           addToast(error.message || 'Failed to send message', 'error')
         },
       },
@@ -58,14 +66,14 @@ export default function ChatInput({ chatId }: Props) {
         value={content}
         onChange={e => setContent(e.target.value)}
         onKeyDown={handleKeyDown}
-        disabled={isPending}
         placeholder="Send a message"
+        autoComplete="off"
         className="py-2 pl-4 pr-12 bg-neutral-900 placeholder:text-neutral-700 w-full ring-0 outline-0 rounded-lg
-          text-neutral-300 disabled:opacity-50"
+          text-neutral-300 transition-opacity"
       />
       <button
         type="submit"
-        disabled={!content.trim() || isPending}
+        disabled={!content.trim()}
         className="absolute -translate-y-1/2 top-1/2 right-3 disabled:opacity-50"
       >
         <SendIcon

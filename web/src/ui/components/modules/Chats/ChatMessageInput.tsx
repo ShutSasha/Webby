@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+import { useSession } from 'next-auth/react'
+
 import CloseIcon from '@/assets/icons/shared/circle-xmark.svg'
 import EditPenIcon from '@/assets/icons/shared/edit-pen.svg'
 import SendIcon from '@/assets/icons/shared/send_message.svg'
@@ -15,6 +17,7 @@ type Props = {
 }
 
 export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit }: Props) {
+  const { data: session } = useSession()
   const [messageText, setMessageText] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -44,7 +47,7 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
   const handleSendMessage = () => {
     const trimmedMessage = messageText.trim()
 
-    if (!trimmedMessage || isPending) return
+    if (!trimmedMessage || isPending || !session?.user) return
 
     if (editingMessage) {
       editMessage(
@@ -58,7 +61,15 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
       )
     } else {
       sendMessage(
-        { chatId, content: trimmedMessage },
+        {
+          chatId,
+          content: trimmedMessage,
+          sender: {
+            id: session.user.id,
+            username: session.user.username,
+            avatarUrl: session.user.image || '',
+          },
+        },
         {
           onSuccess: () => {
             setMessageText('')

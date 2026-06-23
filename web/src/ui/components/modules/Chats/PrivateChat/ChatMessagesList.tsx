@@ -80,7 +80,7 @@ export default function ChatMessagesList({ chatId, currentUserId, onEditMessage 
           <ChatMessagesListSkeleton />
         ) : (
           messages.map((msg, index) => {
-            const isMe = msg.sender.id === currentUserId
+            const isMe = msg?.sender?.id === currentUserId
             const isLast = index === messages.length - 1
 
             const isDeleting = isDeletingMessage && deleteVars?.messageId === msg.id
