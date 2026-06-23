@@ -1,8 +1,10 @@
-﻿using AutoMapper;
+﻿using System.Linq.Expressions;
+using AutoMapper;
 using FluentAssertions;
 using NSubstitute;
 using UserService;
 using Webby.VideoService.Constants;
+using Webby.VideoService.Dtos.External;
 using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Helpers.Exception;
@@ -286,6 +288,9 @@ public class PlaylistServiceTests
 
       _playlistRepositoryMock.FindByIdWithVideos(playlistId).Returns(playlist);
       _mapperMock.Map<PlaylistDto>(Arg.Any<Models.Playlist>()).Returns(expectedDto);
+      _externalContentFetcherMock
+         .FetchExternalContentAsync(Arg.Any<List<PlaylistVideo>>())
+         .Returns(new ExternalContentData()); 
 
       // Act
       var result = await _sut.GetPlaylistInformation(playlistId, requestedUserId);
@@ -303,7 +308,7 @@ public class PlaylistServiceTests
       var playlistId = Guid.NewGuid();
       var requestedUserId = Guid.NewGuid();
       var otherUserId = Guid.NewGuid();
-    
+ 
       var playlist = new Models.Playlist 
       { 
          PlaylistId = playlistId,
@@ -311,15 +316,17 @@ public class PlaylistServiceTests
          {
             new PlaylistVideo 
             { 
-               Platform =SystemPlatforms.Webby, 
-               Video =new Video(isPrivate: true, userId: otherUserId, name: null)
-               // Чужое приватное видео
+               Platform = SystemPlatforms.Webby, 
+               Video = new Video(isPrivate: true, userId: otherUserId, name: "new video #1")
             }
          }
       };
 
       _playlistRepositoryMock.FindByIdWithVideos(playlistId).Returns(playlist);
-      _mapperMock.Map<PlaylistDto>(Arg.Any<Models.Playlist>()).Returns(new PlaylistDto());
+
+      _externalContentFetcherMock
+         .FetchExternalContentAsync(Arg.Any<List<PlaylistVideo>>())
+         .Returns(new ExternalContentData()); 
 
       // Act
       var result = await _sut.GetPlaylistInformation(playlistId, requestedUserId);
@@ -348,17 +355,19 @@ public class PlaylistServiceTests
    [Fact]
    public async Task CheckIfVideoExistInPlaylist_ShouldReturnRepositoryResult()
    {
-       // Arrange
-       var playlistId = Guid.NewGuid();
-       var videoId = PlatformPrefixesConstants.WebbyPrefix + Guid.NewGuid();
-       _playlistRepositoryMock.CheckIsVideoAdded(videoId, playlistId).Returns(true);
+      // Arrange
+      var playlistId = Guid.NewGuid();
+      var actualId = Guid.NewGuid().ToString();
+      var videoId = PlatformPrefixesConstants.WebbyPrefix + actualId;
+    
+      _playlistRepositoryMock.CheckIsVideoAdded(actualId, playlistId).Returns(true);
 
-       // Act
-       var result = await _sut.CheckIfVideoExistInPlaylist(playlistId, videoId);
+      // Act
+      var result = await _sut.CheckIfVideoExistInPlaylist(playlistId, videoId);
 
-       // Assert
-       result.Should().BeTrue();
-       await _playlistRepositoryMock.Received(1).CheckIsVideoAdded(videoId, playlistId);
+      // Assert
+      result.Should().BeTrue();
+      await _playlistRepositoryMock.Received(1).CheckIsVideoAdded(actualId, playlistId);
    }
 
    [Fact]
@@ -367,7 +376,7 @@ public class PlaylistServiceTests
       // Arrange
       var playlistId = Guid.NewGuid();
       var userId = Guid.NewGuid();
-      var videoId = PlatformPrefixesConstants.WebbyPrefix + Guid.NewGuid().ToString();
+      var videoId = PlatformPrefixesConstants.WebbyPrefix + Guid.NewGuid();
 
       var requestItems = new List<string>() { videoId };
 
@@ -378,8 +387,19 @@ public class PlaylistServiceTests
          PlaylistVideos = new List<PlaylistVideo>() 
       };
 
-      _playlistRepositoryMock.GetPlaylistDetails(playlistId).Returns(playlist);
-      
+      _playlistRepositoryMock
+         .GetByPredicate(Arg.Any<Expression<Func<Models.Playlist, bool>>>())
+         .Returns(new List<Models.Playlist> { playlist }.AsEnumerable());
+
+      var itemsToMockReturn = new List<PlaylistVideo> 
+      { 
+         new PlaylistVideo { Platform = SystemPlatforms.Webby } 
+      };
+
+      _playlistRepositoryMock
+         .GetPlaylistItemsDiffAsync(playlistId, MediaType.Video, Arg.Any<List<PlaylistVideo>>())
+         .Returns((itemsToMockReturn, new List<PlaylistVideo>()));
+   
       _videoRepositoryMock.CheckVideosCount(Arg.Any<List<Guid>>()).Returns(true);
       _videoRepositoryMock.CheckForbiddenVideos(Arg.Any<List<Guid>>(), userId).Returns(false);
 

@@ -59,8 +59,8 @@ public static class VideoQueryFilters
       return (
          @"
       (
-          ""IsPublished"" = TRUE
-         ""IsBanned"" = FALSE
+          ""IsPublished"" = TRUE 
+         AND ""IsBanned"" = FALSE
           AND (
               ""IsPrivate"" = FALSE
               OR ""UserId"" = {2}
