@@ -41,7 +41,7 @@ export default function CreatePlaylistButton() {
           <Input
             id="playlist-name"
             placeholder="Enter playlist name..."
-            className="py-2.5 pl-10 rounded-xl w-full border-neutral-700"
+            className="py-2.5 pl-10 rounded-xl w-full border-neutral-700 placeholder:text-foreground-disabled"
             value={name}
             onChange={handleInput}
           />

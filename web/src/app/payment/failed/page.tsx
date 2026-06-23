@@ -24,8 +24,8 @@ export default function PaymentFailedPage() {
           <Button
             viewType="confirm"
             onClick={() => router.push('/premium')}
-            className="rounded-xl px-8 py-3 text-lg font-bold bg-neutral-100 hover:bg-neutral-200
-              text-foreground-inverse-subtle shadow-lg transition-all hover:scale-105"
+            className="rounded-xl px-8 py-3 text-lg font-bold bg-surface-inverse-secondary
+              hover:bg-surface-inverse-muted text-foreground-inverse-subtle shadow-lg transition-all hover:scale-105"
           >
             Try Again
           </Button>

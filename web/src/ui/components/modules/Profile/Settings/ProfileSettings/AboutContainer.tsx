@@ -44,9 +44,9 @@ export default function AboutContainer({ userId, about }: Props) {
         onChange={e => setText(e.target.value)}
         placeholder="Type something about yourself..."
         disabled={isPending}
-        className="w-full rounded-2xl p-5 border border-neutral-800/80 bg-neutral-950/50 h-40 resize-none text-start
-          align-top mb-5 text-foreground-tertiary placeholder:text-foreground-disabled outline-none transition-all
-          duration-300 hover:border-neutral-600 focus:border-emerald-500/50 focus:bg-neutral-900/80 disabled:opacity-50
+        className="w-full rounded-2xl p-5 border border-border/80 bg-strong/50 h-40 resize-none text-start align-top
+          mb-5 text-foreground-tertiary placeholder:text-foreground-disabled outline-none transition-all duration-300
+          hover:border-neutral-600 focus:border-emerald-500/50 focus:bg-surface/80 disabled:opacity-50
           disabled:cursor-not-allowed"
       />
 

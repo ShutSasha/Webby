@@ -25,7 +25,7 @@ export default async function EditVideoPage({ params }: Props) {
 
   if (!response.success || !response.data) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+      <div className="flex-1 flex items-center justify-center bg-surface/20 rounded-[20px]">
         <EmptyState
           title="Video not found"
           description="We couldn't find the video you're looking for. It might have been deleted or you may not have permission to edit it."
@@ -36,7 +36,7 @@ export default async function EditVideoPage({ params }: Props) {
 
   if (!session || session.user.id !== response.data?.user?.userId) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+      <div className="flex-1 flex items-center justify-center bg-surface/20 rounded-[20px]">
         <EmptyState
           title="Access Denied"
           description="You don't have permission to edit this video. Make sure you are logged into the correct account."

@@ -73,7 +73,7 @@ export default function DesktopNav({ isAdmin }: Props) {
             >
               <ExpandIcon
                 className={cn(
-                  'size-5 transition-transform duration-300 stroke-[1.5px]',
+                  'size-5 transition-transform duration-300 stroke-[1.5px] dark:text-muted-active text-neutral-800',
                   isExpanded ? 'rotate-180' : 'rotate-0',
                 )}
               />

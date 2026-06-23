@@ -2,10 +2,10 @@ export default function VideoNotFound() {
   return (
     <div className="h-fit min-w-0 w-full animate-in fade-in duration-500">
       <div
-        className="w-full aspect-video bg-neutral-900 rounded-2xl mb-3 flex flex-col items-center justify-center border
-          border-neutral-800/50"
+        className="w-full aspect-video bg-surface rounded-2xl mb-3 flex flex-col items-center justify-center border
+          border-border/50"
       >
-        <div className="size-16 rounded-full bg-neutral-800 flex items-center justify-center mb-4">
+        <div className="size-16 rounded-full bg-background flex items-center justify-center mb-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -29,12 +29,12 @@ export default function VideoNotFound() {
         </p>
       </div>
 
-      <div className="h-8 bg-neutral-800/50 rounded-lg w-1/3 mt-6 mb-4" />
+      <div className="h-8 bg-background/50 rounded-lg w-1/3 mt-6 mb-4" />
       <div className="flex gap-3 items-center mb-6">
-        <div className="size-9 bg-neutral-800/50 rounded-full" />
-        <div className="h-5 bg-neutral-800/50 rounded-md w-32" />
+        <div className="size-9 bg-background/50 rounded-full" />
+        <div className="h-5 bg-background/50 rounded-md w-32" />
       </div>
-      <div className="w-full h-24 bg-neutral-800/50 rounded-xl" />
+      <div className="w-full h-24 bg-background/50 rounded-xl" />
     </div>
   )
 }

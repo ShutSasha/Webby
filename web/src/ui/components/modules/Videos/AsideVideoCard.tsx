@@ -36,7 +36,10 @@ export default function AsideVideoCard({ video }: Props) {
           placeholder="blur"
           blurDataURL={BLUR_DATA_URLS['neutral900']}
         />
-        <div className="absolute inset-0 z-1 bg-black/15 transition-all duration-500 group-hover:bg-black/5" />
+        <div
+          className="absolute inset-0 z-1 bg-surface-strong/15 transition-all duration-500
+            group-hover:bg-surface-strong/5"
+        />
       </div>
 
       <div className="flex flex-col gap-1 flex-1 overflow-hidden">
@@ -57,11 +60,11 @@ export default function AsideVideoCard({ video }: Props) {
 export function AsideVideoCardSkeleton() {
   return (
     <div className="flex flex-col xl:flex-row gap-3 animate-pulse">
-      <div className="xl:w-[168px] aspect-video bg-neutral-800/80 rounded-lg shrink-0" />
+      <div className="xl:w-[168px] aspect-video bg-background/80 rounded-lg shrink-0" />
       <div className="flex flex-col gap-2 flex-1 pt-1">
-        <div className="h-3.5 bg-neutral-800/80 rounded w-[90%]" />
-        <div className="h-3.5 bg-neutral-800/80 rounded w-[60%]" />
-        <div className="h-2.5 bg-neutral-800/60 rounded w-[40%] mt-1" />
+        <div className="h-3.5 bg-background/80 rounded w-[90%]" />
+        <div className="h-3.5 bg-background/80 rounded w-[60%]" />
+        <div className="h-2.5 bg-background/60 rounded w-[40%] mt-1" />
       </div>
     </div>
   )

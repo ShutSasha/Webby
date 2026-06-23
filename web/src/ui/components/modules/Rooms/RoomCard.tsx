@@ -28,10 +28,7 @@ export default function RoomCard({ id, name, thumbnail, category, hostUsername, 
         />
 
         <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md">
-          <p
-            className="uppercase font-bold text-[10px] tracking-wider text-foreground-tertiary line-clamp-1
-              max-w-[100px]"
-          >
+          <p className="uppercase font-bold text-[10px] tracking-wider text-neutral-100 line-clamp-1 max-w-[100px]">
             {category}
           </p>
         </div>
@@ -71,7 +68,7 @@ export function RoomCardSkeleton() {
       {/* Thumbnail Skeleton */}
       <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-card/80 animate-pulse">
         {/* Category Badge Skeleton */}
-        <div className="absolute top-2 left-2 z-10 bg-neutral-700/50 h-5 w-12 rounded-md" />
+        <div className="absolute top-2 left-2 z-10 bg-surface-tertiary/50 h-5 w-12 rounded-md" />
       </div>
 
       <div className="flex gap-3 items-start px-1">

@@ -51,7 +51,7 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
 
   if (!isActuallyReady) {
     return (
-      <div className="aspect-video bg-black/80 w-full rounded-2xl flex items-center justify-center">
+      <div className="aspect-video bg-surface-strong/80 w-full rounded-2xl flex items-center justify-center">
         <div className="w-16 h-16 border-6 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
       </div>
     )
@@ -62,7 +62,7 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
       ref={refs.playerContainerRef}
       onMouseMove={actions.handleMouseMove}
       onMouseLeave={actions.handleMouseLeave}
-      className={`group relative w-full bg-black transition-all
+      className={`group relative w-full bg-surface-strong transition-all
         ${uiState.isFullScreen ? 'w-screen h-screen' : 'aspect-video'} ${!isTwitch ? 'rounded-2xl overflow-hidden' : ''}
         ${!isPlatformMode && !uiState.showCustomControls ? 'cursor-none' : 'cursor-default'}`}
     >
@@ -93,7 +93,10 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
       />
 
       {state.error && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 text-center px-4">
+        <div
+          className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface-strong/80 text-center
+            px-4"
+        >
           <svg className="w-12 h-12 text-red-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -151,7 +154,6 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
               playedFraction={state.played}
               baseUserVolume={uiState.baseUserVolume}
               showSettings={state.showSettings}
-              isRoom={isRoom}
               onPlayPause={actions.handlePlayPause}
               onVolumeChange={actions.handleVolumeChange}
               onToggleMute={actions.toggleMute}

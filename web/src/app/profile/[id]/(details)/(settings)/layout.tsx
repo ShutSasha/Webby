@@ -25,7 +25,7 @@ export default async function Layout({ children, params }: Props) {
 
   if (session.user.id !== id) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+      <div className="flex-1 flex items-center justify-center bg-surface/20 rounded-[20px]">
         <EmptyState
           title="Access Denied"
           description="You can only view and manage the settings for your own profile."

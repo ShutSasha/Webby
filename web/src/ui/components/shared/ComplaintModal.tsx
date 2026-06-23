@@ -80,7 +80,7 @@ export default function ComplaintModal({ isOpen, onClose, targetId, targetType }
 
             <textarea
               autoFocus
-              className="w-full h-32 bg-neutral-900 border border-neutral-700 rounded-xl p-3 text-foreground-subtle
+              className="w-full h-32 bg-surface border border-neutral-700 rounded-xl p-3 text-foreground-subtle
                 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
               placeholder="Describe the issue..."
               value={description}
@@ -103,7 +103,7 @@ export default function ComplaintModal({ isOpen, onClose, targetId, targetType }
                   transition-all `,
                   {
                     'cursor-pointer': !isPending,
-                    'cursor-not-allowed disabled:bg-neutral-700': isPending,
+                    'cursor-not-allowed disabled:bg-surface-tertiary': isPending,
                   },
                 )}
               >
@@ -121,7 +121,7 @@ export default function ComplaintModal({ isOpen, onClose, targetId, targetType }
             <button
               onClick={handleClose}
               className="mt-6 px-8 py-2 rounded-full text-foreground-subtle cursor-pointer border border-border
-                hover:bg-neutral-900/70 transition-all duration-300"
+                hover:bg-surface/70 transition-all duration-300"
             >
               Close
             </button>
@@ -136,8 +136,8 @@ function ReasonButton({ reason, onClick }: { reason: string; onClick: () => void
   return (
     <button
       onClick={onClick}
-      className="w-full border border-neutral-700 rounded-2xl py-3 px-4 text-left cursor-pointer bg-neutral-900/50
-        hover:bg-neutral-800 hover:border-emerald-500 transition-all text-foreground-tertiary"
+      className="w-full border border-neutral-700 rounded-2xl py-3 px-4 text-left cursor-pointer bg-surface/50
+        hover:bg-background hover:border-emerald-500 transition-all text-foreground-tertiary"
     >
       {reason}
     </button>

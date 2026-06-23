@@ -60,7 +60,7 @@ export default function Modal({ isOpen, onClose, children, modalClasses = '' }: 
         />
 
         <div
-          className={`relative w-full max-w-[440px] border border-neutral-800 bg-neutral-900 shadow-2xl p-6 rounded-2xl
+          className={`relative w-full max-w-[440px] border border-border bg-surface shadow-2xl p-6 rounded-2xl
             transition-all duration-400 ease-out ${modalClasses}
             ${isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8'}`}
         >

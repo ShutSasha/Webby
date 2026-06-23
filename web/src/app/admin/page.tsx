@@ -45,7 +45,7 @@ export default function AdminOverviewPage() {
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {mockStats.map((stat, i) => (
-          <div key={i} className="bg-[#0A0A0A] border border-neutral-800/60 rounded-2xl p-5 flex flex-col gap-2">
+          <div key={i} className="bg-surface border border-border/60 rounded-2xl p-5 flex flex-col gap-2">
             <span className="text-foreground-faint text-sm font-medium">{stat.label}</span>
             <div className="flex items-end justify-between">
               <span className="text-3xl font-bold text-foreground-secondary">{stat.value}</span>

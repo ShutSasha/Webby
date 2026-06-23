@@ -34,7 +34,7 @@ export default function PlayerSyncButton({ roomId, className }: Props) {
         'group flex items-center gap-2 shrink-0 px-3 py-2 md:px-4 md:py-2 rounded-full',
         'transition-all duration-300 ease-out text-nowrap',
         'bg-transparent text-foreground-muted',
-        !isSyncCooldown && 'hover:bg-neutral-800 hover:text-foreground-secondary cursor-pointer',
+        !isSyncCooldown && 'hover:bg-background hover:text-foreground-secondary cursor-pointer',
         isSyncCooldown && 'opacity-60 cursor-not-allowed',
         className,
       )}

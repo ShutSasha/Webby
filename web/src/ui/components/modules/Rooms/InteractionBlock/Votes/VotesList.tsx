@@ -77,16 +77,16 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
                 key={vote.id}
                 onClick={() => onSelectVote(vote.id, 'RIGHT_CHOICE')}
                 className={cn('p-4 rounded-xl border transition-all cursor-pointer group', {
-                  'bg-neutral-800/30 border-neutral-800': isResolved,
-                  'bg-neutral-800/80 border-neutral-700 hover:bg-neutral-700': isClosed,
-                  'bg-neutral-800 border-emerald-500/30 hover:border-emerald-500': isActive,
+                  'bg-background/30 border-border': isResolved,
+                  'bg-background/80 border-neutral-700 hover:bg-surface-tertiary': isClosed,
+                  'bg-background border-emerald-500/30 hover:border-emerald-500': isActive,
                 })}
               >
                 <div className="flex justify-between items-start mb-2">
                   <span
                     className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md', {
-                      'bg-neutral-800 text-foreground-faint': isResolved,
-                      'bg-neutral-700 text-foreground-muted': isClosed,
+                      'bg-background text-foreground-faint': isResolved,
+                      'bg-surface-tertiary text-foreground-muted': isClosed,
                       'bg-emerald-500/20 text-emerald-500': isActive,
                     })}
                   >

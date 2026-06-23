@@ -99,7 +99,7 @@ export default function UserPlaylistItem(props: Props) {
           <ImageBackground src={props.src} />
 
           <div
-            className="absolute bg-black/80 rounded-lg px-2 py-1 top-1/35 right-1/40 group-hover:top-1/20
+            className="absolute bg-surface-strong/80 rounded-lg px-2 py-1 top-1/35 right-1/40 group-hover:top-1/20
               group-hover:right-1/25 transition-all duration-300 text-foreground-tertiary text-[12px]
               pointer-events-none"
           >
@@ -120,9 +120,9 @@ export default function UserPlaylistItem(props: Props) {
               onClick={toggleMenu}
               className={cn(
                 'p-1.5 -mr-1.5 -mt-1 rounded-full transition-all duration-300 cursor-pointer z-20',
-                'hover:bg-neutral-500/20 active:bg-neutral-500/40',
+                'hover:bg-surface-faint/20 active:bg-surface-faint/40',
                 isMenuOpen
-                  ? 'bg-neutral-500/20 text-foreground-subtle'
+                  ? 'bg-surface-faint/20 text-foreground-subtle'
                   : 'text-foreground-muted opacity-0 group-hover:opacity-100 md:opacity-100',
               )}
             >
@@ -131,12 +131,12 @@ export default function UserPlaylistItem(props: Props) {
 
             {isMenuOpen && (
               <div
-                className="absolute right-0 top-full mt-2 w-48 bg-neutral-800 border border-neutral-700/60 shadow-xl
+                className="absolute right-0 top-full mt-2 w-48 bg-background border border-neutral-700/60 shadow-xl
                   shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
                 onClick={e => e.preventDefault()}
               >
                 <button
-                  className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-neutral-700/50
+                  className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-surface-tertiary/50
                     transition-colors flex items-center gap-3 cursor-pointer"
                   onClick={handleEditPlaylist}
                 >

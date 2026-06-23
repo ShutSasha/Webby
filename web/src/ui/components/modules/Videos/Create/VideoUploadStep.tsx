@@ -10,7 +10,7 @@ export default function VideoUploadStep({ isUploading, uploadProgress = 0, onVid
   return (
     <div
       className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-neutral-700 rounded-xl
-        bg-neutral-800/20"
+        bg-background/20"
     >
       {isUploading ? (
         <div className="flex flex-col items-center gap-4 w-full max-w-sm px-4">
@@ -21,7 +21,7 @@ export default function VideoUploadStep({ isUploading, uploadProgress = 0, onVid
               <span>Progress</span>
               <span className="text-emerald-500">{uploadProgress}%</span>
             </div>
-            <div className="h-2 w-full bg-neutral-800 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-background rounded-full overflow-hidden">
               <div
                 className="h-full bg-emerald-500 transition-all duration-300 ease-out"
                 style={{ width: `${uploadProgress}%` }}
@@ -31,7 +31,7 @@ export default function VideoUploadStep({ isUploading, uploadProgress = 0, onVid
         </div>
       ) : (
         <div className="flex flex-col items-center gap-4">
-          <div className="p-4 bg-neutral-800 rounded-full text-foreground-muted">
+          <div className="p-4 bg-background rounded-full text-foreground-muted">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"

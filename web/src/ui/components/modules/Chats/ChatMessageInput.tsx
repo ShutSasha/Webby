@@ -90,10 +90,7 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
   }
 
   return (
-    <div
-      className="p-4 bg-neutral-900/20 border-t border-neutral-800/60 shrink-0 flex flex-col transition-all
-        duration-300"
-    >
+    <div className="p-4 bg-surface/20 border-t border-border/60 shrink-0 flex flex-col transition-all duration-300">
       {editingMessage && (
         <div
           className="flex items-center justify-between mb-3 px-2 animate-in fade-in slide-in-from-bottom-2 duration-200"
@@ -109,7 +106,7 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
           </div>
           <button
             onClick={onCancelEdit}
-            className="p-1.5 hover:bg-neutral-800 rounded-full text-foreground-faint hover:text-foreground-subtle
+            className="p-1.5 hover:bg-background rounded-full text-foreground-faint hover:text-foreground-subtle
               transition-colors"
           >
             <CloseIcon className="size-5" />
@@ -126,7 +123,7 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
           onKeyDown={handleKeyDown}
           placeholder={editingMessage ? 'Edit your message...' : 'Write a message...'}
           disabled={isPending}
-          className="w-full bg-[#141414] border border-neutral-800 text-foreground-tertiary
+          className="w-full bg-background border border-border text-foreground-tertiary
             placeholder:text-foreground-disabled rounded-xl py-3.5 pl-5 pr-12 outline-none focus:border-neutral-600
             transition-colors disabled:opacity-50"
         />

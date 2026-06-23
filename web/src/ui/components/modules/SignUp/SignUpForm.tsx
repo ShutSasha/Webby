@@ -89,11 +89,11 @@ export default function SignUpForm() {
       </Button>
 
       <div className="flex items-center gap-3">
-        <div className="h-px w-full bg-neutral-800" />
+        <div className="h-px w-full bg-background" />
         <span className="text-xs text-foreground-faint uppercase tracking-wider whitespace-nowrap">
           or continue with
         </span>
-        <div className="h-px w-full bg-neutral-800" />
+        <div className="h-px w-full bg-background" />
       </div>
 
       <AuthSocialButtons />

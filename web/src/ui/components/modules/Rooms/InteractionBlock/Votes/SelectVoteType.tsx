@@ -15,8 +15,8 @@ export default function SelectVoteType({ onSelect, onBack }: Props) {
       <div className="flex flex-col gap-3">
         <button
           onClick={() => onSelect('CREATE_NEXT_VIDEO')}
-          className="flex flex-col items-start p-4 bg-[#141414] border border-neutral-800 hover:border-purple-500
-            hover:bg-neutral-800 rounded-xl transition-all group text-left"
+          className="flex flex-col items-start p-4 bg-background border border-border hover:border-purple-500
+            hover:bg-background rounded-xl transition-all group text-left"
         >
           <span className="font-semibold text-foreground-tertiary group-hover:text-purple-400 transition-colors">
             Next Video Vote
@@ -28,8 +28,8 @@ export default function SelectVoteType({ onSelect, onBack }: Props) {
 
         <button
           onClick={() => onSelect('CREATE_RIGHT_CHOICE')}
-          className="flex flex-col items-start p-4 bg-[#141414] border border-neutral-800 hover:border-emerald-500
-            hover:bg-neutral-800 rounded-xl transition-all group text-left"
+          className="flex flex-col items-start p-4 bg-background border border-border hover:border-emerald-500
+            hover:bg-background rounded-xl transition-all group text-left"
         >
           <span className="font-semibold text-foreground-tertiary group-hover:text-emerald-400 transition-colors">
             Quiz / Custom Poll

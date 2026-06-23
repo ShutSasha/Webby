@@ -30,8 +30,8 @@ export function RoomChatMessageSkeleton({ index = 0 }: { index?: number }) {
 
   return (
     <div className="flex items-center gap-2 animate-pulse py-0.5 w-full">
-      <div className={`h-3.5 ${nameWidth} bg-neutral-800/80 rounded shrink-0`} />
-      <div className={`h-3.5 ${messageWidth} bg-neutral-800/50 rounded`} />
+      <div className={`h-3.5 ${nameWidth} bg-background/80 rounded shrink-0`} />
+      <div className={`h-3.5 ${messageWidth} bg-background/50 rounded`} />
     </div>
   )
 }

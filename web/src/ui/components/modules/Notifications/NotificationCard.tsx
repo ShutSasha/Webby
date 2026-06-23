@@ -27,14 +27,14 @@ export default function NotificationCard({ notification, onMarkAsRead, onDelete 
     <div
       className={cn(
         'group relative flex gap-4 p-4 rounded-2xl transition-all duration-300 border border-transparent',
-        isUnread ? 'bg-neutral-800/40 hover:bg-neutral-800 border-neutral-800/60' : 'hover:bg-neutral-800/40',
+        isUnread ? 'bg-background/40 hover:bg-background border-border/60' : 'hover:bg-background/40',
       )}
     >
       <div className="flex items-center shrink-0">
         <div
           className={cn(
             'w-12 h-12 flex items-center justify-center rounded-full',
-            isUnread ? 'bg-emerald-500/10 text-emerald-500' : 'bg-neutral-800 text-foreground-muted',
+            isUnread ? 'bg-emerald-500/10 text-emerald-500' : 'bg-background text-foreground-muted',
           )}
         >
           <TypeIcon type={notification.targetType} />
@@ -82,7 +82,7 @@ export default function NotificationCard({ notification, onMarkAsRead, onDelete 
         {isUnread && (
           <button
             onClick={() => onMarkAsRead?.(notification.notificationId)}
-            className="p-2 bg-neutral-700/50 hover:bg-emerald-500/20 text-foreground-subtle hover:text-emerald-500
+            className="p-2 bg-surface-tertiary/50 hover:bg-emerald-500/20 text-foreground-subtle hover:text-emerald-500
               rounded-xl transition-colors cursor-pointer"
             title="Mark as read"
           >
@@ -91,7 +91,7 @@ export default function NotificationCard({ notification, onMarkAsRead, onDelete 
         )}
         <button
           onClick={() => onDelete?.(notification.notificationId)}
-          className="p-2 bg-neutral-700/50 hover:bg-red-500/20 text-foreground-subtle hover:text-red-400 rounded-xl
+          className="p-2 bg-surface-tertiary/50 hover:bg-red-500/20 text-foreground-subtle hover:text-red-400 rounded-xl
             transition-colors cursor-pointer"
           title="Delete notification"
         >

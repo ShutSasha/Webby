@@ -96,8 +96,9 @@ export default function ChatMessagesList({ chatId, currentUserId, onEditMessage 
                 <div
                   className={`px-4 py-2.5 flex items-end gap-3 shadow-sm cursor-context-menu ${
                     isMe
-                      ? 'bg-emerald-500 text-foreground-inverse rounded-2xl rounded-br-sm border border-neutral-800/50'
-                      : 'bg-neutral-800 text-foreground-subtle rounded-2xl rounded-bl-sm font-medium'
+                      ? `bg-emerald-500 dark:text-foreground-inverse text-neutral-900 rounded-2xl rounded-br-sm border
+                        border-border/50`
+                      : 'bg-background text-foreground-subtle rounded-2xl rounded-bl-sm font-medium'
                     }`}
                 >
                   <p className="text-[15px] leading-relaxed break-all whitespace-pre-wrap">{msg.content}</p>

@@ -9,7 +9,6 @@ import MinVolume from '@/assets/icons/Player/volume-min.svg'
 import MutedVolume from '@/assets/icons/Player/volume-muted.svg'
 
 import Duration from './Duration'
-import PlayerSyncButton from './PlayerSyncButton'
 
 type Props = {
   playing: boolean
@@ -17,7 +16,6 @@ type Props = {
   playedFraction: number
   baseUserVolume: number
   showSettings: boolean
-  isRoom?: boolean
   onPlayPause: (e: React.MouseEvent) => void
   onVolumeChange: (e: React.SyntheticEvent<HTMLInputElement>) => void
   onToggleMute: () => void
@@ -31,7 +29,6 @@ export default function PlayerBottomControls({
   playedFraction,
   baseUserVolume,
   showSettings,
-  isRoom,
   onPlayPause,
   onVolumeChange,
   onToggleMute,
@@ -44,13 +41,13 @@ export default function PlayerBottomControls({
         <button onClick={onPlayPause} className="cursor-pointer">
           {playing ? (
             <PauseIcon
-              className="w-5 h-5 md:w-6 md:h-6 text-foreground-subtle hover:text-emerald-500 duration-300 ease-out
-                transition-colors stroke-[1.5px]"
+              className="w-5 h-5 md:w-6 md:h-6 dark:text-foreground-subtle text-neutral-100 hover:text-emerald-500
+                duration-300 ease-out transition-colors stroke-[1.5px]"
             />
           ) : (
             <PlayIcon
-              className="w-5 h-5 md:w-6 md:h-6 text-foreground-subtle hover:text-emerald-500 duration-300 ease-out
-                transition-colors stroke-[1.5px]"
+              className="w-5 h-5 md:w-6 md:h-6 dark:text-foreground-subtle text-neutral-100 hover:text-emerald-500
+                duration-300 ease-out transition-colors stroke-[1.5px]"
             />
           )}
         </button>
@@ -59,10 +56,13 @@ export default function PlayerBottomControls({
         <div className="flex items-center gap-0.5">
           <Duration
             seconds={duration * playedFraction}
-            className="text-foreground-subtle text-sm font-medium leading-5"
+            className="dark:text-foreground-subtle text-neutral-100 text-sm font-medium leading-5"
           />
-          <span className="text-foreground-subtle text-sm font-medium leading-5">/</span>
-          <Duration seconds={duration} className="text-foreground-subtle text-sm font-medium leading-5" />
+          <span className="dark:text-foreground-subtle text-neutral-100 text-sm font-medium leading-5">/</span>
+          <Duration
+            seconds={duration}
+            className="dark:text-foreground-subtle text-neutral-100 text-sm font-medium leading-5"
+          />
         </div>
 
         {/* Volume */}
@@ -70,26 +70,26 @@ export default function PlayerBottomControls({
           <button onClick={onToggleMute} className="cursor-pointer">
             {baseUserVolume >= 0.5 && (
               <MaxVolume
-                className="text-foreground-subtle w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500
-                  transition-colors stroke-[1.5px]"
+                className="dark:text-foreground-subtle text-neutral-100 w-5 h-5 md:w-6 md:h-6
+                  group-hover/volume:text-emerald-500 transition-colors stroke-[1.5px]"
               />
             )}
             {baseUserVolume < 0.5 && baseUserVolume > 0 && (
               <MinVolume
-                className="text-foreground-subtle w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500
-                  transition-colors stroke-[1.5px]"
+                className="dark:text-foreground-subtle text-neutral-100 w-5 h-5 md:w-6 md:h-6
+                  group-hover/volume:text-emerald-500 transition-colors stroke-[1.5px]"
               />
             )}
             {baseUserVolume === 0 && (
               <MutedVolume
-                className="text-foreground-subtle w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500
-                  transition-colors stroke-[1.5px]"
+                className="dark:text-foreground-subtle text-neutral-100 w-5 h-5 md:w-6 md:h-6
+                  group-hover/volume:text-emerald-500 transition-colors stroke-[1.5px]"
               />
             )}
           </button>
 
           {/* Volume Slider */}
-          <div className="relative w-22 h-1 md:h-1.5 bg-white/20 rounded-full group/slider">
+          <div className="relative w-22 h-1 md:h-1.5 bg-surface-inverse/20 rounded-full group/slider">
             <div
               className="absolute h-full bg-emerald-500 rounded-full"
               style={{ width: `${baseUserVolume * 100}%` }}
@@ -118,14 +118,14 @@ export default function PlayerBottomControls({
             className={`w-5 h-5 md:w-6 md:h-6 transition-colors duration-300 stroke-[1.5px] ${
               showSettings
                 ? 'text-emerald-500 rotate-45'
-                : 'text-foreground-subtle group-hover/settings:text-emerald-500'
+                : 'dark:text-foreground-subtle text-neutral-100 group-hover/settings:text-emerald-500'
               }`}
           />
         </button>
         <button type="button" onClick={onToggleFullScreen} className="cursor-pointer group/fullscreen">
           <FullscreenIcon
-            className="text-foreground-subtle w-5 h-5 md:w-6 md:h-6 group-hover/fullscreen:text-emerald-500
-              transition-colors stroke-[1.5px]"
+            className="dark:text-foreground-subtle text-neutral-100 w-5 h-5 md:w-6 md:h-6
+              group-hover/fullscreen:text-emerald-500 transition-colors stroke-[1.5px]"
           />
         </button>
       </div>

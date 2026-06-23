@@ -50,7 +50,7 @@ export default function VideoMetadataForm({
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       {!isEditingMode && (
-        <div className="flex items-center gap-2 pb-4 border-b border-neutral-800">
+        <div className="flex items-center gap-2 pb-4 border-b border-border">
           <div className="size-2.5 rounded-full bg-emerald-500" />
           <span className="text-sm text-emerald-400 font-medium">File uploaded successfully. Fill in details.</span>
         </div>
@@ -67,7 +67,7 @@ export default function VideoMetadataForm({
               required
               value={name}
               onChange={e => onNameChange(e.target.value)}
-              className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-foreground-secondary
+              className="bg-background border border-neutral-700 rounded-lg px-4 py-2.5 text-foreground-secondary
                 focus:outline-none focus:border-emerald-500 transition-colors"
               placeholder="Catchy title for your video"
             />
@@ -82,7 +82,7 @@ export default function VideoMetadataForm({
               value={description}
               onChange={e => onDescriptionChange(e.target.value)}
               rows={5}
-              className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-foreground-secondary
+              className="bg-background border border-neutral-700 rounded-lg px-4 py-2.5 text-foreground-secondary
                 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
               placeholder="Tell viewers about your video"
             />
@@ -109,7 +109,7 @@ export default function VideoMetadataForm({
           </span>
           <label
             className="relative aspect-video w-full rounded-xl border-2 border-dashed border-neutral-700
-              bg-neutral-800/50 overflow-hidden flex items-center justify-center cursor-pointer
+              bg-background/50 overflow-hidden flex items-center justify-center cursor-pointer
               hover:border-emerald-500/50 transition-colors group"
           >
             {previewBase64 ? (
@@ -133,7 +133,7 @@ export default function VideoMetadataForm({
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 pt-6 border-t border-neutral-800 mt-2">
+      <div className="flex justify-end gap-3 pt-6 border-t border-border mt-2">
         <CoreButton type="button" variant="secondary" onClick={onCancel} disabled={isSaving}>
           Back to upload
         </CoreButton>

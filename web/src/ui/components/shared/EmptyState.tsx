@@ -21,8 +21,8 @@ export default function EmptyState({ title, description, className, icon, disabl
       )}
     >
       <div
-        className="size-20 bg-neutral-900/50 rounded-full flex items-center justify-center mb-6 border
-          border-neutral-800 shadow-inner"
+        className="size-20 bg-surface/50 rounded-full flex items-center justify-center mb-6 border border-border
+          shadow-inner"
       >
         {icon ? icon : <SadSmileIcon className="size-9 text-foreground-disabled stroke-[1.5px]" />}
       </div>

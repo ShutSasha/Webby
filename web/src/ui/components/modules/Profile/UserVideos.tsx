@@ -75,15 +75,15 @@ export function UserVideosSkeleton() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
       {Array.from({ length: 12 }).map((_, index) => (
         <div key={index}>
-          <div className="w-full aspect-video rounded-2xl mb-1 bg-neutral-800 animate-pulse" />
+          <div className="w-full aspect-video rounded-2xl mb-1 bg-background animate-pulse" />
 
           {/* Title */}
-          <div className="h-4 w-3/4 bg-neutral-800 rounded-md mb-1.5 animate-pulse mt-1" />
+          <div className="h-4 w-3/4 bg-background rounded-md mb-1.5 animate-pulse mt-1" />
 
           {/* Meta info (Views and Date) */}
           <div className="flex gap-2 items-center">
-            <div className="h-3 w-16 bg-neutral-800 rounded-md animate-pulse" />
-            <div className="h-3 w-20 bg-neutral-800 rounded-md animate-pulse" />
+            <div className="h-3 w-16 bg-background rounded-md animate-pulse" />
+            <div className="h-3 w-20 bg-background rounded-md animate-pulse" />
           </div>
         </div>
       ))}

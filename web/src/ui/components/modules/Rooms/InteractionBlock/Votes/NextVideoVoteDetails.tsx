@@ -52,7 +52,7 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
           </span>
         </div>
         {isNextVideoActive && !isExpired && (
-          <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-background rounded-full overflow-hidden">
             <div className="h-full bg-purple-500 transition-none" style={{ width: `${progress}%` }} />
           </div>
         )}
@@ -84,11 +84,11 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
                   isMyChoice
                     ? 'bg-purple-500/10 border-purple-500/50'
                     : hasVoted
-                      ? 'bg-neutral-800/50 border-neutral-800 opacity-60'
-                      : 'bg-[#141414] border-neutral-800 hover:border-neutral-600 hover:bg-neutral-800',
+                      ? 'bg-background/50 border-border opacity-60'
+                      : 'bg-background border-border hover:border-neutral-600 hover:bg-background',
                 )}
               >
-                <div className="w-16 h-9 bg-neutral-800 rounded-md shrink-0 overflow-hidden relative">
+                <div className="w-16 h-9 bg-background rounded-md shrink-0 overflow-hidden relative">
                   {item.thumbnail && (
                     <Image src={item.thumbnail} width={50} height={50} className="object-cover w-full h-full" alt="" />
                   )}
@@ -105,7 +105,7 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
         )}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-neutral-800">
+      <div className="mt-6 pt-4 border-t border-border">
         <button onClick={onBack} className="text-foreground-muted hover:text-foreground-tertiary font-medium">
           Back to list
         </button>

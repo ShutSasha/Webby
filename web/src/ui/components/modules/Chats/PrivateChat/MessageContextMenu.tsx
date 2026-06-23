@@ -47,7 +47,7 @@ export default function MessageContextMenu({ isOpen, x, y, isOwnMessage, onClose
     <div
       ref={menuRef}
       style={{ top: safeY, left: safeX }}
-      className="fixed z-100 w-40 bg-neutral-800 border border-neutral-700/60 shadow-xl shadow-black/50 py-1.5
+      className="fixed z-100 w-40 bg-background border border-surface-tertiary/60 shadow-xl shadow-black/10 py-1.5
         rounded-xl animate-in fade-in zoom-in-95 duration-150"
       onContextMenu={e => e.preventDefault()}
     >
@@ -56,7 +56,7 @@ export default function MessageContextMenu({ isOpen, x, y, isOwnMessage, onClose
           onCopy()
           onClose()
         }}
-        className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-neutral-700/50
+        className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-surface-tertiary/50
           transition-colors"
       >
         Copy text
@@ -69,7 +69,7 @@ export default function MessageContextMenu({ isOpen, x, y, isOwnMessage, onClose
               onEdit()
               onClose()
             }}
-            className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-neutral-700/50
+            className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-surface-tertiary/50
               transition-colors"
           >
             Edit message
@@ -80,7 +80,7 @@ export default function MessageContextMenu({ isOpen, x, y, isOwnMessage, onClose
               onDelete()
               onClose()
             }}
-            className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-neutral-700/50 transition-colors"
+            className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-surface-tertiary/50 transition-colors"
           >
             Delete message
           </button>

@@ -26,14 +26,14 @@ export default function MobileDrawer({ isOpen, onClose, children }: Props) {
   return createPortal(
     <div className={`fixed inset-0 z-100 lg:hidden transition-all duration-400 ${isOpen ? 'visible' : 'invisible'}`}>
       <div
-        className={`absolute inset-0 bg-black/60 transition-opacity duration-400 ease-in-out ${
+        className={`absolute inset-0 bg-surface-strong/60 transition-opacity duration-400 ease-in-out ${
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}
       />
 
       <div
-        className={`absolute top-0 right-0 h-full w-[calc(100%-70px)] max-w-[440px] bg-neutral-900 shadow-2xl p-6
+        className={`absolute top-0 right-0 h-full w-[calc(100%-70px)] max-w-[440px] bg-surface shadow-2xl p-6
           transition-transform duration-400 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <p className="text-foreground-strong">

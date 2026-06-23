@@ -57,7 +57,7 @@ export default function MediaDetails({
         <div className="flex flex-col gap-0.5">
           <p className="text-foreground-subtle text-[20px] font-bold">{title}</p>
           {isMediaPrivate && (
-            <div className="bg-black/40 py-0.5 px-2 rounded-sm flex items-center gap-1 w-fit">
+            <div className="bg-surface-strong/40 py-0.5 px-2 rounded-sm flex items-center gap-1 w-fit">
               <LockIcon className="size-3 text-foreground-faint" />
               <p className="text-foreground-faint text-[12px]">Private</p>
             </div>

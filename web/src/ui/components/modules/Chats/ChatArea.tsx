@@ -65,15 +65,12 @@ export default function ChatArea({ chatId }: Props) {
   return (
     <div className="flex flex-col h-full w-full relative">
       {/* Header */}
-      <div
-        className="h-[72px] shrink-0 border-b border-neutral-800/60 flex items-center justify-between px-6
-          bg-neutral-900/20"
-      >
+      <div className="h-[72px] shrink-0 border-b border-border/60 flex items-center justify-between px-6 bg-surface/20">
         <div className="flex items-center gap-3">
           {isChatDetailsLoading ? (
             <>
-              <div className="size-10 rounded-full bg-neutral-800 animate-pulse shrink-0" />
-              <div className="h-5 w-32 bg-neutral-800 rounded-md animate-pulse" />
+              <div className="size-10 rounded-full bg-background animate-pulse shrink-0" />
+              <div className="h-5 w-32 bg-background rounded-md animate-pulse" />
             </>
           ) : (
             <>
@@ -99,7 +96,7 @@ export default function ChatArea({ chatId }: Props) {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(prev => !prev)}
-            className="p-2 rounded-full text-foreground-faint hover:text-foreground-tertiary hover:bg-neutral-800
+            className="p-2 rounded-full text-foreground-faint hover:text-foreground-tertiary hover:bg-background
               transition-colors"
           >
             <MoreVerticalIcon className="size-5" />
@@ -107,15 +104,16 @@ export default function ChatArea({ chatId }: Props) {
 
           {isMenuOpen && (
             <div
-              className="absolute right-0 top-full mt-2 w-48 bg-neutral-800 border border-neutral-700/60 shadow-xl
-                shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
+              className="absolute right-0 top-full mt-2 w-48 bg-background border border-surface-tertiary/60 shadow-xl
+                shadow-black/10 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
             >
               <button
                 onClick={() => {
                   setIsMenuOpen(false)
                   setIsDeleteModalOpen(true)
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-neutral-700/50 transition-colors"
+                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-surface-tertiary/50
+                  transition-colors"
               >
                 Delete chat
               </button>
@@ -139,7 +137,7 @@ export default function ChatArea({ chatId }: Props) {
             <button
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={isDeleting}
-              className="px-4 py-2 text-sm font-medium text-foreground-subtle hover:bg-neutral-800 rounded-xl
+              className="px-4 py-2 text-sm font-medium text-foreground-subtle hover:bg-background rounded-xl
                 transition-colors disabled:opacity-50"
             >
               Cancel

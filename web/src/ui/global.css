@@ -29,7 +29,8 @@
   --foreground: #0a0a0a; /* neutral-900  */
   --foreground-secondary: #171717; /* neutral-800 */
   --foreground-tertiary: #404040; /* neutral-700 */
-  --foreground-muted: #525252; /* neutral-600 */
+  --foreground-subtle: #525252; /* neutral-600 */
+  --foreground-muted: #737373; /* neutral-500 */
   --foreground-faint: #737373; /* neutral-500 */
   --foreground-disabled: #a3a3a3; /* neutral-400 */
   --foreground-ghost: #d4d4d4; /* neutral-300 */

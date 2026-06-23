@@ -32,15 +32,17 @@ const mockReports = [
 
 export default function AdminReportsPage() {
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-500 max-w-4xl">
+    <div className="flex flex-col gap-4 animate-in fade-in duration-500">
       {/* Tabs / Filters for reports */}
       <div className="flex items-center gap-3 mb-2">
-        <button className="px-4 py-2 bg-neutral-100 text-foreground-inverse-subtle font-bold rounded-xl text-sm">
+        <button
+          className="px-4 py-2 bg-surface-inverse-secondary text-foreground-inverse-subtle font-bold rounded-xl text-sm"
+        >
           Open (3)
         </button>
         <button
-          className="px-4 py-2 bg-[#0A0A0A] hover:bg-neutral-800 text-foreground-muted border border-neutral-800/60
-            rounded-xl text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-surface hover:bg-background text-foreground-muted border border-border/60 rounded-xl
+            text-sm font-medium transition-colors"
         >
           Resolved
         </button>
@@ -48,13 +50,13 @@ export default function AdminReportsPage() {
 
       {/* Reports Feed */}
       {mockReports.map(report => (
-        <div key={report.id} className="bg-[#0A0A0A] border border-neutral-800/60 rounded-2xl p-5 flex flex-col gap-4">
+        <div key={report.id} className="bg-surface border border-border/60 rounded-2xl p-5 flex flex-col gap-4">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <span
-                  className="px-2 py-0.5 bg-neutral-800 text-foreground-subtle rounded text-xs font-bold uppercase
+                  className="px-2 py-0.5 bg-background text-foreground-subtle rounded text-xs font-bold uppercase
                     tracking-wider"
                 >
                   {report.targetType}
@@ -71,12 +73,18 @@ export default function AdminReportsPage() {
           </div>
 
           {/* Body */}
-          <div className="bg-neutral-900/50 rounded-xl p-4 text-foreground-subtle text-sm border-l-4 border-red-500/50">
+          <div className="bg-surface/50 rounded-xl p-4 text-foreground-subtle text-sm border-l-4 border-red-500/50">
             &quot;{report.description}&quot;
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-3 mt-2 border-t border-neutral-800/60 pt-4">
+          <div className="flex items-center gap-3 mt-2 border-t border-border/60 pt-4">
+            <button
+              className="px-5 py-2 text-foreground-faint hover:text-foreground-subtle font-medium rounded-xl text-sm
+                transition-colors mr-auto"
+            >
+              View Details
+            </button>
             {report.targetType === 'Video' && (
               <button
                 className="px-5 py-2 bg-red-500 hover:bg-red-600 text-foreground-strong font-semibold rounded-xl text-sm
@@ -94,16 +102,10 @@ export default function AdminReportsPage() {
               </button>
             )}
             <button
-              className="px-5 py-2 bg-neutral-800 hover:bg-neutral-700 text-foreground-subtle font-semibold rounded-xl
-                text-sm transition-colors"
+              className="px-5 py-2 bg-background hover:bg-surface-tertiary text-foreground-subtle font-semibold
+                rounded-xl text-sm transition-colors"
             >
               Dismiss Report
-            </button>
-            <button
-              className="px-5 py-2 text-foreground-faint hover:text-foreground-subtle font-medium rounded-xl text-sm
-                transition-colors ml-auto"
-            >
-              View Details
             </button>
           </div>
         </div>

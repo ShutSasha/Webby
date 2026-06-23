@@ -66,9 +66,7 @@ export default function VerifyPage({ email }: { email?: string }) {
 
   return (
     <div className="flex flex-1 items-center justify-center">
-      <div
-        className="flex w-full bg-neutral-900 max-w-[700px] rounded-[20px] p-10 box-border flex-col items-center gap-4"
-      >
+      <div className="flex w-full bg-surface max-w-[700px] rounded-[20px] p-10 box-border flex-col items-center gap-4">
         <div className="space-y-2 text-center">
           <h2 className="text-foreground-strong text-2xl font-bold">Confirm email</h2>
           <p className="text-foreground-muted text-sm">We have sent a code to your email</p>
@@ -139,7 +137,7 @@ export function Slot(props: SlotProps) {
       {/* Caret (blinking bar) */}
       {props.isActive && props.char === null && (
         <div className="absolute inset-0 flex items-center justify-center animate-caret-blink">
-          <div className="w-px h-8 bg-white" />
+          <div className="w-px h-8 bg-surface-inverse" />
         </div>
       )}
     </div>

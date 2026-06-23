@@ -27,9 +27,9 @@ export default function PaymentSuccessPage() {
       <div className="relative z-10 max-w-2xl mx-auto px-6 text-center">
         {isLoading ? (
           <div className="flex flex-col items-center gap-6 animate-pulse">
-            <div className="size-24 rounded-full bg-neutral-800/80 mb-2" />
-            <div className="h-8 w-64 bg-neutral-800/80 rounded-md" />
-            <div className="h-4 w-48 bg-neutral-800/60 rounded-md" />
+            <div className="size-24 rounded-full bg-background/80 mb-2" />
+            <div className="h-8 w-64 bg-background/80 rounded-md" />
+            <div className="h-4 w-48 bg-background/60 rounded-md" />
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center">
@@ -58,7 +58,7 @@ export default function PaymentSuccessPage() {
             <p className="text-foreground-muted text-lg mb-4 leading-relaxed">
               Your payment was successful. You now have access to all limitless viewing features.
             </p>
-            <div className="bg-neutral-900/50 border border-emerald-500/20 rounded-xl px-6 py-4 mb-10">
+            <div className="bg-surface/50 border border-emerald-500/20 rounded-xl px-6 py-4 mb-10">
               <p className="text-emerald-100 font-medium">
                 Your subscription is active until <span className="font-bold text-emerald-400">{formattedDate}</span>
               </p>

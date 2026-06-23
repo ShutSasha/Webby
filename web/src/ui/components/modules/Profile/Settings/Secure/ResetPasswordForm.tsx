@@ -99,7 +99,7 @@ export default function ResetPasswordForm() {
           type="submit"
           viewType="confirm"
           className={`text-[16px] leading-[22px] font-semibold w-fit mx-auto ${
-            isPending ? 'bg-neutral-700 hover:bg-neutral-700 cursor-not-allowed' : 'cursor-pointer'
+            isPending ? 'bg-surface-tertiary hover:bg-surface-tertiary cursor-not-allowed' : 'cursor-pointer'
           }`}
           paddingClasses="px-5 py-2"
         >

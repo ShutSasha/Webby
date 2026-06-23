@@ -30,7 +30,7 @@ export default function Search({ loading, handleSearchChange }: Props) {
         autoComplete="off"
         className="focus:border-emerald-500 focus:ring-emerald-500 ring-[0.3px] ring-transparent block
           placeholder:text-foreground-disabled focus:outline-none pl-12 py-3 rounded-2xl font-medium text-sm border
-          border-border w-full bg-neutral-900/50 text-foreground-tertiary transition-all"
+          border-border w-full bg-surface/50 text-foreground-tertiary transition-all"
         placeholder="Search a video in playlist"
         value={query}
         onChange={handleInput}

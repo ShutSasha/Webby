@@ -74,9 +74,9 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
       <div
         onClick={handlePlayPause}
         className={cn(
-          `flex items-center justify-between p-2 rounded-xl bg-neutral-800/50 hover:bg-neutral-800 transition-all
+          `flex items-center justify-between p-2 rounded-xl bg-background/60 hover:bg-background transition-all
           duration-300 border-b-2 border-transparent group cursor-pointer`,
-          isActive && 'border-emerald-500 bg-neutral-800',
+          isActive && 'border-emerald-500 bg-background',
           !isOwner && 'gap-2',
         )}
       >
@@ -88,7 +88,7 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
             height={96}
             className={cn(
               'object-cover size-10 rounded-lg shrink-0',
-              isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100',
+              isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
             )}
           />
 
@@ -105,7 +105,7 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
 
         <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
           <button
-            className="p-1.5 group/play hover:bg-neutral-300/10 rounded-full cursor-pointer flex items-center
+            className="p-1.5 group/play hover:bg-foreground-subtle/10 rounded-full cursor-pointer flex items-center
               justify-center"
             onClick={handlePlayPause}
           >
@@ -146,11 +146,11 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
 
 export function VideoItemSkeleton() {
   return (
-    <div className="flex items-center justify-between p-2 rounded-xl bg-neutral-800/30 border-b-2 border-transparent">
+    <div className="flex items-center justify-between p-2 rounded-xl bg-background/30 border-b-2 border-transparent">
       <div className="flex items-center gap-3 overflow-hidden w-full">
-        <div className="size-10 bg-neutral-700/50 rounded-lg shrink-0 animate-pulse" />
+        <div className="size-10 bg-surface-tertiary/50 rounded-lg shrink-0 animate-pulse" />
 
-        <div className="h-4 bg-neutral-700/50 rounded-md w-3/4 animate-pulse" />
+        <div className="h-4 bg-surface-tertiary/50 rounded-md w-3/4 animate-pulse" />
       </div>
     </div>
   )

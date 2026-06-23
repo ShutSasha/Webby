@@ -34,12 +34,12 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      modalClasses="max-w-[740px] w-full bg-[#0A0A0A] border-neutral-800 shadow-2xl p-0 overflow-hidden"
+      modalClasses="max-w-[740px] w-full border-border shadow-2xl p-0 overflow-hidden"
     >
       <div className="flex flex-col w-full h-[85vh] max-h-[800px]">
-        <div className="p-4 border-b border-neutral-800/50 shrink-0">
+        <div className="p-4 border-b border-border/50 shrink-0">
           <div
-            className="relative flex items-center w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3
+            className="relative flex items-center w-full bg-surface border border-border rounded-xl px-4 py-3
               transition-colors focus-within:border-emerald-500/50"
           >
             <SearchIcon className="w-5 h-5 text-foreground-faint shrink-0" />
@@ -55,7 +55,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="hover:bg-neutral-800 rounded-full transition-colors shrink-0 ml-2"
+                className="hover:bg-background rounded-full transition-colors shrink-0 ml-2"
               >
                 <XIcon className="w-4 h-4 text-foreground-muted hover:text-foreground-tertiary" />
               </button>

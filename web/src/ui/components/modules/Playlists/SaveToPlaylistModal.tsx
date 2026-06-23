@@ -161,7 +161,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
           )}
         </div>
 
-        <div className="pt-3 mt-1 border-t border-neutral-800/50">
+        <div className="pt-3 mt-1 border-t border-border/50">
           <button
             onClick={handleSave}
             disabled={localSelections.size === 0 || isPending}
@@ -169,7 +169,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
               localSelections.size > 0 && !isPending
                 ? `bg-emerald-500 hover:bg-emerald-400 text-foreground-inverse shadow-[0_4px_12px_rgba(16,185,129,0.25)]
                   cursor-pointer`
-                : 'bg-neutral-800/60 text-foreground-faint cursor-not-allowed'
+                : 'bg-background/60 text-foreground-faint cursor-not-allowed'
               }`}
           >
             {isPending ? 'Saving...' : 'Save'}

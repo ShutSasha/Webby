@@ -27,7 +27,7 @@ export async function UserAchievements({ achivements }: Props) {
             blurDataURL={BLUR_DATA_URLS['neutral800']}
             className={cn(
               'cursor-pointer size-[50px] md:size-[60px] object-cover rounded-full',
-              'border border-neutral-800 hover:border-neutral-600 transition-colors ',
+              'border border-border hover:border-neutral-600 transition-colors ',
             )}
           />
         ))}

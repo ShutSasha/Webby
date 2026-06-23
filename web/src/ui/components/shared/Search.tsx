@@ -14,8 +14,7 @@ type Props = {
 }
 
 const DEFAULT_ICON_CLASSNAME = 'left-4 h-6 w-6 text-foreground-disabled'
-const DEFAULT_INPUT_CLASSNAME =
-  'pl-12 py-3 rounded-2xl font-medium text-[16px] leading-5 border border-neutral-800 w-full '
+const DEFAULT_INPUT_CLASSNAME = 'pl-12 py-3 rounded-2xl font-medium text-[16px] leading-5 border border-border w-full '
 
 export default function Search({
   placeholder,

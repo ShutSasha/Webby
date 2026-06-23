@@ -46,7 +46,7 @@ export default function CreateRightChoiceVote({ roomId, onBack }: Props) {
             value={voteText}
             onChange={e => setVoteText(e.target.value)}
             placeholder="What is your favorite..."
-            className="w-full bg-[#141414] border border-neutral-800 text-foreground-tertiary rounded-xl px-4 py-3
+            className="w-full bg-background border border-border text-foreground-tertiary rounded-xl px-4 py-3
               outline-none focus:border-neutral-600"
           />
         </div>
@@ -56,7 +56,7 @@ export default function CreateRightChoiceVote({ roomId, onBack }: Props) {
           <select
             value={duration}
             onChange={e => setDuration(Number(e.target.value))}
-            className="w-full bg-[#141414] border border-neutral-800 text-foreground-tertiary rounded-xl px-4 py-3
+            className="w-full bg-background border border-border text-foreground-tertiary rounded-xl px-4 py-3
               outline-none focus:border-neutral-600 appearance-none"
           >
             <option value={30}>30 seconds</option>
@@ -74,13 +74,13 @@ export default function CreateRightChoiceVote({ roomId, onBack }: Props) {
                 value={choice}
                 onChange={e => handleChoiceChange(index, e.target.value)}
                 placeholder={`Option ${index + 1}`}
-                className="flex-1 bg-[#141414] border border-neutral-800 text-foreground-tertiary rounded-xl px-4 py-2.5
+                className="flex-1 bg-background border border-border text-foreground-tertiary rounded-xl px-4 py-2.5
                   outline-none focus:border-neutral-600"
               />
               {choices.length > 2 && (
                 <button
                   onClick={() => removeChoice(index)}
-                  className="px-3 text-red-400 hover:bg-neutral-800 rounded-xl transition-colors"
+                  className="px-3 text-red-400 hover:bg-background rounded-xl transition-colors"
                 >
                   ✕
                 </button>
@@ -99,7 +99,7 @@ export default function CreateRightChoiceVote({ roomId, onBack }: Props) {
         </div>
       </div>
 
-      <div className="flex justify-between items-center mt-6 pt-4 border-t border-neutral-800">
+      <div className="flex justify-between items-center mt-6 pt-4 border-t border-border">
         <button onClick={onBack} className="text-foreground-muted hover:text-foreground-tertiary font-medium">
           Cancel
         </button>

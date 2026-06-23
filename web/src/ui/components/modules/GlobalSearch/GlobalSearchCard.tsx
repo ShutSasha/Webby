@@ -58,13 +58,13 @@ const GlobalSearchCard = ({
     <>
       <Link
         href={targetUrl}
-        className="group flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-neutral-800/40
-          transition-colors border border-transparent hover:border-neutral-800/60 cursor-pointer"
+        className="group flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-background/40 transition-colors
+          border border-transparent hover:border-border/60 cursor-pointer"
         onClick={handleNavigateTo}
       >
         <div className="flex items-center gap-3 overflow-hidden">
           <div
-            className={`relative shrink-0 overflow-hidden bg-neutral-800 flex items-center justify-center
+            className={`relative shrink-0 overflow-hidden bg-background flex items-center justify-center
               ${type === 'User' ? 'w-12 h-12 rounded-full' : 'w-24 h-14 rounded-lg'}`}
           >
             <SafeImage
@@ -109,10 +109,10 @@ export default memo(GlobalSearchCard)
 export function GlobalSearchCardSkeleton({ isUser = false }: { isUser?: boolean }) {
   return (
     <div className="flex items-center gap-3 p-2 w-full animate-pulse">
-      <div className={`shrink-0 bg-neutral-800/80 ${isUser ? 'w-12 h-12 rounded-full' : 'w-24 h-14 rounded-lg'}`} />
+      <div className={`shrink-0 bg-background/80 ${isUser ? 'w-12 h-12 rounded-full' : 'w-24 h-14 rounded-lg'}`} />
       <div className="flex flex-col gap-2 w-full">
-        <div className="h-3.5 bg-neutral-800/80 rounded w-[60%]" />
-        <div className="h-3 bg-neutral-800/60 rounded w-[40%]" />
+        <div className="h-3.5 bg-background/80 rounded w-[60%]" />
+        <div className="h-3 bg-background/60 rounded w-[40%]" />
       </div>
     </div>
   )

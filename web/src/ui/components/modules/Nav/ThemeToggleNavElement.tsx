@@ -9,7 +9,7 @@ import { useIsClient } from '@/lib/hooks/useIsClient'
 import { DesktopNavElement } from './DesktopNavElement'
 
 const LoadingIcon = ({ className }: { className?: string }) => (
-  <div className={`rounded-full bg-neutral-800 animate-pulse ${className}`} />
+  <div className={`rounded-full bg-background animate-pulse ${className}`} />
 )
 
 type Props = {

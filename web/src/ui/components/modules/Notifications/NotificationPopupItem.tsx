@@ -74,8 +74,8 @@ export default function NotificationPopupItem({ popup }: Props) {
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       onMouseEnter={pauseTimer}
       onMouseLeave={startTimer}
-      className="pointer-events-auto relative flex gap-3 p-4 rounded-xl bg-neutral-900 border border-neutral-800
-        shadow-2xl shadow-black/50 overflow-hidden cursor-default"
+      className="pointer-events-auto relative flex gap-3 p-4 rounded-xl bg-surface border border-border shadow-2xl
+        shadow-black/50 overflow-hidden cursor-default"
     >
       <div className="flex items-center shrink-0">
         <div className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">

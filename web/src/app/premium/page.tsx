@@ -79,12 +79,9 @@ export default function PremiumPage() {
                     {feature.description}
                   </p>
 
-                  <div
-                    className="flex flex-col gap-3 mb-8 w-full p-5 rounded-2xl bg-neutral-900/50 border
-                      border-neutral-800"
-                  >
+                  <div className="flex flex-col gap-3 mb-8 w-full p-5 rounded-2xl bg-surface/50 border border-border">
                     <div className="flex items-center gap-3">
-                      <div className="size-2 rounded-full bg-neutral-600 shrink-0" />
+                      <div className="size-2 rounded-full bg-surface-muted shrink-0" />
                       <p className="text-sm text-foreground-muted">
                         <span className="font-semibold text-foreground-subtle">Free:</span> {feature.freeLimit}
                       </p>

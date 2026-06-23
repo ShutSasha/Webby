@@ -78,7 +78,7 @@ export default function CreateRoomButton() {
           <Input
             id="room-name"
             placeholder="Enter room name..."
-            className="py-2.5 pl-10 rounded-xl w-full border-neutral-700"
+            className="py-2.5 pl-10 rounded-xl w-full border-neutral-700 placeholder:text-foreground-disabled"
             value={name}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             maxLength={50}
@@ -92,7 +92,7 @@ export default function CreateRoomButton() {
             value={categoryName}
             onChange={e => setCategoryName(e.target.value)}
             disabled={isLoadingCategories}
-            className="py-2.5 px-4 rounded-xl w-full border border-neutral-700 bg-neutral-900 text-foreground-tertiary
+            className="py-2.5 px-4 rounded-xl w-full border border-neutral-700 bg-surface text-foreground-tertiary
               outline-none focus:border-emerald-500 transition-colors appearance-none cursor-pointer disabled:opacity-50
               disabled:cursor-not-allowed"
           >

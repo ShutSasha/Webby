@@ -23,9 +23,9 @@ export default function CoreButton({
 
   const variants = {
     primary: 'bg-emerald-500 hover:bg-emerald-600 text-foreground-inverse cursor-pointer',
-    secondary: 'bg-neutral-800 hover:bg-neutral-700/80 text-foreground-tertiary',
+    secondary: 'bg-background hover:bg-surface-tertiary/80 text-foreground-tertiary',
     danger: 'bg-red-500/10 hover:bg-red-500/20 text-red-500',
-    ghost: 'bg-transparent hover:bg-neutral-800 text-foreground-muted hover:text-foreground-secondary',
+    ghost: 'bg-transparent hover:bg-background text-foreground-muted hover:text-foreground-secondary',
   }
 
   const sizeStyles = 'px-6 py-2.5'

@@ -32,7 +32,7 @@ export default function SettingsNavigation({ id }: Props) {
               overflow-hidden`,
               isActive
                 ? 'bg-emerald-500/10 text-emerald-400 font-semibold'
-                : 'text-foreground-muted font-medium hover:bg-neutral-800/40 hover:text-foreground-tertiary',
+                : 'text-foreground-muted font-medium hover:bg-background/40 hover:text-foreground-tertiary',
             )}
           >
             {isActive && (

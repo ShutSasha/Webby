@@ -57,13 +57,13 @@ export default function RoomInviteModal({ roomId, isOpen, onClose }: Props) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} modalClasses="max-w-[400px] w-full bg-[#0A0A0A] p-5 rounded-2xl">
+    <Modal isOpen={isOpen} onClose={onClose} modalClasses="max-w-[400px] w-full p-5 rounded-2xl">
       <div className="flex flex-col gap-4">
         {/* Search Bar & Copy Link */}
         <div className="flex items-center gap-2">
           <div
-            className="flex-1 flex items-center bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2.5
-              transition-colors focus-within:border-emerald-500/50"
+            className="flex-1 flex items-center bg-surface border border-border rounded-xl px-3 py-2.5 transition-colors
+              focus-within:border-emerald-500/50"
           >
             <SearchIcon className="w-4 h-4 text-foreground-faint shrink-0" />
             <input
@@ -77,8 +77,8 @@ export default function RoomInviteModal({ roomId, isOpen, onClose }: Props) {
           </div>
           <button
             onClick={handleCopyLink}
-            className="shrink-0 p-2.5 bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 rounded-xl
-              transition-colors text-foreground-muted hover:text-foreground-tertiary"
+            className="shrink-0 p-2.5 bg-surface border border-border hover:bg-background rounded-xl transition-colors
+              text-foreground-muted hover:text-foreground-tertiary"
             title="Copy link"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,8 +173,8 @@ export default function RoomInviteModal({ roomId, isOpen, onClose }: Props) {
           className={cn(
             'w-full py-3 rounded-xl font-medium transition-all duration-300',
             selectedUserIds.size > 0 && !isPending
-              ? 'bg-neutral-800 hover:bg-neutral-700 text-foreground-strong cursor-pointer'
-              : 'bg-neutral-900 text-foreground-faint cursor-not-allowed',
+              ? 'bg-background hover:bg-surface-tertiary text-foreground-strong cursor-pointer'
+              : 'bg-surface text-foreground-faint cursor-not-allowed',
           )}
         >
           {isPending ? 'Sending...' : `Send an invite ${selectedUserIds.size > 0 ? `(${selectedUserIds.size})` : ''}`}
@@ -187,8 +187,8 @@ export default function RoomInviteModal({ roomId, isOpen, onClose }: Props) {
 function UserSkeleton() {
   return (
     <div className="flex flex-col items-center gap-2 animate-pulse">
-      <div className="size-16 rounded-full bg-neutral-800/80 shrink-0" />
-      <div className="h-2.5 w-14 bg-neutral-800/80 rounded mt-1" />
+      <div className="size-16 rounded-full bg-background/80 shrink-0" />
+      <div className="h-2.5 w-14 bg-background/80 rounded mt-1" />
     </div>
   )
 }

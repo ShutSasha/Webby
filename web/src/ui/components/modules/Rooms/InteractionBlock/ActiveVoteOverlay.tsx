@@ -45,8 +45,8 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
     return (
       <div
         onClick={() => setVotesModalOpen(true)}
-        className="absolute top-2 left-2 right-2 z-20 bg-neutral-800/95 backdrop-blur-sm border border-purple-500/30
-          rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.15)] cursor-pointer group hover:bg-neutral-800 transition-colors
+        className="absolute top-2 left-2 right-2 z-20 bg-background/95 backdrop-blur-sm border border-purple-500/30
+          rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.15)] cursor-pointer group hover:bg-background transition-colors
           animate-in slide-in-from-top-4 fade-in duration-300 overflow-hidden"
       >
         <div className="p-3">
@@ -56,7 +56,7 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
               setIsNextVideoDismissed(true)
             }}
             className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-foreground-faint
-              hover:text-foreground-subtle transition-colors rounded-full hover:bg-neutral-700/50"
+              hover:text-foreground-subtle transition-colors rounded-full hover:bg-surface-tertiary/50"
           >
             <CloseIcon className="size-4.5" />
           </button>
@@ -97,8 +97,8 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
     return (
       <div
         onClick={() => setVotesModalOpen(true)}
-        className="absolute top-2 left-2 right-2 z-20 bg-neutral-800/95 backdrop-blur-sm border border-emerald-500/30
-          rounded-xl shadow-lg shadow-black/50 cursor-pointer group hover:bg-neutral-800 transition-colors animate-in
+        className="absolute top-2 left-2 right-2 z-20 bg-background/95 backdrop-blur-sm border border-emerald-500/30
+          rounded-xl shadow-lg shadow-black/50 cursor-pointer group hover:bg-background transition-colors animate-in
           slide-in-from-top-4 fade-in duration-300 overflow-hidden"
       >
         <div className="p-3">
@@ -108,7 +108,7 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
               setDismissedRightChoiceId(activeRightChoiceVote.id)
             }}
             className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-foreground-faint
-              hover:text-foreground-subtle transition-colors rounded-full hover:bg-neutral-700/50"
+              hover:text-foreground-subtle transition-colors rounded-full hover:bg-surface-tertiary/50"
           >
             <CloseIcon className="size-4.5" />
           </button>

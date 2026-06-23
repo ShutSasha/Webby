@@ -16,7 +16,7 @@ export default function AdminNavTabs() {
   const pathname = usePathname()
 
   return (
-    <nav className="flex items-center gap-2 border-b border-neutral-800/60 pb-px">
+    <nav className="flex items-center gap-2 border-b border-border/60 pb-px">
       {adminNav.map(tab => {
         const isActive = pathname === tab.href
         return (
@@ -27,7 +27,7 @@ export default function AdminNavTabs() {
               'px-5 py-2.5 text-sm font-medium transition-all relative rounded-t-lg',
               isActive
                 ? 'text-emerald-400 bg-emerald-400/10'
-                : 'text-foreground-muted hover:text-foreground-tertiary hover:bg-neutral-800/50',
+                : 'text-foreground-muted hover:text-foreground-tertiary hover:bg-background/50',
             )}
           >
             {tab.name}

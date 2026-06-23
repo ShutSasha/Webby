@@ -24,7 +24,7 @@ export default function StudioVideosContainer({ currentUserId }: Props) {
     return (
       <div className="flex flex-col w-full animate-pulse">
         {[...new Array(8)].map((_, i) => (
-          <div key={i} className="h-24 w-full border-b border-neutral-800 bg-neutral-800/20" />
+          <div key={i} className="h-24 w-full border-b border-border bg-background/20" />
         ))}
       </div>
     )

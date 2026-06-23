@@ -85,9 +85,9 @@ export default function RoomSettings() {
             id="roomName"
             type="text"
             placeholder="Enter Room name"
-            className="bg-neutral-900/60 border border-neutral-800/80 focus:border-emerald-500/50
-              hover:border-neutral-700 placeholder:text-foreground-disabled py-2.5 px-3.5 rounded-xl outline-none
-              text-foreground-tertiary w-full transition-all text-sm shadow-sm shadow-black/20"
+            className="bg-surface/60 border border-border/80 focus:border-emerald-500/50 hover:border-neutral-700
+              placeholder:text-foreground-disabled py-2.5 px-3.5 rounded-xl outline-none text-foreground-tertiary w-full
+              transition-all text-sm shadow-sm shadow-black/20"
           />
           {errors.roomName && <p className="text-red-500 text-xs mt-0.5 pl-1">{errors.roomName.message}</p>}
         </div>
@@ -99,10 +99,10 @@ export default function RoomSettings() {
             <div
               onClick={() => setIsOpen(!isOpen)}
               className={cn(
-                `bg-neutral-900/60 border border-neutral-800/80 py-2.5 px-3.5 rounded-xl text-foreground-subtle w-full
+                `bg-surface/60 border border-border/80 py-2.5 px-3.5 rounded-xl text-foreground-subtle w-full
                 cursor-pointer transition-all flex justify-between items-center hover:border-neutral-700 text-sm
                 shadow-sm shadow-black/20`,
-                isOpen && 'border-emerald-500/50 bg-neutral-900',
+                isOpen && 'border-emerald-500/50 bg-surface',
               )}
             >
               <span>{options.find(opt => opt.value === currentRoomType)?.label}</span>
@@ -121,8 +121,8 @@ export default function RoomSettings() {
 
             {isOpen && (
               <div
-                className="absolute left-0 right-0 mt-2 p-1.5 bg-neutral-900 border border-neutral-800 rounded-xl z-50
-                  flex flex-col gap-1 shadow-xl animate-in fade-in zoom-in-95 duration-200"
+                className="absolute left-0 right-0 mt-2 p-1.5 bg-surface border border-border rounded-xl z-50 flex
+                  flex-col gap-1 shadow-xl animate-in fade-in zoom-in-95 duration-200"
               >
                 {options.map(option => (
                   <div
@@ -134,8 +134,8 @@ export default function RoomSettings() {
                     className={cn(
                       'px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm font-medium',
                       currentRoomType === option.value
-                        ? 'bg-neutral-800 text-foreground-secondary'
-                        : 'text-foreground-muted hover:bg-neutral-800/50 hover:text-foreground-tertiary',
+                        ? 'bg-background text-foreground-secondary'
+                        : 'text-foreground-muted hover:bg-background/50 hover:text-foreground-tertiary',
                     )}
                   >
                     {option.label}
@@ -147,7 +147,7 @@ export default function RoomSettings() {
         </div>
       </div>
 
-      <div className="mt-8 pt-5 border-t border-neutral-800/50">
+      <div className="mt-8 pt-5 border-t border-border/50">
         <Button
           type="submit"
           viewType={!isPending ? 'confirm' : 'loading'}

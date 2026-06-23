@@ -89,8 +89,8 @@ export default async function Home({ searchParams }: Props) {
         </div>
 
         <div
-          className="relative w-full bg-neutral-900 rounded-3xl p-8 sm:p-12 overflow-hidden flex items-center
-            min-h-[300px] transition-colors duration-300"
+          className="relative w-full bg-surface rounded-3xl p-8 sm:p-12 overflow-hidden flex items-center min-h-[300px]
+            transition-colors duration-300"
         >
           <Image
             src={Banner}

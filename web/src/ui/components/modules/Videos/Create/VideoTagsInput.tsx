@@ -19,13 +19,13 @@ export default function VideoTagsInput({ tags, inputValue, maxTags, onInputChang
         </span>
       </div>
 
-      <div className="flex flex-col gap-3 p-3 bg-neutral-800 border border-neutral-700 rounded-lg transition-colors">
+      <div className="flex flex-col gap-3 p-3 bg-background border border-neutral-700 rounded-lg transition-colors">
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {tags.map(tag => (
               <span
                 key={tag}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-700 text-xs font-medium
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-tertiary text-xs font-medium
                   text-foreground-tertiary"
               >
                 #{tag}

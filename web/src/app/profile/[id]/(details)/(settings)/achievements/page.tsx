@@ -50,8 +50,8 @@ export default async function AchievementsPage({ params }: Props) {
       <Splitter text="Your pinned achievements" />
       {pinned.length === 0 ? (
         <div
-          className="w-full flex flex-col items-center justify-center py-10 px-4 border-2 border-dashed
-            border-neutral-800 rounded-[20px] bg-neutral-900/20"
+          className="w-full flex flex-col items-center justify-center py-10 px-4 border-2 border-dashed border-border
+            rounded-[20px] bg-surface/20"
         >
           <p className="text-foreground-muted font-medium">No pinned achievements yet</p>
           <p className="text-foreground-disabled text-sm mt-1 text-center max-w-sm">

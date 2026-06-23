@@ -31,7 +31,7 @@ export default async function ProfileSettings({ params }: Props) {
 
   if (!userData) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px] min-h-[50vh]">
+      <div className="flex-1 flex items-center justify-center bg-surface/20 rounded-[20px] min-h-[50vh]">
         <EmptyState
           title="Couldn't load profile data"
           description="We ran into an issue while fetching your settings. Please try refreshing the page."
@@ -44,7 +44,7 @@ export default async function ProfileSettings({ params }: Props) {
     <div className="flex flex-col w-full max-w-3xl mx-auto gap-8 pb-10">
       <UserHeader image={session.user.image} username={session.user.username} />
 
-      <div className="flex flex-col bg-neutral-900/40 p-6 sm:p-8 rounded-3xl border border-neutral-800 shadow-sm">
+      <div className="flex flex-col bg-surface/40 p-6 sm:p-8 rounded-3xl border border-border shadow-sm">
         <h2 className="text-sm font-bold text-foreground-faint uppercase tracking-wider mb-6">Account Details</h2>
 
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6">
@@ -56,8 +56,7 @@ export default async function ProfileSettings({ params }: Props) {
           <UploadAvatarContainer />
         </div>
 
-        <div className="mt-8 pt-6 border-t border-neutral-800 flex flex-col sm:flex-row justify-between items-center
-          gap-4">
+        <div className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex flex-col">
             <span className="text-foreground-tertiary font-medium">Subscription</span>
             <span className="text-sm text-foreground-muted">Upgrade to unlock exclusive features.</span>
@@ -73,7 +72,7 @@ export default async function ProfileSettings({ params }: Props) {
         </div>
       </div>
 
-      <div className="flex flex-col bg-neutral-900/40 p-6 sm:p-8 rounded-3xl border border-neutral-800 shadow-sm">
+      <div className="flex flex-col bg-surface/40 p-6 sm:p-8 rounded-3xl border border-border shadow-sm">
         <h2 className="text-sm font-bold text-foreground-faint uppercase tracking-wider mb-6">About Me</h2>
         <AboutContainer userId={id} about={userData.user.about} />
       </div>

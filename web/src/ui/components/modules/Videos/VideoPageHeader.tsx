@@ -5,7 +5,7 @@ export default function VideoPageHeader() {
   return (
     <div
       className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b
-        border-neutral-800/60"
+        border-border/60"
     >
       <div className="flex flex-col shrink-0 order-1">
         <h1 className="text-2xl font-bold text-foreground-secondary">Videos</h1>

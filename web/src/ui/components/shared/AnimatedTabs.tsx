@@ -31,8 +31,8 @@ export default function AnimatedTabs({ tabs, layoutId = 'active-pill', className
             'relative px-5 py-2 z-10 block text-sm font-semibold transition-all duration-300 rounded-full',
             tab.isActive
               ? 'text-surface'
-              : `text-muted-active hover:text-foreground-strong bg-overlay hover:bg-neutral-800/10
-                dark:hover:bg-neutral-800/80 `,
+              : `text-muted-active hover:text-foreground-strong bg-overlay hover:bg-background/10
+                dark:hover:bg-background/80 `,
             linkClassName,
           )}
         >

@@ -30,7 +30,7 @@ export default function CreateNextVideoVote({ roomId, onBack, onSuccess }: Props
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
-          className="px-5 py-2.5 text-foreground-muted hover:bg-neutral-800 rounded-xl font-medium transition-colors"
+          className="px-5 py-2.5 text-foreground-muted hover:bg-background rounded-xl font-medium transition-colors"
         >
           Back
         </button>

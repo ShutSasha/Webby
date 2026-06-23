@@ -48,7 +48,7 @@ export default function RoomQueue() {
           placeholder="Search video in queue"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full bg-neutral-900 rounded-md py-2 pl-10 pr-4 text-sm outline-none border border-transparent
+          className="w-full bg-surface rounded-md py-2 pl-10 pr-4 text-sm outline-none border border-transparent
             focus:border-emerald-500/70 transition-all placeholder:text-foreground-faint"
         />
       </div>

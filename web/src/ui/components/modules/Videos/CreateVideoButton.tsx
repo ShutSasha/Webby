@@ -19,10 +19,10 @@ export default function CreateVideoButton() {
       onClick={handleClick}
       className={cn(
         'flex items-center gap-2 shrink-0 cursor-pointer order-3',
-        'bg-neutral-800 text-foreground-tertiary',
+        'bg-background text-foreground-tertiary',
         'text-sm font-semibold px-5 py-2.5 rounded-full',
         'transition-all duration-300 ease-out',
-        'hover:bg-neutral-700/40',
+        'hover:bg-surface-tertiary/40',
         'shadow-none',
       )}
     >

@@ -36,7 +36,7 @@ export default function FollowItem({
 
   return (
     <div
-      className="bg-neutral-800 hover:bg-neutral-300/10 transition-all duration-200 ease-in rounded-xl p-2 flex
+      className="bg-background hover:bg-surface-secondary transition-all duration-200 ease-in rounded-xl p-2 flex
         items-center justify-between gap-2 border border-transparent hover:border-emerald-400/25"
     >
       <Link href={`/profile/${userId}`} className="flex items-center gap-2">

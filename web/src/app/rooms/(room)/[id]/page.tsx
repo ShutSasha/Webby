@@ -32,7 +32,7 @@ export default async function RoomPage({ params }: Props) {
 
   if (!room) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+      <div className="flex-1 flex items-center justify-center bg-surface/20 rounded-[20px]">
         <EmptyState title="Room not found" description="This room doesn't exist, is private, or has been deleted." />
       </div>
     )

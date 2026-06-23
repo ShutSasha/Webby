@@ -66,15 +66,15 @@ export default function QueueItem({ roomId, video, isChild = false }: Props) {
   const isVisuallyActive = isPending || (video.isActive && !optimisticPendingId)
 
   return (
-    <div className={cn('flex flex-col gap-1', isChild && 'ml-4 pl-2 border-l border-neutral-800')}>
+    <div className={cn('flex flex-col gap-1', isChild && 'ml-4 pl-2 border-l border-border')}>
       <div
         onClick={handleActivate}
         className={cn(
-          `flex items-center justify-between p-2 rounded-xl bg-neutral-900/50 hover:bg-neutral-900 transition-all
+          `flex items-center justify-between p-2 rounded-xl bg-background/60 hover:bg-surface transition-all
           duration-300 border-b-2 border-transparent group cursor-pointer`,
-          isVisuallyActive && !isPending && 'border-emerald-500 bg-neutral-900',
-          isPending && 'border-amber-500 bg-neutral-900',
-          video.isFolder && 'hover:bg-neutral-800/40',
+          isVisuallyActive && !isPending && 'border-emerald-500 bg-surface',
+          isPending && 'border-amber-500 bg-surface',
+          video.isFolder && 'hover:bg-background/40',
           isRemoving && 'opacity-50 pointer-events-none',
         )}
       >
@@ -122,7 +122,7 @@ export default function QueueItem({ roomId, video, isChild = false }: Props) {
 
           {video.isFolder && (
             <button
-              className="p-1.5 text-foreground-faint hover:text-emerald-300 transition-colors hover:bg-neutral-500/10
+              className="p-1.5 text-foreground-faint hover:text-emerald-300 transition-colors hover:bg-surface-faint/10
                 cursor-pointer rounded-full"
               onClick={() => video.isFolder && setOpen(prev => !prev)}
             >

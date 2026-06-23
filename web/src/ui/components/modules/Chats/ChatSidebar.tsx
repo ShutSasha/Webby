@@ -32,16 +32,15 @@ export default function ChatSidebar() {
   })
 
   return (
-    <div className="w-[300px] lg:w-[340px] shrink-0 rounded-2xl border border-neutral-800/60 flex flex-col
-      overflow-hidden">
-      <div className="p-4 border-b border-neutral-800/60">
+    <div className="w-[300px] lg:w-[340px] shrink-0 rounded-2xl border border-border/60 flex flex-col overflow-hidden">
+      <div className="p-4 border-b border-border/60">
         <div className="relative">
           <input
             type="text"
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
             placeholder="Search for username..."
-            className="w-full bg-neutral-900 text-foreground-tertiary placeholder:text-foreground-disabled text-sm
+            className="w-full bg-surface text-foreground-tertiary placeholder:text-foreground-disabled text-sm
               rounded-xl py-2.5 pl-4 pr-10 outline-none ring-0 border border-transparent focus:border-neutral-700
               transition-colors"
           />
@@ -64,7 +63,7 @@ export default function ChatSidebar() {
                   'flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer border',
                   currentChatId === chat.chatId
                     ? 'bg-emerald-500/10 border-emerald-500/20'
-                    : 'border-transparent hover:bg-neutral-800/50',
+                    : 'border-transparent hover:bg-background/50',
                 )}
               >
                 <SafeImage

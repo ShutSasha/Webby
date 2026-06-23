@@ -28,7 +28,7 @@ export default function VideoDescription(props: Props) {
   }, [props.text, props.videoTags])
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-black/40 p-3 mt-4 overflow-hidden">
+    <div className="flex flex-col gap-2 rounded-xl dark:bg-surface-strong/40 bg-neutral-400/10 p-3 mt-4 overflow-hidden">
       <p className="text-sm font-bold text-foreground-subtle">
         {props.views} {props.views === 1 ? 'view' : 'views'} | {formatDate(props.date)}
       </p>
