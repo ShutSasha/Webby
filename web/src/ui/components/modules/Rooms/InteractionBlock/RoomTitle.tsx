@@ -12,5 +12,5 @@ export default function RoomTitle({ roomId, initialName }: Props) {
 
   const displayName = room?.name || initialName
 
-  return <p className="text-neutral-300 text-[20px] font-bold truncate">{displayName}</p>
+  return <p className="text-foreground-subtle text-[20px] font-bold truncate">{displayName}</p>
 }

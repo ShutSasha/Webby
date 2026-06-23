@@ -19,7 +19,7 @@ export default function GlobalSearchTabs({ activeTab, onChange }: Props) {
           onClick={() => onChange(tab)}
           className={cn(
             'relative px-4 py-3 text-sm font-medium transition-colors shrink-0 outline-none',
-            activeTab === tab ? 'text-emerald-500' : 'text-neutral-400 hover:text-neutral-200',
+            activeTab === tab ? 'text-emerald-500' : 'text-foreground-muted hover:text-foreground-tertiary',
           )}
         >
           {tab}

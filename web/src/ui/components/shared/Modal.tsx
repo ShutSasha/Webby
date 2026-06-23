@@ -64,7 +64,7 @@ export default function Modal({ isOpen, onClose, children, modalClasses = '' }: 
             transition-all duration-400 ease-out ${modalClasses}
             ${isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8'}`}
         >
-          <div className="text-neutral-300">{children}</div>
+          <div className="text-foreground-subtle">{children}</div>
         </div>
       </div>
     </RemoveScroll>,

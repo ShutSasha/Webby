@@ -27,7 +27,7 @@ export default function AdminNavTabs() {
               'px-5 py-2.5 text-sm font-medium transition-all relative rounded-t-lg',
               isActive
                 ? 'text-emerald-400 bg-emerald-400/10'
-                : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50',
+                : 'text-foreground-muted hover:text-foreground-tertiary hover:bg-neutral-800/50',
             )}
           >
             {tab.name}

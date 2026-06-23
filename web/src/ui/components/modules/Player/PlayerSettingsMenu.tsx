@@ -17,7 +17,7 @@ export default function PlayerSettingsMenu({ showSettings, playbackRate, onSetPl
       onClick={e => e.stopPropagation()}
     >
       <div className="p-2 border-b border-white/5">
-        <p className="text-neutral-400 text-xs font-bold px-3 py-1 uppercase tracking-wider">Speed</p>
+        <p className="text-foreground-muted text-xs font-bold px-3 py-1 uppercase tracking-wider">Speed</p>
       </div>
       <div className="py-1">
         {RATES.map(rate => (
@@ -25,7 +25,7 @@ export default function PlayerSettingsMenu({ showSettings, playbackRate, onSetPl
             key={rate}
             onClick={() => onSetPlaybackRate(rate)}
             className={`w-full flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-white/10
-            ${playbackRate === rate ? 'text-emerald-500 font-bold' : 'text-neutral-300'}`}
+            ${playbackRate === rate ? 'text-emerald-500 font-bold' : 'text-foreground-subtle'}`}
           >
             <span>{rate === 1 ? 'Normal' : `${rate}x`}</span>
             {playbackRate === rate && (

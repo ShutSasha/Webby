@@ -55,7 +55,7 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
               e.stopPropagation()
               setIsNextVideoDismissed(true)
             }}
-            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-neutral-500 hover:text-neutral-300
+            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-foreground0 hover:text-foreground-subtle
               transition-colors rounded-full hover:bg-neutral-700/50"
           >
             <CloseIcon className="size-4.5" />
@@ -74,10 +74,10 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
                   Quick Vote • {nvTimer.secondsLeft}s
                 </span>
               </div>
-              <p className="text-sm font-medium text-neutral-200 truncate">Choose the next video!</p>
+              <p className="text-sm font-medium text-foreground-tertiary truncate">Choose the next video!</p>
             </div>
             <button
-              className="shrink-0 bg-purple-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg
+              className="shrink-0 bg-purple-500 text-foreground-strong text-xs font-semibold px-3 py-1.5 rounded-lg
                 group-hover:bg-purple-600 transition-colors"
             >
               Vote
@@ -107,7 +107,7 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
               e.stopPropagation()
               setDismissedRightChoiceId(activeRightChoiceVote.id)
             }}
-            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-neutral-500 hover:text-neutral-300
+            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-foreground0 hover:text-foreground-subtle
               transition-colors rounded-full hover:bg-neutral-700/50"
           >
             <CloseIcon className="size-4.5" />
@@ -126,10 +126,10 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
                   Active Poll • {rcTimer.secondsLeft}s
                 </span>
               </div>
-              <p className="text-sm font-medium text-neutral-200 truncate">{activeRightChoiceVote.voteText}</p>
+              <p className="text-sm font-medium text-foreground-tertiary truncate">{activeRightChoiceVote.voteText}</p>
             </div>
             <button
-              className="shrink-0 bg-emerald-500 text-neutral-950 text-xs font-semibold px-3 py-1.5 rounded-lg
+              className="shrink-0 bg-emerald-500 text-foreground-inverse text-xs font-semibold px-3 py-1.5 rounded-lg
                 group-hover:bg-emerald-400 transition-colors"
             >
               Vote

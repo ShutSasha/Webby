@@ -85,7 +85,7 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
       <button
         onClick={handleLogout}
         className={cn(
-          `p-2 rounded-lg text-neutral-500 hover:text-red-500 hover:bg-red-500/10 transition-colors duration-300
+          `p-2 rounded-lg text-foreground0 hover:text-red-500 hover:bg-red-500/10 transition-colors duration-300
           shrink-0`,
           !isExpanded && 'hidden',
         )}

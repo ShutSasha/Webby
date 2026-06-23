@@ -41,10 +41,11 @@ export default function ChatSidebar() {
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
             placeholder="Search for username..."
-            className="w-full bg-neutral-900 text-neutral-200 placeholder:text-neutral-600 text-sm rounded-xl py-2.5
-              pl-4 pr-10 outline-none ring-0 border border-transparent focus:border-neutral-700 transition-colors"
+            className="w-full bg-neutral-900 text-foreground-tertiary placeholder:text-foreground-disabled text-sm
+              rounded-xl py-2.5 pl-4 pr-10 outline-none ring-0 border border-transparent focus:border-neutral-700
+              transition-colors"
           />
-          <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-neutral-500" />
+          <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-foreground0" />
         </div>
       </div>
 
@@ -75,10 +76,10 @@ export default function ChatSidebar() {
                   className="rounded-full object-cover shrink-0 size-12"
                 />
                 <div className="flex flex-col overflow-hidden">
-                  <span className="text-sm font-semibold text-neutral-200">
+                  <span className="text-sm font-semibold text-foreground-tertiary">
                     {chat.user.username.startsWith('@') ? chat.user.username : `@${chat.user.username}`}
                   </span>
-                  <span className="text-xs text-neutral-500 truncate mt-0.5">
+                  <span className="text-xs text-foreground0 truncate mt-0.5">
                     {chat.lastMessage?.content || 'No messages yet'}
                   </span>
                 </div>
@@ -96,12 +97,12 @@ export default function ChatSidebar() {
             return <div key={chat.chatId}>{chatItem}</div>
           })
         ) : (
-          <div className="p-4 text-center text-sm text-neutral-500">
+          <div className="p-4 text-center text-sm text-foreground0">
             {debouncedSearch ? 'No chats found for this search' : 'No chats yet'}
           </div>
         )}
 
-        {isFetchingNextPage && <div className="p-2 text-center text-xs text-neutral-500">Loading more...</div>}
+        {isFetchingNextPage && <div className="p-2 text-center text-xs text-foreground0">Loading more...</div>}
       </div>
     </div>
   )

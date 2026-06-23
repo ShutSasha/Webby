@@ -13,7 +13,7 @@ export default function AdminUsersPage() {
       {/* Search Bar */}
       <div className="flex items-center gap-4">
         <div className="flex-1 bg-[#0A0A0A] border border-neutral-800/60 rounded-xl px-4 py-3 flex items-center gap-3">
-          <svg className="size-5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="size-5 text-foreground0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -24,7 +24,8 @@ export default function AdminUsersPage() {
           <input
             type="text"
             placeholder="Search users by username..."
-            className="bg-transparent border-none outline-none w-full text-neutral-200 placeholder:text-neutral-600"
+            className="bg-transparent border-none outline-none w-full text-foreground-tertiary
+              placeholder:text-foreground-disabled"
           />
         </div>
       </div>
@@ -33,7 +34,7 @@ export default function AdminUsersPage() {
       <div className="bg-[#0A0A0A] border border-neutral-800/60 rounded-2xl overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-neutral-800/60 bg-neutral-900/50 text-neutral-500 text-sm">
+            <tr className="border-b border-neutral-800/60 bg-neutral-900/50 text-foreground0 text-sm">
               <th className="py-4 px-6 font-medium">User</th>
               <th className="py-4 px-6 font-medium">Role</th>
               <th className="py-4 px-6 font-medium">Status</th>
@@ -52,7 +53,7 @@ export default function AdminUsersPage() {
                     >
                       {user.avatar}
                     </div>
-                    <span className="font-medium text-neutral-200">{user.username}</span>
+                    <span className="font-medium text-foreground-tertiary">{user.username}</span>
                   </div>
                 </td>
                 <td className="py-4 px-6">
@@ -62,7 +63,7 @@ export default function AdminUsersPage() {
                         ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
                         : user.role === 'MODERATOR'
                           ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                          : 'bg-neutral-800 text-neutral-400'
+                          : 'bg-neutral-800 text-foreground-muted'
                     }`}
                   >
                     {user.role}
@@ -73,16 +74,16 @@ export default function AdminUsersPage() {
                     <div
                       className={`size-2 rounded-full ${user.status === 'Active' ? 'bg-emerald-500' : 'bg-red-500'}`}
                     />
-                    <span className={user.status === 'Active' ? 'text-neutral-300' : 'text-red-400'}>
+                    <span className={user.status === 'Active' ? 'text-foreground-subtle' : 'text-red-400'}>
                       {user.status}
                     </span>
                   </div>
                 </td>
-                <td className="py-4 px-6 text-neutral-500 text-sm">{user.registered}</td>
+                <td className="py-4 px-6 text-foreground0 text-sm">{user.registered}</td>
                 <td className="py-4 px-6 flex justify-end gap-2">
                   <button
-                    className="px-3 py-1.5 text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-neutral-300
-                      rounded-lg transition-colors"
+                    className="px-3 py-1.5 text-xs font-semibold bg-neutral-800 hover:bg-neutral-700
+                      text-foreground-subtle rounded-lg transition-colors"
                   >
                     Edit Role
                   </button>

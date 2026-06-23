@@ -77,7 +77,7 @@ export default function VideoCard({
 
           <div
             className="absolute bottom-2 right-2 z-10 bg-black/80 px-1.5 py-0.5 rounded text-[11px] font-medium
-              text-neutral-100 tracking-wide pointer-events-none"
+              text-foreground-secondary tracking-wide pointer-events-none"
           >
             {formatVideoTime(duration)}
           </div>
@@ -97,15 +97,17 @@ export default function VideoCard({
           <div className="flex flex-1 justify-between items-start gap-2">
             <div className="flex flex-col overflow-hidden">
               <h3
-                className="text-neutral-100 text-sm font-semibold leading-snug line-clamp-2 break-all transition-colors
-                  duration-200 group-hover:text-emerald-400"
+                className="text-foreground-secondary text-sm font-semibold leading-snug line-clamp-2 break-all
+                  transition-colors duration-200 group-hover:text-emerald-400"
               >
                 {title}
               </h3>
 
               <div className="flex flex-col mt-1">
-                <p className="text-neutral-400 text-xs truncate hover:text-neutral-300 transition-colors">{creator}</p>
-                <p className="text-neutral-500 text-[11px] truncate mt-0.5">
+                <p className="text-foreground-muted text-xs truncate hover:text-foreground-subtle transition-colors">
+                  {creator}
+                </p>
+                <p className="text-foreground0 text-[11px] truncate mt-0.5">
                   {formatViews(views)} • {formatTimeAgo(createAt)}
                 </p>
               </div>
@@ -118,11 +120,11 @@ export default function VideoCard({
                   'p-1.5 -mr-1.5 -mt-1.5 rounded-full transition-all duration-300 cursor-pointer z-20',
                   'hover:bg-neutral-500/20 active:bg-neutral-500/40',
                   isMenuOpen
-                    ? 'bg-neutral-500/20 text-neutral-300'
-                    : 'text-neutral-400 opacity-0 group-hover:opacity-100 md:opacity-100',
+                    ? 'bg-neutral-500/20 text-foreground-subtle'
+                    : 'text-foreground-muted opacity-0 group-hover:opacity-100 md:opacity-100',
                 )}
               >
-                <MoreVertical className="size-5 text-neutral-300" />
+                <MoreVertical className="size-5 text-foreground-subtle" />
               </button>
 
               {isMenuOpen && (
@@ -132,7 +134,7 @@ export default function VideoCard({
                   onClick={e => e.preventDefault()}
                 >
                   <button
-                    className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50
+                    className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-neutral-700/50
                       transition-colors flex items-center gap-3 cursor-pointer"
                     onClick={e => {
                       e.preventDefault()

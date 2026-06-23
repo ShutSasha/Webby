@@ -47,7 +47,7 @@ export default function UserHeader({ image, username }: Props) {
 
       <h1
         className={cn(
-          'text-2xl font-bold tracking-tight text-neutral-100 transition-all duration-300',
+          'text-2xl font-bold tracking-tight text-foreground-secondary transition-all duration-300',
           isLoading ? 'opacity-50 animate-pulse' : 'opacity-100',
         )}
       >

@@ -87,7 +87,7 @@ export default function ChatArea({ chatId }: Props) {
               />
               <Link
                 href={`/profile/${otherUser?.id}`}
-                className="font-medium text-neutral-200 hover:underline hover:cursor-pointer"
+                className="font-medium text-foreground-tertiary hover:underline hover:cursor-pointer"
               >
                 {otherUser?.username?.startsWith('@') ? otherUser.username : `@${otherUser?.username}`}
               </Link>
@@ -99,7 +99,8 @@ export default function ChatArea({ chatId }: Props) {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(prev => !prev)}
-            className="p-2 rounded-full text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
+            className="p-2 rounded-full text-foreground0 hover:text-foreground-tertiary hover:bg-neutral-800
+              transition-colors"
           >
             <MoreVerticalIcon className="size-5" />
           </button>
@@ -129,8 +130,8 @@ export default function ChatArea({ chatId }: Props) {
       {/* Delete Confirmation Modal */}
       <Modal isOpen={isDeleteModalOpen} onClose={() => !isDeleting && setIsDeleteModalOpen(false)}>
         <div className="flex flex-col">
-          <h3 className="text-xl font-semibold text-neutral-200 mb-2">Delete Chat</h3>
-          <p className="text-sm text-neutral-400 mb-6">
+          <h3 className="text-xl font-semibold text-foreground-tertiary mb-2">Delete Chat</h3>
+          <p className="text-sm text-foreground-muted mb-6">
             Are you sure you want to delete this chat? All messages will be permanently removed. This action cannot be
             undone.
           </p>
@@ -138,7 +139,7 @@ export default function ChatArea({ chatId }: Props) {
             <button
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={isDeleting}
-              className="px-4 py-2 text-sm font-medium text-neutral-300 hover:bg-neutral-800 rounded-xl
+              className="px-4 py-2 text-sm font-medium text-foreground-subtle hover:bg-neutral-800 rounded-xl
                 transition-colors disabled:opacity-50"
             >
               Cancel

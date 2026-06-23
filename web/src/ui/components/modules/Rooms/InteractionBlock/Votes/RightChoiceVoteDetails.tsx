@@ -61,14 +61,14 @@ export default function RightChoiceVoteDetails({ roomId, voteId, isHost, onBack 
 
   return (
     <div className="flex flex-col max-h-[60vh]">
-      <h3 className="text-xl font-bold text-neutral-100 mb-2">{currentVote.voteText}</h3>
+      <h3 className="text-xl font-bold text-foreground-secondary mb-2">{currentVote.voteText}</h3>
 
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <span
             className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md', {
-              'bg-neutral-800 text-neutral-500': isResolvedDetails,
-              'bg-neutral-700 text-neutral-400': isClosedDetails,
+              'bg-neutral-800 text-foreground0': isResolvedDetails,
+              'bg-neutral-700 text-foreground-muted': isClosedDetails,
               'bg-emerald-500/20 text-emerald-500': isActiveDetails,
             })}
           >
@@ -91,10 +91,10 @@ export default function RightChoiceVoteDetails({ roomId, voteId, isHost, onBack 
           const getOptionClasses = () => {
             if (isWinner) return 'bg-emerald-500/10 border-emerald-500 text-emerald-400 font-semibold'
             if (isMyChoice && !isResolvedDetails) return 'bg-neutral-800 border-emerald-500/50 text-emerald-500'
-            if (isResolvedDetails) return 'bg-neutral-900 border-neutral-800 text-neutral-600'
-            if (currentVote.isLocked || hasVoted) return 'bg-neutral-800/50 border-neutral-800 text-neutral-500'
+            if (isResolvedDetails) return 'bg-neutral-900 border-neutral-800 text-foreground-disabled'
+            if (currentVote.isLocked || hasVoted) return 'bg-neutral-800/50 border-neutral-800 text-foreground0'
 
-            return 'bg-[#141414] border-neutral-800 text-neutral-200 hover:border-neutral-600 hover:bg-neutral-800'
+            return 'bg-[#141414] border-neutral-800 text-foreground-tertiary hover:border-neutral-600 hover:bg-neutral-800'
           }
 
           return (
@@ -126,7 +126,8 @@ export default function RightChoiceVoteDetails({ roomId, voteId, isHost, onBack 
           <select
             value={hostSelectedCorrect}
             onChange={e => setHostSelectedCorrect(e.target.value)}
-            className="w-full bg-[#141414] border border-neutral-800 text-neutral-200 rounded-lg px-3 py-2 outline-none"
+            className="w-full bg-[#141414] border border-neutral-800 text-foreground-tertiary rounded-lg px-3 py-2
+              outline-none"
           >
             <option value="" disabled hidden>
               Select option...
@@ -140,8 +141,8 @@ export default function RightChoiceVoteDetails({ roomId, voteId, isHost, onBack 
           <button
             onClick={handleResolve}
             disabled={!hostSelectedCorrect || isResolving}
-            className="mt-2 w-full py-2 bg-emerald-500 text-neutral-950 font-semibold rounded-lg hover:bg-emerald-400
-              disabled:opacity-50 transition-colors"
+            className="mt-2 w-full py-2 bg-emerald-500 text-foreground-inverse font-semibold rounded-lg
+              hover:bg-emerald-400 disabled:opacity-50 transition-colors"
           >
             {isResolving ? 'Resolving...' : 'Publish Results'}
           </button>
@@ -150,14 +151,14 @@ export default function RightChoiceVoteDetails({ roomId, voteId, isHost, onBack 
 
       {!isHost && isClosedDetails && (
         <div className="mt-4 p-3 bg-neutral-800/50 rounded-xl border border-neutral-800">
-          <p className="text-sm text-neutral-400 text-center">
+          <p className="text-sm text-foreground-muted text-center">
             Voting is closed. Waiting for host to publish results...
           </p>
         </div>
       )}
 
       <div className="mt-6 pt-4 border-t border-neutral-800">
-        <button onClick={onBack} className="text-neutral-400 hover:text-neutral-200 font-medium">
+        <button onClick={onBack} className="text-foreground-muted hover:text-foreground-tertiary font-medium">
           Back to list
         </button>
       </div>

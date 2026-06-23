@@ -44,12 +44,12 @@ export default function PlayerBottomControls({
         <button onClick={onPlayPause} className="cursor-pointer">
           {playing ? (
             <PauseIcon
-              className="w-5 h-5 md:w-6 md:h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out
+              className="w-5 h-5 md:w-6 md:h-6 text-foreground-subtle hover:text-emerald-500 duration-300 ease-out
                 transition-colors stroke-[1.5px]"
             />
           ) : (
             <PlayIcon
-              className="w-5 h-5 md:w-6 md:h-6 text-neutral-300 hover:text-emerald-500 duration-300 ease-out
+              className="w-5 h-5 md:w-6 md:h-6 text-foreground-subtle hover:text-emerald-500 duration-300 ease-out
                 transition-colors stroke-[1.5px]"
             />
           )}
@@ -57,9 +57,12 @@ export default function PlayerBottomControls({
 
         {/* Duration */}
         <div className="flex items-center gap-0.5">
-          <Duration seconds={duration * playedFraction} className="text-neutral-300 text-sm font-medium leading-5" />
-          <span className="text-neutral-300 text-sm font-medium leading-5">/</span>
-          <Duration seconds={duration} className="text-neutral-300 text-sm font-medium leading-5" />
+          <Duration
+            seconds={duration * playedFraction}
+            className="text-foreground-subtle text-sm font-medium leading-5"
+          />
+          <span className="text-foreground-subtle text-sm font-medium leading-5">/</span>
+          <Duration seconds={duration} className="text-foreground-subtle text-sm font-medium leading-5" />
         </div>
 
         {/* Volume */}
@@ -67,20 +70,20 @@ export default function PlayerBottomControls({
           <button onClick={onToggleMute} className="cursor-pointer">
             {baseUserVolume >= 0.5 && (
               <MaxVolume
-                className="text-neutral-300 w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500 transition-colors
-                  stroke-[1.5px]"
+                className="text-foreground-subtle w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500
+                  transition-colors stroke-[1.5px]"
               />
             )}
             {baseUserVolume < 0.5 && baseUserVolume > 0 && (
               <MinVolume
-                className="text-neutral-300 w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500 transition-colors
-                  stroke-[1.5px]"
+                className="text-foreground-subtle w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500
+                  transition-colors stroke-[1.5px]"
               />
             )}
             {baseUserVolume === 0 && (
               <MutedVolume
-                className="text-neutral-300 w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500 transition-colors
-                  stroke-[1.5px]"
+                className="text-foreground-subtle w-5 h-5 md:w-6 md:h-6 group-hover/volume:text-emerald-500
+                  transition-colors stroke-[1.5px]"
               />
             )}
           </button>
@@ -113,14 +116,16 @@ export default function PlayerBottomControls({
         <button type="button" onClick={onToggleSettings} className="cursor-pointer group/settings">
           <SettingsIcon
             className={`w-5 h-5 md:w-6 md:h-6 transition-colors duration-300 stroke-[1.5px] ${
-              showSettings ? 'text-emerald-500 rotate-45' : 'text-neutral-300 group-hover/settings:text-emerald-500'
-            }`}
+              showSettings
+                ? 'text-emerald-500 rotate-45'
+                : 'text-foreground-subtle group-hover/settings:text-emerald-500'
+              }`}
           />
         </button>
         <button type="button" onClick={onToggleFullScreen} className="cursor-pointer group/fullscreen">
           <FullscreenIcon
-            className="text-neutral-300 w-5 h-5 md:w-6 md:h-6 group-hover/fullscreen:text-emerald-500 transition-colors
-              stroke-[1.5px]"
+            className="text-foreground-subtle w-5 h-5 md:w-6 md:h-6 group-hover/fullscreen:text-emerald-500
+              transition-colors stroke-[1.5px]"
           />
         </button>
       </div>

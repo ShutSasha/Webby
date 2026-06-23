@@ -29,7 +29,7 @@ export default function VideoDescription(props: Props) {
 
   return (
     <div className="flex flex-col gap-2 rounded-xl bg-black/40 p-3 mt-4 overflow-hidden">
-      <p className="text-sm font-bold text-neutral-300">
+      <p className="text-sm font-bold text-foreground-subtle">
         {props.views} {props.views === 1 ? 'view' : 'views'} | {formatDate(props.date)}
       </p>
 
@@ -37,7 +37,8 @@ export default function VideoDescription(props: Props) {
         <p
           ref={textRef}
           className={cn(
-            'text-sm text-neutral-300 wrap-break-word whitespace-pre-wrap leading-relaxed transition-all min-h-[69px]',
+            `text-sm text-foreground-subtle wrap-break-word whitespace-pre-wrap leading-relaxed transition-all
+            min-h-[69px]`,
             !isExpanded && 'line-clamp-3',
           )}
         >
@@ -55,7 +56,7 @@ export default function VideoDescription(props: Props) {
             <>
               {'\n\n'}
               {props.videoTags.map(tag => (
-                <span key={tag} className="text-neutral-500 font-medium mr-2 transition-colors">
+                <span key={tag} className="text-foreground0 font-medium mr-2 transition-colors">
                   #{tag}
                 </span>
               ))}
@@ -66,7 +67,8 @@ export default function VideoDescription(props: Props) {
         {(isTruncated || isExpanded) && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-sm font-bold text-neutral-300 mt-1 hover:underline cursor-pointer transition-all block"
+            className="text-sm font-bold text-foreground-subtle mt-1 hover:underline cursor-pointer transition-all
+              block"
           >
             {isExpanded ? 'Show less' : '...more'}
           </button>

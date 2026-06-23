@@ -34,11 +34,12 @@ function UserPoints() {
         transition-colors duration-300 ease-in-out cursor-pointer"
     >
       <CubeIcon
-        className="size-5 text-neutral-300 group-hover:text-neutral-900 transition-colors duration-300 ease-in-out"
+        className="size-5 text-foreground-subtle group-hover:text-foreground-inverse-subtle transition-colors
+          duration-300 ease-in-out"
       />
       <p
-        className="group-hover:text-neutral-900 text-neutral-300 transition-colors duration-300 ease-in-out leading-5
-          font-medium"
+        className="group-hover:text-foreground-inverse-subtle text-foreground-subtle transition-colors duration-300
+          ease-in-out leading-5 font-medium"
       >
         {isLoading ? <span className="animate-pulse">...</span> : formatPoints(points)}
       </p>
@@ -53,7 +54,8 @@ function Reactions() {
         transition-colors duration-300 ease-in-out cursor-pointer"
     >
       <ReactionSmileIcon
-        className="size-5 text-neutral-300 group-hover:text-neutral-900 transition-colors duration-300 ease-in-out"
+        className="size-5 text-foreground-subtle group-hover:text-foreground-inverse-subtle transition-colors
+          duration-300 ease-in-out"
       />
     </div>
   )
@@ -75,9 +77,13 @@ function Poll() {
         hover:bg-emerald-500 transition-colors duration-300 ease-in-out cursor-pointer"
     >
       <PollIcon
-        className="size-5 text-neutral-300 group-hover:text-neutral-900 transition-colors duration-300 ease-in-out"
+        className="size-5 text-foreground-subtle group-hover:text-foreground-inverse-subtle transition-colors
+          duration-300 ease-in-out"
       />
-      <p className="group-hover:text-neutral-900 text-neutral-300 transition-colors duration-300 ease-in-out leading-5">
+      <p
+        className="group-hover:text-foreground-inverse-subtle text-foreground-subtle transition-colors duration-300
+          ease-in-out leading-5"
+      >
         Votes
       </p>
 

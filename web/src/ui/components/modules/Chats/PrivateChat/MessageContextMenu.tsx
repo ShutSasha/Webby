@@ -56,7 +56,8 @@ export default function MessageContextMenu({ isOpen, x, y, isOwnMessage, onClose
           onCopy()
           onClose()
         }}
-        className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors"
+        className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-neutral-700/50
+          transition-colors"
       >
         Copy text
       </button>
@@ -68,7 +69,8 @@ export default function MessageContextMenu({ isOpen, x, y, isOwnMessage, onClose
               onEdit()
               onClose()
             }}
-            className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors"
+            className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-neutral-700/50
+              transition-colors"
           >
             Edit message
           </button>

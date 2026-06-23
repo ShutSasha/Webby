@@ -8,12 +8,12 @@ type Props = {
 export default function PlaylistContainerHeader({ playlistName, hiddenVideosCount }: Props) {
   return (
     <div className="flex flex-col mb-2 px-1 shrink-0">
-      <h2 className="text-neutral-100 font-bold text-xl line-clamp-2 leading-tight" title={playlistName}>
+      <h2 className="text-foreground-secondary font-bold text-xl line-clamp-2 leading-tight" title={playlistName}>
         {playlistName}
       </h2>
 
       {hiddenVideosCount > 0 && (
-        <div className="flex items-center gap-1.5 text-neutral-500 text-xs font-medium bg-neutral-900/50 w-fit
+        <div className="flex items-center gap-1.5 text-foreground0 text-xs font-medium bg-neutral-900/50 w-fit
           rounded-md">
           <HiddenEye className="size-3.5 shrink-0" />
 

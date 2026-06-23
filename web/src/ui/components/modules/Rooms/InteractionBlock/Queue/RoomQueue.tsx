@@ -40,7 +40,7 @@ export default function RoomQueue() {
     <div className="flex flex-col h-full min-h-0">
       <div className="relative group mb-2 shrink-0">
         <SearchIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground0
             group-focus-within:text-emerald-500 transition-colors stroke-[1.5px]"
         />
         <input
@@ -49,7 +49,7 @@ export default function RoomQueue() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="w-full bg-neutral-900 rounded-md py-2 pl-10 pr-4 text-sm outline-none border border-transparent
-            focus:border-emerald-500/70 transition-all placeholder:text-neutral-500"
+            focus:border-emerald-500/70 transition-all placeholder:text-foreground0"
         />
       </div>
 
@@ -61,7 +61,7 @@ export default function RoomQueue() {
             ))}
           </div>
         ) : filteredPlaylist.length === 0 ? (
-          <p className="text-neutral-500 text-center py-10 text-sm">
+          <p className="text-foreground0 text-center py-10 text-sm">
             {search ? 'No videos match your search' : 'Queue is empty'}
           </p>
         ) : (

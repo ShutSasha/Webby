@@ -23,7 +23,7 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
   return (
     <div className="flex flex-col h-full max-h-[60vh]">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-neutral-100">Polls & Quizzes</h3>
+        <h3 className="text-xl font-bold text-foreground-secondary">Polls & Quizzes</h3>
         {isHost && (
           <button
             onClick={() => onViewChange('SELECT_TYPE')}
@@ -56,16 +56,16 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
                 Quick Vote
               </span>
             </div>
-            <h4 className="font-medium text-neutral-200 group-hover:text-purple-400 transition-colors">
+            <h4 className="font-medium text-foreground-tertiary group-hover:text-purple-400 transition-colors">
               Choose the next video!
             </h4>
           </div>
         )}
 
         {isLoading ? (
-          <div className="text-neutral-500 text-center py-10 animate-pulse">Loading votes...</div>
+          <div className="text-foreground0 text-center py-10 animate-pulse">Loading votes...</div>
         ) : votes.length === 0 && !isNextVideoActive ? (
-          <div className="text-neutral-500 text-center py-10">No polls have been created yet.</div>
+          <div className="text-foreground0 text-center py-10">No polls have been created yet.</div>
         ) : (
           votes.map(vote => {
             const isResolved = !!vote.rightChoice
@@ -85,19 +85,19 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
                 <div className="flex justify-between items-start mb-2">
                   <span
                     className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md', {
-                      'bg-neutral-800 text-neutral-500': isResolved,
-                      'bg-neutral-700 text-neutral-400': isClosed,
+                      'bg-neutral-800 text-foreground0': isResolved,
+                      'bg-neutral-700 text-foreground-muted': isClosed,
                       'bg-emerald-500/20 text-emerald-500': isActive,
                     })}
                   >
                     {isResolved ? 'Resolved' : isClosed ? 'Closed' : 'Active'}
                   </span>
                 </div>
-                <h4 className="font-medium text-neutral-200 group-hover:text-emerald-400 transition-colors">
+                <h4 className="font-medium text-foreground-tertiary group-hover:text-emerald-400 transition-colors">
                   {vote.voteText}
                 </h4>
                 <div className="flex justify-between items-center mt-2">
-                  <p className="text-xs text-neutral-500">{vote.choices.length} options</p>
+                  <p className="text-xs text-foreground0">{vote.choices.length} options</p>
                   {vote.myVote && <p className="text-[10px] text-emerald-500/80 font-medium">Voted</p>}
                 </div>
               </div>

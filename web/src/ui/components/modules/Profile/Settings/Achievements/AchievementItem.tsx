@@ -138,13 +138,13 @@ export default function AchievementItem({
         blurDataURL={BLUR_DATA_URLS['neutral800']}
       />
       <p className="font-bold select-text mt-1">{title}</p>
-      <p className="text-neutral-500 text-sm text-center line-clamp-2" title={description}>
+      <p className="text-foreground0 text-sm text-center line-clamp-2" title={description}>
         {description}
       </p>
 
       {!isUnlocked ? (
         <div className="w-full mt-auto pt-3">
-          <div className="flex justify-between items-center text-[11px] text-neutral-400 mb-1.5 px-1 font-medium">
+          <div className="flex justify-between items-center text-[11px] text-foreground-muted mb-1.5 px-1 font-medium">
             <span>
               {achievementProgressValue} / {targetValue}
             </span>
@@ -179,7 +179,7 @@ export default function AchievementItem({
       {isUnlocked && (
         <MoreOptions
           ref={optionsRef}
-          className="absolute size-5 right-3 top-3 text-neutral-300 cursor-pointer hover:text-neutral-100
+          className="absolute size-5 right-3 top-3 text-foreground-subtle cursor-pointer hover:text-foreground-secondary
             transition-colors z-10"
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation()

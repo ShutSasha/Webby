@@ -76,9 +76,9 @@ export default function ToastItem({ id, message, type }: ToastItemProps) {
         {type === 'success' && <CheckCircle className="size-5 text-emerald-700" />}
         {type === 'info' && <InfoCircle className="size-5 text-purple-500" />}
         {type === 'error' && <XCircleIcon className="size-5 text-red-500" />}
-        <span className="text-sm font-medium text-neutral-300">{message}</span>
+        <span className="text-sm font-medium text-foreground-subtle">{message}</span>
       </div>
-      <X className="size-4 text-neutral-500 hover:text-neutral-300 transition-colors" />
+      <X className="size-4 text-foreground0 hover:text-foreground-subtle transition-colors" />
     </motion.div>
   )
 }

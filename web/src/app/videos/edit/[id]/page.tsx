@@ -18,7 +18,7 @@ export default async function EditVideoPage({ params }: Props) {
       <AuthPlaceholder
         title="Sign in to edit your videos"
         description="Please log in to edit your custom video files."
-        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground0 stroke-1" />}
       />
     )
   }
@@ -47,7 +47,7 @@ export default async function EditVideoPage({ params }: Props) {
 
   return (
     <div className="flex flex-col items-center w-full h-full p-6">
-      <h1 className="text-center text-2xl font-bold text-neutral-100 mb-6 tracking-tight">Edit Video</h1>
+      <h1 className="text-center text-2xl font-bold text-foreground-secondary mb-6 tracking-tight">Edit Video</h1>
       <EditVideoContainer initialVideo={response.data} />
     </div>
   )

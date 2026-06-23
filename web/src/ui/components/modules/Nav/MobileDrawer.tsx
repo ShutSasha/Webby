@@ -36,7 +36,7 @@ export default function MobileDrawer({ isOpen, onClose, children }: Props) {
         className={`absolute top-0 right-0 h-full w-[calc(100%-70px)] max-w-[440px] bg-neutral-900 shadow-2xl p-6
           transition-transform duration-400 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
-        <p className="text-white">
+        <p className="text-foreground-strong">
           Lorem ipsum dolor sit amet consectetur, adipisicing elit. Tempora cum architecto fugiat eius aliquam rem in
           accusamus fugit numquam, quos similique sed corporis placeat quis corrupti veniam est eligendi dolor?
         </p>

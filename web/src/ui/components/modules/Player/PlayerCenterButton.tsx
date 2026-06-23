@@ -14,7 +14,7 @@ export default function PlayerCenterButton({ playing, buffering }: Props) {
         rounded-full top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center justify-center pl-1
         transition-opacity duration-400 ease-in-out pointer-events-none`}
     >
-      <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-white/90" />
+      <FilledPlay className="w-5 h-5 md:w-8 md:h-8 text-foreground-strong/90" />
     </div>
   )
 }

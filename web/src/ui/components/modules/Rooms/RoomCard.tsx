@@ -28,7 +28,10 @@ export default function RoomCard({ id, name, thumbnail, category, hostUsername, 
         />
 
         <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md">
-          <p className="uppercase font-bold text-[10px] tracking-wider text-neutral-200 line-clamp-1 max-w-[100px]">
+          <p
+            className="uppercase font-bold text-[10px] tracking-wider text-foreground-tertiary line-clamp-1
+              max-w-[100px]"
+          >
             {category}
           </p>
         </div>

@@ -34,7 +34,7 @@ export default function NotificationCard({ notification, onMarkAsRead, onDelete 
         <div
           className={cn(
             'w-12 h-12 flex items-center justify-center rounded-full',
-            isUnread ? 'bg-emerald-500/10 text-emerald-500' : 'bg-neutral-800 text-neutral-400',
+            isUnread ? 'bg-emerald-500/10 text-emerald-500' : 'bg-neutral-800 text-foreground-muted',
           )}
         >
           <TypeIcon type={notification.targetType} />
@@ -44,12 +44,14 @@ export default function NotificationCard({ notification, onMarkAsRead, onDelete 
       <div className="flex gap-4 items-center pr-20">
         <div className="flex flex-col flex-1 gap-1">
           <div className="flex items-start justify-between">
-            <h3 className={cn('text-sm font-semibold', isUnread ? 'text-neutral-100' : 'text-neutral-300')}>
+            <h3
+              className={cn('text-sm font-semibold', isUnread ? 'text-foreground-secondary' : 'text-foreground-subtle')}
+            >
               {notification.title}
             </h3>
           </div>
-          <p className="text-sm text-neutral-400 leading-relaxed line-clamp-2">{notification.message}</p>
-          <span className="text-[12px] font-medium text-neutral-500 mt-1">
+          <p className="text-sm text-foreground-muted leading-relaxed line-clamp-2">{notification.message}</p>
+          <span className="text-[12px] font-medium text-foreground0 mt-1">
             {formatRelativeTime(notification.createdAt)}
           </span>
         </div>
@@ -63,7 +65,7 @@ export default function NotificationCard({ notification, onMarkAsRead, onDelete 
                 }
               }}
               className="inline-flex px-4 py-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500
-                hover:text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer w-max"
+                hover:text-foreground-strong text-xs font-semibold rounded-lg transition-colors cursor-pointer w-max"
             >
               Join Room
             </Link>
@@ -80,8 +82,8 @@ export default function NotificationCard({ notification, onMarkAsRead, onDelete 
         {isUnread && (
           <button
             onClick={() => onMarkAsRead?.(notification.notificationId)}
-            className="p-2 bg-neutral-700/50 hover:bg-emerald-500/20 text-neutral-300 hover:text-emerald-500 rounded-xl
-              transition-colors cursor-pointer"
+            className="p-2 bg-neutral-700/50 hover:bg-emerald-500/20 text-foreground-subtle hover:text-emerald-500
+              rounded-xl transition-colors cursor-pointer"
             title="Mark as read"
           >
             <CheckIcon className="w-5 h-5 stroke-2" />
@@ -89,7 +91,7 @@ export default function NotificationCard({ notification, onMarkAsRead, onDelete 
         )}
         <button
           onClick={() => onDelete?.(notification.notificationId)}
-          className="p-2 bg-neutral-700/50 hover:bg-red-500/20 text-neutral-300 hover:text-red-400 rounded-xl
+          className="p-2 bg-neutral-700/50 hover:bg-red-500/20 text-foreground-subtle hover:text-red-400 rounded-xl
             transition-colors cursor-pointer"
           title="Delete notification"
         >

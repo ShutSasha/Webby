@@ -14,10 +14,10 @@ export default function VideoUploadStep({ isUploading, uploadProgress = 0, onVid
     >
       {isUploading ? (
         <div className="flex flex-col items-center gap-4 w-full max-w-sm px-4">
-          <p className="text-neutral-200 font-semibold animate-pulse">Uploading video to server...</p>
+          <p className="text-foreground-tertiary font-semibold animate-pulse">Uploading video to server...</p>
 
           <div className="w-full flex flex-col gap-2 mt-2">
-            <div className="flex justify-between items-center text-xs font-medium text-neutral-400">
+            <div className="flex justify-between items-center text-xs font-medium text-foreground-muted">
               <span>Progress</span>
               <span className="text-emerald-500">{uploadProgress}%</span>
             </div>
@@ -31,7 +31,7 @@ export default function VideoUploadStep({ isUploading, uploadProgress = 0, onVid
         </div>
       ) : (
         <div className="flex flex-col items-center gap-4">
-          <div className="p-4 bg-neutral-800 rounded-full text-neutral-400">
+          <div className="p-4 bg-neutral-800 rounded-full text-foreground-muted">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
@@ -42,12 +42,12 @@ export default function VideoUploadStep({ isUploading, uploadProgress = 0, onVid
             </svg>
           </div>
           <div className="text-center">
-            <p className="text-neutral-200 font-semibold mb-1">Select video file to upload</p>
-            <p className="text-neutral-500 text-sm mb-6">MP4 or WebM</p>
+            <p className="text-foreground-tertiary font-semibold mb-1">Select video file to upload</p>
+            <p className="text-foreground0 text-sm mb-6">MP4 or WebM</p>
           </div>
 
           <label
-            className="cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-neutral-950 px-6 py-2.5 rounded-xl
+            className="cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-foreground-inverse px-6 py-2.5 rounded-xl
               font-semibold transition-colors"
           >
             Choose File

@@ -68,8 +68,8 @@ export default function ChatInput({ chatId }: Props) {
         onKeyDown={handleKeyDown}
         placeholder="Send a message"
         autoComplete="off"
-        className="py-2 pl-4 pr-12 bg-neutral-900 placeholder:text-neutral-700 w-full ring-0 outline-0 rounded-lg
-          text-neutral-300 transition-opacity"
+        className="py-2 pl-4 pr-12 bg-neutral-900 placeholder:text-foreground-ghost w-full ring-0 outline-0 rounded-lg
+          text-foreground-subtle transition-opacity"
       />
       <button
         type="submit"
@@ -78,7 +78,7 @@ export default function ChatInput({ chatId }: Props) {
       >
         <SendIcon
           className={`size-6 transition-colors duration-300 ease-in-out ${
-            content.trim() ? 'text-emerald-500 cursor-pointer' : 'text-neutral-700'
+            content.trim() ? 'text-emerald-500 cursor-pointer' : 'text-foreground-ghost'
           }`}
         />
       </button>

@@ -38,8 +38,8 @@ export default function EmailStep() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-white text-2xl font-bold">Forgot Password</h2>
-        <p className="text-neutral-400 text-sm">Enter the email associated with your account</p>
+        <h2 className="text-foreground-strong text-2xl font-bold">Forgot Password</h2>
+        <p className="text-foreground-muted text-sm">Enter the email associated with your account</p>
       </div>
 
       <AuthInput

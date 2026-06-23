@@ -40,13 +40,13 @@ export default function AsideVideoCard({ video }: Props) {
       </div>
 
       <div className="flex flex-col gap-1 flex-1 overflow-hidden">
-        <p className="text-sm line-clamp-2 text-neutral-200 font-medium" title={title}>
+        <p className="text-sm line-clamp-2 text-foreground-tertiary font-medium" title={title}>
           {title}
         </p>
-        <p className="text-sm text-neutral-400 truncate" title={username}>
+        <p className="text-sm text-foreground-muted truncate" title={username}>
           {username}
         </p>
-        <p className="text-[12px] text-neutral-400 line-clamp-1" title={`${views} views`}>
+        <p className="text-[12px] text-foreground-muted line-clamp-1" title={`${views} views`}>
           {formatViews(views)} views • {formatTimeAgo(createdAt)}
         </p>
       </div>

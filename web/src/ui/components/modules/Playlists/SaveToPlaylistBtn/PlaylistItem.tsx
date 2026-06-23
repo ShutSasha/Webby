@@ -33,10 +33,10 @@ export default function PlaylistItem({ playlistId, image, name, count, status, d
           blurDataURL={BLUR_DATA_URLS['neutral800']}
         />
         <div className="flex flex-col">
-          <p className="text-sm text-neutral-300 line-clamp-1" title={name}>
+          <p className="text-sm text-foreground-subtle line-clamp-1" title={name}>
             {name}
           </p>
-          <p className="text-sm text-neutral-500">{count === 1 ? '1 video' : `${count} videos`}</p>
+          <p className="text-sm text-foreground0">{count === 1 ? '1 video' : `${count} videos`}</p>
         </div>
       </div>
       <div className="flex items-center justify-center size-6 shrink-0 ml-3">
@@ -46,7 +46,7 @@ export default function PlaylistItem({ playlistId, image, name, count, status, d
               shadow-[0_0_8px_rgba(16,185,129,0.3)] animate-in zoom-in duration-200"
           >
             <svg
-              className="w-3.5 h-3.5 text-neutral-900"
+              className="w-3.5 h-3.5 text-foreground-inverse-subtle"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -62,7 +62,7 @@ export default function PlaylistItem({ playlistId, image, name, count, status, d
               shadow-[0_0_8px_rgba(239,68,68,0.3)] animate-in zoom-in duration-200"
           >
             <svg
-              className="w-3.5 h-3.5 text-neutral-900"
+              className="w-3.5 h-3.5 text-foreground-inverse-subtle"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

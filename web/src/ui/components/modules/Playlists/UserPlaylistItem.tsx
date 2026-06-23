@@ -100,7 +100,8 @@ export default function UserPlaylistItem(props: Props) {
 
           <div
             className="absolute bg-black/80 rounded-lg px-2 py-1 top-1/35 right-1/40 group-hover:top-1/20
-              group-hover:right-1/25 transition-all duration-300 text-neutral-200 text-[12px] pointer-events-none"
+              group-hover:right-1/25 transition-all duration-300 text-foreground-tertiary text-[12px]
+              pointer-events-none"
           >
             {props.videoCount} videos
           </div>
@@ -108,8 +109,8 @@ export default function UserPlaylistItem(props: Props) {
 
         <div className="flex justify-between items-start gap-2">
           <div className="flex flex-col overflow-hidden">
-            <p className="text-sm font-medium text-neutral-100 line-clamp-1">{props.name}</p>
-            <p className="text-[12px] text-neutral-500 mt-1">
+            <p className="text-sm font-medium text-foreground-secondary line-clamp-1">{props.name}</p>
+            <p className="text-[12px] text-foreground0 mt-1">
               {props.isPrivate ? 'Private' : 'Public'} &bull; Playlist
             </p>
           </div>
@@ -121,11 +122,11 @@ export default function UserPlaylistItem(props: Props) {
                 'p-1.5 -mr-1.5 -mt-1 rounded-full transition-all duration-300 cursor-pointer z-20',
                 'hover:bg-neutral-500/20 active:bg-neutral-500/40',
                 isMenuOpen
-                  ? 'bg-neutral-500/20 text-neutral-300'
-                  : 'text-neutral-400 opacity-0 group-hover:opacity-100 md:opacity-100',
+                  ? 'bg-neutral-500/20 text-foreground-subtle'
+                  : 'text-foreground-muted opacity-0 group-hover:opacity-100 md:opacity-100',
               )}
             >
-              <MoreVertical className="size-5 text-neutral-300" />
+              <MoreVertical className="size-5 text-foreground-subtle" />
             </button>
 
             {isMenuOpen && (
@@ -135,7 +136,7 @@ export default function UserPlaylistItem(props: Props) {
                 onClick={e => e.preventDefault()}
               >
                 <button
-                  className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50
+                  className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-neutral-700/50
                     transition-colors flex items-center gap-3 cursor-pointer"
                   onClick={handleEditPlaylist}
                 >
@@ -157,7 +158,7 @@ export default function UserPlaylistItem(props: Props) {
 
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         <form className="flex flex-col" onSubmit={handleUpdateSubmit}>
-          <h3 className="text-neutral-300 text-center mb-4 font-semibold text-xl">Edit playlist</h3>
+          <h3 className="text-foreground-subtle text-center mb-4 font-semibold text-xl">Edit playlist</h3>
 
           <div className="relative mb-4">
             <label htmlFor={`edit-playlist-${props.id}`} className="sr-only">
@@ -170,11 +171,13 @@ export default function UserPlaylistItem(props: Props) {
               value={editName}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setEditName(e.target.value)}
             />
-            <EditPenIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-700 stroke-[1.5px]" />
+            <EditPenIcon
+              className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground-ghost stroke-[1.5px]"
+            />
           </div>
 
           <div className="flex items-center justify-between mb-6">
-            <p className="text-sm text-neutral-300 font-medium">Private:</p>
+            <p className="text-sm text-foreground-subtle font-medium">Private:</p>
 
             <Switch isChecked={editIsPrivate} toggle={() => setEditIsPrivate(prev => !prev)} />
           </div>

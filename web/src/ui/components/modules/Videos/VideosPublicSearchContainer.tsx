@@ -40,11 +40,11 @@ export default function VideosPublicSearchContainer({ query }: Props) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
         {query.length > 0 && (
-          <p className="text-neutral-500 text-center">
-            Videos by query <span className="text-neutral-300">{`'${query}'`}</span> not found
+          <p className="text-foreground0 text-center">
+            Videos by query <span className="text-foreground-subtle">{`'${query}'`}</span> not found
           </p>
         )}
-        {query.length === 0 && <p className="text-neutral-500 text-center">No videos found</p>}
+        {query.length === 0 && <p className="text-foreground0 text-center">No videos found</p>}
       </div>
     )
   }

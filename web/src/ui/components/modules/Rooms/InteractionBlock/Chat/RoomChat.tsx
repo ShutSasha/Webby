@@ -39,7 +39,10 @@ export default function RoomChat({ chatId }: Props) {
         hover:[&::-webkit-scrollbar-thumb]:bg-neutral-800"
     >
       {messages.length === 0 ? (
-        <div className="h-full flex items-center justify-center text-neutral-600 text-sm italic rotate-180 transform">
+        <div
+          className="h-full flex items-center justify-center text-foreground-disabled text-sm italic rotate-180
+            transform"
+        >
           <span className="rotate-180">No messages yet. Be the first to say hello!</span>
         </div>
       ) : (

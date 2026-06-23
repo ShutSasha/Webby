@@ -24,11 +24,11 @@ export default function EmptyState({ title, description, className, icon, disabl
         className="size-20 bg-neutral-900/50 rounded-full flex items-center justify-center mb-6 border
           border-neutral-800 shadow-inner"
       >
-        {icon ? icon : <SadSmileIcon className="size-9 text-neutral-600 stroke-[1.5px]" />}
+        {icon ? icon : <SadSmileIcon className="size-9 text-foreground-disabled stroke-[1.5px]" />}
       </div>
-      <h3 className="text-xl font-bold text-neutral-300 text-center mb-2">{title}</h3>
+      <h3 className="text-xl font-bold text-foreground-subtle text-center mb-2">{title}</h3>
 
-      {description && <p className="text-sm text-neutral-500 text-center max-w-sm leading-relaxed">{description}</p>}
+      {description && <p className="text-sm text-foreground0 text-center max-w-sm leading-relaxed">{description}</p>}
     </div>
   )
 }

@@ -32,7 +32,7 @@ export default function UploadAvatarContainer() {
             className="bg-[#0A0A0A] p-8 rounded-3xl border border-neutral-800/50 shadow-2xl max-w-lg w-full flex
               flex-col items-center gap-6 animate-in zoom-in-95 duration-300"
           >
-            <h3 className="text-neutral-100 text-xl font-bold">Adjust your avatar</h3>
+            <h3 className="text-foreground-secondary text-xl font-bold">Adjust your avatar</h3>
 
             <div className="bg-neutral-900/50 rounded-2xl overflow-hidden border border-neutral-800/50 p-2">
               <ReactCrop

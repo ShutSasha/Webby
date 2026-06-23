@@ -17,7 +17,7 @@ export default async function Page({ searchParams }: Props) {
       <AuthPlaceholder
         title="Sign in to view your rooms"
         description="Manage your custom rooms, adjust privacy settings, and host synchronized viewing sessions by logging into your account."
-        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground0 stroke-1" />}
       />
     )
   }

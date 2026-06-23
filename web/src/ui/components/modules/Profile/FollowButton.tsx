@@ -38,8 +38,8 @@ export default function FollowButton({ targetUserId, initialIsFollowing, current
       className={cn(
         'flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-300 cursor-pointer',
         {
-          'bg-neutral-800 text-neutral-400 hover:bg-red-500/10 hover:text-red-500': isFollowing && !isPending,
-          'bg-emerald-500 text-neutral-900 hover:bg-emerald-400': !isFollowing && !isPending,
+          'bg-neutral-800 text-foreground-muted hover:bg-red-500/10 hover:text-red-500': isFollowing && !isPending,
+          'bg-emerald-500 text-foreground-inverse-subtle hover:bg-emerald-400': !isFollowing && !isPending,
           'opacity-50 grayscale pointer-events-none ': isPending,
         },
       )}

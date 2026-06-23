@@ -105,7 +105,8 @@ export function StudioVideoRow({ video }: Props) {
 
           {isReady && (
             <div
-              className="absolute bottom-1 right-1 bg-black/80 px-1 py-0.5 rounded text-[10px] font-medium text-white"
+              className="absolute bottom-1 right-1 bg-black/80 px-1 py-0.5 rounded text-[10px] font-medium
+                text-foreground-strong"
             >
               {video.duration ? formatVideoTime(video.duration) : '0:00'}
             </div>
@@ -128,17 +129,19 @@ export function StudioVideoRow({ video }: Props) {
           {isReady ? (
             <Link
               href={`/videos/${video.videoId}`}
-              className="text-sm font-semibold text-neutral-100 line-clamp-2 wrap-break-word hover:text-emerald-400
-                transition-colors"
+              className="text-sm font-semibold text-foreground-secondary line-clamp-2 wrap-break-word
+                hover:text-emerald-400 transition-colors"
             >
               {video.name}
             </Link>
           ) : (
-            <span className="text-sm font-semibold text-neutral-400 line-clamp-2 wrap-break-word">{video.name}</span>
+            <span className="text-sm font-semibold text-foreground-muted line-clamp-2 wrap-break-word">
+              {video.name}
+            </span>
           )}
 
           {isReady ? (
-            <p className="text-xs text-neutral-500 mt-1 line-clamp-1 wrap-break-word">
+            <p className="text-xs text-foreground0 mt-1 line-clamp-1 wrap-break-word">
               {video.description || 'No description'}
             </p>
           ) : (
@@ -148,12 +151,12 @@ export function StudioVideoRow({ video }: Props) {
                   'text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-sm',
                   isUploading && 'bg-emerald-500/10 text-emerald-400',
                   isFailed && 'bg-red-500/10 text-red-400',
-                  video.videoUploadStatus === 'Canceled' && 'bg-neutral-500/20 text-neutral-400',
+                  video.videoUploadStatus === 'Canceled' && 'bg-neutral-500/20 text-foreground-muted',
                 )}
               >
                 {video.videoUploadStatus}
               </span>
-              {isUploading && <span className="text-xs text-neutral-400 animate-pulse">Processing...</span>}
+              {isUploading && <span className="text-xs text-foreground-muted animate-pulse">Processing...</span>}
             </div>
           )}
         </div>
@@ -163,7 +166,7 @@ export function StudioVideoRow({ video }: Props) {
         <div
           className={cn(
             'flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md',
-            video.isPublished ? 'text-neutral-300' : 'bg-neutral-500/10 text-neutral-400',
+            video.isPublished ? 'text-foreground-subtle' : 'bg-neutral-500/10 text-foreground-muted',
           )}
         >
           {video.isPublished ? 'Published' : 'Draft'}
@@ -171,17 +174,17 @@ export function StudioVideoRow({ video }: Props) {
       </div>
 
       <div className="w-28 flex justify-center shrink-0">
-        <div className="flex items-center gap-1.5 text-xs text-neutral-300">
+        <div className="flex items-center gap-1.5 text-xs text-foreground-subtle">
           {video.isPrivate ? <span>Private</span> : <span className="text-emerald-500">Public</span>}
         </div>
       </div>
 
       <div className="w-32 flex flex-col items-center justify-center shrink-0 text-center">
-        <p className="text-xs text-neutral-200">{formatDate(video.createdAt)}</p>
-        <p className="text-[10px] text-neutral-500 mt-0.5">Uploaded</p>
+        <p className="text-xs text-foreground-tertiary">{formatDate(video.createdAt)}</p>
+        <p className="text-[10px] text-foreground0 mt-0.5">Uploaded</p>
       </div>
 
-      <div className="w-24 text-center text-xs text-neutral-300 shrink-0">
+      <div className="w-24 text-center text-xs text-foreground-subtle shrink-0">
         {isReady ? formatViews(video.views) : '-'}
       </div>
 
@@ -193,11 +196,11 @@ export function StudioVideoRow({ video }: Props) {
               'p-1.5 -mr-1.5 -mt-1 rounded-full transition-all duration-300 cursor-pointer z-20',
               'hover:bg-neutral-500/20 active:bg-neutral-500/40',
               isMenuOpen
-                ? 'bg-neutral-500/20 text-neutral-300'
-                : 'text-neutral-400 opacity-0 group-hover:opacity-100 md:opacity-100',
+                ? 'bg-neutral-500/20 text-foreground-subtle'
+                : 'text-foreground-muted opacity-0 group-hover:opacity-100 md:opacity-100',
             )}
           >
-            <MoreVertical className="size-5 text-neutral-300" />
+            <MoreVertical className="size-5 text-foreground-subtle" />
           </button>
         )}
 
@@ -209,16 +212,16 @@ export function StudioVideoRow({ video }: Props) {
           >
             {isUploading && (
               <button
-                className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors
-                  flex items-center gap-3 cursor-pointer"
+                className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-neutral-700/50
+                  transition-colors flex items-center gap-3 cursor-pointer"
                 onClick={handleCancelUploadVideo}
               >
                 <span>{cancelUploadPending ? 'Canceling upload...' : 'Cancel upload'}</span>
               </button>
             )}
             <button
-              className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors
-                flex items-center gap-3 cursor-pointer"
+              className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-neutral-700/50
+                transition-colors flex items-center gap-3 cursor-pointer"
               onClick={handleEditRedirect}
             >
               <span>Edit</span>

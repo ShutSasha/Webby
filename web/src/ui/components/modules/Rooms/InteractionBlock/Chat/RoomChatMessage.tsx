@@ -16,7 +16,7 @@ export default function RoomChatMessage({ senderId, username, message }: Props) 
       <Link href={`/profile/${senderId}`} className={`hover:underline font-medium ${userColor}`}>
         {username}
       </Link>
-      <span className="text-neutral-300">:&nbsp;{message}</span>
+      <span className="text-foreground-subtle">:&nbsp;{message}</span>
     </div>
   )
 }

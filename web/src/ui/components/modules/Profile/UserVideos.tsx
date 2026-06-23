@@ -33,7 +33,7 @@ export default function UserVideos({ userId }: Props) {
   if (!isLoading && videos.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
-        <p className="text-neutral-500 text-center">No videos found</p>
+        <p className="text-foreground0 text-center">No videos found</p>
       </div>
     )
   }
@@ -53,7 +53,7 @@ export default function UserVideos({ userId }: Props) {
             >
               <ImageBackground src={video.previewUrl || DEFAULT_VIDEO_THUMBNAIL} />
               <p className="text-sm font-medium wrap-break-word line-clamp-1">{video.name}</p>
-              <div className="flex gap-2 text-[12px] text-neutral-500">
+              <div className="flex gap-2 text-[12px] text-foreground0">
                 {formatViews(video.views)} • {formatTimeAgo(video.createdAt)}
               </div>
             </Link>

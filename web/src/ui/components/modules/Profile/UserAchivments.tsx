@@ -11,7 +11,7 @@ type Props = {
 export async function UserAchievements({ achivements }: Props) {
   return (
     <div className="flex flex-col gap-2 self-start md:self-end mt-4 md:mt-auto md:items-end">
-      <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Achievements</span>
+      <span className="text-xs font-semibold text-foreground-muted uppercase tracking-wider">Achievements</span>
 
       <div className="flex items-center gap-3 md:justify-end">
         {achivements.map(achivement => (

@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label, valueFormatter, colorTheme }: a
 
     return (
       <div className="bg-[#0A0A0A] border border-neutral-800/80 p-4 rounded-2xl shadow-2xl backdrop-blur-md">
-        <p className="text-neutral-500 text-xs font-medium mb-1 uppercase tracking-wider">{label}</p>
+        <p className="text-foreground0 text-xs font-medium mb-1 uppercase tracking-wider">{label}</p>
         <p className={`font-bold text-2xl ${colorClass}`}>
           {valueFormatter ? valueFormatter(payload[0].value) : payload[0].value}
         </p>
@@ -45,7 +45,7 @@ export default function AdminAreaChart({ title, data, colorTheme = 'emerald', va
 
   return (
     <div className="bg-[#0A0A0A] border border-neutral-800/60 rounded-2xl p-6 flex flex-col w-full h-full">
-      <h3 className="text-lg font-bold text-neutral-100 mb-6">{title}</h3>
+      <h3 className="text-lg font-bold text-foreground-secondary mb-6">{title}</h3>
 
       <div className="w-full h-72">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>

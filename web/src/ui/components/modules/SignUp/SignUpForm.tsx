@@ -45,8 +45,8 @@ export default function SignUpForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6">
       <div className="flex flex-col gap-1 text-center">
-        <h1 className="text-white text-2xl font-bold">Create account</h1>
-        <p className="text-sm text-neutral-400">Join Webby to start watching and chatting.</p>
+        <h1 className="text-foreground-strong text-2xl font-bold">Create account</h1>
+        <p className="text-sm text-foreground-muted">Join Webby to start watching and chatting.</p>
       </div>
       <div className="flex flex-col gap-4">
         <AuthInput Icon={UsernameIcon} {...register('username')} name="username" type="text" placeholder="Username" />
@@ -90,15 +90,15 @@ export default function SignUpForm() {
 
       <div className="flex items-center gap-3">
         <div className="h-px w-full bg-neutral-800" />
-        <span className="text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">or continue with</span>
+        <span className="text-xs text-foreground0 uppercase tracking-wider whitespace-nowrap">or continue with</span>
         <div className="h-px w-full bg-neutral-800" />
       </div>
 
       <AuthSocialButtons />
 
-      <p className="text-center text-sm text-neutral-400 mt-2">
+      <p className="text-center text-sm text-foreground-muted mt-2">
         Already have an account?{' '}
-        <Link href="/login" className="text-white font-semibold hover:underline">
+        <Link href="/login" className="text-foreground-strong font-semibold hover:underline">
           Log in
         </Link>
       </p>

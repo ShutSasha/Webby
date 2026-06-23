@@ -70,8 +70,8 @@ export default function VerifyPage({ email }: { email?: string }) {
         className="flex w-full bg-neutral-900 max-w-[700px] rounded-[20px] p-10 box-border flex-col items-center gap-4"
       >
         <div className="space-y-2 text-center">
-          <h2 className="text-white text-2xl font-bold">Confirm email</h2>
-          <p className="text-neutral-400 text-sm">We have sent a code to your email</p>
+          <h2 className="text-foreground-strong text-2xl font-bold">Confirm email</h2>
+          <p className="text-foreground-muted text-sm">We have sent a code to your email</p>
         </div>
 
         <OTPInput
@@ -97,7 +97,7 @@ export default function VerifyPage({ email }: { email?: string }) {
         {!success && (
           <button
             className={`text-sm transition-all ${
-              timeLeft > 0 ? 'text-neutral-500 cursor-not-allowed' : 'text-emerald-500 hover:underline cursor-pointer'
+              timeLeft > 0 ? 'text-foreground0 cursor-not-allowed' : 'text-emerald-500 hover:underline cursor-pointer'
             }`}
             onClick={resendVerifyCode}
             disabled={timeLeft > 0 || loading}
@@ -130,7 +130,7 @@ export function Slot(props: SlotProps) {
       className={` relative w-12 h-14 text-[20px] flex items-center justify-center transition-all duration-300 border-2
         rounded-xl
         ${props.isActive ? 'border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'border-neutral-700'}
-        ${props.char ? 'text-white' : 'text-neutral-500'} `}
+        ${props.char ? 'text-foreground-strong' : 'text-foreground0'} `}
     >
       {props.char !== null ? <div>{props.char}</div> : null}
 

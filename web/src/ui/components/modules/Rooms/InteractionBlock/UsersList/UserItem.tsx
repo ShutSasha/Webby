@@ -67,8 +67,8 @@ export default function UserItem({ user, roomId }: { user: RoomMember; roomId: s
         />
 
         <span
-          className="text-sm font-medium text-neutral-300 group-hover:text-white transition-colors truncate
-            max-w-[120px]"
+          className="text-sm font-medium text-foreground-subtle group-hover:text-foreground-strong transition-colors
+            truncate max-w-[120px]"
         >
           {user.username}
         </span>
@@ -77,7 +77,7 @@ export default function UserItem({ user, roomId }: { user: RoomMember; roomId: s
       <div className="relative shrink-0" ref={menuRef}>
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-1 hover:bg-neutral-800 rounded-md text-neutral-500 hover:text-white transition-all
+          className="p-1 hover:bg-neutral-800 rounded-md text-foreground0 hover:text-foreground-strong transition-all
             cursor-pointer"
         >
           <DotsIcon className="w-5 h-5" />

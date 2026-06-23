@@ -59,7 +59,7 @@ export default function VideoMetadataForm({
       <div className="flex gap-6 flex-col md:flex-row">
         <div className="flex-1 flex flex-col gap-5">
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-neutral-300">
+            <span className="text-sm font-medium text-foreground-subtle">
               Title <span className="text-red-500">*</span>
             </span>
             <input
@@ -67,14 +67,14 @@ export default function VideoMetadataForm({
               required
               value={name}
               onChange={e => onNameChange(e.target.value)}
-              className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-neutral-100
+              className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-foreground-secondary
                 focus:outline-none focus:border-emerald-500 transition-colors"
               placeholder="Catchy title for your video"
             />
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-neutral-300">
+            <span className="text-sm font-medium text-foreground-subtle">
               Description <span className="text-red-500">*</span>
             </span>
             <textarea
@@ -82,7 +82,7 @@ export default function VideoMetadataForm({
               value={description}
               onChange={e => onDescriptionChange(e.target.value)}
               rows={5}
-              className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-neutral-100
+              className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-foreground-secondary
                 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
               placeholder="Tell viewers about your video"
             />
@@ -90,7 +90,7 @@ export default function VideoMetadataForm({
 
           <label className="flex items-center gap-3 mt-2 cursor-pointer w-fit">
             <Switch isChecked={isPrivate} toggle={() => onPrivateChange(!isPrivate)} />
-            <span className="text-sm text-neutral-300">Make video Private</span>
+            <span className="text-sm text-foreground-subtle">Make video Private</span>
           </label>
 
           <VideoTagsInput
@@ -104,7 +104,7 @@ export default function VideoMetadataForm({
         </div>
 
         <div className="w-full md:w-[280px] flex flex-col gap-2">
-          <span className="text-sm font-medium text-neutral-300">
+          <span className="text-sm font-medium text-foreground-subtle">
             Thumbnail <span className="text-red-500">*</span>
           </span>
           <label
@@ -116,7 +116,7 @@ export default function VideoMetadataForm({
               <Image src={previewBase64} width={1280} height={720} alt="Preview" className="object-cover" />
             ) : (
               <div className="text-center p-4">
-                <p className="text-sm text-neutral-400 group-hover:text-emerald-400 transition-colors">
+                <p className="text-sm text-foreground-muted group-hover:text-emerald-400 transition-colors">
                   Upload Thumbnail
                 </p>
               </div>
@@ -129,7 +129,7 @@ export default function VideoMetadataForm({
               onChange={onPreviewSelect}
             />
           </label>
-          <p className="text-xs text-neutral-500 mt-1">Optimal size 1280x720 (16:9). Max 2MB.</p>
+          <p className="text-xs text-foreground0 mt-1">Optimal size 1280x720 (16:9). Max 2MB.</p>
         </div>
       </div>
 

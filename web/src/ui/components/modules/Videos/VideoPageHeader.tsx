@@ -8,8 +8,8 @@ export default function VideoPageHeader() {
         border-neutral-800/60"
     >
       <div className="flex flex-col shrink-0 order-1">
-        <h1 className="text-2xl font-bold text-neutral-100">Videos</h1>
-        <p className="text-sm text-neutral-400 mt-0.5">Discover, watch, and share your favorite content</p>
+        <h1 className="text-2xl font-bold text-foreground-secondary">Videos</h1>
+        <p className="text-sm text-foreground-muted mt-0.5">Discover, watch, and share your favorite content</p>
       </div>
 
       <div className="w-full md:max-w-md order-3 md:order-2">

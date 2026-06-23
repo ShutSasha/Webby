@@ -40,7 +40,7 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
 
   return (
     <div className="flex flex-col max-h-[60vh]">
-      <h3 className="text-xl font-bold text-neutral-100 mb-2">Vote for Next Video</h3>
+      <h3 className="text-xl font-bold text-foreground-secondary mb-2">Vote for Next Video</h3>
 
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2">
@@ -60,9 +60,9 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-2">
         {isLoading ? (
-          <div className="text-neutral-500 text-center py-6 animate-pulse">Loading queue...</div>
+          <div className="text-foreground0 text-center py-6 animate-pulse">Loading queue...</div>
         ) : availableItems.length === 0 ? (
-          <div className="text-neutral-500 text-center py-6">No more videos in the queue.</div>
+          <div className="text-foreground0 text-center py-6">No more videos in the queue.</div>
         ) : (
           availableItems.map(item => {
             const isMyChoice = myVote === item.id
@@ -94,7 +94,7 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
                   )}
                 </div>
                 <div className="flex flex-col flex-1 overflow-hidden">
-                  <span className="text-sm font-medium text-neutral-200 truncate">
+                  <span className="text-sm font-medium text-foreground-tertiary truncate">
                     {item.title || 'Video from queue'}
                   </span>
                   {isMyChoice && <span className="text-[10px] text-purple-400 font-semibold mt-0.5">Your vote</span>}
@@ -106,7 +106,7 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
       </div>
 
       <div className="mt-6 pt-4 border-t border-neutral-800">
-        <button onClick={onBack} className="text-neutral-400 hover:text-neutral-200 font-medium">
+        <button onClick={onBack} className="text-foreground-muted hover:text-foreground-tertiary font-medium">
           Back to list
         </button>
       </div>

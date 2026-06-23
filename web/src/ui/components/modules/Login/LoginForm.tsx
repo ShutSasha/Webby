@@ -62,8 +62,8 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6">
       <div className="flex flex-col gap-1 text-center">
-        <h1 className="text-neutral-100 text-2xl font-bold">Log in to Webby</h1>
-        <p className="text-sm text-neutral-400">Welcome back! Please enter your details.</p>
+        <h1 className="text-foreground-secondary text-2xl font-bold">Log in to Webby</h1>
+        <p className="text-sm text-foreground-muted">Welcome back! Please enter your details.</p>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -81,7 +81,7 @@ export default function LoginForm() {
 
           <Link
             href={'/forgot-password'}
-            className="text-xs text-neutral-400 hover:text-neutral-200 transition-colors self-end"
+            className="text-xs text-foreground-muted hover:text-foreground-tertiary transition-colors self-end"
           >
             Forgot password?
           </Link>
@@ -103,15 +103,15 @@ export default function LoginForm() {
 
       <div className="flex items-center gap-3">
         <div className="h-px w-full bg-neutral-800" />
-        <span className="text-xs text-neutral-500 uppercase tracking-wider whitespace-nowrap">or continue with</span>
+        <span className="text-xs text-foreground0 uppercase tracking-wider whitespace-nowrap">or continue with</span>
         <div className="h-px w-full bg-neutral-800" />
       </div>
 
       <AuthSocialButtons />
 
-      <p className="text-center text-sm text-neutral-400 mt-2">
+      <p className="text-center text-sm text-foreground-muted mt-2">
         Don&apos;t have an account?{' '}
-        <Link href="/sign-up" className="text-white font-semibold hover:underline">
+        <Link href="/sign-up" className="text-foreground-strong font-semibold hover:underline">
           Sign up
         </Link>
       </p>
