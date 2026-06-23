@@ -97,8 +97,6 @@ func (s *synchronizeService) Synchronize(ctx context.Context, userID, roomID uui
 			SyncID: syncID.String(),
 		},
 	}
-
-	// TODO: Move to Publish
 	topic := fmt.Sprintf("chat:%s", chatID.String())
 	if err := s.publisher.Publish(ctx, topic, reportEnvelope); err != nil {
 		log.Error("failed to publish queue report", slog.String("err", err.Error()))

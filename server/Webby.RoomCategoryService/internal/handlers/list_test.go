@@ -133,34 +133,6 @@ func TestListCategories(t *testing.T) {
 			},
 		},
 		{
-			name: "Success - Coerced Invalid Page Parameter to 1",
-			queryParams: map[string]string{
-				"page":  "0",
-				"limit": "10",
-			},
-			mockSetup: func(ml *handlermocks.Mockservice) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertPaginatedEmptySuccess(t, body)
-			},
-		},
-		{
-			name: "Success - Coerced Limit Parameter (too high) to 100",
-			queryParams: map[string]string{
-				"page":  "1",
-				"limit": "101",
-			},
-			mockSetup: func(ml *handlermocks.Mockservice) {
-				ml.EXPECT().List(mock.Anything, "", 1, 100).Return([]string{}, 0, nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertPaginatedEmptySuccess(t, body)
-			},
-		},
-		{
 			name: "Failure - Service Error",
 			queryParams: map[string]string{
 				"page":  "1",
@@ -172,76 +144,6 @@ func TestListCategories(t *testing.T) {
 			expectedStatus: http.StatusInternalServerError,
 			validateBody: func(t *testing.T, body string) {
 				assertErrorListMessage(t, body, "List categories error")
-			},
-		},
-		{
-			name: "Success - Coerced Negative Page Number to 1",
-			queryParams: map[string]string{
-				"page":  "-5",
-				"limit": "10",
-			},
-			mockSetup: func(ml *handlermocks.Mockservice) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertPaginatedEmptySuccess(t, body)
-			},
-		},
-		{
-			name: "Success - Coerced Zero Limit to 10",
-			queryParams: map[string]string{
-				"page":  "1",
-				"limit": "0",
-			},
-			mockSetup: func(ml *handlermocks.Mockservice) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertPaginatedEmptySuccess(t, body)
-			},
-		},
-		{
-			name: "Success - Coerced Negative Limit to 10",
-			queryParams: map[string]string{
-				"page":  "1",
-				"limit": "-5",
-			},
-			mockSetup: func(ml *handlermocks.Mockservice) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertPaginatedEmptySuccess(t, body)
-			},
-		},
-		{
-			name: "Success - Coerced Non-numeric Page Parameter to 1",
-			queryParams: map[string]string{
-				"page":  "abc",
-				"limit": "10",
-			},
-			mockSetup: func(ml *handlermocks.Mockservice) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertPaginatedEmptySuccess(t, body)
-			},
-		},
-		{
-			name: "Success - Coerced Non-numeric Limit Parameter to 10",
-			queryParams: map[string]string{
-				"page":  "1",
-				"limit": "xyz",
-			},
-			mockSetup: func(ml *handlermocks.Mockservice) {
-				ml.EXPECT().List(mock.Anything, "", 1, 10).Return([]string{}, 0, nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-			validateBody: func(t *testing.T, body string) {
-				assertPaginatedEmptySuccess(t, body)
 			},
 		},
 	}

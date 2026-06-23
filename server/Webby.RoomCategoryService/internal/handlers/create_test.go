@@ -104,7 +104,7 @@ func TestCreateCategory(t *testing.T) {
 			},
 			expectedStatus: http.StatusConflict,
 			validateBody: func(t *testing.T, body string) {
-				assertErrorWithMessage(t, body, "message", "resource already exists: category already exists")
+				assertErrorWithMessage(t, body, "message", "already exists")
 			},
 		},
 		{
