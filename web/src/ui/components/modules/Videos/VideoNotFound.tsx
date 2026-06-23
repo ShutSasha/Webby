@@ -12,7 +12,7 @@ export default function VideoNotFound() {
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="size-8 text-foreground0"
+            className="size-8 text-foreground-faint"
           >
             <path
               strokeLinecap="round"
@@ -24,7 +24,7 @@ export default function VideoNotFound() {
         </div>
 
         <p className="text-foreground-subtle text-[20px] font-bold">Video unavailable</p>
-        <p className="text-foreground0 text-sm mt-2 max-w-sm text-center">
+        <p className="text-foreground-faint text-sm mt-2 max-w-sm text-center">
           This video has been deleted, hidden, or the link you followed is invalid.
         </p>
       </div>

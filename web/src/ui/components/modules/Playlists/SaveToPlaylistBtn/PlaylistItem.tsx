@@ -36,7 +36,7 @@ export default function PlaylistItem({ playlistId, image, name, count, status, d
           <p className="text-sm text-foreground-subtle line-clamp-1" title={name}>
             {name}
           </p>
-          <p className="text-sm text-foreground0">{count === 1 ? '1 video' : `${count} videos`}</p>
+          <p className="text-sm text-foreground-faint">{count === 1 ? '1 video' : `${count} videos`}</p>
         </div>
       </div>
       <div className="flex items-center justify-center size-6 shrink-0 ml-3">

@@ -40,7 +40,7 @@ export default function UserList({ roomId }: Props) {
     <>
       <div className="relative group mb-2 shrink-0">
         <SearchIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground0
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground-faint
             group-focus-within:text-emerald-500 transition-colors stroke-[1.5px]"
         />
         <input
@@ -49,7 +49,7 @@ export default function UserList({ roomId }: Props) {
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="w-full bg-neutral-900 rounded-md py-2 pl-10 pr-4 text-sm outline-none border border-transparent
-            focus:border-emerald-500/70 transition-all placeholder:text-foreground0"
+            focus:border-emerald-500/70 transition-all placeholder:text-foreground-faint"
         />
       </div>
 
@@ -60,9 +60,9 @@ export default function UserList({ roomId }: Props) {
           hover:[&::-webkit-scrollbar-thumb]:bg-neutral-800"
       >
         {isLoading && members.length === 0 ? (
-          <p className="text-center text-foreground0 py-4 text-sm">Loading users...</p>
+          <p className="text-center text-foreground-faint py-4 text-sm">Loading users...</p>
         ) : members.length === 0 ? (
-          <p className="text-center text-foreground0 py-4 text-sm">No users found</p>
+          <p className="text-center text-foreground-faint py-4 text-sm">No users found</p>
         ) : (
           members.map((user, index) => {
             const isLast = members.length === index + 1

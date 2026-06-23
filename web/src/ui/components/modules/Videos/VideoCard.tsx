@@ -107,7 +107,7 @@ export default function VideoCard({
                 <p className="text-foreground-muted text-xs truncate hover:text-foreground-subtle transition-colors">
                   {creator}
                 </p>
-                <p className="text-foreground0 text-[11px] truncate mt-0.5">
+                <p className="text-foreground-faint text-[11px] truncate mt-0.5">
                   {formatViews(views)} • {formatTimeAgo(createAt)}
                 </p>
               </div>

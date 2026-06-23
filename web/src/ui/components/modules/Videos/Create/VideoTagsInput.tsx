@@ -14,7 +14,7 @@ export default function VideoTagsInput({ tags, inputValue, maxTags, onInputChang
     <div className="flex flex-col gap-2 mt-2">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-foreground-subtle">Tags</span>
-        <span className="text-xs text-foreground0">
+        <span className="text-xs text-foreground-faint">
           {tags.length} / {maxTags}
         </span>
       </div>
@@ -49,7 +49,7 @@ export default function VideoTagsInput({ tags, inputValue, maxTags, onInputChang
           onKeyDown={onKeyDown}
           disabled={tags.length >= maxTags}
           className="bg-transparent border-none text-sm text-foreground-secondary focus:outline-none focus:ring-0 w-full
-            placeholder:text-foreground0 disabled:opacity-50 disabled:cursor-not-allowed"
+            placeholder:text-foreground-faint disabled:opacity-50 disabled:cursor-not-allowed"
           placeholder={tags.length >= maxTags ? 'Maximum tags reached' : 'Add a tag and press Enter or comma'}
         />
       </div>

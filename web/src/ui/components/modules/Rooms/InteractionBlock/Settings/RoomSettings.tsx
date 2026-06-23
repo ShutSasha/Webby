@@ -74,7 +74,7 @@ export default function RoomSettings() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full px-1 animate-in fade-in duration-300">
       <div className="flex flex-col gap-5">
-        <h3 className="text-[11px] font-bold text-foreground0 uppercase tracking-wider pl-1">Room Details</h3>
+        <h3 className="text-[11px] font-bold text-foreground-faint uppercase tracking-wider pl-1">Room Details</h3>
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="roomName" className="text-[13px] font-medium text-foreground-subtle pl-1">
@@ -107,7 +107,10 @@ export default function RoomSettings() {
             >
               <span>{options.find(opt => opt.value === currentRoomType)?.label}</span>
               <svg
-                className={cn('w-4 h-4 text-foreground0 transition-transform duration-200', isOpen && 'rotate-180')}
+                className={cn(
+                  'w-4 h-4 text-foreground-faint transition-transform duration-200',
+                  isOpen && 'rotate-180',
+                )}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

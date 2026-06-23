@@ -95,7 +95,7 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
           <span
             className={cn(
               'text-sm font-medium truncate pr-1 transition-colors',
-              isActive ? 'text-foreground-subtle' : 'text-foreground0 group-hover:text-foreground-subtle',
+              isActive ? 'text-foreground-subtle' : 'text-foreground-faint group-hover:text-foreground-subtle',
             )}
             title={title}
           >
@@ -111,12 +111,12 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
           >
             {playing && isActive ? (
               <PauseIcon
-                className={`size-4 stroke-[1.5px] ${isActive ? 'text-foreground-subtle' : 'text-foreground0'}
+                className={`size-4 stroke-[1.5px] ${isActive ? 'text-foreground-subtle' : 'text-foreground-faint'}
                   group-hover/play:text-foreground-subtle`}
               />
             ) : (
               <PlayIcon
-                className={`size-4 stroke-[1.5px] ${isActive ? 'text-foreground-subtle' : 'text-foreground0'}
+                className={`size-4 stroke-[1.5px] ${isActive ? 'text-foreground-subtle' : 'text-foreground-faint'}
                   group-hover/play:text-foreground-subtle`}
               />
             )}
@@ -124,8 +124,8 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
 
           {isOwner && (
             <button
-              className="group/trash p-1.5 text-foreground0 hover:text-red-500 transition-colors hover:bg-red-500/10
-                cursor-pointer rounded-full"
+              className="group/trash p-1.5 text-foreground-faint hover:text-red-500 transition-colors
+                hover:bg-red-500/10 cursor-pointer rounded-full"
               onClick={handleToggle}
             >
               {isPending ? (
@@ -133,7 +133,7 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
               ) : (
                 <TrashIcon
                   className={`size-4 stroke-[1.5px] transition-colors
-                    ${isActive ? 'text-foreground-subtle' : 'text-foreground0'} group-hover/trash:text-red-500`}
+                    ${isActive ? 'text-foreground-subtle' : 'text-foreground-faint'} group-hover/trash:text-red-500`}
                 />
               )}
             </button>

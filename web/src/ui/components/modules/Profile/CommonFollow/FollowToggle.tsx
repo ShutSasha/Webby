@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 const activeStyle = 'text-foreground-strong cursor-default'
-const inactiveStyle = 'text-foreground0 hover:text-emerald-400 transition-colors duration-300'
+const inactiveStyle = 'text-foreground-faint hover:text-emerald-400 transition-colors duration-300'
 
 type Props = {
   id: string

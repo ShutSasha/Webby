@@ -63,9 +63,9 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
         )}
 
         {isLoading ? (
-          <div className="text-foreground0 text-center py-10 animate-pulse">Loading votes...</div>
+          <div className="text-foreground-faint text-center py-10 animate-pulse">Loading votes...</div>
         ) : votes.length === 0 && !isNextVideoActive ? (
-          <div className="text-foreground0 text-center py-10">No polls have been created yet.</div>
+          <div className="text-foreground-faint text-center py-10">No polls have been created yet.</div>
         ) : (
           votes.map(vote => {
             const isResolved = !!vote.rightChoice
@@ -85,7 +85,7 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
                 <div className="flex justify-between items-start mb-2">
                   <span
                     className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md', {
-                      'bg-neutral-800 text-foreground0': isResolved,
+                      'bg-neutral-800 text-foreground-faint': isResolved,
                       'bg-neutral-700 text-foreground-muted': isClosed,
                       'bg-emerald-500/20 text-emerald-500': isActive,
                     })}
@@ -97,7 +97,7 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
                   {vote.voteText}
                 </h4>
                 <div className="flex justify-between items-center mt-2">
-                  <p className="text-xs text-foreground0">{vote.choices.length} options</p>
+                  <p className="text-xs text-foreground-faint">{vote.choices.length} options</p>
                   {vote.myVote && <p className="text-[10px] text-emerald-500/80 font-medium">Voted</p>}
                 </div>
               </div>

@@ -4,7 +4,7 @@ import MessagesSquareIcon from '@/assets/icons/shared/message-circle-more.svg'
 
 export function ChatNotFound() {
   return (
-    <div className="flex flex-col h-full w-full items-center justify-center text-foreground0 bg-neutral-900/5">
+    <div className="flex flex-col h-full w-full items-center justify-center text-foreground-faint bg-neutral-900/5">
       <div className="size-16 rounded-2xl bg-neutral-800/50 flex items-center justify-center mb-4">
         <MessagesSquareIcon className="size-8 text-foreground-disabled stroke-2" />
       </div>

@@ -80,7 +80,7 @@ const GlobalSearchCard = ({
           </div>
           <div className="flex flex-col overflow-hidden">
             <h4 className="text-sm font-semibold text-foreground-tertiary truncate">{safeTitle}</h4>
-            <p className="text-xs text-foreground0 truncate mt-0.5">{safeSubtitle}</p>
+            <p className="text-xs text-foreground-faint truncate mt-0.5">{safeSubtitle}</p>
           </div>
         </div>
 

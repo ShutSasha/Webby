@@ -141,7 +141,7 @@ export function StudioVideoRow({ video }: Props) {
           )}
 
           {isReady ? (
-            <p className="text-xs text-foreground0 mt-1 line-clamp-1 wrap-break-word">
+            <p className="text-xs text-foreground-faint mt-1 line-clamp-1 wrap-break-word">
               {video.description || 'No description'}
             </p>
           ) : (
@@ -181,7 +181,7 @@ export function StudioVideoRow({ video }: Props) {
 
       <div className="w-32 flex flex-col items-center justify-center shrink-0 text-center">
         <p className="text-xs text-foreground-tertiary">{formatDate(video.createdAt)}</p>
-        <p className="text-[10px] text-foreground0 mt-0.5">Uploaded</p>
+        <p className="text-[10px] text-foreground-faint mt-0.5">Uploaded</p>
       </div>
 
       <div className="w-24 text-center text-xs text-foreground-subtle shrink-0">

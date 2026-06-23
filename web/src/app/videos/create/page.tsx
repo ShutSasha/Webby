@@ -11,7 +11,7 @@ export default async function CreateVideoPage() {
       <AuthPlaceholder
         title="Sign in to create your videos"
         description="Please log in to upload your custom video files and create room sessions to share and watch content live with your friends."
-        icon={<LockIcon className="size-10 text-foreground0 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }

@@ -110,7 +110,7 @@ export default function UserPlaylistItem(props: Props) {
         <div className="flex justify-between items-start gap-2">
           <div className="flex flex-col overflow-hidden">
             <p className="text-sm font-medium text-foreground-secondary line-clamp-1">{props.name}</p>
-            <p className="text-[12px] text-foreground0 mt-1">
+            <p className="text-[12px] text-foreground-faint mt-1">
               {props.isPrivate ? 'Private' : 'Public'} &bull; Playlist
             </p>
           </div>

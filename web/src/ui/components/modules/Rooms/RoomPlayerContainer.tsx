@@ -40,7 +40,7 @@ export default function RoomPlayerContainer({ roomId }: Props) {
   if (!activeVideoUrl) {
     return (
       <div className="aspect-video bg-black/80 w-full rounded-2xl flex flex-col items-center justify-center gap-2">
-        <p className="text-foreground0 font-medium">No video is currently playing</p>
+        <p className="text-foreground-faint font-medium">No video is currently playing</p>
         <p className="text-foreground-disabled text-sm">Select a video from the queue to start</p>
       </div>
     )

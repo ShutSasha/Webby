@@ -43,7 +43,7 @@ export default function VideoUploadStep({ isUploading, uploadProgress = 0, onVid
           </div>
           <div className="text-center">
             <p className="text-foreground-tertiary font-semibold mb-1">Select video file to upload</p>
-            <p className="text-foreground0 text-sm mb-6">MP4 or WebM</p>
+            <p className="text-foreground-faint text-sm mb-6">MP4 or WebM</p>
           </div>
 
           <label

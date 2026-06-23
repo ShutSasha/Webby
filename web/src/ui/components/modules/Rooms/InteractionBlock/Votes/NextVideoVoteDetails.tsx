@@ -60,9 +60,9 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-2">
         {isLoading ? (
-          <div className="text-foreground0 text-center py-6 animate-pulse">Loading queue...</div>
+          <div className="text-foreground-faint text-center py-6 animate-pulse">Loading queue...</div>
         ) : availableItems.length === 0 ? (
-          <div className="text-foreground0 text-center py-6">No more videos in the queue.</div>
+          <div className="text-foreground-faint text-center py-6">No more videos in the queue.</div>
         ) : (
           availableItems.map(item => {
             const isMyChoice = myVote === item.id

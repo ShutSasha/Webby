@@ -64,7 +64,7 @@ export default function AdminReportsPage() {
               </div>
               <h4 className="text-lg font-bold text-foreground-secondary mt-1">Target: {report.targetName}</h4>
             </div>
-            <div className="text-sm text-foreground0">
+            <div className="text-sm text-foreground-faint">
               Reported by:{' '}
               <span className="text-emerald-500 font-medium cursor-pointer hover:underline">@{report.reportedBy}</span>
             </div>
@@ -100,7 +100,7 @@ export default function AdminReportsPage() {
               Dismiss Report
             </button>
             <button
-              className="px-5 py-2 text-foreground0 hover:text-foreground-subtle font-medium rounded-xl text-sm
+              className="px-5 py-2 text-foreground-faint hover:text-foreground-subtle font-medium rounded-xl text-sm
                 transition-colors ml-auto"
             >
               View Details

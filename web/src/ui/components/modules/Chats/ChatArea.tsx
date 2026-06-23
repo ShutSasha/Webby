@@ -99,7 +99,7 @@ export default function ChatArea({ chatId }: Props) {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(prev => !prev)}
-            className="p-2 rounded-full text-foreground0 hover:text-foreground-tertiary hover:bg-neutral-800
+            className="p-2 rounded-full text-foreground-faint hover:text-foreground-tertiary hover:bg-neutral-800
               transition-colors"
           >
             <MoreVerticalIcon className="size-5" />

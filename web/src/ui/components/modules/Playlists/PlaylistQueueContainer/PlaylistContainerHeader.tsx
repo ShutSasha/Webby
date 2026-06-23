@@ -13,8 +13,10 @@ export default function PlaylistContainerHeader({ playlistName, hiddenVideosCoun
       </h2>
 
       {hiddenVideosCount > 0 && (
-        <div className="flex items-center gap-1.5 text-foreground0 text-xs font-medium bg-neutral-900/50 w-fit
-          rounded-md">
+        <div
+          className="flex items-center gap-1.5 text-foreground-faint text-xs font-medium bg-neutral-900/50 w-fit
+            rounded-md"
+        >
           <HiddenEye className="size-3.5 shrink-0" />
 
           <span>

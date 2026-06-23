@@ -28,7 +28,9 @@ export default function EmptyState({ title, description, className, icon, disabl
       </div>
       <h3 className="text-xl font-bold text-foreground-subtle text-center mb-2">{title}</h3>
 
-      {description && <p className="text-sm text-foreground0 text-center max-w-sm leading-relaxed">{description}</p>}
+      {description && (
+        <p className="text-sm text-foreground-faint text-center max-w-sm leading-relaxed">{description}</p>
+      )}
     </div>
   )
 }

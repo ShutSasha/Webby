@@ -54,7 +54,7 @@ export default function NotificationsPage() {
       <AuthPlaceholder
         title="Sign in to view your notifications"
         description="Please log in to check your recent activity, view updates from your channels, and manage your notification preferences all in one place."
-        icon={<LockIcon className="size-10 text-foreground0 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }
@@ -74,7 +74,7 @@ export default function NotificationsPage() {
             <div className="size-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
           </div>
         ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-foreground0">
+          <div className="flex flex-col items-center justify-center py-20 text-foreground-faint">
             <BellIcon className="w-12 h-12 mb-4 opacity-20 stroke-2" />
             <p>You have no {activeTab === 'Unread' ? 'unread ' : ''}notifications right now.</p>
           </div>

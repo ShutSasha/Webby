@@ -36,7 +36,7 @@ const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
           <button
             type="button"
             onClick={togglePassword}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-foreground0 hover:text-emerald-500
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-foreground-faint hover:text-emerald-500
               transition-colors cursor-pointer"
             tabIndex={-1}
           >

@@ -33,7 +33,7 @@ export default function StudioVideosContainer({ currentUserId }: Props) {
   if (!isLoading && videos.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
-        <p className="text-foreground0 text-center">No videos found. Upload your first video!</p>
+        <p className="text-foreground-faint text-center">No videos found. Upload your first video!</p>
       </div>
     )
   }

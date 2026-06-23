@@ -78,7 +78,7 @@ export default function ToastItem({ id, message, type }: ToastItemProps) {
         {type === 'error' && <XCircleIcon className="size-5 text-red-500" />}
         <span className="text-sm font-medium text-foreground-subtle">{message}</span>
       </div>
-      <X className="size-4 text-foreground0 hover:text-foreground-subtle transition-colors" />
+      <X className="size-4 text-foreground-faint hover:text-foreground-subtle transition-colors" />
     </motion.div>
   )
 }

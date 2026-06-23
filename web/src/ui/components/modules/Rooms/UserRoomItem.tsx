@@ -141,7 +141,9 @@ export default function UserRoomItem({ room }: Props) {
             >
               {room.name}
             </h3>
-            <p className="text-[12px] text-foreground0 mt-1">{room.isPrivate ? 'Private' : 'Public'} &bull; Room</p>
+            <p className="text-[12px] text-foreground-faint mt-1">
+              {room.isPrivate ? 'Private' : 'Public'} &bull; Room
+            </p>
           </div>
 
           <div className="relative shrink-0 z-20" ref={menuRef}>

@@ -24,7 +24,7 @@ export default function PageLoading() {
         ></div>
       </div>
 
-      <p className="text-foreground0 text-[11px] font-bold tracking-[0.3em] uppercase">Loading...</p>
+      <p className="text-foreground-faint text-[11px] font-bold tracking-[0.3em] uppercase">Loading...</p>
     </div>
   )
 }

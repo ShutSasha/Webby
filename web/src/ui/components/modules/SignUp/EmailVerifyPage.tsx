@@ -97,7 +97,9 @@ export default function VerifyPage({ email }: { email?: string }) {
         {!success && (
           <button
             className={`text-sm transition-all ${
-              timeLeft > 0 ? 'text-foreground0 cursor-not-allowed' : 'text-emerald-500 hover:underline cursor-pointer'
+              timeLeft > 0
+                ? 'text-foreground-faint cursor-not-allowed'
+                : 'text-emerald-500 hover:underline cursor-pointer'
             }`}
             onClick={resendVerifyCode}
             disabled={timeLeft > 0 || loading}
@@ -130,7 +132,7 @@ export function Slot(props: SlotProps) {
       className={` relative w-12 h-14 text-[20px] flex items-center justify-center transition-all duration-300 border-2
         rounded-xl
         ${props.isActive ? 'border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'border-neutral-700'}
-        ${props.char ? 'text-foreground-strong' : 'text-foreground0'} `}
+        ${props.char ? 'text-foreground-strong' : 'text-foreground-faint'} `}
     >
       {props.char !== null ? <div>{props.char}</div> : null}
 

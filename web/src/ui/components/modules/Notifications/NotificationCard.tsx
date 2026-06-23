@@ -51,7 +51,7 @@ export default function NotificationCard({ notification, onMarkAsRead, onDelete 
             </h3>
           </div>
           <p className="text-sm text-foreground-muted leading-relaxed line-clamp-2">{notification.message}</p>
-          <span className="text-[12px] font-medium text-foreground0 mt-1">
+          <span className="text-[12px] font-medium text-foreground-faint mt-1">
             {formatRelativeTime(notification.createdAt)}
           </span>
         </div>

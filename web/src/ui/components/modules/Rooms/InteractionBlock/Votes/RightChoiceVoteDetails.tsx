@@ -67,7 +67,7 @@ export default function RightChoiceVoteDetails({ roomId, voteId, isHost, onBack 
         <div className="flex items-center gap-2">
           <span
             className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md', {
-              'bg-neutral-800 text-foreground0': isResolvedDetails,
+              'bg-neutral-800 text-foreground-faint': isResolvedDetails,
               'bg-neutral-700 text-foreground-muted': isClosedDetails,
               'bg-emerald-500/20 text-emerald-500': isActiveDetails,
             })}
@@ -92,7 +92,7 @@ export default function RightChoiceVoteDetails({ roomId, voteId, isHost, onBack 
             if (isWinner) return 'bg-emerald-500/10 border-emerald-500 text-emerald-400 font-semibold'
             if (isMyChoice && !isResolvedDetails) return 'bg-neutral-800 border-emerald-500/50 text-emerald-500'
             if (isResolvedDetails) return 'bg-neutral-900 border-neutral-800 text-foreground-disabled'
-            if (currentVote.isLocked || hasVoted) return 'bg-neutral-800/50 border-neutral-800 text-foreground0'
+            if (currentVote.isLocked || hasVoted) return 'bg-neutral-800/50 border-neutral-800 text-foreground-faint'
 
             return 'bg-[#141414] border-neutral-800 text-foreground-tertiary hover:border-neutral-600 hover:bg-neutral-800'
           }

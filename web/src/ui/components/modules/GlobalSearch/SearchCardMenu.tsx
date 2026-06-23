@@ -74,8 +74,8 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
     <div className="relative shrink-0" ref={menuRef}>
       <button
         onClick={toggleMenu}
-        className="p-1.5 rounded-full text-foreground0 hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors
-          opacity-0 group-hover:opacity-100 shrink-0"
+        className="p-1.5 rounded-full text-foreground-faint hover:text-emerald-500 hover:bg-emerald-500/10
+          transition-colors opacity-0 group-hover:opacity-100 shrink-0"
       >
         <PlusIcon className="w-5 h-5 stroke-2" />
       </button>

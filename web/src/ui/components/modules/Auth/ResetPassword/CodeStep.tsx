@@ -103,7 +103,7 @@ export default function CodeStep() {
           type="button"
           className={`text-sm transition-all ${
             timeLeft > 0 || loading
-              ? 'text-foreground0 cursor-not-allowed'
+              ? 'text-foreground-faint cursor-not-allowed'
               : 'text-emerald-500 hover:underline cursor-pointer'
             }`}
           onClick={handleResendCode}
@@ -118,7 +118,7 @@ export default function CodeStep() {
       <button
         type="button"
         onClick={() => setForgotPasswordStep(1)}
-        className="mt-2 text-foreground0 text-sm hover:text-foreground-strong transition-colors cursor-pointer"
+        className="mt-2 text-foreground-faint text-sm hover:text-foreground-strong transition-colors cursor-pointer"
       >
         Wrong email? <span className="text-emerald-500 hover:underline">Change it</span>
       </button>

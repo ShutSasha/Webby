@@ -13,7 +13,7 @@ export default function AdminUsersPage() {
       {/* Search Bar */}
       <div className="flex items-center gap-4">
         <div className="flex-1 bg-[#0A0A0A] border border-neutral-800/60 rounded-xl px-4 py-3 flex items-center gap-3">
-          <svg className="size-5 text-foreground0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="size-5 text-foreground-faint" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -34,7 +34,7 @@ export default function AdminUsersPage() {
       <div className="bg-[#0A0A0A] border border-neutral-800/60 rounded-2xl overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-neutral-800/60 bg-neutral-900/50 text-foreground0 text-sm">
+            <tr className="border-b border-neutral-800/60 bg-neutral-900/50 text-foreground-faint text-sm">
               <th className="py-4 px-6 font-medium">User</th>
               <th className="py-4 px-6 font-medium">Role</th>
               <th className="py-4 px-6 font-medium">Status</th>
@@ -79,7 +79,7 @@ export default function AdminUsersPage() {
                     </span>
                   </div>
                 </td>
-                <td className="py-4 px-6 text-foreground0 text-sm">{user.registered}</td>
+                <td className="py-4 px-6 text-foreground-faint text-sm">{user.registered}</td>
                 <td className="py-4 px-6 flex justify-end gap-2">
                   <button
                     className="px-3 py-1.5 text-xs font-semibold bg-neutral-800 hover:bg-neutral-700

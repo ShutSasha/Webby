@@ -37,11 +37,11 @@ export default function UserRoomsContainer({ query }: Props) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
         {query.length > 0 ? (
-          <p className="text-foreground0 text-center">
+          <p className="text-foreground-faint text-center">
             Rooms by query <span className="text-foreground-subtle">{`'${query}'`}</span> not found
           </p>
         ) : (
-          <p className="text-foreground0 text-center">You haven&apos;t created any rooms yet</p>
+          <p className="text-foreground-faint text-center">You haven&apos;t created any rooms yet</p>
         )}
       </div>
     )

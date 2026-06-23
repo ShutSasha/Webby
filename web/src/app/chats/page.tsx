@@ -12,13 +12,13 @@ export default async function ChatsEmptyPage() {
         title="Sign in to view your chats"
         description="Please log in to access your secure inbox, read and reply to your direct messages, review your full chat history, 
         and stay connected with your friends in real time."
-        icon={<LockIcon className="size-10 text-foreground0 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center text-foreground0 bg-neutral-900/20">
+    <div className="flex-1 flex flex-col items-center justify-center text-foreground-faint bg-neutral-900/20">
       <div className="size-16 rounded-2xl bg-neutral-800/50 flex items-center justify-center mb-4">
         <MessagesSquareIcon className="size-8 text-foreground-disabled stroke-2" />
       </div>

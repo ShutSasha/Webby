@@ -56,7 +56,7 @@ export default function VideoDescription(props: Props) {
             <>
               {'\n\n'}
               {props.videoTags.map(tag => (
-                <span key={tag} className="text-foreground0 font-medium mr-2 transition-colors">
+                <span key={tag} className="text-foreground-faint font-medium mr-2 transition-colors">
                   #{tag}
                 </span>
               ))}

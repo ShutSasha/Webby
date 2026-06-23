@@ -115,7 +115,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
               ))}
             </div>
           ) : !isLoading && playlists.length === 0 ? (
-            <p className="text-center text-foreground0 py-10">
+            <p className="text-center text-foreground-faint py-10">
               {query.trim() !== '' ? 'No playlists found' : 'You have no playlists'}
             </p>
           ) : (
@@ -169,7 +169,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
               localSelections.size > 0 && !isPending
                 ? `bg-emerald-500 hover:bg-emerald-400 text-foreground-inverse shadow-[0_4px_12px_rgba(16,185,129,0.25)]
                   cursor-pointer`
-                : 'bg-neutral-800/60 text-foreground0 cursor-not-allowed'
+                : 'bg-neutral-800/60 text-foreground-faint cursor-not-allowed'
               }`}
           >
             {isPending ? 'Saving...' : 'Save'}

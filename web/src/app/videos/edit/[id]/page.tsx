@@ -18,7 +18,7 @@ export default async function EditVideoPage({ params }: Props) {
       <AuthPlaceholder
         title="Sign in to edit your videos"
         description="Please log in to edit your custom video files."
-        icon={<LockIcon className="size-10 text-foreground0 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }

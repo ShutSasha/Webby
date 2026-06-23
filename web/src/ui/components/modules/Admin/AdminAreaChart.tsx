@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label, valueFormatter, colorTheme }: a
 
     return (
       <div className="bg-[#0A0A0A] border border-neutral-800/80 p-4 rounded-2xl shadow-2xl backdrop-blur-md">
-        <p className="text-foreground0 text-xs font-medium mb-1 uppercase tracking-wider">{label}</p>
+        <p className="text-foreground-faint text-xs font-medium mb-1 uppercase tracking-wider">{label}</p>
         <p className={`font-bold text-2xl ${colorClass}`}>
           {valueFormatter ? valueFormatter(payload[0].value) : payload[0].value}
         </p>

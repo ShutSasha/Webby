@@ -24,7 +24,7 @@ export default async function ProfileSettings({ params }: Props) {
         title="Sign in to access your settings"
         description="Please log in to manage your account details, update your public profile description,
         customize your display settings, and configure security preferences to keep your account safe."
-        icon={<LockIcon className="size-10 text-foreground0 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }
@@ -45,7 +45,7 @@ export default async function ProfileSettings({ params }: Props) {
       <UserHeader image={session.user.image} username={session.user.username} />
 
       <div className="flex flex-col bg-neutral-900/40 p-6 sm:p-8 rounded-3xl border border-neutral-800 shadow-sm">
-        <h2 className="text-sm font-bold text-foreground0 uppercase tracking-wider mb-6">Account Details</h2>
+        <h2 className="text-sm font-bold text-foreground-faint uppercase tracking-wider mb-6">Account Details</h2>
 
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6">
           <div className="flex flex-col gap-1">
@@ -74,7 +74,7 @@ export default async function ProfileSettings({ params }: Props) {
       </div>
 
       <div className="flex flex-col bg-neutral-900/40 p-6 sm:p-8 rounded-3xl border border-neutral-800 shadow-sm">
-        <h2 className="text-sm font-bold text-foreground0 uppercase tracking-wider mb-6">About Me</h2>
+        <h2 className="text-sm font-bold text-foreground-faint uppercase tracking-wider mb-6">About Me</h2>
         <AboutContainer userId={id} about={userData.user.about} />
       </div>
     </div>

@@ -65,14 +65,14 @@ export default function RoomInviteModal({ roomId, isOpen, onClose }: Props) {
             className="flex-1 flex items-center bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2.5
               transition-colors focus-within:border-emerald-500/50"
           >
-            <SearchIcon className="w-4 h-4 text-foreground0 shrink-0" />
+            <SearchIcon className="w-4 h-4 text-foreground-faint shrink-0" />
             <input
               type="text"
               placeholder="Search a friend"
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full bg-transparent border-none outline-none text-foreground-tertiary
-                placeholder:text-foreground0 ml-2 text-sm"
+                placeholder:text-foreground-faint ml-2 text-sm"
             />
           </div>
           <button
@@ -96,7 +96,7 @@ export default function RoomInviteModal({ roomId, isOpen, onClose }: Props) {
           {isLoading && users.length === 0 ? (
             Array.from({ length: 12 }).map((_, i) => <UserSkeleton key={i} />)
           ) : users.length === 0 ? (
-            <p className="col-span-4 text-center text-foreground0 py-10 text-sm">No users found</p>
+            <p className="col-span-4 text-center text-foreground-faint py-10 text-sm">No users found</p>
           ) : (
             users.map((user, index) => {
               const isLast = users.length === index + 1
@@ -174,7 +174,7 @@ export default function RoomInviteModal({ roomId, isOpen, onClose }: Props) {
             'w-full py-3 rounded-xl font-medium transition-all duration-300',
             selectedUserIds.size > 0 && !isPending
               ? 'bg-neutral-800 hover:bg-neutral-700 text-foreground-strong cursor-pointer'
-              : 'bg-neutral-900 text-foreground0 cursor-not-allowed',
+              : 'bg-neutral-900 text-foreground-faint cursor-not-allowed',
           )}
         >
           {isPending ? 'Sending...' : `Send an invite ${selectedUserIds.size > 0 ? `(${selectedUserIds.size})` : ''}`}

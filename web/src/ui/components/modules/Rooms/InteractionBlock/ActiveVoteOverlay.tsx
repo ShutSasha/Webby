@@ -55,8 +55,8 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
               e.stopPropagation()
               setIsNextVideoDismissed(true)
             }}
-            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-foreground0 hover:text-foreground-subtle
-              transition-colors rounded-full hover:bg-neutral-700/50"
+            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-foreground-faint
+              hover:text-foreground-subtle transition-colors rounded-full hover:bg-neutral-700/50"
           >
             <CloseIcon className="size-4.5" />
           </button>
@@ -107,8 +107,8 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
               e.stopPropagation()
               setDismissedRightChoiceId(activeRightChoiceVote.id)
             }}
-            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-foreground0 hover:text-foreground-subtle
-              transition-colors rounded-full hover:bg-neutral-700/50"
+            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-foreground-faint
+              hover:text-foreground-subtle transition-colors rounded-full hover:bg-neutral-700/50"
           >
             <CloseIcon className="size-4.5" />
           </button>

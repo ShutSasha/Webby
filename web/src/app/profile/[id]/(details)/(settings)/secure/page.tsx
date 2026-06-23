@@ -13,7 +13,7 @@ export default async function SecurePage() {
         title="Sign in to access your settings"
         description="Please log in to manage your account details, update your public profile description,
         customize your display settings, and configure security preferences to keep your account safe."
-        icon={<LockIcon className="size-10 text-foreground0 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }

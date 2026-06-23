@@ -21,7 +21,7 @@ export default function SelectVoteType({ onSelect, onBack }: Props) {
           <span className="font-semibold text-foreground-tertiary group-hover:text-purple-400 transition-colors">
             Next Video Vote
           </span>
-          <span className="text-sm text-foreground0 mt-1">
+          <span className="text-sm text-foreground-faint mt-1">
             Start a quick 20-second vote to let the room choose the next video from the queue.
           </span>
         </button>
@@ -34,7 +34,7 @@ export default function SelectVoteType({ onSelect, onBack }: Props) {
           <span className="font-semibold text-foreground-tertiary group-hover:text-emerald-400 transition-colors">
             Quiz / Custom Poll
           </span>
-          <span className="text-sm text-foreground0 mt-1">
+          <span className="text-sm text-foreground-faint mt-1">
             Create a custom question with multiple choices and determine the correct answer later.
           </span>
         </button>

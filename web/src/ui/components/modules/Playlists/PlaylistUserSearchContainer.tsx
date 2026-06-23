@@ -44,11 +44,11 @@ export default function PlaylistUserSearchContainer({ userId, query }: Props) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
         {query.length > 0 && (
-          <p className="text-foreground0 text-center">
+          <p className="text-foreground-faint text-center">
             Playlists by query <span className="text-foreground-subtle">{`'${query}'`}</span> not found
           </p>
         )}
-        {query.length === 0 && <p className="text-foreground0 text-center">No playlists found</p>}
+        {query.length === 0 && <p className="text-foreground-faint text-center">No playlists found</p>}
       </div>
     )
   }

@@ -131,7 +131,7 @@ export default function ChatMessagesList({ chatId, currentUserId, onEditMessage 
         )}
 
         {isFetchingNextPage && (
-          <div className="text-center text-xs text-foreground0 py-2">Loading older messages...</div>
+          <div className="text-center text-xs text-foreground-faint py-2">Loading older messages...</div>
         )}
       </div>
 

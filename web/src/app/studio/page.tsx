@@ -12,7 +12,7 @@ export default async function StudioPage() {
       <AuthPlaceholder
         title="Sign in to view your content"
         description="Please log in to manage your videos, playlists, and track your channel activity."
-        icon={<LockIcon className="size-10 text-foreground0 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }

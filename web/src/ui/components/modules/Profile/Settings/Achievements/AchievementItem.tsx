@@ -138,7 +138,7 @@ export default function AchievementItem({
         blurDataURL={BLUR_DATA_URLS['neutral800']}
       />
       <p className="font-bold select-text mt-1">{title}</p>
-      <p className="text-foreground0 text-sm text-center line-clamp-2" title={description}>
+      <p className="text-foreground-faint text-sm text-center line-clamp-2" title={description}>
         {description}
       </p>
 

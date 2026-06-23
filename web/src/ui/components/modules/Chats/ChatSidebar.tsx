@@ -45,7 +45,7 @@ export default function ChatSidebar() {
               rounded-xl py-2.5 pl-4 pr-10 outline-none ring-0 border border-transparent focus:border-neutral-700
               transition-colors"
           />
-          <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-foreground0" />
+          <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-foreground-faint" />
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export default function ChatSidebar() {
                   <span className="text-sm font-semibold text-foreground-tertiary">
                     {chat.user.username.startsWith('@') ? chat.user.username : `@${chat.user.username}`}
                   </span>
-                  <span className="text-xs text-foreground0 truncate mt-0.5">
+                  <span className="text-xs text-foreground-faint truncate mt-0.5">
                     {chat.lastMessage?.content || 'No messages yet'}
                   </span>
                 </div>
@@ -97,12 +97,12 @@ export default function ChatSidebar() {
             return <div key={chat.chatId}>{chatItem}</div>
           })
         ) : (
-          <div className="p-4 text-center text-sm text-foreground0">
+          <div className="p-4 text-center text-sm text-foreground-faint">
             {debouncedSearch ? 'No chats found for this search' : 'No chats yet'}
           </div>
         )}
 
-        {isFetchingNextPage && <div className="p-2 text-center text-xs text-foreground0">Loading more...</div>}
+        {isFetchingNextPage && <div className="p-2 text-center text-xs text-foreground-faint">Loading more...</div>}
       </div>
     </div>
   )

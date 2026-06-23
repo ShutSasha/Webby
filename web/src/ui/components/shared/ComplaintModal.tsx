@@ -74,7 +74,7 @@ export default function ComplaintModal({ isOpen, onClose, targetId, targetType }
         {step === 'DETAILS' && (
           <>
             <h2 className="text-xl font-semibold text-foreground-subtle text-center">Details</h2>
-            <p className="text-sm text-foreground0 text-center -mt-1 mb-2">
+            <p className="text-sm text-foreground-faint text-center -mt-1 mb-2">
               You can skip this or add more info (optional)
             </p>
 

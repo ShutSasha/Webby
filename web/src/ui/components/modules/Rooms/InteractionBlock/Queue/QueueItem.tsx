@@ -93,7 +93,7 @@ export default function QueueItem({ roomId, video, isChild = false }: Props) {
           <span
             className={cn(
               'text-sm font-medium truncate pr-1 transition-colors',
-              isVisuallyActive ? 'text-foreground-subtle' : 'text-foreground0 group-hover:text-foreground-subtle',
+              isVisuallyActive ? 'text-foreground-subtle' : 'text-foreground-faint group-hover:text-foreground-subtle',
             )}
             title={title}
           >
@@ -106,14 +106,14 @@ export default function QueueItem({ roomId, video, isChild = false }: Props) {
             onClick={handleDelete}
             disabled={isRemoving}
             className={cn(
-              'group/trash p-1.5 text-foreground0 transition-colors cursor-pointer rounded-full',
+              'group/trash p-1.5 text-foreground-faint transition-colors cursor-pointer rounded-full',
               !isRemoving && 'hover:text-red-500 hover:bg-red-500/10',
             )}
           >
             <TrashIcon
               className={cn(
                 'size-4 stroke-[1.5px] transition-colors',
-                isVisuallyActive ? 'text-foreground-subtle' : 'text-foreground0',
+                isVisuallyActive ? 'text-foreground-subtle' : 'text-foreground-faint',
                 !isRemoving && 'group-hover/trash:text-red-500',
                 isRemoving && 'animate-pulse',
               )}
@@ -122,7 +122,7 @@ export default function QueueItem({ roomId, video, isChild = false }: Props) {
 
           {video.isFolder && (
             <button
-              className="p-1.5 text-foreground0 hover:text-emerald-300 transition-colors hover:bg-neutral-500/10
+              className="p-1.5 text-foreground-faint hover:text-emerald-300 transition-colors hover:bg-neutral-500/10
                 cursor-pointer rounded-full"
               onClick={() => video.isFolder && setOpen(prev => !prev)}
             >

@@ -22,7 +22,7 @@ export default async function AchievementsPage({ params }: Props) {
         title="Sign in to view your achievements"
         description="Please log in to unlock your trophy room. Track your completed milestones,
         check your ongoing quest progress, and view all the exclusive badges you have earned on the platform."
-        icon={<LockIcon className="size-10 text-foreground0 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }
@@ -80,7 +80,7 @@ export default async function AchievementsPage({ params }: Props) {
         <Splitter text="All achievements" />
         {all.length === 0 ? (
           <div className="flex items-center justify-center py-20">
-            <p className="text-foreground0">There are no achievements available.</p>
+            <p className="text-foreground-faint">There are no achievements available.</p>
           </div>
         ) : (
           <div className="grid grid-cols-5 gap-4">

@@ -101,7 +101,7 @@ export default function NotificationPopupItem({ popup }: Props) {
 
       <button
         onClick={() => removePopup(popup.popupId)}
-        className="absolute top-3 right-3 text-foreground0 hover:text-foreground-subtle transition-colors
+        className="absolute top-3 right-3 text-foreground-faint hover:text-foreground-subtle transition-colors
           cursor-pointer"
       >
         <XIcon className="w-4 h-4" />

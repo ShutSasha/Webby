@@ -109,7 +109,7 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
           </div>
           <button
             onClick={onCancelEdit}
-            className="p-1.5 hover:bg-neutral-800 rounded-full text-foreground0 hover:text-foreground-subtle
+            className="p-1.5 hover:bg-neutral-800 rounded-full text-foreground-faint hover:text-foreground-subtle
               transition-colors"
           >
             <CloseIcon className="size-5" />
@@ -133,8 +133,8 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
         <button
           onClick={handleSendMessage}
           disabled={!messageText.trim() || isPending}
-          className="absolute right-3 p-1.5 text-foreground0 hover:text-emerald-500 transition-colors
-            disabled:hover:text-foreground0 disabled:opacity-50"
+          className="absolute right-3 p-1.5 text-foreground-faint hover:text-emerald-500 transition-colors
+            disabled:hover:text-foreground-faint disabled:opacity-50"
         >
           <SendIcon className="size-5" />
         </button>

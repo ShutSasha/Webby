@@ -53,7 +53,7 @@ export default function FollowItem({
         />
         <div className="flex flex-col">
           <p className="text-[16px] font-medium">{username}</p>
-          <p className="text-foreground0 text-[12px]">{followersCount} followers</p>
+          <p className="text-foreground-faint text-[12px]">{followersCount} followers</p>
         </div>
       </Link>
 
@@ -72,7 +72,7 @@ export default function FollowItem({
             ) : (
               <>
                 <MailIcon
-                  className="w-4.5 h-4.5 text-foreground0/90 group-hover/mail:text-emerald-500/90 transition-all
+                  className="w-4.5 h-4.5 text-foreground-faint/90 group-hover/mail:text-emerald-500/90 transition-all
                     duration-300"
                 />
                 <div

@@ -77,8 +77,8 @@ export default function UserItem({ user, roomId }: { user: RoomMember; roomId: s
       <div className="relative shrink-0" ref={menuRef}>
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-1 hover:bg-neutral-800 rounded-md text-foreground0 hover:text-foreground-strong transition-all
-            cursor-pointer"
+          className="p-1 hover:bg-neutral-800 rounded-md text-foreground-faint hover:text-foreground-strong
+            transition-all cursor-pointer"
         >
           <DotsIcon className="w-5 h-5" />
         </button>
