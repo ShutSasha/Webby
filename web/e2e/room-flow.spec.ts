@@ -52,8 +52,11 @@ test.describe('Room End-to-End Flow', () => {
 
     await test.step('Switch to chat and send a message', async () => {
       await page.keyboard.press('Escape')
+      await expect(page.getByPlaceholder(/Search users, rooms/i)).not.toBeVisible()
 
       await page.getByTestId('tab-chat').click()
+
+      await expect(page.getByText('No messages yet. Be the first to say hello!')).toBeVisible({ timeout: 10000 })
 
       const chatInput = page.getByPlaceholder('Send a message')
       await expect(chatInput).toBeVisible()
@@ -61,7 +64,7 @@ test.describe('Room End-to-End Flow', () => {
       await chatInput.fill(testMessage)
       await chatInput.press('Enter')
 
-      await expect(page.getByText(testMessage)).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText(testMessage)).toBeVisible()
     })
 
     await test.step('Navigate to own rooms and delete the room', async () => {
