@@ -18,13 +18,19 @@ export default function PlaylistItem(props: Props) {
       <ImageBackground src={props.src} />
       <p className="text-sm font-medium text-foreground-secondary line-clamp-1">{props.name}</p>
       <p className="text-[12px] text-foreground-muted">{props.creator}</p>
-      <div
-        className="absolute bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 top-1/35 right-1/40 group-hover:top-1/20
-          group-hover:right-1/25 transition-all duration-300 text-neutral-100 text-[12px]"
-      >
-        {props.videoCount} videos
-      </div>
+      <PlaylistVideoCount count={props.videoCount} />
     </Link>
+  )
+}
+
+export function PlaylistVideoCount({ count }: { count: number }) {
+  return (
+    <div
+      className="absolute bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 top-1/35 right-1/40 group-hover:top-1/20
+        group-hover:right-1/25 transition-all duration-300 text-neutral-100 text-[12px]"
+    >
+      {count} videos
+    </div>
   )
 }
 

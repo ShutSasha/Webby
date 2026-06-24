@@ -10,6 +10,7 @@ import { useDeletePlaylist } from '@/lib/hooks/api/playlist/useDeletePlaylist'
 import { useUpdatePlaylist } from '@/lib/hooks/api/playlist/useUpdatePlaylist'
 import { cn } from '@/lib/utils/general.utils'
 
+import { PlaylistVideoCount } from './PlaylistItem'
 import Button from '../../shared/Button'
 import Input from '../../shared/Input'
 import Modal from '../../shared/Modal'
@@ -97,14 +98,7 @@ export default function UserPlaylistItem(props: Props) {
 
         <div className="relative">
           <ImageBackground src={props.src} />
-
-          <div
-            className="absolute bg-surface-strong/80 rounded-lg px-2 py-1 top-1/35 right-1/40 group-hover:top-1/20
-              group-hover:right-1/25 transition-all duration-300 text-foreground-tertiary text-[12px]
-              pointer-events-none"
-          >
-            {props.videoCount} videos
-          </div>
+          <PlaylistVideoCount count={props.videoCount} />
         </div>
 
         <div className="flex justify-between items-start gap-2">
