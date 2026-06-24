@@ -13,6 +13,7 @@ using Webby.UserService.Interfaces.Service;
 using Webby.UserService.Middlewares;
 using Webby.UserService.Repositories;
 using Webby.UserService.Services;
+using Webby.UserService.Services.Background;
 
 namespace Webby.UserService.Extensions;
 
@@ -100,6 +101,7 @@ public static class ApiExtension
 
    public static void AddBackgroundWorkers(this IServiceCollection serviceCollection)
    {
+      serviceCollection.AddHostedService<PaymentBackgroundWorker>();
    }
    
    public static void AddHelpers(this IServiceCollection serviceCollection)

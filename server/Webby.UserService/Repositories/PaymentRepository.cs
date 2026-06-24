@@ -42,5 +42,11 @@ public class PaymentRepository : GenericRepository<Payment>, IPaymentRepository
          .Where(p => p.CreatedAt >= DateTime.UtcNow)
          .SumAsync(p => p.Amount);
    }
-   
+
+   public async Task<List<Payment>> GetPendingPaymentsOlderThan(DateTime thresholdTime)
+   {
+      return await _context.Payments
+         .Where(p => p.CreatedAt < thresholdTime && p.Status == PaymentStatus.Pending)
+         .ToListAsync();
+   }
 }

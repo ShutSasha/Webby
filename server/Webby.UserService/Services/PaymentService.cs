@@ -17,11 +17,13 @@ public class PaymentService : IPaymentService
     private readonly IPaymentRepository _paymentRepository;
     private readonly IUserPremiumRepository _userPremiumRepository;
     private readonly PaymentSettings _settings;
+    private readonly ILogger<PaymentService> _logger;
 
-    public PaymentService(IPaymentRepository paymentRepository, IUserPremiumRepository userPremiumRepository, IOptions<PaymentSettings> paymentSettings)
+    public PaymentService(IPaymentRepository paymentRepository, IUserPremiumRepository userPremiumRepository, IOptions<PaymentSettings> paymentSettings, ILogger<PaymentService> logger)
     {
         _paymentRepository = paymentRepository;
         _userPremiumRepository = userPremiumRepository;
+        _logger = logger;
         _settings = paymentSettings.Value;
         StripeConfiguration.ApiKey = _settings.PaymentSecretKey;
     }
@@ -104,7 +106,7 @@ public class PaymentService : IPaymentService
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            _logger.LogError(ex.Message);
         }
        
     }
@@ -112,7 +114,7 @@ public class PaymentService : IPaymentService
     public async Task<GetUserPremiumInformationResponse> GetUserPremiumInformation(Guid paymentId, Guid requestUserId)
     {
         var payment = await _paymentRepository.FindById(paymentId)
-                      ?? throw new ApiException("Get payment information error",404,"Payment wasn't found");
+                      ?? throw new ApiException("Get payment information error", 404, "Payment wasn't found");
 
         if (payment.UserId != requestUserId)
         {
@@ -123,7 +125,7 @@ public class PaymentService : IPaymentService
 
         if (userPremiumInformation == null)
         {
-            throw new ApiException("Get information error",404,"User premium wasn't found");
+            throw new ApiException("Get information error", 404, "User premium wasn't found");
         }
 
         return new GetUserPremiumInformationResponse
@@ -131,6 +133,30 @@ public class PaymentService : IPaymentService
             ExpirationDate = userPremiumInformation.ExpiresAt,
             Username = userPremiumInformation.User.Username
         };
+    }
+    
+    public async Task SyncPendingPayment(Payment payment)
+    {
+        if (payment.Status != PaymentStatus.Pending) return;
+
+        try
+        {
+            var service = new SessionService();
+            var session = await service.GetAsync(payment.ExternalId);
+
+            if (session.PaymentStatus == "paid")
+            {
+                await HandleSuccess(session);
+            }
+            else if (session.Status == "expired")
+            {
+                await HandleFailure(payment.ExternalId, PaymentStatus.Canceled);
+            }
+        }
+        catch (StripeException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
     private async Task HandleSuccess(Session session)
