@@ -89,8 +89,8 @@ export default async function Home({ searchParams }: Props) {
         </div>
 
         <div
-          className="relative w-full bg-surface rounded-3xl p-8 sm:p-12 overflow-hidden flex items-center min-h-[300px]
-            transition-colors duration-300"
+          className="relative w-full bg-neutral-950 rounded-3xl p-8 sm:p-12 overflow-hidden flex items-center
+            min-h-[300px] transition-colors duration-300"
         >
           <Image
             src={Banner}
@@ -103,12 +103,12 @@ export default async function Home({ searchParams }: Props) {
           <div className="relative z-10 flex flex-col gap-6 max-w-2xl">
             <div>
               <h2
-                className="font-bold text-3xl sm:text-4xl 2xl:text-5xl text-foreground-strong mb-3 leading-tight
-                  uppercase tracking-wide transition-colors duration-300"
+                className="font-bold text-3xl sm:text-4xl 2xl:text-5xl text-white mb-3 leading-tight uppercase
+                  tracking-wide transition-colors duration-300"
               >
                 Find your next experience
               </h2>
-              <p className="font-medium text-lg sm:text-xl text-emerald-500">
+              <p className="font-medium text-lg sm:text-xl text-emerald-400">
                 Explore millions of videos and playlists, ready to share
               </p>
             </div>
