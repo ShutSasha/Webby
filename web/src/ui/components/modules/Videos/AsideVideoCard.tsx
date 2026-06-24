@@ -36,17 +36,13 @@ export default function AsideVideoCard({ video }: Props) {
           placeholder="blur"
           blurDataURL={BLUR_DATA_URLS['neutral900']}
         />
-        <div
-          className="absolute inset-0 z-1 bg-surface-strong/15 transition-all duration-500
-            group-hover:bg-surface-strong/5"
-        />
       </div>
 
       <div className="flex flex-col gap-1 flex-1 overflow-hidden">
-        <p className="text-sm line-clamp-2 text-foreground-tertiary font-medium" title={title}>
+        <p className="text-sm line-clamp-2 text-foreground font-medium" title={title}>
           {title}
         </p>
-        <p className="text-sm text-foreground-muted truncate" title={username}>
+        <p className="text-[12px] text-foreground-tertiary font-normal truncate" title={username}>
           {username}
         </p>
         <p className="text-[12px] text-foreground-muted line-clamp-1" title={`${views} views`}>
