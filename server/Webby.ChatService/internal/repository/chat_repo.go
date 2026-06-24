@@ -190,26 +190,14 @@ func (r *chatRepository) History(ctx context.Context, userID uuid.UUID, userIDs 
 	return items, len(items), nil
 }
 
-func (r *chatRepository) UpdateLastMessage(ctx context.Context, chatID, lastMessageID uuid.UUID, createdAt time.Time) error {
+func (r *chatRepository) UpdateLastMessage(ctx context.Context, chatID, lastMessageID uuid.UUID) error {
 	const op = "repositories.chatRepository.UpdateLastMessage"
 
-	currentMessageTimeSubquery := sq.Select("COALESCE(m.created_at, '0001-01-01 00:00:00'::timestamp)").
-		From("chats c").
-		LeftJoin("messages m ON c.last_message_id = m.id").
-		Where(sq.Eq{"c.id": chatID})
-
-	subQuerySql, subQueryArgs, err := currentMessageTimeSubquery.ToSql()
-
-	if err != nil {
-		return fmt.Errorf("%s: building subquery: %w", op, err)
-	}
-
-	exprArgs := append([]interface{}{createdAt}, subQueryArgs...)
 	query, args, err := sq.Update("chats").
 		Set("last_message_id", lastMessageID).
 		Where(sq.Eq{"id": chatID}).
-		Where(sq.Expr("? >= ("+subQuerySql+")", exprArgs...)).
-		PlaceholderFormat(sq.Dollar).ToSql()
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
 
 	if err != nil {
 		return fmt.Errorf("%s: building query: %w", op, err)
@@ -221,12 +209,7 @@ func (r *chatRepository) UpdateLastMessage(ctx context.Context, chatID, lastMess
 	}
 
 	if res.RowsAffected() == 0 {
-		var exists bool
-		checkErr := r.db.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM chats WHERE id = $1)", chatID).Scan(&exists)
-		if checkErr == nil && !exists {
-			return fmt.Errorf("%s: chat not found: %w", op, apperrors.ErrChatNotFound)
-		}
-		return nil
+		return fmt.Errorf("%s: chat not found: %w", op, apperrors.ErrChatNotFound)
 	}
 
 	return nil
