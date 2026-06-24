@@ -21,19 +21,8 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
   const [messageText, setMessageText] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const { mutate: sendMessage, isPending: isSending } = useSendMessageMutation()
-  const { mutate: editMessage, isPending: isEditing } = useEditMessageMutation()
-
-  const isPending = isSending || isEditing
-
-  const prevPendingRef = useRef(isPending)
-
-  useEffect(() => {
-    if (prevPendingRef.current && !isPending) {
-      inputRef.current?.focus()
-    }
-    prevPendingRef.current = isPending
-  }, [isPending])
+  const { mutate: sendMessage } = useSendMessageMutation()
+  const { mutate: editMessage } = useEditMessageMutation()
 
   useEffect(() => {
     if (editingMessage) {
@@ -44,10 +33,13 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
     }
   }, [editingMessage])
 
-  const handleSendMessage = () => {
-    const trimmedMessage = messageText.trim()
+  const handleSendMessage = (e?: React.FormEvent) => {
+    e?.preventDefault()
 
-    if (!trimmedMessage || isPending || !session?.user) return
+    const trimmedMessage = messageText.trim()
+    if (!trimmedMessage || !session?.user) return
+
+    setMessageText('')
 
     if (editingMessage) {
       editMessage(
@@ -55,27 +47,19 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
         {
           onSuccess: () => {
             onCancelEdit()
-            setMessageText('')
           },
         },
       )
     } else {
-      sendMessage(
-        {
-          chatId,
-          content: trimmedMessage,
-          sender: {
-            id: session.user.id,
-            username: session.user.username,
-            avatarUrl: session.user.image || '',
-          },
+      sendMessage({
+        chatId,
+        content: trimmedMessage,
+        sender: {
+          id: session.user.id,
+          username: session.user.username,
+          avatarUrl: session.user.image || '',
         },
-        {
-          onSuccess: () => {
-            setMessageText('')
-          },
-        },
-      )
+      })
     }
   }
 
@@ -122,14 +106,13 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
           onChange={e => setMessageText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={editingMessage ? 'Edit your message...' : 'Write a message...'}
-          disabled={isPending}
           className="w-full bg-background border border-border text-foreground-tertiary
             placeholder:text-foreground-disabled rounded-xl py-3.5 pl-5 pr-12 outline-none focus:border-neutral-600
             transition-colors disabled:opacity-50"
         />
         <button
           onClick={handleSendMessage}
-          disabled={!messageText.trim() || isPending}
+          disabled={!messageText.trim()}
           className="absolute right-3 p-1.5 text-foreground-faint hover:text-emerald-500 transition-colors
             disabled:hover:text-foreground-faint disabled:opacity-50"
         >

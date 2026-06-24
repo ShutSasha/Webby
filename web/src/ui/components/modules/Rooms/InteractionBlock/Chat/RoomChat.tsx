@@ -12,7 +12,8 @@ type Props = {
 export default function RoomChat({ chatId }: Props) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useGetChatMessagesQuery(chatId)
 
-  const messages = data?.pages.flatMap(page => page.data?.items || []) || []
+  const rawMessages = data?.pages.flatMap(page => page.data?.items || []) || []
+  const messages = Array.from(new Map(rawMessages.map(msg => [msg.id, msg])).values())
 
   const lastElementRef = useInfiniteScroll({
     isLoading,
@@ -38,6 +39,7 @@ export default function RoomChat({ chatId }: Props) {
         [&::-webkit-scrollbar-thumb]:border-0 [&::-webkit-scrollbar-thumb]:rounded-full
         hover:[&::-webkit-scrollbar-thumb]:bg-background"
     >
+      <div className="shrink-0 h-px w-full" style={{ overflowAnchor: 'auto' }} />
       {messages.length === 0 ? (
         <div
           className="h-full flex items-center justify-center text-foreground-disabled text-sm italic rotate-180
