@@ -32,8 +32,8 @@ export default function ChatSidebar() {
   })
 
   return (
-    <div className="w-[300px] lg:w-[340px] shrink-0 rounded-2xl border border-border/60 flex flex-col overflow-hidden">
-      <div className="p-4 border-b border-border/60">
+    <div className="w-[300px] lg:w-[340px] shrink-0 rounded-2xl border border-border flex flex-col overflow-hidden">
+      <div className="p-4 border-b border-border">
         <div className="relative">
           <input
             type="text"

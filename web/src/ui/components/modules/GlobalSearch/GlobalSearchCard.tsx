@@ -59,7 +59,7 @@ const GlobalSearchCard = ({
       <Link
         href={targetUrl}
         className="group flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-background/40 transition-colors
-          border border-transparent hover:border-border/60 cursor-pointer"
+          border border-transparent hover:border-border/80 cursor-pointer"
         onClick={handleNavigateTo}
       >
         <div className="flex items-center gap-3 overflow-hidden">

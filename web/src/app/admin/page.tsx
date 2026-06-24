@@ -4,7 +4,7 @@ import AdminAreaChart, { ChartDataPoint } from '@/ui/components/modules/Admin/Ad
 
 const mockStats = [
   { label: 'Total Users', value: '24,592', trend: '+12%', isPositive: true },
-  { label: 'Monthly Revenue', value: '$4,250', trend: '+5.4%', isPositive: true },
+  { label: 'Monthly Revenue', value: '€4,250', trend: '+5.4%', isPositive: true },
   { label: 'Active Rooms', value: '142', trend: '-2%', isPositive: false },
   { label: 'Pending Reports', value: '28', trend: '+12', isPositive: false },
 ]
@@ -45,7 +45,7 @@ export default function AdminOverviewPage() {
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {mockStats.map((stat, i) => (
-          <div key={i} className="bg-surface border border-border/60 rounded-2xl p-5 flex flex-col gap-2">
+          <div key={i} className="bg-surface border border-border rounded-2xl p-5 flex flex-col gap-2">
             <span className="text-foreground-faint text-sm font-medium">{stat.label}</span>
             <div className="flex items-end justify-between">
               <span className="text-3xl font-bold text-foreground-secondary">{stat.value}</span>

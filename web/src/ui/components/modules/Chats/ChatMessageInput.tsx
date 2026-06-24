@@ -90,7 +90,7 @@ export default function ChatMessageInput({ chatId, editingMessage, onCancelEdit 
   }
 
   return (
-    <div className="p-4 bg-surface/20 border-t border-border/60 shrink-0 flex flex-col transition-all duration-300">
+    <div className="p-4 bg-surface/20 border-t border-border shrink-0 flex flex-col transition-all duration-300">
       {editingMessage && (
         <div
           className="flex items-center justify-between mb-3 px-2 animate-in fade-in slide-in-from-bottom-2 duration-200"

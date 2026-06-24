@@ -12,7 +12,7 @@ export default function AdminUsersPage() {
     <div className="flex flex-col gap-6 animate-in fade-in duration-500">
       {/* Search Bar */}
       <div className="flex items-center gap-4">
-        <div className="flex-1 bg-surface border border-border/60 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div className="flex-1 bg-surface border border-border rounded-xl px-4 py-3 flex items-center gap-3">
           <svg className="size-5 text-foreground-faint" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
@@ -31,10 +31,10 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-surface border border-border/60 rounded-2xl overflow-hidden">
+      <div className="bg-surface border border-border rounded-2xl overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-border/60 bg-surface/50 text-foreground-faint text-sm">
+            <tr className="border-b border-border bg-surface/50 text-foreground-faint text-sm">
               <th className="py-4 px-6 font-medium">User</th>
               <th className="py-4 px-6 font-medium">Role</th>
               <th className="py-4 px-6 font-medium">Status</th>

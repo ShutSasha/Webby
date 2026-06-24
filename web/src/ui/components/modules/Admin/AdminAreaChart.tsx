@@ -44,7 +44,7 @@ export default function AdminAreaChart({ title, data, colorTheme = 'emerald', va
   const theme = THEMES[colorTheme]
 
   return (
-    <div className="bg-surface border border-border/60 rounded-2xl p-6 flex flex-col w-full h-full">
+    <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col w-full h-full">
       <h3 className="text-lg font-bold text-foreground-secondary mb-6">{title}</h3>
 
       <div className="w-full h-72">

@@ -27,7 +27,7 @@ export default function NotificationCard({ notification, onMarkAsRead, onDelete 
     <div
       className={cn(
         'group relative flex gap-4 p-4 rounded-2xl transition-all duration-300 border border-transparent',
-        isUnread ? 'bg-background/40 hover:bg-background border-border/60' : 'hover:bg-background/40',
+        isUnread ? 'bg-background/40 hover:bg-background border-border' : 'hover:bg-background/40',
       )}
     >
       <div className="flex items-center shrink-0">

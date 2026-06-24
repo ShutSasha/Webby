@@ -18,7 +18,7 @@ export default function Layout({ children }: Props) {
       <MainContainer className="flex flex-row h-[calc(100vh-40px)]">
         <ChatSidebar />
 
-        <div className="flex-1 rounded-2xl overflow-hidden flex flex-col border border-border/60">{children}</div>
+        <div className="flex-1 rounded-2xl overflow-hidden flex flex-col border border-border">{children}</div>
       </MainContainer>
     </MainLayout>
   )

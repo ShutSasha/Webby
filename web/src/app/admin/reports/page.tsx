@@ -41,7 +41,7 @@ export default function AdminReportsPage() {
           Open (3)
         </button>
         <button
-          className="px-4 py-2 bg-surface hover:bg-background text-foreground-muted border border-border/60 rounded-xl
+          className="px-4 py-2 bg-surface hover:bg-background text-foreground-muted border border-border rounded-xl
             text-sm font-medium transition-colors"
         >
           Resolved
@@ -50,7 +50,7 @@ export default function AdminReportsPage() {
 
       {/* Reports Feed */}
       {mockReports.map(report => (
-        <div key={report.id} className="bg-surface border border-border/60 rounded-2xl p-5 flex flex-col gap-4">
+        <div key={report.id} className="bg-surface border border-border rounded-2xl p-5 flex flex-col gap-4">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-1">
@@ -78,7 +78,7 @@ export default function AdminReportsPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-3 mt-2 border-t border-border/60 pt-4">
+          <div className="flex items-center gap-3 mt-2 border-t border-border pt-4">
             <button
               className="px-5 py-2 text-foreground-faint hover:text-foreground-subtle font-medium rounded-xl text-sm
                 transition-colors mr-auto"
