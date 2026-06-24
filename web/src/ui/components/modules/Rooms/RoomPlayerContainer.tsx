@@ -48,5 +48,5 @@ export default function RoomPlayerContainer({ roomId }: Props) {
     )
   }
 
-  return <CustomPlayer videoUrl={activeVideoUrl} isRoom roomId={roomId} />
+  return <CustomPlayer videoUrl={activeVideoUrl} roomId={roomId} />
 }

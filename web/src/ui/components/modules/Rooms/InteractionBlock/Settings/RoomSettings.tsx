@@ -152,8 +152,7 @@ export default function RoomSettings() {
           type="submit"
           viewType={!isPending ? 'confirm' : 'loading'}
           disabled={isPending}
-          className="rounded-xl py-2.5 font-semibold w-full text-sm shadow-lg shadow-emerald-500/10
-            hover:shadow-emerald-500/20"
+          className="rounded-xl py-2.5 font-semibold w-full text-sm"
         >
           {isPending ? 'Saving...' : 'Save changes'}
         </Button>
