@@ -63,22 +63,30 @@ export default function ToastItem({ id, message, type }: ToastItemProps) {
       onMouseLeave={startTimer}
       onClick={() => removeToast(id)}
       className={cn(
-        'flex items-center justify-between p-4 rounded-xl border cursor-pointer select-none',
-        'hover:scale-[1.01] active:scale-[0.98]',
+        'flex items-center justify-between p-4 rounded-xl border cursor-pointer select-none shadow-sm dark:shadow-none',
+        'hover:scale-[1.01] active:scale-[0.98] transition-all duration-200',
         {
-          'bg-linear-to-r from-emerald-950 via-neutral-900 to-neutral-900 border-emerald-500/50': type === 'success',
-          'bg-linear-to-r from-purple-900 via-neutral-900 to-neutral-900 border-purple-500/50': type === 'info',
-          'bg-linear-to-r from-red-950 via-neutral-900 to-neutral-900 border-red-500/50': type === 'error',
+          [`bg-linear-to-r from-emerald-50 via-white to-white border-emerald-200 dark:from-emerald-950
+          dark:via-neutral-900 dark:to-neutral-900 dark:border-emerald-500/50`]: type === 'success',
+          [`bg-linear-to-r from-purple-50 via-white to-white border-purple-200 dark:from-purple-900 dark:via-neutral-900
+          dark:to-neutral-900 dark:border-purple-500/50`]: type === 'info',
+          [`bg-linear-to-r from-red-50 via-white to-white border-red-200 dark:from-red-950 dark:via-neutral-900
+          dark:to-neutral-900 dark:border-red-500/50`]: type === 'error',
         },
       )}
     >
       <div className="flex items-center gap-3 pr-3">
-        {type === 'success' && <CheckCircle className="size-5 text-emerald-700" />}
-        {type === 'info' && <InfoCircle className="size-5 text-purple-500" />}
-        {type === 'error' && <XCircleIcon className="size-5 text-red-500" />}
-        <span className="text-sm font-medium text-foreground-subtle">{message}</span>
+        {type === 'success' && <CheckCircle className="size-5 text-emerald-600 dark:text-emerald-500" />}
+        {type === 'info' && <InfoCircle className="size-5 text-purple-600 dark:text-purple-400" />}
+        {type === 'error' && <XCircleIcon className="size-5 text-red-600 dark:text-red-500" />}
+
+        <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{message}</span>
       </div>
-      <X className="size-4 text-foreground-faint hover:text-foreground-subtle transition-colors" />
+
+      <X
+        className="size-4 text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300
+          transition-colors"
+      />
     </motion.div>
   )
 }

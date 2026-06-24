@@ -74,9 +74,10 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
       <div
         onClick={handlePlayPause}
         className={cn(
-          `flex items-center justify-between p-2 rounded-xl bg-background/60 hover:bg-background transition-all
-          duration-300 border-b-2 border-transparent group cursor-pointer`,
-          isActive && 'border-emerald-500 bg-background',
+          `flex items-center justify-between p-2 rounded-xl bg-background/60 hover:bg-neutral-200 dark:bg-neutral-800/70
+          dark:hover:bg-neutral-300/10 transition-all duration-300 border-b-2 border-transparent group cursor-pointer`,
+          isActive && 'border-emerald-500 bg-background/80 dark:bg-neutral-800/70',
+          isPending && 'opacity-50 pointer-events-none',
           !isOwner && 'gap-2',
         )}
       >
@@ -87,15 +88,16 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
             width={96}
             height={96}
             className={cn(
-              'object-cover size-10 rounded-lg shrink-0',
-              isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+              'object-cover size-10 rounded-lg shadow-sm ring-1 ring-border/50 shrink-0 transition-opacity duration-300',
             )}
           />
 
           <span
             className={cn(
-              'text-sm font-medium truncate pr-1 transition-colors',
-              isActive ? 'text-foreground-subtle' : 'text-foreground-faint group-hover:text-foreground-subtle',
+              'text-sm truncate pr-1 transition-colors duration-200',
+              isActive
+                ? 'text-foreground-strong font-semibold'
+                : 'text-foreground-secondary font-medium group-hover:text-foreground-strong',
             )}
             title={title}
           >
@@ -105,37 +107,47 @@ export default function VideoItem({ id, title, thumbnail, playlistId, isOwner, u
 
         <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
           <button
-            className="p-1.5 group/play hover:bg-foreground-subtle/10 rounded-full cursor-pointer flex items-center
-              justify-center"
+            className={cn(
+              'group/play p-1.5 transition-colors duration-200 cursor-pointer rounded-full shrink-0',
+              isActive ? 'text-foreground-muted' : 'text-muted group-hover:text-foreground-muted',
+              !isPending && 'hover:text-emerald-500 hover:bg-emerald-500/10',
+            )}
             onClick={handlePlayPause}
           >
             {playing && isActive ? (
               <PauseIcon
-                className={`size-4 stroke-[1.5px] ${isActive ? 'text-foreground-subtle' : 'text-foreground-faint'}
-                  group-hover/play:text-foreground-subtle`}
+                className={cn(
+                  'size-4 stroke-[1.5px] transition-transform duration-200',
+                  !isPending && 'group-hover/play:scale-110',
+                )}
               />
             ) : (
               <PlayIcon
-                className={`size-4 stroke-[1.5px] ${isActive ? 'text-foreground-subtle' : 'text-foreground-faint'}
-                  group-hover/play:text-foreground-subtle`}
+                className={cn(
+                  'size-4 stroke-[1.5px] transition-transform duration-200',
+                  !isPending && 'group-hover/play:scale-110',
+                )}
               />
             )}
           </button>
 
           {isOwner && (
             <button
-              className="group/trash p-1.5 text-foreground-faint hover:text-red-500 transition-colors
-                hover:bg-red-500/10 cursor-pointer rounded-full"
-              onClick={handleToggle}
-            >
-              {isPending ? (
-                <div className="size-4 border-2 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
-              ) : (
-                <TrashIcon
-                  className={`size-4 stroke-[1.5px] transition-colors
-                    ${isActive ? 'text-foreground-subtle' : 'text-foreground-faint'} group-hover/trash:text-red-500`}
-                />
+              className={cn(
+                'group/trash p-1.5 transition-colors duration-200 cursor-pointer rounded-full shrink-0',
+                isActive ? 'text-foreground-muted' : 'text-muted group-hover:text-foreground-muted',
+                !isPending && 'hover:text-red-500 hover:bg-red-500/10',
               )}
+              onClick={handleToggle}
+              disabled={isPending}
+            >
+              <TrashIcon
+                className={cn(
+                  'size-4 stroke-[1.5px] transition-transform duration-200',
+                  !isPending && 'group-hover/trash:scale-110',
+                  isPending && 'animate-pulse text-red-500',
+                )}
+              />
             </button>
           )}
         </div>
@@ -148,9 +160,8 @@ export function VideoItemSkeleton() {
   return (
     <div className="flex items-center justify-between p-2 rounded-xl bg-background/30 border-b-2 border-transparent">
       <div className="flex items-center gap-3 overflow-hidden w-full">
-        <div className="size-10 bg-surface-tertiary/50 rounded-lg shrink-0 animate-pulse" />
-
-        <div className="h-4 bg-surface-tertiary/50 rounded-md w-3/4 animate-pulse" />
+        <div className="size-10 bg-skeleton/80 rounded-lg shrink-0 animate-pulse" />
+        <div className="h-4 bg-skeleton/80 rounded-md w-3/4 animate-pulse" />
       </div>
     </div>
   )

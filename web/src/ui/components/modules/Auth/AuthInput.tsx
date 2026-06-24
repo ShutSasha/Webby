@@ -21,8 +21,8 @@ const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
     return (
       <div className="relative">
         <Icon
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 dark:text-foreground-muted
-            text-foreground-strong pointer-events-none"
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-foreground-strong/25
+            pointer-events-none"
         />
 
         <Input

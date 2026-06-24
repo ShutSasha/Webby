@@ -3,8 +3,8 @@
 import { useState, useTransition } from 'react'
 
 import { updateAboutField } from '@/lib/actions/user.actions'
+import { cn } from '@/lib/utils/general.utils'
 import { useToastStore } from '@/stores/toast-store'
-import Button from '@/ui/components/shared/Button'
 
 type Props = {
   userId: string
@@ -16,8 +16,10 @@ export default function AboutContainer({ userId, about }: Props) {
   const [isPending, startTransition] = useTransition()
   const addToast = useToastStore(state => state.addToast)
 
+  const isChanged = text !== about
+
   const handleSave = () => {
-    if (text === about) {
+    if (!isChanged) {
       addToast('No changes to save', 'info')
       return
     }
@@ -44,21 +46,26 @@ export default function AboutContainer({ userId, about }: Props) {
         onChange={e => setText(e.target.value)}
         placeholder="Type something about yourself..."
         disabled={isPending}
-        className="w-full rounded-2xl p-5 border border-border/80 bg-strong/50 h-40 resize-none text-start align-top
-          mb-5 text-foreground-tertiary placeholder:text-foreground-disabled outline-none transition-all duration-300
-          hover:border-neutral-600 focus:border-emerald-500/50 focus:bg-surface/80 disabled:opacity-50
-          disabled:cursor-not-allowed"
+        className="w-full rounded-2xl p-5 border border-border/60 bg-surface-secondary/30 h-40 resize-none text-start
+          align-top mb-5 text-foreground placeholder:text-foreground-muted outline-none transition-all duration-300
+          hover:border-border focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 focus:bg-surface
+          disabled:opacity-50 disabled:cursor-not-allowed custom-scrollbar"
       />
 
-      <div className="flex justify-end">
-        <Button
-          viewType={!isPending ? 'confirm' : 'loading'}
-          className="rounded-xl font-medium min-w-[140px]"
+      <div className="flex justify-center">
+        <button
+          disabled={isPending || !isChanged}
           onClick={handleSave}
-          disabled={isPending || text === about}
+          className={cn(
+            'px-8 py-2.5 rounded-xl font-medium transition-all duration-300 min-w-40 border',
+            isChanged
+              ? `bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30
+                hover:border-emerald-500/50 shadow-sm`
+              : 'bg-surface-secondary text-foreground-muted cursor-not-allowed opacity-70 border-border/50 shadow-none',
+          )}
         >
           {isPending ? 'Saving...' : 'Save changes'}
-        </Button>
+        </button>
       </div>
     </div>
   )

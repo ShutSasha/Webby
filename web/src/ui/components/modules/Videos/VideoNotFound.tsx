@@ -23,7 +23,7 @@ export default function VideoNotFound() {
           </svg>
         </div>
 
-        <p className="text-foreground-subtle text-[20px] font-bold">Video unavailable</p>
+        <p className="text-foreground text-[20px] font-bold">Video unavailable</p>
         <p className="text-foreground-faint text-sm mt-2 max-w-sm text-center">
           This video has been deleted, hidden, or the link you followed is invalid.
         </p>

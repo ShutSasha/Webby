@@ -16,11 +16,11 @@ export default function PlaylistItem(props: Props) {
   return (
     <Link href={`/playlists/${props.id}`} className="relative group cursor-pointer">
       <ImageBackground src={props.src} />
-      <p className="text-sm font-medium text-foreground-subtle line-clamp-1">{props.name}</p>
-      <p className="text-[12px] text-foreground-faint">{props.creator}</p>
+      <p className="text-sm font-medium text-foreground-secondary line-clamp-1">{props.name}</p>
+      <p className="text-[12px] text-foreground-muted">{props.creator}</p>
       <div
-        className="absolute dark:bg-surface-strong/80 bg-surface-strong rounded-lg px-2 py-1 top-1/35 right-1/40
-          group-hover:top-1/20 group-hover:right-1/25 transition-all duration-300 text-foreground-tertiary text-[12px]"
+        className="absolute bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 top-1/35 right-1/40 group-hover:top-1/20
+          group-hover:right-1/25 transition-all duration-300 text-neutral-100 text-[12px]"
       >
         {props.videoCount} videos
       </div>

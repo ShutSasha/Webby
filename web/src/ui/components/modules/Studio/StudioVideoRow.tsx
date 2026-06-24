@@ -105,8 +105,8 @@ export function StudioVideoRow({ video }: Props) {
 
           {isReady && (
             <div
-              className="absolute bottom-1 right-1 bg-surface-strong/80 px-1 py-0.5 rounded text-[10px] font-medium
-                text-foreground-strong"
+              className="absolute bottom-1 right-1 bg-black/80 backdrop-blur-sm px-1 py-0.5 rounded text-[10px]
+                font-medium text-neutral-50"
             >
               {video.duration ? formatVideoTime(video.duration) : '0:00'}
             </div>

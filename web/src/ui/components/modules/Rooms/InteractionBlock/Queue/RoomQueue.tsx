@@ -8,6 +8,7 @@ import SearchIcon from '@/assets/icons/ic_search.svg'
 import { useRoomQueueQuery } from '@/lib/hooks/api/room/useRoomQueueQuery'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import { RoomQueueItem } from '@/types/room.types'
+import Input from '@/ui/components/shared/Input'
 
 import QueueItem from './QueueItem'
 import QueueItemSkeleton from './QueueItemSkeleton'
@@ -38,18 +39,17 @@ export default function RoomQueue() {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="relative group mb-2 shrink-0">
+      <div className="relative group mb-3 shrink-0">
         <SearchIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground-faint
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground-strong/20
             group-focus-within:text-emerald-500 transition-colors stroke-[1.5px]"
         />
-        <input
+        <Input
           type="text"
           placeholder="Search video in queue"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full bg-surface rounded-md py-2 pl-10 pr-4 text-sm outline-none border border-transparent
-            focus:border-emerald-500/70 transition-all placeholder:text-foreground-faint"
+          className="w-full py-2.5 pl-10 pr-4"
         />
       </div>
 
