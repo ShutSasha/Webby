@@ -50,34 +50,23 @@ export default function ResetPasswordForm() {
   }
 
   return (
-    <div className="w-full flex justify-center mt-6">
+    <div className="w-full flex flex-col items-center gap-6 mt-6">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-[800px] border border-border rounded-2xl p-6 sm:p-8 flex flex-col items-center"
+        className="w-full max-w-[800px] border border-border rounded-2xl p-6 sm:p-8 flex flex-col"
       >
         <div className="flex flex-col mb-8">
-          <h2 className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider mb-2">
-            Password Management
-          </h2>
-          <p className="text-sm text-foreground-subtle max-w-xl">
-            {` Update your password to keep your account secure. If you use a social login (like Google) and haven't set a
-            password yet, or if you simply forgot it, you can reset it.`}
+          <h2 className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider mb-2">Change Password</h2>
+          <p className="text-sm text-foreground-subtle leading-relaxed max-w-2xl">
+            Update your password to keep your account secure. Make sure to choose a strong, unique password.
           </p>
         </div>
 
-        <div className="flex flex-col gap-6 w-full max-w-md">
+        <div className="flex flex-col gap-6 w-full max-w-md mx-auto">
           <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center">
-              <label htmlFor="currentPassword" className="text-sm font-medium text-foreground-secondary">
-                Current password
-              </label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-foreground-muted hover:text-foreground transition-colors"
-              >
-                Forgot your password?
-              </Link>
-            </div>
+            <label htmlFor="currentPassword" className="text-sm font-medium text-foreground-secondary">
+              Current password
+            </label>
             <AuthInput
               {...register('currentPassword')}
               Icon={PasswordIcon}
@@ -144,6 +133,30 @@ export default function ResetPasswordForm() {
           </button>
         </div>
       </form>
+
+      <div
+        className="w-full max-w-[800px] border border-border rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row
+          justify-between items-start sm:items-center gap-6"
+      >
+        <div className="flex flex-col max-w-lg">
+          <h2 className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider mb-2">
+            Recovery & Social Logins
+          </h2>
+          <p className="text-sm text-foreground-subtle leading-relaxed">
+            {`If you use a social login (like Google) and haven't set a password yet, or if you simply forgot your current
+            one, you can reset it.`}
+          </p>
+        </div>
+
+        <Link
+          href="/forgot-password"
+          className="shrink-0 px-6 py-2.5 rounded-xl text-sm font-medium border border-border bg-transparent
+            text-foreground-secondary hover:text-foreground-strong hover:bg-surface-secondary transition-colors
+            duration-200"
+        >
+          Reset Password
+        </Link>
+      </div>
     </div>
   )
 }
