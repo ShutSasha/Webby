@@ -53,7 +53,7 @@ export default function NewPasswordStep() {
 
   if (state.success) {
     return (
-      <div className="text-center space-y-4 animate-in fade-in zoom-in duration-300">
+      <div className="flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in duration-300">
         <p className="text-emerald-500 font-medium text-lg">Password has been reset!</p>
         <p className="text-foreground-muted text-sm">You can now use your new password to log in.</p>
         <Button viewType="confirm" className="px-8">
