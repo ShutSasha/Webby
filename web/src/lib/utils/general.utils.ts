@@ -101,3 +101,7 @@ export const unwrapServerAction = <T>(response: BaseServerResponse<T>): T => {
 
   return response.data as T
 }
+
+export const delay = async (durationMs: number) => {
+  return new Promise(resolve => setTimeout(resolve, durationMs))
+}
