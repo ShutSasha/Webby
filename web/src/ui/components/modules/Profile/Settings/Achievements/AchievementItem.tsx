@@ -112,7 +112,7 @@ export default function AchievementItem({
   return (
     <div
       className={cn(
-        `relative rounded-[20px] border border-border px-4 py-4 flex flex-col gap-1 items-center w-[200px] min-h-[230px]
+        `relative rounded-[20px] border border-border px-4 py-4 flex flex-col gap-1 items-center w-[200px] min-h-[250px]
         select-none transition-all shrink-0`,
         className,
         isLoading && 'pointer-events-none',
