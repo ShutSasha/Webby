@@ -98,7 +98,7 @@ export default function VideoCard({
             <div className="flex flex-col overflow-hidden">
               <h3
                 className="text-foreground-secondary text-sm font-semibold leading-snug line-clamp-2 break-all
-                  transition-colors duration-200 group-hover:text-emerald-400"
+                  transition-colors duration-200"
               >
                 {title}
               </h3>

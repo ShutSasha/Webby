@@ -78,7 +78,7 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
                 onClick={() => onSelectVote(vote.id, 'RIGHT_CHOICE')}
                 className={cn('p-4 rounded-xl border transition-all cursor-pointer group', {
                   'bg-background/30 border-border': isResolved,
-                  'bg-background/80 border-neutral-700 hover:bg-surface-tertiary': isClosed,
+                  'bg-background/80 border-neutral-700 hover:bg-neutral-300/40 dark:hover:bg-neutral-700/30': isClosed,
                   'bg-background border-emerald-500/30 hover:border-emerald-500': isActive,
                 })}
               >
@@ -93,9 +93,7 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
                     {isResolved ? 'Resolved' : isClosed ? 'Closed' : 'Active'}
                   </span>
                 </div>
-                <h4 className="font-medium text-foreground-tertiary group-hover:text-emerald-400 transition-colors">
-                  {vote.voteText}
-                </h4>
+                <h4 className="font-medium text-foreground-tertiary transition-colors">{vote.voteText}</h4>
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-xs text-foreground-faint">{vote.choices.length} options</p>
                   {vote.myVote && <p className="text-[10px] text-emerald-500/80 font-medium">Voted</p>}

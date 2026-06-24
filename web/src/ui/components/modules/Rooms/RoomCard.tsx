@@ -48,7 +48,7 @@ export default function RoomCard({ id, name, thumbnail, category, hostUsername, 
         <div className="flex flex-col overflow-hidden">
           <h3
             className="text-foreground-strong text-sm font-semibold leading-snug line-clamp-2 transition-colors
-              duration-200 group-hover:text-emerald-400"
+              duration-200"
           >
             {name}
           </h3>
