@@ -25,16 +25,16 @@ export default function UploadAvatarContainer() {
         </Button>
       ) : (
         <div
-          className="fixed inset-0 z-100 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4
-            animate-in fade-in duration-200"
+          className="fixed inset-0 z-100 bg-surface-strong/80 backdrop-blur-sm flex flex-col items-center justify-center
+            p-4 animate-in fade-in duration-200"
         >
           <div
-            className="bg-[#0A0A0A] p-8 rounded-3xl border border-neutral-800/50 shadow-2xl max-w-lg w-full flex
-              flex-col items-center gap-6 animate-in zoom-in-95 duration-300"
+            className="bg-surface p-8 rounded-3xl border border-border/50 shadow-2xl max-w-lg w-full flex flex-col
+              items-center gap-6 animate-in zoom-in-95 duration-300"
           >
-            <h3 className="text-neutral-100 text-xl font-bold">Adjust your avatar</h3>
+            <h3 className="text-foreground-secondary text-xl font-bold">Adjust your avatar</h3>
 
-            <div className="bg-neutral-900/50 rounded-2xl overflow-hidden border border-neutral-800/50 p-2">
+            <div className="bg-surface/50 rounded-2xl overflow-hidden border border-border/50 p-2">
               <ReactCrop
                 crop={state.crop}
                 onChange={c => actions.setCrop(c)}

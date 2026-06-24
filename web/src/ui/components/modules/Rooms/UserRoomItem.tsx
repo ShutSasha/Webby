@@ -109,7 +109,7 @@ export default function UserRoomItem({ room }: Props) {
           aria-label={`Enter ${room.name}`}
         />
 
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-800">
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-background">
           <Image
             src={room.thumbnail}
             alt="Room preview"
@@ -121,10 +121,9 @@ export default function UserRoomItem({ room }: Props) {
             blurDataURL={BLUR_DATA_URLS['neutral800']}
           />
 
-          <div
-            className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md pointer-events-none"
-          >
-            <p className="uppercase font-bold text-[10px] tracking-wider text-neutral-200 line-clamp-1 max-w-[100px]">
+          <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md
+            pointer-events-none">
+            <p className="uppercase font-bold text-[10px] tracking-wider text-neutral-100 line-clamp-1 max-w-[100px]">
               {room.categoryName}
             </p>
           </div>
@@ -133,12 +132,14 @@ export default function UserRoomItem({ room }: Props) {
         <div className="flex justify-between items-start gap-2 px-1">
           <div className="flex flex-col overflow-hidden">
             <h3
-              className="text-neutral-100 text-sm font-semibold leading-snug line-clamp-2 transition-colors duration-200
-                group-hover:text-emerald-400"
+              className="text-foreground-secondary text-sm font-semibold leading-snug line-clamp-2 transition-colors
+                duration-200 group-hover:text-emerald-400"
             >
               {room.name}
             </h3>
-            <p className="text-[12px] text-neutral-500 mt-1">{room.isPrivate ? 'Private' : 'Public'} &bull; Room</p>
+            <p className="text-[12px] text-foreground-faint mt-1">
+              {room.isPrivate ? 'Private' : 'Public'} &bull; Room
+            </p>
           </div>
 
           <div className="relative shrink-0 z-20" ref={menuRef}>
@@ -146,23 +147,23 @@ export default function UserRoomItem({ room }: Props) {
               onClick={toggleMenu}
               className={cn(
                 'p-1.5 -mr-1.5 -mt-1 rounded-full transition-all duration-300 cursor-pointer z-20',
-                'hover:bg-neutral-500/20 active:bg-neutral-500/40',
+                'hover:bg-surface-faint/20 active:bg-surface-faint/40',
                 isMenuOpen
-                  ? 'bg-neutral-500/20 text-neutral-300'
-                  : 'text-neutral-400 opacity-0 group-hover:opacity-100 md:opacity-100',
+                  ? 'bg-surface-faint/20 text-foreground-subtle'
+                  : 'text-foreground-muted opacity-0 group-hover:opacity-100 md:opacity-100',
               )}
             >
-              <MoreVertical className="size-5 text-neutral-300" />
+              <MoreVertical className="size-5 text-foreground-subtle" />
             </button>
 
             {isMenuOpen && (
               <div
-                className="absolute right-0 top-full mt-2 w-48 bg-neutral-800 border border-neutral-700/60 shadow-xl
+                className="absolute right-0 top-full mt-2 w-48 bg-background border border-neutral-700/60 shadow-xl
                   shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
                 onClick={e => e.preventDefault()}
               >
                 <button
-                  className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50
+                  className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-surface-tertiary/50
                     transition-colors flex items-center gap-3 cursor-pointer"
                   onClick={handleOpenEdit}
                 >
@@ -185,7 +186,7 @@ export default function UserRoomItem({ room }: Props) {
       {/* Edit Modal */}
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         <form className="flex flex-col" onSubmit={handleUpdateSubmit}>
-          <h3 className="text-neutral-300 text-center mb-6 font-semibold text-xl">Edit room</h3>
+          <h3 className="text-foreground-subtle text-center mb-6 font-semibold text-xl">Edit room</h3>
 
           <div className="relative mb-4">
             <Input
@@ -195,7 +196,9 @@ export default function UserRoomItem({ room }: Props) {
               onChange={(e: ChangeEvent<HTMLInputElement>) => setEditName(e.target.value)}
               maxLength={50}
             />
-            <EditPenIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-700 stroke-[1.5px]" />
+            <EditPenIcon
+              className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground-ghost stroke-[1.5px]"
+            />
           </div>
 
           <div className="mb-4">
@@ -203,7 +206,7 @@ export default function UserRoomItem({ room }: Props) {
               value={editCategoryName}
               onChange={e => setEditCategoryName(e.target.value)}
               disabled={isLoadingCategories}
-              className="py-2.5 px-4 rounded-xl w-full border border-neutral-700 bg-neutral-900 text-neutral-200
+              className="py-2.5 px-4 rounded-xl w-full border border-neutral-700 bg-surface text-foreground-tertiary
                 outline-none focus:border-emerald-500 transition-colors appearance-none cursor-pointer
                 disabled:opacity-50"
             >
@@ -221,20 +224,20 @@ export default function UserRoomItem({ room }: Props) {
           </div>
 
           <div className="flex flex-col gap-1 mb-6">
-            <label className="text-sm text-neutral-300 font-medium ml-1">New Thumbnail (Optional)</label>
+            <label className="text-sm text-foreground-subtle font-medium ml-1">New Thumbnail (Optional)</label>
             <input
               type="file"
               ref={fileInputRef}
               accept="image/*"
               onChange={e => setEditThumbnail(e.target.files?.[0] || null)}
-              className="block w-full text-sm text-neutral-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl
+              className="block w-full text-sm text-foreground-muted file:mr-4 file:py-2.5 file:px-4 file:rounded-xl
                 file:border-0 file:text-sm file:font-semibold file:bg-emerald-500/10 file:text-emerald-500
                 hover:file:bg-emerald-500/20 transition-colors cursor-pointer"
             />
           </div>
 
           <div className="flex items-center justify-between mb-8 px-1">
-            <p className="text-sm text-neutral-300 font-medium">Private room:</p>
+            <p className="text-sm text-foreground-subtle font-medium">Private room:</p>
             <Switch isChecked={editIsPrivate} toggle={() => setEditIsPrivate(prev => !prev)} />
           </div>
 

@@ -19,9 +19,9 @@ export default function Search({ handleSearchChange }: Props) {
 
   return (
     <div className="relative">
-      <SearchIcon className="size-4 absolute top-1/2 -translate-y-1/2 left-3 text-neutral-700 stroke-[1.5px]" />
+      <SearchIcon className="size-4 absolute top-1/2 -translate-y-1/2 left-3 text-foreground-ghost stroke-[1.5px]" />
       <Input
-        className="w-full py-2 rounded-lg pl-9 text-neutral-300 placeholder:text-neutral-700"
+        className="w-full py-2 rounded-lg pl-9 text-foreground-subtle placeholder:text-foreground-ghost"
         placeholder="Search your library..."
         value={query}
         onChange={handleInput}

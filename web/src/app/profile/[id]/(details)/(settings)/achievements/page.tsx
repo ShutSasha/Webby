@@ -22,7 +22,7 @@ export default async function AchievementsPage({ params }: Props) {
         title="Sign in to view your achievements"
         description="Please log in to unlock your trophy room. Track your completed milestones,
         check your ongoing quest progress, and view all the exclusive badges you have earned on the platform."
-        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }
@@ -50,11 +50,11 @@ export default async function AchievementsPage({ params }: Props) {
       <Splitter text="Your pinned achievements" />
       {pinned.length === 0 ? (
         <div
-          className="w-full flex flex-col items-center justify-center py-10 px-4 border-2 border-dashed
-            border-neutral-800 rounded-[20px] bg-neutral-900/20"
+          className="w-full flex flex-col items-center justify-center py-10 px-4 border-2 border-dashed border-border
+            rounded-[20px] bg-surface/20"
         >
-          <p className="text-neutral-400 font-medium">No pinned achievements yet</p>
-          <p className="text-neutral-600 text-sm mt-1 text-center max-w-sm">
+          <p className="text-foreground-muted font-medium">No pinned achievements yet</p>
+          <p className="text-foreground-disabled text-sm mt-1 text-center max-w-sm">
             Click on the three dots of any unlocked achievement below to pin it here.
           </p>
         </div>
@@ -80,7 +80,7 @@ export default async function AchievementsPage({ params }: Props) {
         <Splitter text="All achievements" />
         {all.length === 0 ? (
           <div className="flex items-center justify-center py-20">
-            <p className="text-neutral-500">There are no achievements available.</p>
+            <p className="text-foreground-faint">There are no achievements available.</p>
           </div>
         ) : (
           <div className="grid grid-cols-5 gap-4">

@@ -13,19 +13,20 @@ export default function PlayerSettingsMenu({ showSettings, playbackRate, onSetPl
   return (
     <div
       ref={menuRef}
-      className="absolute bottom-14 right-3 w-48 bg-black/30 backdrop-blur-md rounded-xl overflow-hidden z-20"
+      className="absolute bottom-14 right-3 w-48 bg-surface-strong/30 backdrop-blur-md rounded-xl overflow-hidden z-20"
       onClick={e => e.stopPropagation()}
     >
       <div className="p-2 border-b border-white/5">
-        <p className="text-neutral-400 text-xs font-bold px-3 py-1 uppercase tracking-wider">Speed</p>
+        <p className="text-foreground-muted text-xs font-bold px-3 py-1 uppercase tracking-wider">Speed</p>
       </div>
       <div className="py-1">
         {RATES.map(rate => (
           <button
             key={rate}
             onClick={() => onSetPlaybackRate(rate)}
-            className={`w-full flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-white/10
-            ${playbackRate === rate ? 'text-emerald-500 font-bold' : 'text-neutral-300'}`}
+            className={`w-full flex items-center justify-between px-4 py-2 text-sm transition-colors
+            hover:bg-surface-inverse/10
+            ${playbackRate === rate ? 'text-emerald-500 font-bold' : 'text-foreground-subtle'}`}
           >
             <span>{rate === 1 ? 'Normal' : `${rate}x`}</span>
             {playbackRate === rate && (

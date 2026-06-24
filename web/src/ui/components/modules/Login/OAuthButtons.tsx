@@ -29,8 +29,8 @@ export default function AuthSocialButtons() {
           className={cn(
             'flex w-full items-center justify-center gap-3',
             'px-5 py-3 rounded-full transition-all duration-300 ease-out cursor-pointer',
-            'bg-neutral-800 border border-neutral-700/60 text-neutral-300',
-            'hover:bg-neutral-700/60 hover:border-neutral-500 hover:text-neutral-100',
+            'bg-background border border-neutral-700/60 text-foreground-subtle',
+            'hover:bg-surface-tertiary/60 hover:border-neutral-500 hover:text-foreground-secondary',
           )}
         >
           <Icon className="size-5 shrink-0" />

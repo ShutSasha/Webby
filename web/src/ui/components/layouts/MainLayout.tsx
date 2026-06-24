@@ -11,7 +11,9 @@ export default async function MainLayout({ children }: Props) {
   const isAdmin = session?.user?.role === 'Admin'
 
   return (
-    <main className="flex flex-row min-h-screen bg-neutral-800 text-neutral-300 relative z-0">
+    <main
+      className="flex flex-row min-h-screen bg-background text-foreground relative z-0 transition-colors duration-300"
+    >
       <DesktopNav isAdmin={isAdmin} />
       <div className="flex flex-1 p-4">{children}</div>
     </main>

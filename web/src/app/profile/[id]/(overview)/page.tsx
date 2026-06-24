@@ -27,7 +27,7 @@ export default async function Profile({ searchParams, params }: ProfileProps) {
   }
 
   return (
-    <div className="bg-neutral-900 rounded-[20px] p-5 flex flex-col gap-5">
+    <div className="bg-surface rounded-[20px] p-5 flex flex-col gap-5">
       <AnimatedTabs tabs={profileTabs} layoutId="profile-tabs" linkClassName="py-1" />
 
       {currentTab === 'video' && (
@@ -37,7 +37,7 @@ export default async function Profile({ searchParams, params }: ProfileProps) {
       )}
       {currentTab === 'playlist' && (
         <Suspense fallback={<UserPlaylistsSkeleton />}>
-          <UserPlaylists userId={id} username={userData.user.username}/>
+          <UserPlaylists userId={id} username={userData.user.username} />
         </Suspense>
       )}
     </div>

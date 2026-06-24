@@ -36,7 +36,7 @@ export default function FollowItem({
 
   return (
     <div
-      className="bg-neutral-800 hover:bg-neutral-300/10 transition-all duration-200 ease-in rounded-xl p-2 flex
+      className="bg-background hover:bg-surface-secondary transition-all duration-200 ease-in rounded-xl p-2 flex
         items-center justify-between gap-2 border border-transparent hover:border-emerald-400/25"
     >
       <Link href={`/profile/${userId}`} className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export default function FollowItem({
         />
         <div className="flex flex-col">
           <p className="text-[16px] font-medium">{username}</p>
-          <p className="text-neutral-500 text-[12px]">{followersCount} followers</p>
+          <p className="text-foreground-faint text-[12px]">{followersCount} followers</p>
         </div>
       </Link>
 
@@ -72,7 +72,7 @@ export default function FollowItem({
             ) : (
               <>
                 <MailIcon
-                  className="w-4.5 h-4.5 text-neutral-500/90 group-hover/mail:text-emerald-500/90 transition-all
+                  className="w-4.5 h-4.5 text-foreground-faint/90 group-hover/mail:text-emerald-500/90 transition-all
                     duration-300"
                 />
                 <div

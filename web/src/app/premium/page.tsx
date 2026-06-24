@@ -32,19 +32,19 @@ export default function PremiumPage() {
 
       <div className="max-w-6xl mx-auto px-6 md:px-12 pt-20">
         <section className="flex flex-col items-center text-center mb-24 md:mb-32">
-          <h1 className="text-4xl md:text-5xl font-bold text-neutral-100 mb-6 tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground-secondary mb-6 tracking-tight">
             Webby Premium Subscription —<br /> your key to limitless viewing
           </h1>
-          <p className="text-neutral-400 text-lg max-w-2xl mb-10 leading-relaxed">
+          <p className="text-foreground-muted text-lg max-w-2xl mb-10 leading-relaxed">
             More comfort, freedom, and features for true co-watching enthusiasts.
           </p>
           <Button
             viewType="confirm"
             onClick={handleGetPremium}
             disabled={isPending}
-            className="rounded-xl px-10 py-3.5 text-lg font-bold bg-emerald-500 hover:bg-emerald-400 text-neutral-900
-              shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 disabled:opacity-70
-              disabled:hover:scale-100"
+            className="rounded-xl px-10 py-3.5 text-lg font-bold bg-emerald-500 hover:bg-emerald-400
+              text-foreground-inverse-subtle shadow-lg shadow-emerald-500/20 transition-all hover:scale-105
+              disabled:opacity-70 disabled:hover:scale-100"
           >
             {isPending ? (
               <span className="flex items-center gap-2">
@@ -72,21 +72,18 @@ export default function PremiumPage() {
                 <div className="flex-1 flex flex-col items-start w-full">
                   <div className="flex items-center gap-3 mb-4">
                     <feature.icon className="w-8 h-8 text-emerald-500" />
-                    <h2 className="text-2xl md:text-3xl font-bold text-neutral-100">{feature.title}</h2>
+                    <h2 className="text-2xl md:text-3xl font-bold text-foreground-secondary">{feature.title}</h2>
                   </div>
 
-                  <p className="text-neutral-400 text-[15px] md:text-base leading-relaxed mb-6">
+                  <p className="text-foreground-muted text-[15px] md:text-base leading-relaxed mb-6">
                     {feature.description}
                   </p>
 
-                  <div
-                    className="flex flex-col gap-3 mb-8 w-full p-5 rounded-2xl bg-neutral-900/50 border
-                      border-neutral-800"
-                  >
+                  <div className="flex flex-col gap-3 mb-8 w-full p-5 rounded-2xl bg-surface/50 border border-border">
                     <div className="flex items-center gap-3">
-                      <div className="size-2 rounded-full bg-neutral-600 shrink-0" />
-                      <p className="text-sm text-neutral-400">
-                        <span className="font-semibold text-neutral-300">Free:</span> {feature.freeLimit}
+                      <div className="size-2 rounded-full bg-surface-muted shrink-0" />
+                      <p className="text-sm text-foreground-muted">
+                        <span className="font-semibold text-foreground-subtle">Free:</span> {feature.freeLimit}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -119,7 +116,7 @@ export default function PremiumPage() {
 
                     <div className="absolute inset-0 flex items-center justify-center">
                       <feature.icon
-                        className="w-40 h-40 text-neutral-700 group-hover:text-emerald-500/20 group-hover:scale-110
+                        className="w-40 h-40 text-foreground-ghost group-hover:text-emerald-500/20 group-hover:scale-110
                           transition-all duration-700 ease-out"
                       />
                     </div>

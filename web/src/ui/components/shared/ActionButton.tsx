@@ -20,9 +20,10 @@ export default function ActionButton({ children, label, onClick, btnClassName, d
       className={cn(
         'group flex items-center gap-2 shrink-0 px-3 py-2 md:px-4 md:py-2 rounded-full',
         'transition-all duration-300 ease-out text-nowrap',
-        'bg-transparent text-neutral-400',
-        'not-disabled:cursor-pointer hover:bg-neutral-800 hover:text-neutral-100',
-        'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400',
+        'bg-transparent text-foreground-muted',
+        'not-disabled:cursor-pointer hover:bg-background hover:text-foreground-secondary',
+        `disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent
+        disabled:hover:text-foreground-muted`,
         btnClassName,
       )}
     >

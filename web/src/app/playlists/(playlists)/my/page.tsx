@@ -18,7 +18,7 @@ export default async function Page({ searchParams }: Props) {
         title="Sign in to view your playlists"
         description=" Keep track of your favorite videos, create custom collections, and manage your saved content by logging into
         your account."
-        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }

@@ -74,8 +74,8 @@ export default function NotificationPopupItem({ popup }: Props) {
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       onMouseEnter={pauseTimer}
       onMouseLeave={startTimer}
-      className="pointer-events-auto relative flex gap-3 p-4 rounded-xl bg-neutral-900 border border-neutral-800
-        shadow-2xl shadow-black/50 overflow-hidden cursor-default"
+      className="pointer-events-auto relative flex gap-3 p-4 rounded-xl bg-surface border border-border shadow-2xl
+        shadow-black/50 overflow-hidden cursor-default"
     >
       <div className="flex items-center shrink-0">
         <div className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
@@ -84,15 +84,15 @@ export default function NotificationPopupItem({ popup }: Props) {
       </div>
 
       <div className="flex flex-col flex-1 gap-1 pr-6">
-        <h4 className="text-sm font-semibold text-neutral-100">{popup.title}</h4>
-        <p className="text-[13px] text-neutral-400 leading-snug line-clamp-2">{popup.message}</p>
+        <h4 className="text-sm font-semibold text-foreground-secondary">{popup.title}</h4>
+        <p className="text-[13px] text-foreground-muted leading-snug line-clamp-2">{popup.message}</p>
 
         {isRoomInvite && popup.targetIdentifier && (
           <Link
             href={`/rooms/${popup.targetIdentifier}`}
             onClick={() => removePopup(popup.popupId)}
-            className="mt-1.5 w-max px-4 py-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white
-              text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+            className="mt-1.5 w-max px-4 py-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500
+              hover:text-foreground-strong text-xs font-semibold rounded-lg transition-colors cursor-pointer"
           >
             Join Room
           </Link>
@@ -101,7 +101,8 @@ export default function NotificationPopupItem({ popup }: Props) {
 
       <button
         onClick={() => removePopup(popup.popupId)}
-        className="absolute top-3 right-3 text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
+        className="absolute top-3 right-3 text-foreground-faint hover:text-foreground-subtle transition-colors
+          cursor-pointer"
       >
         <XIcon className="w-4 h-4" />
       </button>

@@ -53,8 +53,8 @@ export default function UserItem({ user, roomId }: { user: RoomMember; roomId: s
 
   return (
     <div
-      className={`flex items-center justify-between p-2 rounded-lg hover:bg-neutral-900 group transition-colors
-        duration-300 relative ${isPending ? 'opacity-50 pointer-events-none' : ''}`}
+      className={`flex items-center justify-between p-2 rounded-lg hover:bg-surface group transition-colors duration-300
+        relative ${isPending ? 'opacity-50 pointer-events-none' : ''}`}
     >
       <div className="flex items-center gap-3">
         <SafeImage
@@ -67,8 +67,8 @@ export default function UserItem({ user, roomId }: { user: RoomMember; roomId: s
         />
 
         <span
-          className="text-sm font-medium text-neutral-300 group-hover:text-white transition-colors truncate
-            max-w-[120px]"
+          className="text-sm font-medium text-foreground-subtle group-hover:text-foreground-strong transition-colors
+            truncate max-w-[120px]"
         >
           {user.username}
         </span>
@@ -77,24 +77,24 @@ export default function UserItem({ user, roomId }: { user: RoomMember; roomId: s
       <div className="relative shrink-0" ref={menuRef}>
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-1 hover:bg-neutral-800 rounded-md text-neutral-500 hover:text-white transition-all
-            cursor-pointer"
+          className="p-1 hover:bg-background rounded-md text-foreground-faint hover:text-foreground-strong
+            transition-all cursor-pointer"
         >
           <DotsIcon className="w-5 h-5" />
         </button>
 
         {isMenuOpen && (
           <div
-            className="absolute right-0 top-full mt-3 w-40 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl
-              z-50 py-1 animate-in fade-in zoom-in duration-150"
+            className="absolute right-0 top-full mt-3 w-40 bg-surface border border-border rounded-lg shadow-xl z-50
+              py-1 animate-in fade-in zoom-in duration-150"
           >
             <Link
               href={`/profile/${user.userId}`}
-              className="block w-full text-left px-3 py-2 text-xs hover:bg-neutral-800 transition-colors cursor-pointer"
+              className="block w-full text-left px-3 py-2 text-xs hover:bg-background transition-colors cursor-pointer"
             >
               View Profile
             </Link>
-            <div className="h-px bg-neutral-800 my-1" />
+            <div className="h-px bg-background my-1" />
             <button
               onClick={handleKickOut}
               disabled={isPending}

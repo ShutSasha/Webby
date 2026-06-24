@@ -65,15 +65,12 @@ export default function ChatArea({ chatId }: Props) {
   return (
     <div className="flex flex-col h-full w-full relative">
       {/* Header */}
-      <div
-        className="h-[72px] shrink-0 border-b border-neutral-800/60 flex items-center justify-between px-6
-          bg-neutral-900/20"
-      >
+      <div className="h-[72px] shrink-0 border-b border-border/60 flex items-center justify-between px-6 bg-surface/20">
         <div className="flex items-center gap-3">
           {isChatDetailsLoading ? (
             <>
-              <div className="size-10 rounded-full bg-neutral-800 animate-pulse shrink-0" />
-              <div className="h-5 w-32 bg-neutral-800 rounded-md animate-pulse" />
+              <div className="size-10 rounded-full bg-background animate-pulse shrink-0" />
+              <div className="h-5 w-32 bg-background rounded-md animate-pulse" />
             </>
           ) : (
             <>
@@ -87,7 +84,7 @@ export default function ChatArea({ chatId }: Props) {
               />
               <Link
                 href={`/profile/${otherUser?.id}`}
-                className="font-medium text-neutral-200 hover:underline hover:cursor-pointer"
+                className="font-medium text-foreground-tertiary hover:underline hover:cursor-pointer"
               >
                 {otherUser?.username?.startsWith('@') ? otherUser.username : `@${otherUser?.username}`}
               </Link>
@@ -99,22 +96,24 @@ export default function ChatArea({ chatId }: Props) {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(prev => !prev)}
-            className="p-2 rounded-full text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
+            className="p-2 rounded-full text-foreground-faint hover:text-foreground-tertiary hover:bg-background
+              transition-colors"
           >
             <MoreVerticalIcon className="size-5" />
           </button>
 
           {isMenuOpen && (
             <div
-              className="absolute right-0 top-full mt-2 w-48 bg-neutral-800 border border-neutral-700/60 shadow-xl
-                shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
+              className="absolute right-0 top-full mt-2 w-48 bg-background border border-surface-tertiary/60 shadow-xl
+                shadow-black/10 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
             >
               <button
                 onClick={() => {
                   setIsMenuOpen(false)
                   setIsDeleteModalOpen(true)
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-neutral-700/50 transition-colors"
+                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-surface-tertiary/50
+                  transition-colors"
               >
                 Delete chat
               </button>
@@ -129,8 +128,8 @@ export default function ChatArea({ chatId }: Props) {
       {/* Delete Confirmation Modal */}
       <Modal isOpen={isDeleteModalOpen} onClose={() => !isDeleting && setIsDeleteModalOpen(false)}>
         <div className="flex flex-col">
-          <h3 className="text-xl font-semibold text-neutral-200 mb-2">Delete Chat</h3>
-          <p className="text-sm text-neutral-400 mb-6">
+          <h3 className="text-xl font-semibold text-foreground-tertiary mb-2">Delete Chat</h3>
+          <p className="text-sm text-foreground-muted mb-6">
             Are you sure you want to delete this chat? All messages will be permanently removed. This action cannot be
             undone.
           </p>
@@ -138,7 +137,7 @@ export default function ChatArea({ chatId }: Props) {
             <button
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={isDeleting}
-              className="px-4 py-2 text-sm font-medium text-neutral-300 hover:bg-neutral-800 rounded-xl
+              className="px-4 py-2 text-sm font-medium text-foreground-subtle hover:bg-background rounded-xl
                 transition-colors disabled:opacity-50"
             >
               Cancel
