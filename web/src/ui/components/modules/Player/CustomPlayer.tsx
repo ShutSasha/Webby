@@ -1,5 +1,7 @@
 'use client'
 
+import { memo } from 'react'
+
 import ReactPlayer from 'react-player'
 
 import { useCustomPlayerLogic } from '@/lib/hooks/useCustomPlayerLogic'
@@ -20,7 +22,7 @@ type PlayerProps = {
   roomId?: string
 }
 
-export default function CustomPlayer({ videoUrl, videoId, roomId }: PlayerProps) {
+const CustomPlayer = memo(function CustomPlayer({ videoUrl, videoId, roomId }: PlayerProps) {
   const { isActuallyReady } = useSafeVideoTransition({
     videoUrl,
     delayMs: 800,
@@ -165,4 +167,6 @@ export default function CustomPlayer({ videoUrl, videoId, roomId }: PlayerProps)
       )}
     </div>
   )
-}
+})
+
+export default CustomPlayer

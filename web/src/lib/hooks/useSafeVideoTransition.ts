@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
 import { useIsClient } from '@/lib/hooks/useIsClient'
 
@@ -20,7 +20,7 @@ export const useSafeVideoTransition = ({
   delayMs = 800,
 }: UseSafeVideoTransitionProps): UseSafeVideoTransitionResult => {
   const isMounted = useIsClient()
-  
+
   const [activeVideoUrl, setActiveVideoUrl] = useState<string>(videoUrl)
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false)
 
@@ -34,14 +34,18 @@ export const useSafeVideoTransition = ({
       }, delayMs)
 
       return () => clearTimeout(timer)
+    } else {
+      setIsTransitioning(false)
     }
   }, [videoUrl, activeVideoUrl, delayMs])
 
-  const isActuallyReady = isMounted && !isTransitioning && videoUrl === activeVideoUrl
+  return useMemo(() => {
+    const isActuallyReady = isMounted && !isTransitioning && videoUrl === activeVideoUrl
 
-  return {
-    activeVideoUrl,
-    isTransitioning,
-    isActuallyReady,
-  }
+    return {
+      activeVideoUrl,
+      isTransitioning,
+      isActuallyReady,
+    }
+  }, [activeVideoUrl, isTransitioning, isMounted, videoUrl])
 }
