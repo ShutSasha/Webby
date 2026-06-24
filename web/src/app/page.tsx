@@ -21,8 +21,10 @@ export default async function Home({ searchParams }: Props) {
   return (
     <MainLayout>
       <div className="flex flex-col gap-12 w-full max-w-5xl 2xl:max-w-7xl mx-auto pb-20">
-        <div className="relative w-full bg-neutral-900 rounded-3xl p-8 sm:p-12 overflow-hidden flex items-center
-          min-h-80">
+        <div
+          className="relative w-full bg-surface rounded-3xl p-8 sm:p-12 overflow-hidden flex items-center min-h-80
+            transition-colors duration-300"
+        >
           <div
             className="absolute right-0 top-0 bottom-0 w-1/2 hidden md:block bg-linear-to-l from-emerald-900/20
               to-transparent pointer-events-none"
@@ -30,7 +32,10 @@ export default async function Home({ searchParams }: Props) {
 
           <div className="relative z-10 flex flex-col gap-6 max-w-xl">
             <div>
-              <h1 className="font-bold text-4xl sm:text-5xl 2xl:text-6xl text-white mb-3 leading-[1.15]">
+              <h1
+                className="font-bold text-4xl sm:text-5xl 2xl:text-6xl text-foreground-strong mb-3 leading-[1.15]
+                  transition-colors duration-300"
+              >
                 Watch together.
                 <br />
                 Be connected.
@@ -60,10 +65,16 @@ export default async function Home({ searchParams }: Props) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-5 bg-neutral-900 rounded-3xl p-8 sm:p-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-100">Discover active watch rooms:</h2>
+        <div className="flex flex-col gap-5 bg-surface rounded-3xl p-8 sm:p-12 transition-colors duration-300">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground-strong transition-colors duration-300">
+            Discover active watch rooms:
+          </h2>
 
-          <Suspense fallback={<div className="h-10 w-full animate-pulse bg-neutral-900/50 rounded-full" />}>
+          <Suspense
+            fallback={
+              <div className="h-10 w-full animate-pulse bg-skeleton rounded-full transition-colors duration-300" />
+            }
+          >
             <AnimatedTabsContainer currentTab={currentTab} />
           </Suspense>
 
@@ -78,21 +89,26 @@ export default async function Home({ searchParams }: Props) {
         </div>
 
         <div
-          className="relative w-full bg-neutral-900 rounded-3xl p-8 sm:p-12 overflow-hidden flex items-center
-            min-h-[300px]"
+          className="relative w-full bg-neutral-950 rounded-3xl p-8 sm:p-12 overflow-hidden flex items-center
+            min-h-[300px] transition-colors duration-300"
         >
-          <Image src={Banner} alt="banner" fill className="object-cover opacity-40" />
-          <div className="absolute inset-0 bg-neutral-950/5 z-0" />
+          <Image
+            src={Banner}
+            alt="banner"
+            fill
+            className="object-cover dark:opacity-40 transition-opacity duration-300"
+          />
+          <div className="absolute inset-0 bg-overlay z-0 transition-colors duration-300" />
 
           <div className="relative z-10 flex flex-col gap-6 max-w-2xl">
             <div>
               <h2
                 className="font-bold text-3xl sm:text-4xl 2xl:text-5xl text-white mb-3 leading-tight uppercase
-                  tracking-wide"
+                  tracking-wide transition-colors duration-300"
               >
                 Find your next experience
               </h2>
-              <p className="font-medium text-lg sm:text-xl text-emerald-500">
+              <p className="font-medium text-lg sm:text-xl text-emerald-400">
                 Explore millions of videos and playlists, ready to share
               </p>
             </div>

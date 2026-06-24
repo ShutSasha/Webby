@@ -40,7 +40,7 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
 
   return (
     <div className="flex flex-col max-h-[60vh]">
-      <h3 className="text-xl font-bold text-neutral-100 mb-2">Vote for Next Video</h3>
+      <h3 className="text-xl font-bold text-foreground-secondary mb-2">Vote for Next Video</h3>
 
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2">
@@ -52,7 +52,7 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
           </span>
         </div>
         {isNextVideoActive && !isExpired && (
-          <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-background rounded-full overflow-hidden">
             <div className="h-full bg-purple-500 transition-none" style={{ width: `${progress}%` }} />
           </div>
         )}
@@ -60,9 +60,9 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-2">
         {isLoading ? (
-          <div className="text-neutral-500 text-center py-6 animate-pulse">Loading queue...</div>
+          <div className="text-foreground-faint text-center py-6 animate-pulse">Loading queue...</div>
         ) : availableItems.length === 0 ? (
-          <div className="text-neutral-500 text-center py-6">No more videos in the queue.</div>
+          <div className="text-foreground-faint text-center py-6">No more videos in the queue.</div>
         ) : (
           availableItems.map(item => {
             const isMyChoice = myVote === item.id
@@ -84,17 +84,17 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
                   isMyChoice
                     ? 'bg-purple-500/10 border-purple-500/50'
                     : hasVoted
-                      ? 'bg-neutral-800/50 border-neutral-800 opacity-60'
-                      : 'bg-[#141414] border-neutral-800 hover:border-neutral-600 hover:bg-neutral-800',
+                      ? 'bg-background/50 border-border opacity-60'
+                      : 'bg-background border-border hover:border-neutral-600 hover:bg-background',
                 )}
               >
-                <div className="w-16 h-9 bg-neutral-800 rounded-md shrink-0 overflow-hidden relative">
+                <div className="w-16 h-9 bg-background rounded-md shrink-0 overflow-hidden relative">
                   {item.thumbnail && (
                     <Image src={item.thumbnail} width={50} height={50} className="object-cover w-full h-full" alt="" />
                   )}
                 </div>
                 <div className="flex flex-col flex-1 overflow-hidden">
-                  <span className="text-sm font-medium text-neutral-200 truncate">
+                  <span className="text-sm font-medium text-foreground-tertiary truncate">
                     {item.title || 'Video from queue'}
                   </span>
                   {isMyChoice && <span className="text-[10px] text-purple-400 font-semibold mt-0.5">Your vote</span>}
@@ -105,8 +105,8 @@ export default function NextVideoVoteDetails({ roomId, onBack }: Props) {
         )}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-neutral-800">
-        <button onClick={onBack} className="text-neutral-400 hover:text-neutral-200 font-medium">
+      <div className="mt-6 pt-4 border-t border-border">
+        <button onClick={onBack} className="text-foreground-muted hover:text-foreground-tertiary font-medium">
           Back to list
         </button>
       </div>

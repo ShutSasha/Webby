@@ -34,12 +34,15 @@ export default function RoomChat({ chatId }: Props) {
   return (
     <div
       className="flex-1 overflow-y-auto min-h-0 flex flex-col-reverse gap-1 pr-1 [&::-webkit-scrollbar]:w-1.5
-        [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-900
+        [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-surface
         [&::-webkit-scrollbar-thumb]:border-0 [&::-webkit-scrollbar-thumb]:rounded-full
-        hover:[&::-webkit-scrollbar-thumb]:bg-neutral-800"
+        hover:[&::-webkit-scrollbar-thumb]:bg-background"
     >
       {messages.length === 0 ? (
-        <div className="h-full flex items-center justify-center text-neutral-600 text-sm italic rotate-180 transform">
+        <div
+          className="h-full flex items-center justify-center text-foreground-disabled text-sm italic rotate-180
+            transform"
+        >
           <span className="rotate-180">No messages yet. Be the first to say hello!</span>
         </div>
       ) : (

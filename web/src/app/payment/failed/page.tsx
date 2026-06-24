@@ -13,9 +13,9 @@ export default function PaymentFailedPage() {
       <div className="relative z-10 max-w-2xl mx-auto px-6 text-center flex flex-col items-center">
         <XCircleIcon className="size-24 text-red-500 mb-8 drop-shadow-[0_0_15px_rgba(239,68,68,0.3)]" />
 
-        <h1 className="text-3xl md:text-4xl font-bold text-neutral-100 mb-6 tracking-tight">Payment Failed</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground-secondary mb-6 tracking-tight">Payment Failed</h1>
 
-        <p className="text-neutral-400 text-md mb-8 leading-relaxed">
+        <p className="text-foreground-muted text-md mb-8 leading-relaxed">
           We couldn&apos;t process your transaction, or the payment was cancelled. Don&apos;t worry, your account has
           not been charged.
         </p>
@@ -24,8 +24,8 @@ export default function PaymentFailedPage() {
           <Button
             viewType="confirm"
             onClick={() => router.push('/premium')}
-            className="rounded-xl px-8 py-3 text-lg font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-900
-              shadow-lg transition-all hover:scale-105"
+            className="rounded-xl px-8 py-3 text-lg font-bold bg-surface-inverse-secondary
+              hover:bg-surface-inverse-muted text-foreground-inverse-subtle shadow-lg transition-all hover:scale-105"
           >
             Try Again
           </Button>

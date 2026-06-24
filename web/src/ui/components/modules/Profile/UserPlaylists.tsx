@@ -29,7 +29,7 @@ export default function UserPlaylists({ userId, username }: Props) {
   if (!isLoading && playlists.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
-        <p className="text-neutral-500 text-center">No playlists found</p>
+        <p className="text-foreground-faint text-center">No playlists found</p>
       </div>
     )
   }

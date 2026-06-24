@@ -30,14 +30,14 @@ export default function RoomInteractionHeader({ isHost }: Props) {
         onClick={() => toggleTab(type)}
         className={cn(
           'size-6 cursor-pointer transition-all duration-300 ease-in-out select-none stroke-[1.5px]',
-          isActive ? 'text-emerald-500' : 'text-neutral-300 hover:text-emerald-500',
+          isActive ? 'text-emerald-500' : 'text-foreground-subtle hover:text-emerald-500',
         )}
       />
     )
   }
 
   return (
-    <div className="border-b border-neutral-700/80 flex flex-row items-center justify-between py-2 px-3 mb-2">
+    <div className="border-b border-surface-tertiary/80 flex flex-row items-center justify-between py-2 px-3 mb-2">
       <TabButton type="queue" Icon={PlaylistIcon} />
 
       <div className="flex flex-row items-center gap-4">

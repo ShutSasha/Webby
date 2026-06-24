@@ -30,15 +30,16 @@ function UserPoints() {
 
   return (
     <div
-      className="flex flex-row items-center bg-neutral-900 py-1.5 px-3 gap-2.5 rounded-md group hover:bg-emerald-500
+      className="flex flex-row items-center bg-surface py-1.5 px-3 gap-2.5 rounded-md group hover:bg-emerald-500
         transition-colors duration-300 ease-in-out cursor-pointer"
     >
       <CubeIcon
-        className="size-5 text-neutral-300 group-hover:text-neutral-900 transition-colors duration-300 ease-in-out"
+        className="size-5 text-foreground-subtle group-hover:text-foreground-inverse-subtle transition-colors
+          duration-300 ease-in-out"
       />
       <p
-        className="group-hover:text-neutral-900 text-neutral-300 transition-colors duration-300 ease-in-out leading-5
-          font-medium"
+        className="group-hover:text-foreground-inverse-subtle text-foreground-subtle transition-colors duration-300
+          ease-in-out leading-5 font-medium"
       >
         {isLoading ? <span className="animate-pulse">...</span> : formatPoints(points)}
       </p>
@@ -49,11 +50,12 @@ function UserPoints() {
 function Reactions() {
   return (
     <div
-      className="flex flex-row items-center bg-neutral-900 py-1.5 px-3 gap-2.5 rounded-md group hover:bg-emerald-500
+      className="flex flex-row items-center bg-surface py-1.5 px-3 gap-2.5 rounded-md group hover:bg-emerald-500
         transition-colors duration-300 ease-in-out cursor-pointer"
     >
       <ReactionSmileIcon
-        className="size-5 text-neutral-300 group-hover:text-neutral-900 transition-colors duration-300 ease-in-out"
+        className="size-5 text-foreground-subtle group-hover:text-foreground-inverse-subtle transition-colors
+          duration-300 ease-in-out"
       />
     </div>
   )
@@ -71,20 +73,24 @@ function Poll() {
   return (
     <div
       onClick={() => setVotesModalOpen(true)}
-      className="relative flex flex-row items-center bg-neutral-900 py-1.5 px-3 gap-2.5 rounded-md group
+      className="relative flex flex-row items-center bg-surface py-1.5 px-3 gap-2.5 rounded-md group
         hover:bg-emerald-500 transition-colors duration-300 ease-in-out cursor-pointer"
     >
       <PollIcon
-        className="size-5 text-neutral-300 group-hover:text-neutral-900 transition-colors duration-300 ease-in-out"
+        className="size-5 text-foreground-subtle group-hover:text-foreground-inverse-subtle transition-colors
+          duration-300 ease-in-out"
       />
-      <p className="group-hover:text-neutral-900 text-neutral-300 transition-colors duration-300 ease-in-out leading-5">
+      <p
+        className="group-hover:text-foreground-inverse-subtle text-foreground-subtle transition-colors duration-300
+          ease-in-out leading-5"
+      >
         Votes
       </p>
 
       {hasActiveVote && (
         <span className="absolute -top-1 -right-1 flex size-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full size-3 bg-emerald-500 border-2 border-neutral-950"></span>
+          <span className="relative inline-flex rounded-full size-3 bg-emerald-500 border-2 border-surface"></span>
         </span>
       )}
     </div>

@@ -7,7 +7,7 @@ type FollowConnectionsProps = {
 }
 
 export default function FollowConnections({ userId, followersCount, followsCount }: FollowConnectionsProps) {
-  const linkStyles = 'underline hover:text-emerald-400 transition-colors duration-300'
+  const linkStyles = 'underline hover:text-emerald-400 transition-colors duration-300 text-foreground-subtle'
 
   return (
     <div className="flex gap-2 items-center text-sm">
@@ -15,7 +15,7 @@ export default function FollowConnections({ userId, followersCount, followsCount
         {followersCount} Followers
       </Link>
 
-      <span className="bg-neutral-300 w-1 h-1 rounded-full" />
+      <span className="w-1 h-1 rounded-full bg-foreground-subtle" />
 
       <Link href={`/profile/${userId}/follows`} className={linkStyles}>
         {followsCount} Follows

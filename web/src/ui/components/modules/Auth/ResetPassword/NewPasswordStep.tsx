@@ -53,9 +53,9 @@ export default function NewPasswordStep() {
 
   if (state.success) {
     return (
-      <div className="text-center space-y-4 animate-in fade-in zoom-in duration-300">
+      <div className="flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in duration-300">
         <p className="text-emerald-500 font-medium text-lg">Password has been reset!</p>
-        <p className="text-neutral-400 text-sm">You can now use your new password to log in.</p>
+        <p className="text-foreground-muted text-sm">You can now use your new password to log in.</p>
         <Button viewType="confirm" className="px-8">
           <Link href={'/login'}>Go to Login</Link>
         </Button>
@@ -66,13 +66,13 @@ export default function NewPasswordStep() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-white text-2xl font-bold">Create new password</h2>
-        <p className="text-neutral-400 text-sm">Enter a new strong password for your account</p>
+        <h2 className="text-foreground-strong text-2xl font-bold">Create new password</h2>
+        <p className="text-foreground-muted text-sm">Enter a new strong password for your account</p>
       </div>
 
       <div className="space-y-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm text-neutral-400 ml-1">New password</label>
+          <label className="text-sm text-foreground-muted ml-1">New password</label>
           <AuthInput
             {...register('newPassword', { required: true })}
             type="password"
@@ -84,7 +84,7 @@ export default function NewPasswordStep() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm text-neutral-400 ml-1">Confirm password</label>
+          <label className="text-sm text-foreground-muted ml-1">Confirm password</label>
           <AuthInput
             {...register('confirmPassword', { required: true })}
             type="password"

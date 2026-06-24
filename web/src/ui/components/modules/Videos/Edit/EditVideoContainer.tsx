@@ -13,7 +13,7 @@ export default function EditVideoContainer({ initialVideo }: Props) {
   const { state, actions } = useEditVideoLogic(initialVideo)
 
   return (
-    <div className="max-w-3xl w-full bg-neutral-900 rounded-[20px] border border-neutral-800 p-8 overflow-hidden">
+    <div className="max-w-3xl w-full bg-surface rounded-[20px] border border-border p-8 overflow-hidden">
       <VideoMetadataForm
         isEditingMode={true}
         name={state.name}

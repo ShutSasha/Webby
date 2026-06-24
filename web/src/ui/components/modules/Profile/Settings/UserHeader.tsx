@@ -16,10 +16,8 @@ export default function UserHeader({ image, username }: Props) {
 
   return (
     <div className="flex flex-col justify-center items-center gap-4 py-4">
-      <div
-        className="relative size-[120px] rounded-full overflow-hidden ring-4 ring-neutral-800/50 shadow-xl
-          bg-neutral-900"
-      >
+      <div className="relative size-[120px] rounded-full overflow-hidden ring-4 ring-neutral-800/50 shadow-xl
+        bg-surface">
         <Image
           src={image}
           alt={username}
@@ -36,7 +34,7 @@ export default function UserHeader({ image, username }: Props) {
 
         <div
           className={cn(
-            `absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10 transition-all
+            `absolute inset-0 bg-surface-strong/50 backdrop-blur-sm flex items-center justify-center z-10 transition-all
             duration-300`,
             isLoading ? 'opacity-100 visible' : 'opacity-0 invisible',
           )}
@@ -47,7 +45,7 @@ export default function UserHeader({ image, username }: Props) {
 
       <h1
         className={cn(
-          'text-2xl font-bold tracking-tight text-neutral-100 transition-all duration-300',
+          'text-2xl font-bold tracking-tight text-foreground-secondary transition-all duration-300',
           isLoading ? 'opacity-50 animate-pulse' : 'opacity-100',
         )}
       >
