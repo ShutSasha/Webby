@@ -9,7 +9,6 @@ export const useGetRoomVotesQuery = (roomId: string) => {
     queryFn: async () => {
       return unwrapServerAction(await getRoomVotesAction(roomId))
     },
-
     enabled: !!roomId,
   })
 }

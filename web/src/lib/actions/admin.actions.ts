@@ -2,7 +2,7 @@
 
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
-import { BaseServerResponse } from '@/types/general.types'
+import { BaseServerResponse, PaginatedData } from '@/types/general.types'
 
 export type AbsoluteStats = {
   activeReportsCount: number
@@ -59,6 +59,75 @@ export async function getSubscriptionsStatsAction(): Promise<BaseServerResponse<
       data: null,
       success: false,
       message: 'Failed to retrieve subscriptions statistics',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export type Complaint = {
+  id: string
+  authorId: string
+  targetType: 'Video' | 'User'
+  targetId: string
+  reasonType: string
+  additionalInfo: string
+  username: string
+  createdAt: string
+}
+
+export async function getComplaintsAction(
+  page: number = 1,
+  limit: number = 10,
+): Promise<BaseServerResponse<PaginatedData<Complaint>>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<PaginatedData<Complaint>>>('/complaints', {
+      params: { page, limit },
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_COMPLAINTS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve complaints',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function acceptComplaintAction(complaintId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/complaints/${complaintId}/accept`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('ACCEPT_COMPLAINT_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to accept complaint',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function denyComplaintAction(complaintId: string, reason: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/complaints/${complaintId}/deny`, {
+      reason,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('DENY_COMPLAINT_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to deny complaint',
       errors: parseAxiosError(error),
     }
   }
