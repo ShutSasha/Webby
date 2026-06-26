@@ -134,7 +134,11 @@ public static class ApiExtension
    {
       serviceCollection.Configure<AwsOptions>(config.GetSection(nameof(AwsOptions)));
       serviceCollection.Configure<ExternalServicesOptions>(config.GetSection("ExternalServices"));
-      
+   }
+
+   public static void AddInterceptors(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddTransient<GrpcClientExceptionInterceptor>();
    }
 
    public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection, IConfiguration configuration)
