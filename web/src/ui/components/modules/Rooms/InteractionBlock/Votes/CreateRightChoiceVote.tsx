@@ -3,6 +3,7 @@
 import { useState } from 'react'
 
 import { useCreateRightChoiceVoteMutation } from '@/lib/hooks/api/vote/useCreateRightChoiceVote'
+import { useToastStore } from '@/stores/toast-store'
 
 type Props = {
   roomId: string
@@ -13,12 +14,19 @@ export default function CreateRightChoiceVote({ roomId, onBack }: Props) {
   const [voteText, setVoteText] = useState('')
   const [duration, setDuration] = useState(120)
   const [choices, setChoices] = useState(['', ''])
+  const addToast = useToastStore(state => state.addToast)
 
   const { mutate: createVote, isPending } = useCreateRightChoiceVoteMutation()
 
   const handleCreateSubmit = () => {
     const validChoices = choices.map(c => c.trim()).filter(Boolean)
     if (!voteText.trim() || validChoices.length < 2) return
+
+    const uniqueChoices = new Set(validChoices)
+    if (uniqueChoices.size !== validChoices.length) {
+      addToast('Options cannot be duplicated', 'error')
+      return
+    }
 
     createVote({ roomId, voteText: voteText.trim(), duration, choices: validChoices }, { onSuccess: onBack })
   }

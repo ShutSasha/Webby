@@ -12,7 +12,7 @@ export default auth(req => {
   const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/sign-up')
   const isOnSettings = nextUrl.pathname.endsWith('/settings')
   const isAdminPage = nextUrl.pathname.startsWith('/admin')
-  
+
   if (isAuthPage) {
     if (isLoggedIn) {
       return Response.redirect(new URL('/', nextUrl))
@@ -24,7 +24,7 @@ export default auth(req => {
     if (!isLoggedIn) {
       return Response.redirect(new URL('/login', nextUrl))
     }
-    if (userRole !== 'Admin') {
+    if (!['Admin', 'Moderator'].includes(userRole)) {
       return Response.redirect(new URL('/', nextUrl))
     }
   }

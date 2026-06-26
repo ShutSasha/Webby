@@ -2,7 +2,7 @@ import type { NextAuthConfig } from 'next-auth'
 
 import { mapUserData, refreshAccessToken } from '@/lib/utils/auth.utils'
 import { serverLog } from '@/lib/utils/general.utils'
-import { AuthRes } from '@/types/auth.types'
+import { AuthServerResponse } from '@/types/auth.types'
 
 const TOKEN_REFRESH_BUFFER = 120
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
@@ -26,9 +26,12 @@ export const authConfig = {
             }),
           })
 
-          const res: AuthRes = await response.json()
+          const res: AuthServerResponse = await response.json()
 
-          if (!res.success) return false
+          if (!res.success || !res.data) {
+            const errorMessage = res.errors?.message || 'Authentication failed'
+            return `/api/auth/error?error=AccessDenied&message=${encodeURIComponent(errorMessage)}`
+          }
 
           const serverUser = res.data.user
 

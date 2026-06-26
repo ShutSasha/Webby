@@ -297,6 +297,69 @@
          "AuthenticationOptions": {
             "AuthenticationProviderKey": "Bearer"
          }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/blocks/{userId}/ban",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/blocks/{userId}/ban",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/blocks/{userId}/unban",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/blocks/{userId}/unban",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/roles/{userId}/change-role",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "user-service",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/roles/{userId}/change-role",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Admin"
+         }
       }
    ]
 }

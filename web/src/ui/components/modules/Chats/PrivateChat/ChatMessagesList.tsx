@@ -20,7 +20,8 @@ export default function ChatMessagesList({ chatId, currentUserId, onEditMessage 
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useGetChatMessagesQuery(chatId)
   const { mutate: deleteMessage, isPending: isDeletingMessage, variables: deleteVars } = useDeleteMessageMutation()
 
-  const messages = data?.pages.flatMap(page => page.data?.items || []) || []
+  const rawMessages = data?.pages.flatMap(page => page.data?.items || []) || []
+  const messages = Array.from(new Map(rawMessages.map(msg => [msg.id, msg])).values())
 
   const [contextMenu, setContextMenu] = useState<{
     isOpen: boolean
@@ -76,6 +77,7 @@ export default function ChatMessagesList({ chatId, currentUserId, onEditMessage 
   return (
     <>
       <div className="flex-1 overflow-y-auto p-6 flex flex-col-reverse gap-2 relative">
+        <div className="shrink-0 h-px w-full" style={{ overflowAnchor: 'auto' }} />
         {isLoading && messages.length === 0 ? (
           <ChatMessagesListSkeleton />
         ) : (

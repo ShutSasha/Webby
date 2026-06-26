@@ -6,7 +6,7 @@ import { AuthError } from 'next-auth'
 
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
-import { LoginRes } from '@/types/auth.types'
+import { LoginResponse } from '@/types/auth.types'
 import { FormActionState } from '@/types/general.types'
 import { signIn } from '@/workspace/auth'
 
@@ -15,11 +15,11 @@ export type ReturnAuthError = {
   errors: Record<string, string>
 }
 
-export async function login(email: string, password: string): Promise<LoginRes | ReturnAuthError> {
+export async function login(email: string, password: string): Promise<LoginResponse | ReturnAuthError> {
   try {
     const { data: response } = await $api.post('/auth/sign-in', { email, password })
 
-    return response.data as LoginRes
+    return response.data as LoginResponse
   } catch (error: unknown) {
     serverLog('LOGIN_ERROR', error, true)
 

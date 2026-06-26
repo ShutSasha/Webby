@@ -1,6 +1,6 @@
 import { JWT } from 'next-auth/jwt'
 
-import { AuthRes } from '@/types/auth.types'
+import { AuthServerResponse } from '@/types/auth.types'
 
 import { serverLog } from './general.utils'
 
@@ -27,7 +27,9 @@ export async function refreshAccessToken(token: JWT): Promise<JWT> {
 
     if (!response.ok) throw new Error('Refresh request failed')
 
-    const res: AuthRes = await response.json()
+    const res: AuthServerResponse = await response.json()
+
+    if (!res.data) throw new Error('Refresh request failed')
 
     return {
       ...token,
