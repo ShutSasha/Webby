@@ -14,8 +14,6 @@ export const useBanUserMutation = () => {
       return unwrapServerAction(await banUserAction(userId))
     },
     onSuccess: (_, userId) => {
-      addToast('User successfully banned', 'success')
-
       queryClient.setQueriesData(
         { queryKey: ['admin-users-search'] },
         (oldData: InfiniteData<PaginatedData<AdminUserRecord>> | undefined) => {

@@ -205,3 +205,22 @@ export async function unbanUserAction(userId: string): Promise<BaseServerRespons
     }
   }
 }
+
+export async function changeUserRoleAction(userId: string, userRole: Role): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/users/roles/${userId}/change-role`, null, {
+      params: { userRole },
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('CHANGE_USER_ROLE_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to change user role',
+      errors: parseAxiosError(error),
+    }
+  }
+}

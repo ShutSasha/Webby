@@ -4,8 +4,11 @@ import Image from 'next/image'
 
 import { AdminUserRecord } from '@/lib/actions/admin.actions'
 import { useBanUserMutation } from '@/lib/hooks/api/admin/useBanUser'
+import { useChangeUserRoleMutation } from '@/lib/hooks/api/admin/useChangeUserRole'
 import { useUnbanUserMutation } from '@/lib/hooks/api/admin/useUnbanUser'
 import { formatDate } from '@/lib/utils/date.utils'
+
+import RoleSelectMenu from './RoleSelectMenu'
 
 type UserTableRowProps = {
   user: AdminUserRecord
@@ -15,8 +18,9 @@ type UserTableRowProps = {
 export default function UserTableRow({ user, lastElementRef }: UserTableRowProps) {
   const { mutate: banUser, isPending: isBanning } = useBanUserMutation()
   const { mutate: unbanUser, isPending: isUnbanning } = useUnbanUserMutation()
+  const { mutate: changeRole, isPending: isChangingRole } = useChangeUserRoleMutation()
 
-  const isPending = isBanning || isUnbanning
+  const isPending = isBanning || isUnbanning || isChangingRole
   const role = user.role.toUpperCase()
   const status = user.isBanned ? 'Banned' : 'Active'
 
@@ -70,13 +74,11 @@ export default function UserTableRow({ user, lastElementRef }: UserTableRowProps
       </td>
       <td className="py-4 px-6 text-foreground-faint text-sm">{formatDate(user.createdAt)}</td>
       <td className="py-4 px-6 flex justify-end gap-2">
-        <button
+        <RoleSelectMenu
+          currentRole={user.role}
+          onRoleChange={newRole => changeRole({ userId: user.userId, newRole })}
           disabled={isPending}
-          className="px-3 py-1.5 text-xs font-semibold bg-background hover:bg-surface-tertiary text-foreground-subtle
-            rounded-lg transition-colors disabled:opacity-50"
-        >
-          Edit Role
-        </button>
+        />
 
         {status === 'Active' ? (
           <button

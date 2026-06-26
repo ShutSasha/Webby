@@ -8,7 +8,7 @@ type Props = Readonly<{
 
 export default async function MainLayout({ children }: Props) {
   const session = await auth()
-  const isAdmin = session?.user?.role === 'Admin'
+  const isAdmin = ['Admin', 'Moderator'].includes(session?.user?.role)
 
   return (
     <main
