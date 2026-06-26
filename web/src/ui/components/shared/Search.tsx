@@ -11,6 +11,7 @@ type Props = {
   inputClassName?: string
   iconClassName?: string
   containerClassName?: string
+  delayMs?: number
 }
 
 const DEFAULT_ICON_CLASSNAME = 'left-4 h-6 w-6 text-foreground-disabled'
@@ -21,6 +22,7 @@ export default function Search({
   inputClassName = DEFAULT_INPUT_CLASSNAME,
   iconClassName = DEFAULT_ICON_CLASSNAME,
   containerClassName = '',
+  delayMs = 300,
 }: Props) {
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -37,7 +39,7 @@ export default function Search({
 
     const url = `${pathname}?${params.toString()}`
     replace(url as Route)
-  }, 300)
+  }, delayMs)
 
   return (
     <div className={`relative ${containerClassName}`}>

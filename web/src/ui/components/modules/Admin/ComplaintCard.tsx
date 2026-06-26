@@ -45,7 +45,9 @@ export default function ComplaintCard({ complaint }: Props) {
             <span className="text-foreground-disabled text-xs ml-2">{formatTimeAgo(complaint.createdAt)}</span>
           </div>
           <Link
-            href={complaint.targetType === 'User' ? `/profile/${complaint.targetId}` : `/videos/${complaint.id}`}
+            href={
+              complaint.targetType === 'User' ? `/profile/${complaint.targetId}` : `/videos/wb_${complaint.targetId}`
+            }
             className="text-lg font-bold text-foreground-secondary mt-1 flex items-center gap-2"
           >
             Target name: <span className="text-sm font-mono text-foreground-muted">{complaint.targetId}</span>

@@ -3,6 +3,7 @@
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { BaseServerResponse, PaginatedData } from '@/types/general.types'
+import { Role } from '@/types/user.types'
 
 export type AbsoluteStats = {
   activeReportsCount: number
@@ -128,6 +129,44 @@ export async function denyComplaintAction(complaintId: string, reason: string): 
       data: null,
       success: false,
       message: 'Failed to deny complaint',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export type AdminUserRecord = {
+  userId: string
+  email: string
+  username: string
+  about: string
+  avatarUrl: string
+  isBanned: boolean
+  createdAt: string
+  role: Role
+}
+
+export async function searchAdminUsersAction(
+  searchText: string = '',
+  page: number = 1,
+  limit: number = 10,
+): Promise<BaseServerResponse<PaginatedData<AdminUserRecord>>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<PaginatedData<AdminUserRecord>>>('/users/search', {
+      params: {
+        searchText,
+        page,
+        pageSize: limit,
+      },
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('SEARCH_ADMIN_USERS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to search users',
       errors: parseAxiosError(error),
     }
   }
