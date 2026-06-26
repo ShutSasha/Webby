@@ -15,6 +15,7 @@ using Webby.UserService.Interfaces.Helpers;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
 using Webby.UserService.Models;
+using Webby.UserService.Models.Enums;
 
 namespace Webby.UserService.Services;
 
