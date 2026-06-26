@@ -833,6 +833,57 @@ public class VideoService : IVideoService
        };
    }
 
+   public Task BanVideo(Guid requestedUserId, string videoId)
+   {
+      return ChangeVideoBanStatusAsync(requestedUserId, videoId, true);
+   }
+
+   public Task UnbanVideo(Guid requestedUserId, string videoId)
+   {
+      return ChangeVideoBanStatusAsync(requestedUserId, videoId, false);
+   }
+
+   private async Task ChangeVideoBanStatusAsync(Guid requestedUserId, string videoId, bool targetStatus)
+   {
+      var parseResult = PlatformPrefixToPlatformConverter.ParseLocalPlatform(videoId);
+      if (parseResult == null)
+      {
+         throw new ApiException("Process action error", 400, "Invalid id prefix type");
+      }
+
+      var (_, actualId) = parseResult.Value;
+
+      if (!Guid.TryParse(actualId, out var actualIdGuid))
+      {
+         throw new ApiException("Process action error", 400, "Invalid video id guid type");
+      }
+      
+      var video = await _videoRepository.FindById(actualIdGuid)
+                  ?? throw new ApiException("Ban video error", 404, "Video wasn't found");
+
+      if (video.IsBanned == targetStatus)
+      {
+         var errorMessage = targetStatus ? "Video has already banned" : "Video doesn't have ban";
+         throw new ApiException("Process action error", 400, errorMessage);
+      }
+
+      var canChangeStatus = (await _userClient.CheckUserCanBlockVideoAsync(new CheckUserCanBlockVideoRequest
+      {
+         RequestedUserId = requestedUserId.ToString(),
+         VideoAuthorId = video.UserId.ToString()
+      })).Value;
+
+      if (!canChangeStatus)
+      {
+         var actionName = targetStatus ? "block" : "unban";
+         throw new ApiException("Process action error", 403, $"You can't {actionName} this video");
+      }
+
+      video.IsBanned = targetStatus;
+
+      await _videoRepository.Update(video);
+   }
+
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>
       videos.Select(v => _mapper.Map<VideoDto>(v)).ToList();
    

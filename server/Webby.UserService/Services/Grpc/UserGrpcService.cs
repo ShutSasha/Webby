@@ -4,6 +4,7 @@ using UserService;
 using Webby.NotificationService.GrpcClient;
 using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Interfaces.Repository;
+using Webby.UserService.Models.Enums;
 
 namespace Webby.UserService.Services.Grpc;
 
@@ -212,6 +213,44 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
       return new GetMonthRevenueResponse() { MonthRevenue = monthRevenue };
    }
 
+   public override async Task<BoolValue> CheckUserCanBlockVideo(CheckUserCanBlockVideoRequest request, ServerCallContext context)
+   {
+      if (!Guid.TryParse(request.VideoAuthorId, out var videoAuthorIdGuid)
+          || !Guid.TryParse(request.RequestedUserId, out var requestedUserIdGuid))
+      {
+         throw new ApiException("Check user can block error", 400, "Invalid id format type");
+      }
+
+      var canChangeVideoBanStatus = await CanChangeVideoBanStatus(requestedUserIdGuid, videoAuthorIdGuid);
+
+      return new BoolValue { Value = canChangeVideoBanStatus };
+
+   }
+
+   
+   private async Task<bool> CanChangeVideoBanStatus(Guid requestedUserId,Guid authorId)
+   {
+      var requester = await _userRepository.FindById(requestedUserId);
+      var author = await _userRepository.FindById(authorId);
+
+      if (requester == null || author == null)
+      {
+         throw new ApiException("Check user can block error", 404, "User wasn't found");
+      }
+      
+      if (requestedUserId == authorId) 
+      {
+         return false; 
+      }
+
+      return requester.Role switch
+      {
+         Role.Admin => author.Role != Role.Admin,
+         Role.Moderator => author.Role == Role.User, 
+         _ => false 
+      };
+   }
+   
    private Tuple<DateTime,DateTime > GetYearDates()
    {
       var today = DateTime.UtcNow;
