@@ -75,8 +75,15 @@ func formatErrorMessage(fe validator.FieldError) string {
 
 func mapAppErrorToStatus(err error) int {
 	switch {
-	case errors.Is(err, apperrors.ErrAlreadyResolved):
+	case errors.Is(err, apperrors.ErrAlreadyResolved),
+		errors.Is(err, apperrors.ErrCantBanUser):
 		return http.StatusForbidden
+	case errors.Is(err, apperrors.ErrUserNotFound),
+		errors.Is(err, apperrors.ErrVideoNotFound):
+		return http.StatusNotFound
+	case errors.Is(err, apperrors.ErrUserAlreadyBanned),
+		errors.Is(err, apperrors.ErrVideoAlreadyBanned):
+		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
 	}
@@ -86,6 +93,16 @@ func mapAppErrorToClientMessage(err error) string {
 	switch {
 	case errors.Is(err, apperrors.ErrAlreadyResolved):
 		return "This complaint is already resolved"
+	case errors.Is(err, apperrors.ErrCantBanUser):
+		return "You have no rights to ban this user"
+	case errors.Is(err, apperrors.ErrUserNotFound):
+		return "The user is not found"
+	case errors.Is(err, apperrors.ErrUserAlreadyBanned):
+		return "The user is already banned"
+	case errors.Is(err, apperrors.ErrVideoNotFound):
+		return "The video is not found"
+	case errors.Is(err, apperrors.ErrVideoAlreadyBanned):
+		return "The video is already banned"
 	default:
 		return "An unexpected error occurred"
 	}

@@ -3,11 +3,15 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"webby/admin-service/internal/apperrors"
 	"webby/admin-service/internal/grpc/userpb"
+	"webby/admin-service/internal/models"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -43,13 +47,26 @@ func (c *userClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *userClient) BanUser(ctx context.Context, userID uuid.UUID) error {
+func (c *userClient) BanUser(ctx context.Context, userID, requestUserID uuid.UUID) error {
 	const op = "grpc.userClient.BanUser"
 
 	_, err := c.client.BanUser(ctx, &userpb.BanUserRequest{
-		UserID: userID.String(),
+		UserID:        userID.String(),
+		RequestUserID: requestUserID.String(),
 	})
 	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.PermissionDenied:
+				return fmt.Errorf("%s: %w", op, apperrors.ErrCantBanUser)
+			case codes.NotFound:
+				return fmt.Errorf("%s: %w", op, apperrors.ErrUserNotFound)
+			case codes.InvalidArgument:
+				return fmt.Errorf("%s: %w", op, apperrors.ErrUserAlreadyBanned)
+			}
+		}
+
 		return fmt.Errorf("%s %w", op, err)
 	}
 
@@ -108,4 +125,33 @@ func (c *userClient) GetMonthRevenue(ctx context.Context) (int, error) {
 	}
 
 	return int(resp.GetMonthRevenue()), nil
+}
+
+func (u *userClient) GetUsersByIDs(ctx context.Context, userIDs []uuid.UUID) (map[uuid.UUID]models.Complainer, error) {
+	const op = "grpc.userClient.GetUsersByIDs"
+
+	userIDsStr := make([]string, len(userIDs))
+	for i, userID := range userIDs {
+		userIDsStr[i] = userID.String()
+	}
+
+	resp, err := u.client.GetUsersByIds(ctx, &userpb.GetUsersRequest{
+		UserIds: userIDsStr,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	senders := make(map[uuid.UUID]models.Complainer, len(resp.Users))
+	for i, user := range resp.Users {
+		userID := userIDs[i]
+		if _, exists := senders[userID]; !exists {
+			senders[userID] = models.Complainer{
+				ID:       userID,
+				Username: user.Username,
+			}
+		}
+	}
+
+	return senders, nil
 }
