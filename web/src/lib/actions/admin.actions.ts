@@ -171,3 +171,37 @@ export async function searchAdminUsersAction(
     }
   }
 }
+
+export async function banUserAction(userId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/users/blocks/${userId}/ban`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('BAN_USER_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to ban user',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function unbanUserAction(userId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/users/blocks/${userId}/unban`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('UNBAN_USER_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to unban user',
+      errors: parseAxiosError(error),
+    }
+  }
+}
