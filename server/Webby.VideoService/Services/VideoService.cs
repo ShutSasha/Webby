@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Grpc.Core;
 using UserService;
+using Webby.VideoService.ComplaintGrpcClient;
 using Webby.VideoService.Dtos.Event;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.Search;
@@ -20,7 +21,6 @@ using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
 using Webby.VideoService.Models.Enums;
 using Webby.VideoService.Services.Background;
-using NewsStyleUriParser = System.NewsStyleUriParser;
 
 namespace Webby.VideoService.Services;
 
@@ -28,6 +28,7 @@ public class VideoService : IVideoService
 {
    private readonly IVideoRepository _videoRepository;
    private readonly IStorageService _storageService;
+   private readonly ComplaintGrpcService.ComplaintGrpcServiceClient _complaintGrpcClient;
    private readonly ITagService _tagService;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
    private readonly IMapper _mapper;
@@ -43,7 +44,7 @@ public class VideoService : IVideoService
       IMapper mapper, IBackgroundTaskQueue queue,
       IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService,
       ITwitchSearchService twitchSearchService, IEventPublisher eventPublisher,
-      ILogger<VideoService> logger)
+      ILogger<VideoService> logger, ComplaintGrpcService.ComplaintGrpcServiceClient complaintGrpcClient)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
@@ -56,6 +57,7 @@ public class VideoService : IVideoService
       _twitchSearchService = twitchSearchService;
       _eventPublisher = eventPublisher;
       _logger = logger;
+      _complaintGrpcClient = complaintGrpcClient;
    }
 
    public async Task<Video> GetVideoById(Guid videoId, bool showPrivate = false)
@@ -833,25 +835,30 @@ public class VideoService : IVideoService
        };
    }
 
-   public Task BanVideo(Guid requestedUserId, string videoId)
+   public Task BanVideo(string videoId)
    {
-      return ChangeVideoBanStatusAsync(requestedUserId, videoId, true);
+      return ChangeVideoBanStatusAsync(videoId, true);
    }
 
-   public Task UnbanVideo(Guid requestedUserId, string videoId)
+   public Task UnbanVideo(string videoId)
    {
-      return ChangeVideoBanStatusAsync(requestedUserId, videoId, false);
+      return ChangeVideoBanStatusAsync(videoId, false);
    }
 
-   private async Task ChangeVideoBanStatusAsync(Guid requestedUserId, string videoId, bool targetStatus)
+   private async Task ChangeVideoBanStatusAsync(string videoId, bool targetStatus)
    {
-      var parseResult = PlatformPrefixToPlatformConverter.ParseLocalPlatform(videoId);
-      if (parseResult == null)
+      var actualId = videoId;
+      
+      if (videoId.StartsWith("wb_"))
       {
-         throw new ApiException("Process action error", 400, "Invalid id prefix type");
-      }
+         var parseResult = PlatformPrefixToPlatformConverter.ParseLocalPlatform(videoId);
+         if (parseResult == null)
+         {
+            throw new ApiException("Process action error", 400, "Invalid id prefix type");
+         }
 
-      var (_, actualId) = parseResult.Value;
+         (_, actualId) = parseResult.Value;
+      }
 
       if (!Guid.TryParse(actualId, out var actualIdGuid))
       {
@@ -867,21 +874,14 @@ public class VideoService : IVideoService
          throw new ApiException("Process action error", 400, errorMessage);
       }
 
-      var canChangeStatus = (await _userClient.CheckUserCanBlockVideoAsync(new CheckUserCanBlockVideoRequest
-      {
-         RequestedUserId = requestedUserId.ToString(),
-         VideoAuthorId = video.UserId.ToString()
-      })).Value;
-
-      if (!canChangeStatus)
-      {
-         var actionName = targetStatus ? "block" : "unban";
-         throw new ApiException("Process action error", 403, $"You can't {actionName} this video");
-      }
-
       video.IsBanned = targetStatus;
 
       await _videoRepository.Update(video);
+      await _complaintGrpcClient.SetVideoComplaintsBannedAsync(new SetVideoComplaintsBannedRequest()
+      {
+         BanFlag = targetStatus,
+         TargetId = video.VideoId.ToString()
+      });
    }
 
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>

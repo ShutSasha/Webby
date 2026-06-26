@@ -1,4 +1,5 @@
-﻿using Webby.UserService.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using Webby.UserService.Data;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Models;
 
@@ -8,5 +9,12 @@ public class ComplaintRepository : GenericRepository<Complaint>, IComplaintRepos
 {
    public ComplaintRepository(AppDbContext context) : base(context)
    {
+   }
+
+   public async Task SetIsBanComplaintStatus(Guid targetId,bool banStatusFlag)
+   {
+      await _context.Complaints
+         .Where(c => c.ComplaintId == targetId)
+         .ExecuteUpdateAsync(c => c.SetProperty(c => c.IsBanned, banStatusFlag));
    }
 }

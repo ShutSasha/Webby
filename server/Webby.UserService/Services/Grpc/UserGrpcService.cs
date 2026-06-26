@@ -4,12 +4,14 @@ using UserService;
 using Webby.NotificationService.GrpcClient;
 using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Interfaces.Repository;
+using Webby.UserService.Interfaces.Service;
 using Webby.UserService.Models.Enums;
 
 namespace Webby.UserService.Services.Grpc;
 
 public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServiceBase
 {
+   private readonly IUserService _userService;
    private readonly IUserRepository _userRepository;
    private readonly IUserPremiumRepository _userPremiumRepository;
    private readonly IPaymentRepository _paymentRepository;
@@ -17,13 +19,14 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
    private readonly ILogger<UserGrpcService> _logger;
 
    public UserGrpcService(IUserRepository userRepository, ILogger<UserGrpcService> logger,
-      IUserPremiumRepository userPremiumRepository, NotificationGrpcService.NotificationGrpcServiceClient notificationClient, IPaymentRepository paymentRepository)
+      IUserPremiumRepository userPremiumRepository, NotificationGrpcService.NotificationGrpcServiceClient notificationClient, IPaymentRepository paymentRepository, IUserService userService)
    {
       _userRepository = userRepository;
       _logger = logger;
       _userPremiumRepository = userPremiumRepository;
       _notificationClient = notificationClient;
       _paymentRepository = paymentRepository;
+      _userService = userService;
    }
 
    public override async Task<UserResponse> GetUserById(GetUserRequest request, ServerCallContext context)
@@ -133,21 +136,11 @@ public class UserGrpcService : global::UserService.UserGrpcService.UserGrpcServi
 
    public override async Task<Empty> BanUser(BanUserRequest request, ServerCallContext context)
    {
-      if (!Guid.TryParse(request.UserID, out var userIdGuid))
+      if (!Guid.TryParse(request.UserID, out var userIdGuid)
+          || !Guid.TryParse(request.RequestUserID, out var requestUserIdGuid))
          throw new ApiException("Ban user error",400,"Invalid id format");
 
-      var user = await _userRepository.FindById(userIdGuid)
-                 ?? throw new ApiException("Ban user error", 404,"User wasn't found");
-
-
-      if (user.IsBanned)
-         return new Empty();
-
-      user.IsBanned = true;
-
-      await _userRepository.Update(user);
-
-      await _notificationClient.ReportBlockingAsync(new ReportBlockingRequest { UserId = request.UserID });
+      await _userService.BanUser(requestUserIdGuid, userIdGuid);
 
       return new Empty();
    }
