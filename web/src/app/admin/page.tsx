@@ -7,6 +7,8 @@ import AdminAreaChart, { ChartDataPoint } from '@/ui/components/modules/Admin/Ad
 
 const MONTHS_ORDER = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminOverviewPage() {
   const [absoluteRes, registrationsRes, subscriptionsRes] = await Promise.all([
     getAbsoluteStatsAction(),

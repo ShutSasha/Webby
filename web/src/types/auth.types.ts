@@ -1,37 +1,33 @@
 import { User } from 'next-auth'
 
+import { BaseServerResponse } from './general.types'
 import { Role } from './user.types'
 
-type AuthRes = {
-  success: boolean
-  message: string
-  data: {
-    user: {
-      userId: string
-      email: string
-      username: string
-      about: string
-      avatarUrl: string
-      role: Role
-    }
-    accessToken: string
-    accessTokenExpiresAt: number
+type AuthPayload = {
+  user: {
+    userId: string
+    email: string
+    username: string
+    about: string
+    avatarUrl: string
+    role: Role
   }
-  errors: null
+  accessToken: string
+  accessTokenExpiresAt: number
 }
 
-type LoginRes = {
+export type AuthServerResponse = BaseServerResponse<AuthPayload>
+
+export type LoginResponse = {
   user: User
   accessToken: string
 }
 
-type ReturnError = {
+export type ReturnError = {
   success: boolean
   errors: Record<string, string>
 }
 
-export function isLoginRes(data: LoginRes | ReturnError): data is LoginRes {
+export function isLoginRes(data: LoginResponse | ReturnError): data is LoginResponse {
   return typeof data === 'object' && data !== null && 'user' in data && 'accessToken' in data
 }
-
-export { type AuthRes, type Role, type LoginRes }
