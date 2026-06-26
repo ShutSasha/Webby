@@ -26,4 +26,6 @@ public interface IVideoService
    Task IncrementVideoView(Guid requestUserId, string videoId);
    Task<(List<VideoDto> videoDtos,List<string> unavailableVideos)> GetVideoRange(List<string> ids);
    Task<VideoStatisticDto> GetVideoStatisticAsync(string videoId, Guid requestUserId, int? year, int? month, int? day);
+   Task BanVideo(string videoId);
+   Task UnbanVideo(string videoId);
 }

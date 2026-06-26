@@ -125,6 +125,22 @@ public class VideoController: ControllerBase
       return Ok(ApiResponse.Ok("Successfully create video"));
    }
 
+   [HttpPost("blocks/{videoId}/ban")]
+   [SwaggerOperation("", "MODERATION ROLE REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> BanVideo([FromRoute] string videoId)
+   {
+      await _videoService.BanVideo(videoId);
+      return Ok(ApiResponse.Ok("Successfully banned specified video"));
+   }
+   
+   [HttpPost("blocks/{videoId}/unban")]
+   [SwaggerOperation("", "MODERATION ROLE REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> UnbanVideo([FromRoute] string videoId)
+   {
+      await _videoService.UnbanVideo(videoId);
+      return Ok(ApiResponse.Ok("Successfully unbanned specified video"));
+   }
+
    [HttpPatch]
    [SwaggerOperation("Update video information route", "AUTH REQUIRED")]
    public async Task<ActionResult<ApiResponse>> UpdateVideo([FromForm] UpdateVideoRequest request)

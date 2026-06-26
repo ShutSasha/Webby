@@ -12,4 +12,5 @@ public class Complaint
    public string ReasonType { get; set; } = null!;
    public string? AdditionalInfo { get; set; }
    public DateTime CreatedAt { get; set; }
+   public bool IsBanned { get; set; }
 }

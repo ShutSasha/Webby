@@ -90,7 +90,8 @@ public class ComplaintService : IComplaintService
             CreatedAt = DateTime.UtcNow,
             ReasonType = request.ReasonType,
             TargetId = parsedTargetId,
-            TargetType = request.TargetType.Value
+            TargetType = request.TargetType.Value,
+            IsBanned = false
         };
 
         await _complaintRepository.Add(complaint);
@@ -106,5 +107,8 @@ public class ComplaintService : IComplaintService
    }
 
    public async Task<Complaint?> FindById(Guid complaintId)
-   => await _complaintRepository.FindById(complaintId); 
+   => await _complaintRepository.FindById(complaintId);
+
+   public async Task SetBanStatus(Guid targetId, bool banStatus)
+       => await _complaintRepository.SetIsBanComplaintStatus(targetId,banStatus);
 }
