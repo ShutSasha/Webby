@@ -8,5 +8,5 @@ public interface IComplaintService
    Task CreateComplaint(Guid authorId, CreateComplaintRequest request);
    Task<List<ComplaintDto>> GetUserComplaints(Guid userId);
    Task<Complaint?> FindById(Guid complaintId);
-   
+   Task SetBanStatus(Guid targetId, bool banStatus);
 }

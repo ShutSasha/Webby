@@ -3,6 +3,7 @@ using Grpc.Core;
 using Webby.VideoService.Helpers.Converters;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Interfaces.Repositories;
+using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.VideoGrpcServer;
 
 namespace Webby.VideoService.Services.Grpc;
@@ -10,10 +11,12 @@ namespace Webby.VideoService.Services.Grpc;
 public class VideoGrpcService : VideoGrpcServer.VideoGrpcService.VideoGrpcServiceBase
 {
    private readonly IVideoRepository _videoRepository;
+   private readonly IVideoService _videoService;
 
-   public VideoGrpcService(IVideoRepository videoRepository)
+   public VideoGrpcService(IVideoRepository videoRepository, IVideoService videoService)
    {
-      _videoRepository = videoRepository;
+       _videoRepository = videoRepository;
+       _videoService = videoService;
    }
 
    public override async Task<BoolValue> CheckVideoExists(CheckVideoExistRequest request, ServerCallContext context)
@@ -40,16 +43,7 @@ public class VideoGrpcService : VideoGrpcServer.VideoGrpcService.VideoGrpcServic
 
    public override async Task<Empty> BanVideo(BanVideoRequest request, ServerCallContext context)
    {
-       if (!Guid.TryParse(request.VideoID, out var videoIdGuid))
-           throw new ApiException("Ban video error", 400, "Invalid local video id type");
-
-       var video = await _videoRepository.FindById(videoIdGuid)
-                   ?? throw new ApiException("Ban video error", 404, "Video wasn't found");
-
-       video.IsBanned = true;
-
-       await _videoRepository.Update(video);
-
+       await _videoService.BanVideo(request.VideoID);
        return new Empty();
    }
 

@@ -58,6 +58,7 @@ message IsFollowedRequest {
 
 message BanUserRequest {
   string userID = 1;
+  string requestUserID = 2;
 }
 
 message CheckUserCanBlockVideoRequest{

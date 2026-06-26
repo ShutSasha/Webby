@@ -24,6 +24,7 @@ public class UserService : IUserService
    private readonly IUserRepository _userRepository;
    private readonly IStorageService _storageService;
    private readonly IUserPremiumRepository _userPremiumRepository;
+   private readonly IComplaintRepository _complaintRepository;
    private readonly NotificationGrpcService.NotificationGrpcServiceClient _notificationGrpcServiceClient;
    private readonly AchievementGrpcService.AchievementGrpcServiceClient _achievementGrpcServiceClient;
    private readonly VideoGrpcService.VideoGrpcServiceClient _videoGrpcServiceClient;
@@ -35,7 +36,7 @@ public class UserService : IUserService
    public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService,
       IUserPremiumRepository userPremiumRepository, NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient,
       INotificationFactory notificationFactory,AchievementGrpcService.AchievementGrpcServiceClient achievementGrpcServiceClient,
-      ILogger<UserService> logger, VideoGrpcService.VideoGrpcServiceClient videoGrpcServiceClient)
+      ILogger<UserService> logger, VideoGrpcService.VideoGrpcServiceClient videoGrpcServiceClient, IComplaintRepository complaintRepository)
    {
       _userRepository = userRepository;
       _mapper = mapper;
@@ -46,6 +47,7 @@ public class UserService : IUserService
       _achievementGrpcServiceClient = achievementGrpcServiceClient;
       _logger = logger;
       _videoGrpcServiceClient = videoGrpcServiceClient;
+      _complaintRepository = complaintRepository;
    }
    
    public async Task<UserProfileResponse> GetUserInformation(Guid userId)
@@ -344,12 +346,13 @@ public class UserService : IUserService
 
       if (targetUser.IsBanned)
       {
-         throw new ApiException("Ban user error",403,"You has already banned");
+         throw new ApiException("Ban user error",400,"You has already banned");
       }
 
       targetUser.IsBanned = true;
       await _userRepository.Update(targetUser);
       await _notificationGrpcServiceClient.ReportBlockingAsync(new ReportBlockingRequest { UserId = targetUserId.ToString() });
+      await _complaintRepository.SetIsBanComplaintStatus(targetUser.UserId, true);
    }
 
    public async Task UnbanUser(Guid requestedUserId, Guid targetUserId)
@@ -374,6 +377,7 @@ public class UserService : IUserService
 
       targetUser.IsBanned = false;
       await _userRepository.Update(targetUser);
+      await _complaintRepository.SetIsBanComplaintStatus(targetUser.UserId, false);
    }
 
    public async Task ChangeRole(Guid requestedUserId, Guid targetUserId, Role userRole)

@@ -23,10 +23,11 @@ const (
 )
 
 type BanVideoRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	VideoID       string                 `protobuf:"bytes,1,opt,name=videoID,proto3" json:"videoID,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	VideoID         string                 `protobuf:"bytes,1,opt,name=videoID,proto3" json:"videoID,omitempty"`
+	RequestedUserID string                 `protobuf:"bytes,2,opt,name=requestedUserID,proto3" json:"requestedUserID,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *BanVideoRequest) Reset() {
@@ -66,13 +67,21 @@ func (x *BanVideoRequest) GetVideoID() string {
 	return ""
 }
 
+func (x *BanVideoRequest) GetRequestedUserID() string {
+	if x != nil {
+		return x.RequestedUserID
+	}
+	return ""
+}
+
 var File_proto_video_video_proto protoreflect.FileDescriptor
 
 const file_proto_video_video_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/video/video.proto\x1a\x1bgoogle/protobuf/empty.proto\"+\n" +
+	"\x17proto/video/video.proto\x1a\x1bgoogle/protobuf/empty.proto\"U\n" +
 	"\x0fBanVideoRequest\x12\x18\n" +
-	"\avideoID\x18\x01 \x01(\tR\avideoID2H\n" +
+	"\avideoID\x18\x01 \x01(\tR\avideoID\x12(\n" +
+	"\x0frequestedUserID\x18\x02 \x01(\tR\x0frequestedUserID2H\n" +
 	"\x10VideoGrpcService\x124\n" +
 	"\bBanVideo\x12\x10.BanVideoRequest\x1a\x16.google.protobuf.EmptyB+Z)webby/admin-service/internal/grpc/videopbb\x06proto3"
 

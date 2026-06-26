@@ -33,6 +33,7 @@ try
     services.AddServices();
     services.AddExternalServices();
     services.AddBackgroundServices();
+    services.AddInterceptors();
 
     services.ConfigureGrpcConnections(configuration);
 

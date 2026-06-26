@@ -1,0 +1,15 @@
+﻿syntax="proto3";
+
+option csharp_namespace = "Webby.VideoService.ComplaintGrpcClient";
+
+import "google/protobuf/empty.proto";
+
+service ComplaintGrpcService{
+  rpc SetVideoComplaintsBanned(SetVideoComplaintsBannedRequest) returns(google.protobuf.Empty);
+}
+
+//REQUESTS
+message SetVideoComplaintsBannedRequest{
+  string targetId = 1;
+  bool banFlag = 2;
+}

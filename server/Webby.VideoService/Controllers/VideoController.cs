@@ -129,8 +129,7 @@ public class VideoController: ControllerBase
    [SwaggerOperation("", "MODERATION ROLE REQUIRED")]
    public async Task<ActionResult<ApiResponse>> BanVideo([FromRoute] string videoId)
    {
-      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
-      await _videoService.BanVideo(requestUserId.Value,videoId);
+      await _videoService.BanVideo(videoId);
       return Ok(ApiResponse.Ok("Successfully banned specified video"));
    }
    
@@ -138,8 +137,7 @@ public class VideoController: ControllerBase
    [SwaggerOperation("", "MODERATION ROLE REQUIRED")]
    public async Task<ActionResult<ApiResponse>> UnbanVideo([FromRoute] string videoId)
    {
-      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
-      await _videoService.UnbanVideo(requestUserId.Value,videoId);
+      await _videoService.UnbanVideo(videoId);
       return Ok(ApiResponse.Ok("Successfully unbanned specified video"));
    }
 

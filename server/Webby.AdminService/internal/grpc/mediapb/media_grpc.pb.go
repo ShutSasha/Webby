@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	MediaService_GetVideo_FullMethodName             = "/media.MediaService/GetVideo"
+	MediaService_GetVideosBatch_FullMethodName       = "/media.MediaService/GetVideosBatch"
 	MediaService_GetAuthorIDByVideoID_FullMethodName = "/media.MediaService/GetAuthorIDByVideoID"
 )
 
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MediaServiceClient interface {
 	GetVideo(ctx context.Context, in *GetVideoRequest, opts ...grpc.CallOption) (*VideoResponse, error)
+	GetVideosBatch(ctx context.Context, in *GetVideosBatchRequest, opts ...grpc.CallOption) (*GetVideosBatchResponse, error)
 	GetAuthorIDByVideoID(ctx context.Context, in *GetAuthorIDByVideoIDRequest, opts ...grpc.CallOption) (*GetAuthorIDByVideoIDResponse, error)
 }
 
@@ -49,6 +51,16 @@ func (c *mediaServiceClient) GetVideo(ctx context.Context, in *GetVideoRequest, 
 	return out, nil
 }
 
+func (c *mediaServiceClient) GetVideosBatch(ctx context.Context, in *GetVideosBatchRequest, opts ...grpc.CallOption) (*GetVideosBatchResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetVideosBatchResponse)
+	err := c.cc.Invoke(ctx, MediaService_GetVideosBatch_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mediaServiceClient) GetAuthorIDByVideoID(ctx context.Context, in *GetAuthorIDByVideoIDRequest, opts ...grpc.CallOption) (*GetAuthorIDByVideoIDResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAuthorIDByVideoIDResponse)
@@ -64,6 +76,7 @@ func (c *mediaServiceClient) GetAuthorIDByVideoID(ctx context.Context, in *GetAu
 // for forward compatibility.
 type MediaServiceServer interface {
 	GetVideo(context.Context, *GetVideoRequest) (*VideoResponse, error)
+	GetVideosBatch(context.Context, *GetVideosBatchRequest) (*GetVideosBatchResponse, error)
 	GetAuthorIDByVideoID(context.Context, *GetAuthorIDByVideoIDRequest) (*GetAuthorIDByVideoIDResponse, error)
 	mustEmbedUnimplementedMediaServiceServer()
 }
@@ -77,6 +90,9 @@ type UnimplementedMediaServiceServer struct{}
 
 func (UnimplementedMediaServiceServer) GetVideo(context.Context, *GetVideoRequest) (*VideoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetVideo not implemented")
+}
+func (UnimplementedMediaServiceServer) GetVideosBatch(context.Context, *GetVideosBatchRequest) (*GetVideosBatchResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetVideosBatch not implemented")
 }
 func (UnimplementedMediaServiceServer) GetAuthorIDByVideoID(context.Context, *GetAuthorIDByVideoIDRequest) (*GetAuthorIDByVideoIDResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAuthorIDByVideoID not implemented")
@@ -120,6 +136,24 @@ func _MediaService_GetVideo_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MediaService_GetVideosBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVideosBatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MediaServiceServer).GetVideosBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MediaService_GetVideosBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MediaServiceServer).GetVideosBatch(ctx, req.(*GetVideosBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MediaService_GetAuthorIDByVideoID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAuthorIDByVideoIDRequest)
 	if err := dec(in); err != nil {
@@ -148,6 +182,10 @@ var MediaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetVideo",
 			Handler:    _MediaService_GetVideo_Handler,
+		},
+		{
+			MethodName: "GetVideosBatch",
+			Handler:    _MediaService_GetVideosBatch_Handler,
 		},
 		{
 			MethodName: "GetAuthorIDByVideoID",

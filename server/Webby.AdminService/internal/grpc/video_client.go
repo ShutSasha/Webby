@@ -3,11 +3,14 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"webby/admin-service/internal/apperrors"
 	"webby/admin-service/internal/grpc/videopb"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 type videoClient struct {
@@ -42,6 +45,16 @@ func (c *videoClient) BanVideo(ctx context.Context, videoID uuid.UUID) error {
 		VideoID: videoID.String(),
 	})
 	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return fmt.Errorf("%s: %w", op, apperrors.ErrVideoNotFound)
+			case codes.InvalidArgument:
+				return fmt.Errorf("%s: %w", op, apperrors.ErrVideoAlreadyBanned)
+			}
+		}
+
 		return fmt.Errorf("%s %w", op, err)
 	}
 

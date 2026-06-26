@@ -57,12 +57,16 @@ func (c *complaintClient) GetComplaintByID(ctx context.Context, complaintID uuid
 	}
 
 	return &models.Complaint{
-		ID:             complaintID,
-		AuthorID:       authorID,
-		TargetType:     complaint.TargetType,
-		TargetID:       targetID,
+		ID: complaintID,
+		Complainer: models.Complainer{
+			ID: authorID,
+		},
+		Target: models.Target{
+			Type: complaint.TargetType,
+			ID:   targetID,
+		},
 		ReasonType:     complaint.ReasonType,
-		AdditionalInfo: complaint.AdditionalInfo,
+		AdditionalInfo: &complaint.AdditionalInfo,
 		CreatedAt:      complaint.CreatedAt.AsTime(),
 	}, nil
 }

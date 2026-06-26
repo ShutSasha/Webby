@@ -12,6 +12,7 @@ using Webby.VideoService.Helpers.Storage;
 using Webby.VideoService.Interfaces.Helpers;
 using Webby.VideoService.Interfaces.Repositories;
 using Webby.VideoService.Interfaces.Services;
+using Webby.VideoService.Middlewares;
 using Webby.VideoService.Repositories;
 using Webby.VideoService.Services;
 using Webby.VideoService.Services.Background;
@@ -133,7 +134,11 @@ public static class ApiExtension
    {
       serviceCollection.Configure<AwsOptions>(config.GetSection(nameof(AwsOptions)));
       serviceCollection.Configure<ExternalServicesOptions>(config.GetSection("ExternalServices"));
-      
+   }
+
+   public static void AddInterceptors(this IServiceCollection serviceCollection)
+   {
+      serviceCollection.AddTransient<GrpcClientExceptionInterceptor>();
    }
 
    public static void ConfigureGrpcConnections(this IServiceCollection serviceCollection, IConfiguration configuration)
@@ -141,7 +146,12 @@ public static class ApiExtension
       serviceCollection.AddGrpcClient<UserGrpcService.UserGrpcServiceClient>(o =>
       {
          o.Address = new Uri(configuration["GrpcClients:UserServiceUrl"]);
-      });
+      }).AddInterceptor<GrpcClientExceptionInterceptor>();
+      
+      serviceCollection.AddGrpcClient<ComplaintGrpcClient.ComplaintGrpcService.ComplaintGrpcServiceClient>(o =>
+      {
+         o.Address = new Uri(configuration["GrpcClients:UserServiceUrl"]);
+      }).AddInterceptor<GrpcClientExceptionInterceptor>();
    }
 
    public static void ConfigureRedisConnection(this IServiceCollection serviceCollection, IConfiguration configuration)

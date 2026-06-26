@@ -133,6 +133,102 @@ func (x *VideoResponse) GetVideoUrl() string {
 	return ""
 }
 
+type GetVideosBatchRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVideosBatchRequest) Reset() {
+	*x = GetVideosBatchRequest{}
+	mi := &file_proto_media_media_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVideosBatchRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVideosBatchRequest) ProtoMessage() {}
+
+func (x *GetVideosBatchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_media_media_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVideosBatchRequest.ProtoReflect.Descriptor instead.
+func (*GetVideosBatchRequest) Descriptor() ([]byte, []int) {
+	return file_proto_media_media_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetVideosBatchRequest) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+type GetVideosBatchResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Videos              []*VideoResponse       `protobuf:"bytes,1,rep,name=videos,proto3" json:"videos,omitempty"`
+	UnavailableVideoIds []string               `protobuf:"bytes,2,rep,name=unavailableVideoIds,proto3" json:"unavailableVideoIds,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *GetVideosBatchResponse) Reset() {
+	*x = GetVideosBatchResponse{}
+	mi := &file_proto_media_media_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVideosBatchResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVideosBatchResponse) ProtoMessage() {}
+
+func (x *GetVideosBatchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_media_media_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVideosBatchResponse.ProtoReflect.Descriptor instead.
+func (*GetVideosBatchResponse) Descriptor() ([]byte, []int) {
+	return file_proto_media_media_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetVideosBatchResponse) GetVideos() []*VideoResponse {
+	if x != nil {
+		return x.Videos
+	}
+	return nil
+}
+
+func (x *GetVideosBatchResponse) GetUnavailableVideoIds() []string {
+	if x != nil {
+		return x.UnavailableVideoIds
+	}
+	return nil
+}
+
 type GetAuthorIDByVideoIDRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	VideoID       string                 `protobuf:"bytes,1,opt,name=videoID,proto3" json:"videoID,omitempty"`
@@ -142,7 +238,7 @@ type GetAuthorIDByVideoIDRequest struct {
 
 func (x *GetAuthorIDByVideoIDRequest) Reset() {
 	*x = GetAuthorIDByVideoIDRequest{}
-	mi := &file_proto_media_media_proto_msgTypes[2]
+	mi := &file_proto_media_media_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -154,7 +250,7 @@ func (x *GetAuthorIDByVideoIDRequest) String() string {
 func (*GetAuthorIDByVideoIDRequest) ProtoMessage() {}
 
 func (x *GetAuthorIDByVideoIDRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_media_media_proto_msgTypes[2]
+	mi := &file_proto_media_media_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -167,7 +263,7 @@ func (x *GetAuthorIDByVideoIDRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAuthorIDByVideoIDRequest.ProtoReflect.Descriptor instead.
 func (*GetAuthorIDByVideoIDRequest) Descriptor() ([]byte, []int) {
-	return file_proto_media_media_proto_rawDescGZIP(), []int{2}
+	return file_proto_media_media_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetAuthorIDByVideoIDRequest) GetVideoID() string {
@@ -186,7 +282,7 @@ type GetAuthorIDByVideoIDResponse struct {
 
 func (x *GetAuthorIDByVideoIDResponse) Reset() {
 	*x = GetAuthorIDByVideoIDResponse{}
-	mi := &file_proto_media_media_proto_msgTypes[3]
+	mi := &file_proto_media_media_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -198,7 +294,7 @@ func (x *GetAuthorIDByVideoIDResponse) String() string {
 func (*GetAuthorIDByVideoIDResponse) ProtoMessage() {}
 
 func (x *GetAuthorIDByVideoIDResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_media_media_proto_msgTypes[3]
+	mi := &file_proto_media_media_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -211,7 +307,7 @@ func (x *GetAuthorIDByVideoIDResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAuthorIDByVideoIDResponse.ProtoReflect.Descriptor instead.
 func (*GetAuthorIDByVideoIDResponse) Descriptor() ([]byte, []int) {
-	return file_proto_media_media_proto_rawDescGZIP(), []int{3}
+	return file_proto_media_media_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetAuthorIDByVideoIDResponse) GetAuthorID() string {
@@ -232,13 +328,19 @@ const file_proto_media_media_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1c\n" +
 	"\tthumbnail\x18\x03 \x01(\tR\tthumbnail\x12\x1a\n" +
-	"\bvideoUrl\x18\x04 \x01(\tR\bvideoUrl\"7\n" +
+	"\bvideoUrl\x18\x04 \x01(\tR\bvideoUrl\")\n" +
+	"\x15GetVideosBatchRequest\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\"x\n" +
+	"\x16GetVideosBatchResponse\x12,\n" +
+	"\x06videos\x18\x01 \x03(\v2\x14.media.VideoResponseR\x06videos\x120\n" +
+	"\x13unavailableVideoIds\x18\x02 \x03(\tR\x13unavailableVideoIds\"7\n" +
 	"\x1bGetAuthorIDByVideoIDRequest\x12\x18\n" +
 	"\avideoID\x18\x01 \x01(\tR\avideoID\":\n" +
 	"\x1cGetAuthorIDByVideoIDResponse\x12\x1a\n" +
-	"\bauthorID\x18\x01 \x01(\tR\bauthorID2\xa9\x01\n" +
+	"\bauthorID\x18\x01 \x01(\tR\bauthorID2\xf8\x01\n" +
 	"\fMediaService\x128\n" +
-	"\bGetVideo\x12\x16.media.GetVideoRequest\x1a\x14.media.VideoResponse\x12_\n" +
+	"\bGetVideo\x12\x16.media.GetVideoRequest\x1a\x14.media.VideoResponse\x12M\n" +
+	"\x0eGetVideosBatch\x12\x1c.media.GetVideosBatchRequest\x1a\x1d.media.GetVideosBatchResponse\x12_\n" +
 	"\x14GetAuthorIDByVideoID\x12\".media.GetAuthorIDByVideoIDRequest\x1a#.media.GetAuthorIDByVideoIDResponseB+Z)webby/admin-service/internal/grpc/mediapbb\x06proto3"
 
 var (
@@ -253,23 +355,28 @@ func file_proto_media_media_proto_rawDescGZIP() []byte {
 	return file_proto_media_media_proto_rawDescData
 }
 
-var file_proto_media_media_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_media_media_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_media_media_proto_goTypes = []any{
 	(*GetVideoRequest)(nil),              // 0: media.GetVideoRequest
 	(*VideoResponse)(nil),                // 1: media.VideoResponse
-	(*GetAuthorIDByVideoIDRequest)(nil),  // 2: media.GetAuthorIDByVideoIDRequest
-	(*GetAuthorIDByVideoIDResponse)(nil), // 3: media.GetAuthorIDByVideoIDResponse
+	(*GetVideosBatchRequest)(nil),        // 2: media.GetVideosBatchRequest
+	(*GetVideosBatchResponse)(nil),       // 3: media.GetVideosBatchResponse
+	(*GetAuthorIDByVideoIDRequest)(nil),  // 4: media.GetAuthorIDByVideoIDRequest
+	(*GetAuthorIDByVideoIDResponse)(nil), // 5: media.GetAuthorIDByVideoIDResponse
 }
 var file_proto_media_media_proto_depIdxs = []int32{
-	0, // 0: media.MediaService.GetVideo:input_type -> media.GetVideoRequest
-	2, // 1: media.MediaService.GetAuthorIDByVideoID:input_type -> media.GetAuthorIDByVideoIDRequest
-	1, // 2: media.MediaService.GetVideo:output_type -> media.VideoResponse
-	3, // 3: media.MediaService.GetAuthorIDByVideoID:output_type -> media.GetAuthorIDByVideoIDResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: media.GetVideosBatchResponse.videos:type_name -> media.VideoResponse
+	0, // 1: media.MediaService.GetVideo:input_type -> media.GetVideoRequest
+	2, // 2: media.MediaService.GetVideosBatch:input_type -> media.GetVideosBatchRequest
+	4, // 3: media.MediaService.GetAuthorIDByVideoID:input_type -> media.GetAuthorIDByVideoIDRequest
+	1, // 4: media.MediaService.GetVideo:output_type -> media.VideoResponse
+	3, // 5: media.MediaService.GetVideosBatch:output_type -> media.GetVideosBatchResponse
+	5, // 6: media.MediaService.GetAuthorIDByVideoID:output_type -> media.GetAuthorIDByVideoIDResponse
+	4, // [4:7] is the sub-list for method output_type
+	1, // [1:4] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_proto_media_media_proto_init() }
@@ -283,7 +390,7 @@ func file_proto_media_media_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_media_media_proto_rawDesc), len(file_proto_media_media_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
