@@ -67,12 +67,17 @@ export async function getSubscriptionsStatsAction(): Promise<BaseServerResponse<
 
 export type Complaint = {
   id: string
-  authorId: string
-  targetType: 'Video' | 'User'
-  targetId: string
+  complainer: {
+    id: string
+    username: string
+  }
+  target: {
+    type: 'Video' | 'User'
+    id: string
+    name: string
+  }
   reasonType: string
   additionalInfo: string
-  username: string
   createdAt: string
 }
 

@@ -7,7 +7,7 @@ import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import ComplaintCard from '@/ui/components/modules/Admin/ComplaintCard'
 
 export default function AdminReportsPage() {
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useGetComplaintsQuery(10)
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useGetComplaintsQuery(20)
 
   const complaints = useMemo(() => {
     return data?.pages.flatMap(page => page?.items || []) || []

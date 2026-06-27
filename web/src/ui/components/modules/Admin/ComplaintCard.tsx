@@ -39,27 +39,27 @@ export default function ComplaintCard({ complaint }: Props) {
               className="px-2 py-0.5 bg-background text-foreground-subtle rounded text-xs font-bold uppercase
                 tracking-wider"
             >
-              {complaint.targetType}
+              {complaint.target.type}
             </span>
             <span className="text-red-400 text-sm font-bold">{complaint.reasonType}</span>
             <span className="text-foreground-disabled text-xs ml-2">{formatTimeAgo(complaint.createdAt)}</span>
           </div>
           <Link
             href={
-              complaint.targetType === 'User' ? `/profile/${complaint.targetId}` : `/videos/wb_${complaint.targetId}`
+              complaint.target.type === 'User' ? `/profile/${complaint.target.id}` : `/videos/wb_${complaint.target.id}`
             }
             className="text-lg font-bold text-foreground-secondary mt-1 flex items-center gap-2"
           >
-            Target name: <span className="text-sm font-mono text-foreground-muted">{complaint.targetId}</span>
+            Target name: <span className="text-sm font-mono text-foreground-muted">{complaint.target.name}</span>
           </Link>
         </div>
         <div className="text-sm text-foreground-faint flex flex-col items-end">
           <span>Reported by:</span>
           <Link
-            href={`/profile/${complaint.authorId}`}
+            href={`/profile/${complaint.complainer.id}`}
             className="text-emerald-500 font-medium cursor-pointer hover:underline font-mono text-xs mt-0.5"
           >
-            {complaint?.username || 'смайли'}
+            {complaint.complainer.username}
           </Link>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function ComplaintCard({ complaint }: Props) {
               className="ml-auto px-5 py-2 bg-red-500 hover:bg-red-600 text-foreground-strong font-semibold rounded-xl
                 text-sm transition-colors"
             >
-              {complaint.targetType.toLowerCase() === 'user' ? 'Ban User' : 'Delete Content'}
+              {complaint.target.type.toLowerCase() === 'user' ? 'Ban User' : 'Delete Content'}
             </button>
 
             <button

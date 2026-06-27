@@ -10,9 +10,11 @@ export const useGetComplaintsQuery = (limit: number = 10) => {
       return unwrapServerAction(await getComplaintsAction(pageParam, limit))
     },
     getNextPageParam: (lastPage, allPages) => {
-      const items = lastPage?.items || []
+      if (!lastPage) return undefined
 
-      if (items.length === limit) {
+      const totalPages = Math.ceil(lastPage.totalCount / limit)
+
+      if (allPages.length < totalPages) {
         return allPages.length + 1
       }
 
