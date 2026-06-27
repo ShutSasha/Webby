@@ -13,7 +13,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
       <div className="flex items-center gap-4 w-full">
         <Search
-          placeholder="Search users by username or email..."
+          placeholder="Search users by username..."
           containerClassName="flex-1"
           inputClassName="w-full bg-surface border border-border rounded-xl pl-12 pr-4 py-3 outline-none focus:border-neutral-600
           text-foreground-tertiary placeholder:text-foreground-disabled transition-colors"
