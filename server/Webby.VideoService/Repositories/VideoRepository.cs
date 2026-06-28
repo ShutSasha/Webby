@@ -45,7 +45,6 @@ public class VideoRepository : GenericRepository<Video>,IVideoRepository
          {
             query = query.Where(v =>
                 v.IsPublished &&
-                !v.IsBanned &&
                 v.VideoUploadStatus == VideoStatus.Ready);
          }
       }
