@@ -10,6 +10,10 @@ import { BaseServerResponse, PaginatedData } from '@/types/general.types'
 import { ChatMessage } from '../actions/chat.actions'
 import { RoomVote } from '../actions/vote.actions'
 
+export type VotingStartedPayload = Pick<RoomVote, 'id' | 'voteText' | 'duration' | 'expiresAt' | 'choices'>
+export type VotingLockedPayload = { votingId: string }
+export type VotingResultsPayload = { votingId: string; rightChoice: string }
+
 export const useRoomWebSocket = (
   roomId: string | undefined,
   chatId: string | undefined,
@@ -126,45 +130,34 @@ export const useRoomWebSocket = (
         }
       })
 
-      socket.on(
-        'VOTING_STARTED',
-        (payload: { id: string; voteText: string; duration: number; expiresAt: string; choices: string[] }) => {
-          if (!payload || !payload.id) return
-
-          queryClient.setQueryData(['room-votes', roomId], (oldData: RoomVote[] | undefined) => {
-            const newVote = { ...payload, isLocked: false }
-
-            if (!Array.isArray(oldData)) return [newVote]
-            return [newVote, ...oldData]
-          })
-        },
-      )
-
-      socket.on('VOTING_LOCKED', (payload: { votingId: string }) => {
-        if (!payload || !payload.votingId) return
+      socket.on('VOTING_STARTED', (payload: VotingStartedPayload) => {
+        if (!payload || !payload.id) return
 
         queryClient.setQueryData(['room-votes', roomId], (oldData: RoomVote[] | undefined) => {
-          if (!Array.isArray(oldData)) return oldData
+          const newVote = { ...payload, isLocked: false }
 
-          return oldData.map((vote: RoomVote) => (vote.id === payload.votingId ? { ...vote, isLocked: true } : vote))
+          if (!Array.isArray(oldData)) return [newVote]
+          return [newVote, ...oldData]
         })
       })
 
-      socket.on('VOTING_RESULTS', (payload: { votingId: string; rightChoice: string; winners: string[] }) => {
-        if (!payload || !payload.votingId) return
+      socket.on('VOTING_LOCKED', ({ votingId }: VotingLockedPayload) => {
+        if (!votingId) return
+
+        queryClient.setQueryData(['room-votes', roomId], (oldData: RoomVote[] | undefined) => {
+          if (!Array.isArray(oldData)) return oldData
+          return oldData.map((vote: RoomVote) => (vote.id === votingId ? { ...vote, isLocked: true } : vote))
+        })
+      })
+
+      socket.on('VOTING_RESULTS', ({ votingId, rightChoice }: VotingResultsPayload) => {
+        if (!votingId) return
 
         queryClient.setQueryData(['room-votes', roomId], (oldData: RoomVote[] | undefined) => {
           if (!Array.isArray(oldData)) return oldData
 
           return oldData.map((vote: RoomVote) =>
-            vote.id === payload.votingId
-              ? {
-                  ...vote,
-                  isLocked: true,
-                  rightChoice: payload.rightChoice,
-                  winners: payload.winners,
-                }
-              : vote,
+            vote.id === votingId ? { ...vote, isLocked: true, rightChoice } : vote,
           )
         })
       })

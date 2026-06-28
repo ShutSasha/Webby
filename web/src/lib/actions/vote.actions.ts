@@ -34,12 +34,10 @@ export type RoomVote = {
   id: string
   voteText: string
   duration: number
-  createdAt: string
   choices: string[]
   isLocked: boolean
   expiresAt: string
   rightChoice?: string
-  winners?: string[]
   myVote?: string
 }
 
