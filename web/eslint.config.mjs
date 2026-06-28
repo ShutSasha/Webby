@@ -30,7 +30,7 @@ const eslintConfig = [
         },
       ],
       'import/named': 'off',
-      'no-console': ['warn', { allow: ['error'] }],
+      'no-console': ['warn', { allow: ['error', 'warn'] }],
       'import/order': [
         'warn',
         {
