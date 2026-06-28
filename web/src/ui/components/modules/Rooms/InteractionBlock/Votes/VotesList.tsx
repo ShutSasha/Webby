@@ -2,8 +2,9 @@
 
 import { useCheckNextVideoVotingQuery } from '@/lib/hooks/api/vote/useCheckNextVideoVoting'
 import { useGetRoomVotesQuery } from '@/lib/hooks/api/vote/useGetRoomVotes'
-import { cn } from '@/lib/utils/general.utils'
 
+import NextVideoVoteCard from './NextVideoVoteCard'
+import RightChoiceVoteCard from './RightChoiceVoteCard'
 import { VoteViewState } from './RoomVotesModal'
 
 type Props = {
@@ -36,31 +37,7 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 pr-2">
-        {isNextVideoActive && (
-          <div
-            onClick={() => onSelectVote('next-video-active', 'NEXT_VIDEO')}
-            className="p-4 rounded-xl border transition-all cursor-pointer group bg-purple-500/10 border-purple-500/30
-              hover:border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.1)]"
-          >
-            <div className="flex justify-between items-start mb-2">
-              <span
-                className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-purple-500/20
-                  text-purple-400 flex items-center gap-2"
-              >
-                <span className="relative flex size-1.5">
-                  <span
-                    className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"
-                  />
-                  <span className="relative inline-flex rounded-full size-1.5 bg-purple-500" />
-                </span>
-                Quick Vote
-              </span>
-            </div>
-            <h4 className="font-medium text-foreground-tertiary group-hover:text-purple-400 transition-colors">
-              Choose the next video!
-            </h4>
-          </div>
-        )}
+        {isNextVideoActive && <NextVideoVoteCard onSelectVote={onSelectVote} />}
 
         {isLoading ? (
           <div className="text-foreground-faint text-center py-10 animate-pulse">Loading votes...</div>
@@ -73,32 +50,14 @@ export default function VotesList({ roomId, isHost, onViewChange, onSelectVote }
             const isActive = !isResolved && !vote.isLocked
 
             return (
-              <div
+              <RightChoiceVoteCard
                 key={vote.id}
-                onClick={() => onSelectVote(vote.id, 'RIGHT_CHOICE')}
-                className={cn('p-4 rounded-xl border transition-all cursor-pointer group', {
-                  'bg-background/30 border-border': isResolved,
-                  'bg-background/80 border-neutral-700 hover:bg-neutral-300/40 dark:hover:bg-neutral-700/30': isClosed,
-                  'bg-background border-emerald-500/30 hover:border-emerald-500': isActive,
-                })}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <span
-                    className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md', {
-                      'bg-background text-foreground-faint': isResolved,
-                      'bg-surface-tertiary text-foreground-muted': isClosed,
-                      'bg-emerald-500/20 text-emerald-500': isActive,
-                    })}
-                  >
-                    {isResolved ? 'Resolved' : isClosed ? 'Closed' : 'Active'}
-                  </span>
-                </div>
-                <h4 className="font-medium text-foreground-tertiary transition-colors">{vote.voteText}</h4>
-                <div className="flex justify-between items-center mt-2">
-                  <p className="text-xs text-foreground-faint">{vote.choices.length} options</p>
-                  {vote.myVote && <p className="text-[10px] text-emerald-500/80 font-medium">Voted</p>}
-                </div>
-              </div>
+                vote={vote}
+                onSelectVote={onSelectVote}
+                isActive={isActive}
+                isClosed={isClosed}
+                isResolved={isResolved}
+              />
             )
           })
         )}

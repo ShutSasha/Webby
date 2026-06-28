@@ -3,11 +3,12 @@ import { useEffect, useRef } from 'react'
 import { InfiniteData, useQueryClient } from '@tanstack/react-query'
 import io from 'socket.io-client'
 
-import { getWsTokenAction } from '@/lib/actions/room.actions'
+import { getWsTokenAction, MemberPoints } from '@/lib/actions/room.actions'
 import { useRoomStore } from '@/stores/room.store'
 import { BaseServerResponse, PaginatedData } from '@/types/general.types'
 
 import { ChatMessage } from '../actions/chat.actions'
+import { RoomVote } from '../actions/vote.actions'
 
 export const useRoomWebSocket = (
   roomId: string | undefined,
@@ -39,7 +40,7 @@ export const useRoomWebSocket = (
 
       const socket = socketRef.current
 
-      socket.on('connect_error', (error: any) => {
+      socket.on('connect_error', (error: unknown) => {
         console.error('[WS ROOM] Connection Error Detailed:', error)
       })
 
@@ -114,15 +115,12 @@ export const useRoomWebSocket = (
         const myNewPoints = payload.totals[userId]
 
         if (myNewPoints !== undefined) {
-          queryClient.setQueryData(['room-member-points', roomId], (oldData: any) => {
-            if (!oldData) return oldData
+          queryClient.setQueryData(['room-member-points', roomId], (oldData: MemberPoints | undefined) => {
+            if (!oldData) return { points: myNewPoints }
 
             return {
               ...oldData,
-              data: {
-                ...oldData.data,
-                points: myNewPoints,
-              },
+              points: myNewPoints,
             }
           })
         }
@@ -133,7 +131,7 @@ export const useRoomWebSocket = (
         (payload: { id: string; voteText: string; duration: number; expiresAt: string; choices: string[] }) => {
           if (!payload || !payload.id) return
 
-          queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+          queryClient.setQueryData(['room-votes', roomId], (oldData: RoomVote[] | undefined) => {
             const newVote = { ...payload, isLocked: false }
 
             if (!Array.isArray(oldData)) return [newVote]
@@ -142,27 +140,23 @@ export const useRoomWebSocket = (
         },
       )
 
-      socket.on('VOTE_CASTED', () => {
-        queryClient.invalidateQueries({ queryKey: ['room-votes', roomId] })
-      })
-
       socket.on('VOTING_LOCKED', (payload: { votingId: string }) => {
         if (!payload || !payload.votingId) return
 
-        queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+        queryClient.setQueryData(['room-votes', roomId], (oldData: RoomVote[] | undefined) => {
           if (!Array.isArray(oldData)) return oldData
 
-          return oldData.map((vote: any) => (vote.id === payload.votingId ? { ...vote, isLocked: true } : vote))
+          return oldData.map((vote: RoomVote) => (vote.id === payload.votingId ? { ...vote, isLocked: true } : vote))
         })
       })
 
       socket.on('VOTING_RESULTS', (payload: { votingId: string; rightChoice: string; winners: string[] }) => {
         if (!payload || !payload.votingId) return
 
-        queryClient.setQueryData(['room-votes', roomId], (oldData: any) => {
+        queryClient.setQueryData(['room-votes', roomId], (oldData: RoomVote[] | undefined) => {
           if (!Array.isArray(oldData)) return oldData
 
-          return oldData.map((vote: any) =>
+          return oldData.map((vote: RoomVote) =>
             vote.id === payload.votingId
               ? {
                   ...vote,

@@ -318,9 +318,14 @@ export async function addRoomMembersAction(roomId: string, userIds: string[]): P
     }
   }
 }
-export async function getRoomMemberPointsAction(roomId: string): Promise<BaseServerResponse<{ points: number }>> {
+
+export type MemberPoints = {
+  points: number
+}
+
+export async function getRoomMemberPointsAction(roomId: string): Promise<BaseServerResponse<MemberPoints>> {
   try {
-    const { data: response } = await $api.get<BaseServerResponse<{ points: number }>>(`/rooms/${roomId}/members/points`)
+    const { data: response } = await $api.get<BaseServerResponse<MemberPoints>>(`/rooms/${roomId}/members/points`)
     return response
   } catch (error: unknown) {
     serverLog('GET_ROOM_MEMBER_POINTS_ERROR', error, true)

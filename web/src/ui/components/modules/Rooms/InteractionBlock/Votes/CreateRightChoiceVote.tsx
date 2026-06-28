@@ -8,9 +8,10 @@ import { useToastStore } from '@/stores/toast-store'
 type Props = {
   roomId: string
   onBack: () => void
+  onSuccess: () => void
 }
 
-export default function CreateRightChoiceVote({ roomId, onBack }: Props) {
+export default function CreateRightChoiceVote({ roomId, onBack, onSuccess }: Props) {
   const [voteText, setVoteText] = useState('')
   const [duration, setDuration] = useState(120)
   const [choices, setChoices] = useState(['', ''])
@@ -28,7 +29,7 @@ export default function CreateRightChoiceVote({ roomId, onBack }: Props) {
       return
     }
 
-    createVote({ roomId, voteText: voteText.trim(), duration, choices: validChoices }, { onSuccess: onBack })
+    createVote({ roomId, voteText: voteText.trim(), duration, choices: validChoices }, { onSuccess: onSuccess })
   }
 
   const handleChoiceChange = (index: number, value: string) => {
