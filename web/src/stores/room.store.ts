@@ -6,6 +6,9 @@ interface RoomState {
   tab: TabType
   setTab: (tab: TabType) => void
 
+  socket: SocketIOClient.Socket | null
+  setSocket: (socket: SocketIOClient.Socket | null) => void
+
   syncTriggerId: string | null
   syncTargetTimecode: number | null
   isSyncCooldown: boolean
@@ -24,6 +27,9 @@ interface RoomState {
 export const useRoomStore = create<RoomState>(set => ({
   tab: 'queue',
   setTab: tab => set({ tab: tab }),
+
+  socket: null,
+  setSocket: socket => set({ socket }),
 
   syncTriggerId: null,
   syncTargetTimecode: null,
