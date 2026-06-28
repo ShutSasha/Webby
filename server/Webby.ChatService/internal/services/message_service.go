@@ -44,9 +44,9 @@ type eventEnvelope struct {
 }
 
 const (
-	EventTypeNewMessage     = "NEW_MESSAGE"
-	EventTypeMessageUpdated = "MESSAGE_UPDATED"
-	EventTypeMessageDeleted = "MESSAGE_DELETED"
+	eventTypeNewMessage     = "NEW_MESSAGE"
+	eventTypeMessageUpdated = "MESSAGE_UPDATED"
+	eventTypeMessageDeleted = "MESSAGE_DELETED"
 )
 
 type messageService struct {
@@ -130,7 +130,7 @@ func (s *messageService) SaveMessage(ctx context.Context, chatID, senderID uuid.
 	}
 
 	envelope := eventEnvelope{
-		Type:    EventTypeNewMessage,
+		Type:    eventTypeNewMessage,
 		Payload: richMessage,
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
@@ -246,7 +246,7 @@ func (s *messageService) Update(ctx context.Context, chatID, messageID, userID u
 	}
 
 	envelope := eventEnvelope{
-		Type:    EventTypeMessageUpdated,
+		Type:    eventTypeMessageUpdated,
 		Payload: richMessage,
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
@@ -280,7 +280,7 @@ func (s *messageService) Delete(ctx context.Context, chatID, messageID, userID u
 	}
 
 	envelope := eventEnvelope{
-		Type:    EventTypeMessageDeleted,
+		Type:    eventTypeMessageDeleted,
 		Payload: map[string]uuid.UUID{"id": messageID},
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())

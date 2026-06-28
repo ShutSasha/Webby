@@ -3,12 +3,15 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"webby/admin-service/internal/apperrors"
 	"webby/admin-service/internal/grpc/mediapb"
 	"webby/admin-service/internal/models"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 type mediaClient struct {
@@ -43,6 +46,14 @@ func (c *mediaClient) GetVideoByID(ctx context.Context, videoID uuid.UUID) (*mod
 		Id: "wb_" + videoID.String(),
 	})
 	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.InvalidArgument:
+				return nil, fmt.Errorf("%s: %w", op, apperrors.ErrVideoAlreadyBanned)
+			}
+		}
+
 		return nil, fmt.Errorf("%s %w", op, err)
 	}
 

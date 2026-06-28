@@ -439,6 +439,8 @@ paths:
 
         ## Response
         Returns the newly created chat with its unique identifier and creation timestamp.
+        Sends an `UPDATE_CHAT_HISTORY` event. See the 
+        [WsGateway documentation](/index.html?urls.primaryName=WsGateway).
       operationId: createChat
       security:
         - bearerAuth: []
@@ -546,6 +548,8 @@ paths:
         ## Broadcasting
         Upon successful deletion, the server broadcasts a notification to all WebSocket clients 
         connected to this chat via a deletion event.
+        Sends a `CHAT_DELETED` event. See the 
+        [WsGateway documentation](/index.html?urls.primaryName=WsGateway).
       operationId: deleteChat
       security:
         - bearerAuth: []

@@ -15,10 +15,10 @@ import (
 	loggerMw "webby/wsgateway/pkg/http/middleware/logger"
 )
 
-func NewServer(cfg *config.Config, service tokenGenerator, logger *slog.Logger, wsSrv *ws.Server) http.Handler {
+func NewServer(cfg *config.Config, service tokenGenerator, logger *slog.Logger, wsSrv *ws.Server, broker broker) http.Handler {
 	requireAuth := auth.AuthMiddleware([]byte(cfg.JwtSecret))
 
-	handler := NewHandler(service)
+	handler := New(service, broker)
 
 	gin.SetMode(gin.ReleaseMode)
 
@@ -30,12 +30,13 @@ func NewServer(cfg *config.Config, service tokenGenerator, logger *slog.Logger, 
 	router.GET("/swagger", swaggerUI)
 	router.GET("/swagger/", swaggerUI)
 	router.GET("/swagger/index.html", swaggerUI)
-	router.StaticFile("/swagger/doc.json", "./docs/oas.json")
+	router.StaticFile("/swagger/doc.json", "./docs/oas.yaml")
 
 	authGroup := router.Group("/")
 	authGroup.Use(requireAuth)
 	{
 		authGroup.GET("/api/ws-token", handler.getWsToken)
+		authGroup.GET("/api/sse", handler.streamSSE)
 	}
 
 	return router

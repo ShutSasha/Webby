@@ -144,27 +144,6 @@ func (r *repository) MarkVoteAsLocked(ctx context.Context, voteID uuid.UUID) err
 	return err
 }
 
-func (r *repository) GetVotingUserWinners(ctx context.Context, voteID uuid.UUID, rightChoice string) ([]uuid.UUID, error) {
-	const op = "repository.GetVotingUserWinners"
-	votesKey := fmt.Sprintf("votings:%s:user_choices", voteID)
-
-	allVotes, err := r.client.HGetAll(ctx, votesKey).Result()
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	winners := make([]uuid.UUID, 0)
-	for userIDStr, choice := range allVotes {
-		if choice == rightChoice {
-			if parsedID, parseErr := uuid.Parse(userIDStr); parseErr == nil {
-				winners = append(winners, parsedID)
-			}
-		}
-	}
-
-	return winners, nil
-}
-
 func (r *repository) GetVoteByID(ctx context.Context, id uuid.UUID) (*models.Vote, error) {
 	const op = "repository.GetVoteByID"
 	log := logger.FromContext(ctx).With("op", op)
