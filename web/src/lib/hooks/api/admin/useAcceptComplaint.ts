@@ -30,8 +30,6 @@ export const useAcceptComplaintMutation = () => {
 
       queryClient.setQueriesData({ queryKey: ['complaints'] }, updatePaginationCache)
 
-      addToast('Complaint accepted successfully', 'success')
-
       return { previousComplaints }
     },
     onError: (error: ServerActionError, _variables, context) => {
