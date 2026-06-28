@@ -11,17 +11,18 @@ type Props = {
   inputClassName?: string
   iconClassName?: string
   containerClassName?: string
+  delayMs?: number
 }
 
-const DEFAULT_ICON_CLASSNAME = 'left-4 h-6 w-6 text-neutral-600'
-const DEFAULT_INPUT_CLASSNAME =
-  'pl-12 py-3 rounded-2xl font-medium text-[16px] leading-5 border border-neutral-800 w-full '
+const DEFAULT_ICON_CLASSNAME = 'left-4 h-6 w-6 text-foreground-disabled'
+const DEFAULT_INPUT_CLASSNAME = 'pl-12 py-3 rounded-2xl font-medium text-[16px] leading-5 border border-border w-full '
 
 export default function Search({
   placeholder,
   inputClassName = DEFAULT_INPUT_CLASSNAME,
   iconClassName = DEFAULT_ICON_CLASSNAME,
   containerClassName = '',
+  delayMs = 300,
 }: Props) {
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -38,7 +39,7 @@ export default function Search({
 
     const url = `${pathname}?${params.toString()}`
     replace(url as Route)
-  }, 300)
+  }, delayMs)
 
   return (
     <div className={`relative ${containerClassName}`}>
@@ -51,7 +52,7 @@ export default function Search({
         name="search"
         autoComplete="off"
         className={`${inputClassName} focus:border-emerald-500 focus:ring-emerald-500 ring-[0.1px] ring-transparent
-          block placeholder:text-neutral-600 focus:outline-none `}
+          block placeholder:text-foreground-disabled focus:outline-none `}
         placeholder={placeholder}
         onChange={e => {
           handleSearch(e.target.value)

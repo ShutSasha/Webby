@@ -29,7 +29,7 @@ export async function getPublicRooms(
 
     const queryString = params.toString()
 
-    const url = queryString ? `${endpoint}/public?${queryString}` : endpoint
+    const url = `${endpoint}/public?${queryString}`
 
     const { data: response } = await $api.get<BaseServerResponse<GetPublicRooms>>(url)
 
@@ -46,7 +46,6 @@ export async function getPublicRooms(
   }
 }
 
-// TODO-ROOMS: check whether search params set correct or not
 export async function getUserRooms(
   query: string,
   page: number,
@@ -60,8 +59,8 @@ export async function getUserRooms(
     if (pageSize) params.append('limit', pageSize.toString())
 
     const queryString = params.toString()
-    // TODO-ROOMS: only url with queryString must be exist, replace it later when server is ready
-    const url = queryString ? `${endpoint}/my?${queryString}` : `${endpoint}/my`
+
+    const url = `${endpoint}/my?${queryString}`
 
     const { data: response } = await $api.get<BaseServerResponse<GetUserRoomsResponse>>(url)
 
@@ -319,9 +318,14 @@ export async function addRoomMembersAction(roomId: string, userIds: string[]): P
     }
   }
 }
-export async function getRoomMemberPointsAction(roomId: string): Promise<BaseServerResponse<{ points: number }>> {
+
+export type MemberPoints = {
+  points: number
+}
+
+export async function getRoomMemberPointsAction(roomId: string): Promise<BaseServerResponse<MemberPoints>> {
   try {
-    const { data: response } = await $api.get<BaseServerResponse<{ points: number }>>(`/rooms/${roomId}/members/points`)
+    const { data: response } = await $api.get<BaseServerResponse<MemberPoints>>(`/rooms/${roomId}/members/points`)
     return response
   } catch (error: unknown) {
     serverLog('GET_ROOM_MEMBER_POINTS_ERROR', error, true)

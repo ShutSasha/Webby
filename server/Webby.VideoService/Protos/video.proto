@@ -4,14 +4,21 @@ option csharp_namespace="Webby.VideoService.VideoGrpcServer";
 
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 service VideoGrpcService {
   rpc CheckVideoExists (CheckVideoExistRequest) returns (google.protobuf.BoolValue);
   rpc GetUserStatistic (GetUserStatisticRequest) returns (GetUserStatisticResponse);
+  rpc BanVideo (BanVideoRequest) returns (google.protobuf.Empty);
 }
 
 message CheckVideoExistRequest{
-  string videoId = 1;
+  string requestUserId = 1;
+  string videoId = 2;
+}
+
+message BanVideoRequest {
+  string videoID = 1;
 }
 
 message GetUserStatisticRequest {

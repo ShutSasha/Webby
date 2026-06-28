@@ -20,7 +20,8 @@ export default function ChatMessagesList({ chatId, currentUserId, onEditMessage 
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useGetChatMessagesQuery(chatId)
   const { mutate: deleteMessage, isPending: isDeletingMessage, variables: deleteVars } = useDeleteMessageMutation()
 
-  const messages = data?.pages.flatMap(page => page.data?.items || []) || []
+  const rawMessages = data?.pages.flatMap(page => page.data?.items || []) || []
+  const messages = Array.from(new Map(rawMessages.map(msg => [msg.id, msg])).values())
 
   const [contextMenu, setContextMenu] = useState<{
     isOpen: boolean
@@ -75,12 +76,13 @@ export default function ChatMessagesList({ chatId, currentUserId, onEditMessage 
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col-reverse gap-2 relative">
+      <div className="flex-1 overflow-y-auto p-6 flex flex-col-reverse gap-2 relative">
+        <div className="shrink-0 h-px w-full" style={{ overflowAnchor: 'auto' }} />
         {isLoading && messages.length === 0 ? (
           <ChatMessagesListSkeleton />
         ) : (
           messages.map((msg, index) => {
-            const isMe = msg.sender.id === currentUserId
+            const isMe = msg?.sender?.id === currentUserId
             const isLast = index === messages.length - 1
 
             const isDeleting = isDeletingMessage && deleteVars?.messageId === msg.id
@@ -96,15 +98,16 @@ export default function ChatMessagesList({ chatId, currentUserId, onEditMessage 
                 <div
                   className={`px-4 py-2.5 flex items-end gap-3 shadow-sm cursor-context-menu ${
                     isMe
-                      ? 'bg-emerald-500 text-neutral-950 rounded-2xl rounded-br-sm border border-neutral-800/50'
-                      : 'bg-neutral-800 text-neutral-300 rounded-2xl rounded-bl-sm font-medium'
+                      ? `bg-emerald-500 dark:text-foreground-inverse text-neutral-900 rounded-2xl rounded-br-sm border
+                        border-border/50`
+                      : 'bg-background text-foreground-subtle rounded-2xl rounded-bl-sm font-medium'
                     }`}
                 >
                   <p className="text-[15px] leading-relaxed break-all whitespace-pre-wrap">{msg.content}</p>
 
                   <div
                     className={`text-[10px] shrink-0 translate-y-0.5 flex gap-1.5 items-center ${
-                      isMe ? 'text-emerald-900/75' : 'text-neutral-600'
+                      isMe ? 'text-emerald-900/75' : 'text-foreground-disabled'
                     }`}
                   >
                     {msg.isEdited && <span>edited</span>}
@@ -131,7 +134,7 @@ export default function ChatMessagesList({ chatId, currentUserId, onEditMessage 
         )}
 
         {isFetchingNextPage && (
-          <div className="text-center text-xs text-neutral-500 py-2">Loading older messages...</div>
+          <div className="text-center text-xs text-foreground-faint py-2">Loading older messages...</div>
         )}
       </div>
 

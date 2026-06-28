@@ -22,6 +22,7 @@ configs = [
     PROJECT_ROOT / "server/Webby.ChatService/config/config.yaml.temp",
     PROJECT_ROOT / "server/Webby.NotificationService/appsettings.Development.json.temp",
     PROJECT_ROOT / "server/Webby.AchievementService/appsettings.Development.json.temp",
+    PROJECT_ROOT / "server/Webby.AdminService/config/config.yaml.temp",
     PROJECT_ROOT / "server/Webby.WsGateway/config/config.yaml.temp"
 ]
 

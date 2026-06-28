@@ -8,12 +8,11 @@ import ActionButton from './ActionButton'
 import ComplaintModal, { TargetType } from './ComplaintModal'
 
 type Props = {
-  authorId: string | undefined
   targetId: string
   targetType: TargetType
 }
 
-export default function ComplaintButton({ authorId, targetId, targetType }: Props) {
+export default function ComplaintButton({ targetId, targetType }: Props) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -22,13 +21,7 @@ export default function ComplaintButton({ authorId, targetId, targetType }: Prop
         <ComplaintIcon className="w-4 h-4" />
       </ActionButton>
 
-      <ComplaintModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        authorId={authorId}
-        targetId={targetId}
-        targetType={targetType}
-      />
+      <ComplaintModal isOpen={isOpen} onClose={() => setIsOpen(false)} targetId={targetId} targetType={targetType} />
     </>
   )
 }

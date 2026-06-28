@@ -22,11 +22,11 @@ export default function PlaylistQueueFooter({
       )}
 
       {!hasMore && videosLength > 0 && (
-        <p className="text-center text-xs text-neutral-600 py-4 italic">End of playlist</p>
+        <p className="text-center text-xs text-foreground-disabled py-4 italic">End of playlist</p>
       )}
 
       {!loading && videosLength === 0 && (
-        <p className="text-center text-neutral-500 py-10">
+        <p className="text-center text-foreground-faint py-10">
           {appliedQuery.trim() !== '' ? 'No videos found' : 'Playlist is empty'}
         </p>
       )}

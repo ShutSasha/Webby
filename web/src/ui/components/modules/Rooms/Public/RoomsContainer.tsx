@@ -41,11 +41,11 @@ export default function RoomsContainer({ query, category, limit, gridClassName }
     return (
       <div className="flex flex-1 items-center justify-center py-20">
         {query.length > 0 && (
-          <p className="text-neutral-500 text-center">
-            Rooms by query <span className="text-neutral-300">{`'${query}'`}</span> not found
+          <p className="text-foreground-faint text-center">
+            Rooms by query <span className="text-foreground-subtle">{`'${query}'`}</span> not found
           </p>
         )}
-        {query.length === 0 && <p className="text-neutral-500 text-center">No rooms found</p>}
+        {query.length === 0 && <p className="text-foreground-faint text-center">No rooms found</p>}
       </div>
     )
   }

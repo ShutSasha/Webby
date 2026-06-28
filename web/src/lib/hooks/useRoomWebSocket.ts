@@ -1,12 +1,18 @@
 import { useEffect, useRef } from 'react'
 
-import { useQueryClient } from '@tanstack/react-query'
+import { InfiniteData, useQueryClient } from '@tanstack/react-query'
 import io from 'socket.io-client'
 
-import { getWsTokenAction } from '@/lib/actions/room.actions'
+import { getWsTokenAction, MemberPoints } from '@/lib/actions/room.actions'
 import { useRoomStore } from '@/stores/room.store'
+import { BaseServerResponse, PaginatedData } from '@/types/general.types'
 
 import { ChatMessage } from '../actions/chat.actions'
+import { RoomVote } from '../actions/vote.actions'
+
+export type VotingStartedPayload = Pick<RoomVote, 'id' | 'voteText' | 'duration' | 'expiresAt' | 'choices'>
+export type VotingLockedPayload = { votingId: string }
+export type VotingResultsPayload = { votingId: string; rightChoice: string }
 
 export const useRoomWebSocket = (
   roomId: string | undefined,
@@ -38,7 +44,7 @@ export const useRoomWebSocket = (
 
       const socket = socketRef.current
 
-      socket.on('connect_error', (error: any) => {
+      socket.on('connect_error', (error: unknown) => {
         console.error('[WS ROOM] Connection Error Detailed:', error)
       })
 
@@ -58,15 +64,22 @@ export const useRoomWebSocket = (
         }
       })
 
-      socket.on('QUEUE_UPDATED', (payload: { position: number[] }) => {
+      socket.on('QUEUE_UPDATED', () => {
         queryClient.invalidateQueries({ queryKey: ['room-queue', roomId] })
       })
 
       socket.on('NEW_MESSAGE', (payload: ChatMessage) => {
         if (!payload) return
 
-        queryClient.setQueryData(['chat-messages', chatId], (oldData: any) => {
+        type ChatQueryData = InfiniteData<BaseServerResponse<PaginatedData<ChatMessage>>>
+
+        queryClient.setQueryData<ChatQueryData>(['chat-messages', chatId], oldData => {
           if (!oldData || !oldData.pages || oldData.pages.length === 0) {
+            return oldData
+          }
+
+          const allItems = oldData.pages.flatMap(p => p.data?.items || [])
+          if (allItems.some(msg => msg.id === payload.id)) {
             return oldData
           }
 
@@ -74,16 +87,29 @@ export const useRoomWebSocket = (
           const firstPage = { ...newPages[0] }
 
           if (firstPage.data && firstPage.data.items) {
-            firstPage.data = {
-              ...firstPage.data,
-              items: [payload, ...firstPage.data.items],
+            const tempMsgIndex = firstPage.data.items.findIndex(
+              msg =>
+                msg.id.startsWith('temp-') && msg.content === payload.content && msg.sender.id === payload.sender.id,
+            )
+
+            if (tempMsgIndex !== -1) {
+              const newItems = [...firstPage.data.items]
+              newItems[tempMsgIndex] = payload
+              firstPage.data = {
+                ...firstPage.data,
+                items: newItems,
+              }
+            } else {
+              firstPage.data = {
+                ...firstPage.data,
+                items: [payload, ...firstPage.data.items],
+              }
             }
+
             newPages[0] = firstPage
           }
 
-          const updatedData = { ...oldData, pages: newPages }
-
-          return updatedData
+          return { ...oldData, pages: newPages }
         })
       })
 
@@ -93,18 +119,65 @@ export const useRoomWebSocket = (
         const myNewPoints = payload.totals[userId]
 
         if (myNewPoints !== undefined) {
-          queryClient.setQueryData(['room-member-points', roomId], (oldData: any) => {
-            if (!oldData) return oldData
+          queryClient.setQueryData(['room-member-points', roomId], (oldData: MemberPoints | undefined) => {
+            if (!oldData) return { points: myNewPoints }
 
             return {
               ...oldData,
-              data: {
-                ...oldData.data,
-                points: myNewPoints,
-              },
+              points: myNewPoints,
             }
           })
         }
+      })
+
+      socket.on('VOTING_STARTED', (payload: VotingStartedPayload) => {
+        if (!payload || !payload.id) return
+
+        queryClient.setQueryData(['room-votes', roomId], (oldData: RoomVote[] | undefined) => {
+          const newVote = { ...payload, isLocked: false }
+
+          if (!Array.isArray(oldData)) return [newVote]
+          return [newVote, ...oldData]
+        })
+      })
+
+      socket.on('VOTING_LOCKED', ({ votingId }: VotingLockedPayload) => {
+        if (!votingId) return
+
+        queryClient.setQueryData(['room-votes', roomId], (oldData: RoomVote[] | undefined) => {
+          if (!Array.isArray(oldData)) return oldData
+          return oldData.map((vote: RoomVote) => (vote.id === votingId ? { ...vote, isLocked: true } : vote))
+        })
+      })
+
+      socket.on('VOTING_RESULTS', ({ votingId, rightChoice }: VotingResultsPayload) => {
+        if (!votingId) return
+
+        queryClient.setQueryData(['room-votes', roomId], (oldData: RoomVote[] | undefined) => {
+          if (!Array.isArray(oldData)) return oldData
+
+          return oldData.map((vote: RoomVote) =>
+            vote.id === votingId ? { ...vote, isLocked: true, rightChoice } : vote,
+          )
+        })
+      })
+
+      socket.on('NEXT_VIDEO_VOTING_STARTED', (payload: { duration: number; expiresAt: string }) => {
+        queryClient.setQueryData(['has-next-video-voting', roomId], {
+          exists: true,
+          duration: payload.duration,
+          expiresAt: payload.expiresAt,
+        })
+      })
+
+      socket.on('NEXT_VIDEO_VOTING_RESULTS', (payload: { winnerId: string }) => {
+        if (!payload) return
+
+        queryClient.setQueryData(['has-next-video-voting', roomId], {
+          exists: false,
+          duration: 0,
+          expiresAt: new Date().toISOString(),
+        })
       })
     }
 

@@ -15,4 +15,5 @@ public interface IUserRepository : IRepository<User>
    Task<List<Guid>> GetSubscriptionIds(Guid requestUserId);
    Task<(List<Guid> Ids, int Total)> SearchByUsername(List<Guid> userIds, string search, int limit, int skip);
    Task<bool> AreMutualFollowers(Guid user1Id, Guid user2Id);
+   Task<Dictionary<int, int>> GetMonthlyRegistrationsCountAsync(DateTime startDate, DateTime endDate);
 }

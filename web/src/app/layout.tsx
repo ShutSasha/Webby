@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import NextTopLoader from 'nextjs-toploader'
 
 import NotificationPopupContainer from '@/ui/components/modules/Toast/NotificationPopupContainer'
 import ToastContainer from '@/ui/components/modules/Toast/ToastContainer'
@@ -17,8 +18,21 @@ type Props = Readonly<{
 
 export default async function RootLayout({ children }: Props) {
   return (
-    <html lang="uk">
+    <html lang="uk" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
+        <NextTopLoader
+          color="#10b981"
+          initialPosition={0.4}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={false}
+          easing="ease-out"
+          speed={400}
+          shadow="none"
+          zIndex={99999}
+        />
+
         <Providers>
           {children}
           <NotificationPopupContainer />

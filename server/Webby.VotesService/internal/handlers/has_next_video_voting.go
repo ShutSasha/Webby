@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"webby/vote-service/internal/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -9,10 +10,6 @@ import (
 
 type hasNextVideoVotingUri struct {
 	RoomID string `uri:"id" binding:"required,uuid"`
-}
-
-type hasNextVideoVotingResponse struct {
-	HasNextVideoVoting bool `json:"hasNextVideoVoting"`
 }
 
 func (h *handler) HasNextVideoVoting(c *gin.Context) {
@@ -26,17 +23,15 @@ func (h *handler) HasNextVideoVoting(c *gin.Context) {
 
 	roomID, _ := uuid.Parse(uri.RoomID)
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
-	hasVoting, err := h.service.HasNextVideoVoting(ctx, roomID, userID)
+	voting, err := h.service.HasNextVideoVoting(ctx, roomID, userID)
 	if err != nil {
 		HandleAppError(c, "failed to check for next video voting", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, ApiResponse[hasNextVideoVotingResponse]{
+	c.JSON(http.StatusOK, ApiResponse[models.NextVideoInfo]{
 		Success: true,
 		Message: "Checked if room has next video voting",
-		Data: &hasNextVideoVotingResponse{
-			HasNextVideoVoting: hasVoting,
-		},
+		Data:    voting,
 	})
 }

@@ -149,9 +149,7 @@ func TestUpdateCategory(t *testing.T) {
 			name:        "Failure - Empty Path Parameter",
 			emptyName:   true,
 			requestBody: updateCategoryRequest{Name: "Valid Name"},
-			mockSetup: func(mu *handlermocks.Mockservice) {
-				mu.EXPECT().Update(mock.Anything, "", "Valid Name").Return(fmt.Errorf("%w: old category name cannot be empty", apperrors.ErrInvalidInput)).Once()
-			},
+			mockSetup: func(mu *handlermocks.Mockservice) {},
 			expectedStatus: http.StatusBadRequest,
 			validateBody:   assertErrorUpdateResponse,
 		},

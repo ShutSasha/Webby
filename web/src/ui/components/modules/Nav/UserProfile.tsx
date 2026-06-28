@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
 
@@ -10,6 +9,7 @@ import { cn } from '@/lib/utils/general.utils'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
 import { DesktopNavElement } from './DesktopNavElement'
+import SafeImage from '../../shared/SafeImage'
 
 type UserProfileProps = {
   isExpanded: boolean
@@ -26,11 +26,7 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
   if (status === 'loading') {
     return (
       <div
-        className={cn(
-          iconSize,
-          'bg-neutral-800 animate-pulse rounded-full shrink-0',
-          isExpanded && 'w-full rounded-xl h-12',
-        )}
+        className={cn(iconSize, 'bg-card animate-pulse rounded-full shrink-0', isExpanded && 'w-full rounded-xl h-12')}
       />
     )
   }
@@ -53,15 +49,15 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
     <div
       className={cn(
         'flex items-center justify-center w-full rounded-xl transition-colors duration-300',
-        isExpanded ? 'justify-between px-2 py-1.5 hover:bg-neutral-800/60' : 'justify-center',
+        isExpanded ? 'justify-between px-2 py-1.5 hover:bg-card/60' : 'justify-center',
       )}
     >
       <Link
         href={`/profile/${session.user.id}`}
         className={cn('flex items-center justify-center', !isExpanded && 'group', isExpanded && 'gap-3')}
       >
-        <Image
-          src={session.user.image ?? 'https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg'}
+        <SafeImage
+          src={session.user.image}
           alt="user profile picture"
           width={100}
           height={100}
@@ -72,6 +68,7 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
             'object-cover rounded-full shrink-0 transition-all duration-300',
             !isExpanded && 'group-hover:ring-2 group-hover:ring-emerald-500/50',
           )}
+          fallbackType="user"
         />
 
         <div
@@ -80,15 +77,15 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
             isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0',
           )}
         >
-          <span className="text-sm font-semibold text-neutral-200 truncate max-w-[120px]">{session.user.username}</span>
-          <span className="text-xs text-neutral-500">View profile</span>
+          <span className="text-sm font-semibold text-foreground truncate max-w-[120px]">{session.user.username}</span>
+          <span className="text-xs text-muted">View profile</span>
         </div>
       </Link>
 
       <button
         onClick={handleLogout}
         className={cn(
-          `p-2 rounded-lg text-neutral-500 hover:text-red-500 hover:bg-red-500/10 transition-colors duration-300
+          `p-2 rounded-lg text-foreground-faint hover:text-red-500 hover:bg-red-500/10 transition-colors duration-300
           shrink-0`,
           !isExpanded && 'hidden',
         )}

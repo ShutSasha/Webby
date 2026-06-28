@@ -4,6 +4,7 @@ using Webby.UserService.Dtos.Statistic;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Helpers.Response;
 using Webby.UserService.Models;
+using Webby.UserService.Models.Enums;
 
 namespace Webby.UserService.Interfaces.Service;
 
@@ -23,6 +24,7 @@ public interface IUserService
    Task<PagedResponse<UserDto>> SearchUsers(SearchOptions searchOptions);
    Task<Guid> DeleteUser(Guid userId);
    Task<UserStatisticDto> GetUserStatistic(Guid userId, int? year, int? month);
-   
-
+   Task BanUser(Guid requestedUserId, Guid userId);
+   Task UnbanUser(Guid requestedUserId, Guid targetUserId);
+   Task ChangeRole(Guid requestedUserId, Guid targetUserId, Role userRole);
 }

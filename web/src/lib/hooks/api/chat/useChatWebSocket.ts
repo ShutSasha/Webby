@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react'
 
-import { useQueryClient } from '@tanstack/react-query'
+import { InfiniteData, useQueryClient } from '@tanstack/react-query'
 import io from 'socket.io-client'
 
 import { ChatMessage } from '@/lib/actions/chat.actions'
 import { getWsTokenAction } from '@/lib/actions/room.actions'
+import { BaseServerResponse, PaginatedData } from '@/types/general.types'
 
 export const useChatWebSocket = (chatId: string) => {
   const socketRef = useRef<SocketIOClient.Socket | null>(null)
@@ -35,8 +36,15 @@ export const useChatWebSocket = (chatId: string) => {
       socket.on('NEW_MESSAGE', (payload: ChatMessage) => {
         if (!payload) return
 
-        queryClient.setQueryData(['chat-messages', chatId], (oldData: any) => {
+        type ChatQueryData = InfiniteData<BaseServerResponse<PaginatedData<ChatMessage>>>
+
+        queryClient.setQueryData<ChatQueryData>(['chat-messages', chatId], oldData => {
           if (!oldData || !oldData.pages || oldData.pages.length === 0) {
+            return oldData
+          }
+
+          const allItems = oldData.pages.flatMap(p => p.data?.items || [])
+          if (allItems.some(msg => msg.id === payload.id)) {
             return oldData
           }
 
@@ -44,9 +52,23 @@ export const useChatWebSocket = (chatId: string) => {
           const firstPage = { ...newPages[0] }
 
           if (firstPage.data && firstPage.data.items) {
-            firstPage.data = {
-              ...firstPage.data,
-              items: [payload, ...firstPage.data.items],
+            const tempMsgIndex = firstPage.data.items.findIndex(
+              msg =>
+                msg.id.startsWith('temp-') && msg.content === payload.content && msg.sender?.id === payload.sender?.id,
+            )
+
+            if (tempMsgIndex !== -1) {
+              const newItems = [...firstPage.data.items]
+              newItems[tempMsgIndex] = payload
+              firstPage.data = {
+                ...firstPage.data,
+                items: newItems,
+              }
+            } else {
+              firstPage.data = {
+                ...firstPage.data,
+                items: [payload, ...firstPage.data.items],
+              }
             }
             newPages[0] = firstPage
           }

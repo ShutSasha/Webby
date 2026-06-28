@@ -23,7 +23,8 @@ func (h *handler) Create(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.Create(ctx, req.Name); err != nil {
+	err := h.service.Create(ctx, req.Name)
+	if err != nil {
 		HandleAppError(c, "Create category error", err)
 		return
 	}

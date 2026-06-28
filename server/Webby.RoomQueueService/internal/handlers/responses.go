@@ -35,6 +35,7 @@ func HandleValidationError(c *gin.Context, err error) {
 	var ve validator.ValidationErrors
 
 	if errors.As(err, &ve) {
+		log.Debug("validation error", slog.String("err", err.Error()))
 		for _, fe := range ve {
 			problems[fe.Field()] = formatErrorMessage(fe)
 		}

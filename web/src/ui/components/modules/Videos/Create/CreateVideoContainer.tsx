@@ -14,9 +14,13 @@ export default function CreateVideoContainer() {
   }
 
   return (
-    <div className="max-w-3xl w-full bg-neutral-900 rounded-[20px] border border-neutral-800 p-8 overflow-hidden">
+    <div className="max-w-3xl w-full bg-surface rounded-[20px] border border-border p-8 overflow-hidden">
       {state.step === 1 && (
-        <VideoUploadStep isUploading={state.isUploading} onVideoSelect={actions.handleVideoSelect} />
+        <VideoUploadStep
+          isUploading={state.isUploading}
+          uploadProgress={state.uploadProgress}
+          onVideoSelect={actions.handleVideoSelect}
+        />
       )}
 
       {state.step === 2 && (

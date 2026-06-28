@@ -112,7 +112,7 @@ export default function AchievementItem({
   return (
     <div
       className={cn(
-        `relative rounded-[20px] border border-border px-4 py-4 flex flex-col gap-1 items-center w-[200px] min-h-[230px]
+        `relative rounded-[20px] border border-border px-4 py-4 flex flex-col gap-1 items-center w-[200px] min-h-[250px]
         select-none transition-all shrink-0`,
         className,
         isLoading && 'pointer-events-none',
@@ -120,7 +120,7 @@ export default function AchievementItem({
     >
       {isLoading && (
         <div
-          className="absolute inset-0 bg-black/20 z-20 flex items-center justify-center backdrop-blur-[1px]
+          className="absolute inset-0 bg-surface-strong/20 z-20 flex items-center justify-center backdrop-blur-[1px]
             transition-all rounded-[20px]"
         >
           <div className="size-8 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
@@ -138,19 +138,19 @@ export default function AchievementItem({
         blurDataURL={BLUR_DATA_URLS['neutral800']}
       />
       <p className="font-bold select-text mt-1">{title}</p>
-      <p className="text-neutral-500 text-sm text-center line-clamp-2" title={description}>
+      <p className="text-foreground-faint text-sm text-center line-clamp-2" title={description}>
         {description}
       </p>
 
       {!isUnlocked ? (
         <div className="w-full mt-auto pt-3">
-          <div className="flex justify-between items-center text-[11px] text-neutral-400 mb-1.5 px-1 font-medium">
+          <div className="flex justify-between items-center text-[11px] text-foreground-muted mb-1.5 px-1 font-medium">
             <span>
               {achievementProgressValue} / {targetValue}
             </span>
             <span>{progressPercentage}%</span>
           </div>
-          <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-background rounded-full overflow-hidden">
             <div
               className={cn(
                 'h-full rounded-full transition-all duration-500',
@@ -179,7 +179,7 @@ export default function AchievementItem({
       {isUnlocked && (
         <MoreOptions
           ref={optionsRef}
-          className="absolute size-5 right-3 top-3 text-neutral-300 cursor-pointer hover:text-neutral-100
+          className="absolute size-5 right-3 top-3 text-foreground-subtle cursor-pointer hover:text-foreground-secondary
             transition-colors z-10"
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation()
@@ -191,11 +191,11 @@ export default function AchievementItem({
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute top-10 right-2 border border-border bg-neutral-800 rounded-lg p-2 z-50 shadow-xl"
+          className="absolute top-10 right-2 border border-border bg-background rounded-lg p-2 z-50 shadow-xl"
         >
           {!isPinned && (
             <p
-              className="hover:bg-neutral-700 px-2 py-1 rounded cursor-pointer transition-colors text-nowrap"
+              className="hover:bg-surface-tertiary px-2 py-1 rounded cursor-pointer transition-colors text-nowrap"
               onClick={handlePin}
             >
               Pin the achievement
@@ -203,7 +203,7 @@ export default function AchievementItem({
           )}
           {isPinned && (
             <p
-              className="hover:bg-neutral-700 px-2 py-1 rounded cursor-pointer transition-colors text-nowrap"
+              className="hover:bg-surface-tertiary px-2 py-1 rounded cursor-pointer transition-colors text-nowrap"
               onClick={handleUnpin}
             >
               Unpin the achievement

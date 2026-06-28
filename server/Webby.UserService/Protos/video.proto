@@ -11,7 +11,8 @@ service VideoGrpcService {
 }
 
 message CheckVideoExistRequest{
-  string videoId = 1;
+  string requestUserId = 1;
+  string videoId = 2;
 }
 
 message GetUserStatisticRequest {

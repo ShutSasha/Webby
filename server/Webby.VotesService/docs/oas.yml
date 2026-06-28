@@ -502,6 +502,12 @@ components:
           type: string
           format: date-time
           description: When the vote was created
+        isLocked:
+          type: boolean
+          description: Is ability to vote locked
+        myChoice:
+          type: string
+          description: User's choice (if it is present)
         choices:
           type: array
           items:
@@ -585,10 +591,17 @@ components:
         data:
           type: object
           properties:
-            hasNextVideoVoting:
+            exists:
               type: boolean
               description: Whether there is an active next-video voting session in the room.
               example: true
+            duration:
+              type: integer
+              description: how long is voting (seconds).
+              example: 20
+            expiresAt:
+              type: date-time
+              description: when voting is closing.
         errors:
           type: object
           nullable: true

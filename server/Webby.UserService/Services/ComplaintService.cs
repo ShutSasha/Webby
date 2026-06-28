@@ -26,58 +26,76 @@ public class ComplaintService : IComplaintService
    }
    
    public async Task CreateComplaint(Guid authorId, CreateComplaintRequest request)
-   {
-      if (request.TargetType == ComplaintTargetType.User && authorId == request.TargetId)
-      {
-         throw new ApiException("Create complaint error", 400, "The user cannot leave a complaint to himself");
-      }
+    {
+        _ = await _userService.GetById(authorId) 
+            ?? throw new ApiException("Create complaint error", 404, "Author user wasn't found");
 
-      _ = await _userService.GetById(authorId) 
-          ?? throw new ApiException("Create complaint error", 404, "Author user wasn't found");
+        if (request.TargetType == null)
+            throw new ApiException("Create complaint error", 400, "Target type is required");
 
-      if (request.TargetType == ComplaintTargetType.User)
-      {
-         _ = await _userService.GetById(request.TargetId) 
-             ?? throw new ApiException("Create complaint error", 404, "Target user wasn't found");
-      }
-      else if (request.TargetType == ComplaintTargetType.Video)
-      {
-         try
-         {
-            var checkVideoExistResult = await _videoGrpcServiceClient.CheckVideoExistsAsync(
-               new CheckVideoExistRequest
-               {
-                  VideoId = request.TargetId.ToString()
-               });
+        Guid parsedTargetId;
 
-            if (!checkVideoExistResult.Value)
-            {
-               throw new ApiException("Create complaint error", 404, "Video wasn't found");
-            }
-         }
-         catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
-         {
-            throw new ApiException("Create complaint error", 404, "Target video wasn't found");
-         }
-         catch (RpcException)
-         {
-            throw new ApiException("Create complaint error", 503, "Video service is unavailable");
-         }
-      }
+        switch (request.TargetType.Value)
+        {
+            case ComplaintTargetType.User:
+                if (!Guid.TryParse(request.TargetId, out parsedTargetId))
+                    throw new ApiException("Create complaint error", 400, "Invalid target user id format");
 
-      var complaint = new Complaint()
-      {
-         ComplaintId = Guid.NewGuid(),
-         AdditionalInfo = request.AdditionalInfo,
-         AuthorId = authorId,
-         CreatedAt = DateTime.UtcNow,
-         ReasonType = request.ReasonType,
-         TargetId = request.TargetId,
-         TargetType = request.TargetType!.Value
-      };
+                if (authorId == parsedTargetId)
+                    throw new ApiException("Create complaint error", 400, "The user cannot leave a complaint to himself");
 
-      await _complaintRepository.Add(complaint);
-   }
+                _ = await _userService.GetById(parsedTargetId) 
+                    ?? throw new ApiException("Create complaint error", 404, "Target user wasn't found");
+                break;
+
+            case ComplaintTargetType.Video:
+                var cleanVideoId = request.TargetId.StartsWith("wb_") 
+                    ? request.TargetId[3..] 
+                    : request.TargetId;
+
+                if (!Guid.TryParse(cleanVideoId, out parsedTargetId))
+                    throw new ApiException("Create complaint error", 400, "Invalid target video id format");
+
+                try
+                {
+                    var checkVideoExistResult = await _videoGrpcServiceClient.CheckVideoExistsAsync(
+                        new CheckVideoExistRequest
+                        {
+                            RequestUserId = authorId.ToString(),
+                            VideoId = request.TargetId
+                        });
+
+                    if (!checkVideoExistResult.Value)
+                        throw new ApiException("Create complaint error", 404, "Video wasn't found");
+                }
+                catch (RpcException ex) when (ex.StatusCode is StatusCode.NotFound or StatusCode.InvalidArgument)
+                {
+                    throw new ApiException("Create complaint error", 400, ex.Status.Detail);
+                }
+                catch (RpcException)
+                {
+                    throw new ApiException("Create complaint error", 503, "Video service is unavailable");
+                }
+                break;
+
+            default:
+                throw new ApiException("Create complaint error", 400, "Unknown target type");
+        }
+
+        var complaint = new Complaint
+        {
+            ComplaintId = Guid.NewGuid(),
+            AdditionalInfo = request.AdditionalInfo,
+            AuthorId = authorId,
+            CreatedAt = DateTime.UtcNow,
+            ReasonType = request.ReasonType,
+            TargetId = parsedTargetId,
+            TargetType = request.TargetType.Value,
+            IsBanned = false
+        };
+
+        await _complaintRepository.Add(complaint);
+    }
 
    public async Task<List<ComplaintDto>> GetUserComplaints(Guid userId)
    {
@@ -87,5 +105,10 @@ public class ComplaintService : IComplaintService
       
       return _mapper.Map<List<ComplaintDto>>(userComplaints);
    }
-   
+
+   public async Task<Complaint?> FindById(Guid complaintId)
+   => await _complaintRepository.FindById(complaintId);
+
+   public async Task SetBanStatus(Guid targetId, bool banStatus)
+       => await _complaintRepository.SetIsBanComplaintStatus(targetId,banStatus);
 }

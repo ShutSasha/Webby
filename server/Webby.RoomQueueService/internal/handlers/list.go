@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-	"webby/room-queue-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -30,27 +28,16 @@ type queueItemResponse struct {
 
 func (h *handler) List(c *gin.Context) {
 	ctx := c.Request.Context()
-	log := logger.FromContext(ctx).With("operation", "handlers.List")
 
 	var uri listUri
 	if err := c.ShouldBindUri(&uri); err != nil {
-		log.Debug("invalid room id in uri", slog.String("err", err.Error()))
-		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
-			Success: false,
-			Message: "Validation error",
-			Errors:  map[string]string{"id": "invalid room id format"},
-		})
+		HandleValidationError(c, err)
 		return
 	}
 
 	var query listQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		log.Debug("invalid query params", slog.String("err", err.Error()))
-		c.JSON(http.StatusBadRequest, ApiResponse[struct{}]{
-			Success: false,
-			Message: "Validation error",
-			Errors:  map[string]string{"query": "invalid page or limit values"},
-		})
+		HandleValidationError(c, err)
 		return
 	}
 
@@ -58,7 +45,6 @@ func (h *handler) List(c *gin.Context) {
 	userID, _ := uuid.Parse(ctx.Value("userID").(string))
 	items, total, err := h.service.GetQueue(ctx, roomID, userID, query.Page, query.Limit)
 	if err != nil {
-		log.Error("list queue error", slog.String("err", err.Error()))
 		HandleAppError(c, "List queue error", err)
 		return
 	}

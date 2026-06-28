@@ -5,7 +5,7 @@ import { getChatMessagesAction } from '@/lib/actions/chat.actions'
 export const useGetChatMessagesQuery = (chatId: string | undefined) => {
   return useInfiniteQuery({
     queryKey: ['chat-messages', chatId],
-    queryFn: ({ pageParam = 1 }) => getChatMessagesAction(chatId!, pageParam, 20),
+    queryFn: ({ pageParam = 1 }) => getChatMessagesAction(chatId!, pageParam, 30),
     getNextPageParam: lastPage => {
       if (!lastPage.data) return undefined
       const { page, pageSize, totalCount } = lastPage.data

@@ -64,7 +64,14 @@ public class VideoController: ControllerBase
       var pagesResponse = await _videoService.SearchVideoInPlaylist(requestUserId,playlistId, searchOptions);
       return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video from playlist",pagesResponse));
    }
-   
+
+   [HttpGet("moderation/search")]
+   [SwaggerOperation("Search videos route for moderation dashboard", "MODERATION REQUIRED")]
+   public async Task<ActionResult<PagedResponse<VideoModerationPreview>>> SearchVideoModeration([FromQuery] SearchOptions searchOptions)
+   {
+      var videoSearchResponse = await _videoService.SearchModerationVideos(searchOptions);
+      return Ok(ApiResponse<PagedResponse<VideoModerationPreview>>.Ok("Successfully retrieved videos", videoSearchResponse));
+   }
    
    [HttpGet("users/{userId:guid}")]
    [SwaggerOperation("Get user videos")]
@@ -123,6 +130,22 @@ public class VideoController: ControllerBase
       var userId = JwtHelper.ExtractUserId(HttpContext)!;
       await _videoService.CreateVideo(userId.Value, request);
       return Ok(ApiResponse.Ok("Successfully create video"));
+   }
+
+   [HttpPost("blocks/{videoId}/ban")]
+   [SwaggerOperation("", "MODERATION ROLE REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> BanVideo([FromRoute] string videoId)
+   {
+      await _videoService.BanVideo(videoId);
+      return Ok(ApiResponse.Ok("Successfully banned specified video"));
+   }
+   
+   [HttpPost("blocks/{videoId}/unban")]
+   [SwaggerOperation("", "MODERATION ROLE REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> UnbanVideo([FromRoute] string videoId)
+   {
+      await _videoService.UnbanVideo(videoId);
+      return Ok(ApiResponse.Ok("Successfully unbanned specified video"));
    }
 
    [HttpPatch]

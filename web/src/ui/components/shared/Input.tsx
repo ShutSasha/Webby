@@ -8,7 +8,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({ className, autoComplet
       ref={ref}
       autoComplete={autoComplete}
       className={` ${className} focus:border-emerald-500 focus:ring-emerald-500 ring-[0.3px] ring-transparent border
-        border-border block rounded-lg text-sm placeholder:text-[#FCFFFF]/16 focus:outline-none `}
+        border-border block rounded-lg text-sm placeholder:text-foreground-strong/20 focus:outline-none `}
       {...props}
     />
   )

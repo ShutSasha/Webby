@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 
 import { searchUserPlaylists } from '@/lib/actions/playlist.actions'
+import { unwrapServerAction } from '@/lib/utils/general.utils'
 
 const PAGE_SIZE = 20
 
@@ -16,11 +17,14 @@ export const useSearchUserPlaylistsQuery = (
 
     queryFn: async ({ pageParam = 1 }) => {
       if (!userId) throw new Error('User ID is required')
-      return await searchUserPlaylists(userId, searchQuery, pageParam, PAGE_SIZE, videoId, shouldShowEmptyPlaylists)
+
+      return unwrapServerAction(
+        await searchUserPlaylists(userId, searchQuery, pageParam, PAGE_SIZE, videoId, shouldShowEmptyPlaylists),
+      )
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      const items = lastPage?.data?.items || []
+      const items = lastPage?.items || []
 
       if (items.length === PAGE_SIZE) {
         return allPages.length + 1
