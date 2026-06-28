@@ -14,4 +14,4 @@ redis:
   addr: "localhost:6379"
   password: "{{RedisPassword}}"
   db: 0
-  pattern: "chat:*"
+  pattern: "{chat,user}:*"
