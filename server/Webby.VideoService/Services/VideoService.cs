@@ -409,6 +409,45 @@ public class VideoService : IVideoService
       };
    }
 
+   public async Task<PagedResponse<VideoModerationPreview>> SearchModerationVideos(SearchOptions options)
+   {
+      var skip = (options.Page - 1) * options.PageSize;
+      var (additionalConditional, parameters, predicate) = VideoQueryFilters.ForModerationSearch();
+      
+      var (videos, total) = await _videoRepository.SearchAsync(
+         tableName: "Videos",
+         columnName: "Name",
+         searchText: options.SearchText,
+         skip: skip,
+         take: options.PageSize,
+         additionalWhere: additionalConditional,
+         parameters: parameters,
+         predicateFactory: predicate
+      );
+      
+      if (videos.Count == 0)
+      {
+         return new PagedResponse<VideoModerationPreview>
+         {
+            Items = [],
+            TotalCount = total,
+            Page = options.Page,
+            PageSize = options.PageSize
+         };
+      }
+
+      var videoItems = await MapAndEnrichWithUsersAsync<VideoModerationPreview>(videos);
+
+      return new PagedResponse<VideoModerationPreview>()
+      {
+         Items = videoItems,
+         TotalCount = total,
+         Page = options.Page,
+         PageSize = options.PageSize
+      };
+
+   }
+
    public async Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId, Guid playlistId, SearchOptions searchOptions)
    {
        var searchText = searchOptions.SearchText?.Trim();

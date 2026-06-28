@@ -18,6 +18,7 @@ public interface IVideoService
    Task<PagedResponse<VideoDto>> GetUserVideos(Guid userId, Guid? requestedUserId, GetUserVideosRequest request);
    Task UpdateVideoInformation(Guid userId, UpdateVideoRequest request);
    Task<PagedResponse<VideoDto>> SearchVideo(Guid? requestUserId, SearchVideoOptions options);
+   Task<PagedResponse<VideoModerationPreview>> SearchModerationVideos(SearchOptions options);
    Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId, Guid playlistId, SearchOptions searchOptions); 
    Task<PagedResponse<PreviewVideoDto>> GetRecommendationVideos(string videoId, Guid? requestUserId, int contentSeed,int page = 1, int size = 20);
    Task<bool> CheckPrivateVideos(List<Guid> videoIds, Guid requestUserId);

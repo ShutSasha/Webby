@@ -64,7 +64,14 @@ public class VideoController: ControllerBase
       var pagesResponse = await _videoService.SearchVideoInPlaylist(requestUserId,playlistId, searchOptions);
       return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video from playlist",pagesResponse));
    }
-   
+
+   [HttpGet("moderation/search")]
+   [SwaggerOperation("Search videos route for moderation dashboard", "MODERATION REQUIRED")]
+   public async Task<ActionResult<PagedResponse<VideoModerationPreview>>> SearchVideoModeration([FromQuery] SearchOptions searchOptions)
+   {
+      var videoSearchResponse = await _videoService.SearchModerationVideos(searchOptions);
+      return Ok(ApiResponse<PagedResponse<VideoModerationPreview>>.Ok("Successfully retrieved videos", videoSearchResponse));
+   }
    
    [HttpGet("users/{userId:guid}")]
    [SwaggerOperation("Get user videos")]

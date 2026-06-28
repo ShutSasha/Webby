@@ -14,6 +14,27 @@
       },
 
       {
+         "DownstreamPathTemplate": "/api/videos/moderation/search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/moderation/search",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+      
+      {
          "DownstreamPathTemplate": "/api/playlists/{userId}",
          "DownstreamScheme": "http",
          "DownstreamHostAndPorts": [
