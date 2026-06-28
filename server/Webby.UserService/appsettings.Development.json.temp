@@ -32,7 +32,7 @@
   "GrpcClients": {
     "VideoServiceUrl": "{{VideoGrpcServiceUrl}}",
     "NotificationServiceUrl": "{{NotificationGrpcServiceUrl}}",
-    "AchievementServiceUrl": "{{AchievementServiceUrl}}"
+    "AchievementServiceUrl": "{{AchievementGrpcServiceUrl}}"
   }
   
 }
