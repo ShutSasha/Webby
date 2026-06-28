@@ -363,7 +363,10 @@ info:
 
     **Triggered By:** When the chat member deletes the chat. You can make user to exit the current chat and update chat history if needed.
 
-    ### 15. `UPDATE_CHAT_HISTORY`
+    ---------
+    ### SSE-EVENTS
+
+    ### 1. `UPDATE_CHAT_HISTORY`
     Notifies a user that their chat history has changed and they should refresh the chat list.
 
     **Triggered By:** When a new private chat is created or the chat history is updated for the user.
@@ -452,7 +455,7 @@ paths:
       summary: Open a server-sent events stream
       description: |
         TO ESTABLISH CONNECTION USE THIS LINK:
-        http://localhost:8090/api/sse
+        http://localhost:8090/api/sse ------------------
         Establish an authenticated SSE connection to receive one-way gateway notifications.
         The client must send `Authorization: Bearer <JWT>`.
         The server sends `text/event-stream` events and keeps the connection open until the client disconnects.
