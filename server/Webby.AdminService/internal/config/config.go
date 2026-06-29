@@ -17,14 +17,12 @@ type Config struct {
 }
 
 type HttpConfig struct {
-	Host    string        `yaml:"host" env-default:"localhost" env:"HTTP_HOST"`
-	Port    int           `yaml:"port" env-default:"5050" env:"HTTP_PORT"`
+	Host    string        `yaml:"host" env-default:"0.0.0.0" env:"HTTP_HOST"`
+	Port    int           `yaml:"port" env-default:"8085" env:"HTTP_PORT"`
 	Timeout time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
 }
 
 type GrpcConfig struct {
-	Host                       string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
-	Port                       int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
 	MediaServiceAddress        string `yaml:"mediaServiceAddress" env-default:"localhost:5005" env:"GRPC_MEDIA_SERVICE_ADDRESS"`
 	ComplaintServiceAddress    string `yaml:"complaintServiceAddress" env-default:"localhost:5004" env:"GRPC_COMPLAINT_SERVICE_ADDRESS"`
 	NotificationServiceAddress string `yaml:"notificationServiceAddress" env-default:"localhost:5007" env:"GRPC_NOTIFICATION_SERVICE_ADDRESS"`
@@ -33,8 +31,13 @@ type GrpcConfig struct {
 
 func MustLoad() *Config {
 	configPath := fetchConfigPath()
+
 	if configPath == "" {
-		panic("config path is empty")
+		var cfg Config
+		if err := cleanenv.ReadEnv(&cfg); err != nil {
+			panic("cannot read config from env: " + err.Error())
+		}
+		return &cfg
 	}
 
 	return MustLoadPath(configPath)

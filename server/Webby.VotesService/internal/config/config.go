@@ -17,14 +17,12 @@ type Config struct {
 }
 
 type HttpConfig struct {
-	Host    string        `yaml:"host" env-default:"localhost" env:"HTTP_HOST"`
-	Port    int           `yaml:"port" env-default:"5050" env:"HTTP_PORT"`
+	Host    string        `yaml:"host" env-default:"0.0.0.0" env:"HTTP_HOST"`
+	Port    int           `yaml:"port" env-default:"8082" env:"HTTP_PORT"`
 	Timeout time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
 }
 
 type GrpcConfig struct {
-	Host                string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
-	Port                int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
 	ChatServiceAddress  string `yaml:"chatServiceAddress" env-default:"localhost:5008" env:"GRPC_CHAT_SERVICE_ADDRESS"`
 	RoomServiceAddress  string `yaml:"roomServiceAddress" env-default:"localhost:5006" env:"GRPC_ROOM_SERVICE_ADDRESS"`
 	QueueServiceAddress string `yaml:"queueServiceAddress" env-default:"localhost:5007" env:"GRPC_QUEUE_SERVICE_ADDRESS"`
@@ -38,8 +36,13 @@ type RedisConfig struct {
 
 func MustLoad() *Config {
 	configPath := fetchConfigPath()
+
 	if configPath == "" {
-		panic("config path is empty")
+		var cfg Config
+		if err := cleanenv.ReadEnv(&cfg); err != nil {
+			panic("cannot read config from env: " + err.Error())
+		}
+		return &cfg
 	}
 
 	return MustLoadPath(configPath)

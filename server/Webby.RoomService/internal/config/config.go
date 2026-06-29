@@ -25,8 +25,8 @@ type WorkerConfig struct {
 	ZombieTTL     time.Duration `yaml:"zombie_ttl" env-default:"2m" env:"ZOMBIE_TTL"`
 }
 type HttpConfig struct {
-	Host    string        `yaml:"host" env-default:"localhost" env:"HTTP_HOST"`
-	Port    int           `yaml:"port" env-default:"5050" env:"HTTP_PORT"`
+	Host    string        `yaml:"host" env-default:"0.0.0.0" env:"HTTP_HOST"`
+	Port    int           `yaml:"port" env-default:"8080" env:"HTTP_PORT"`
 	Timeout time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
 }
 
@@ -39,7 +39,7 @@ type AwsConfig struct {
 
 type GrpcConfig struct {
 	Host                       string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
-	Port                       int    `yaml:"port" env-default:"5051" env:"GRPC_PORT"`
+	Port                       int    `yaml:"port" env-default:"50054" env:"GRPC_PORT"`
 	MediaServiceAddress        string `yaml:"mediaServiceAddress" env-default:"localhost:5005" env:"GRPC_MEDIA_SERVICE_ADDRESS"`
 	ChatServiceAddress         string `yaml:"chatServiceAddress" env-default:"localhost:5008" env:"GRPC_CHAT_SERVICE_ADDRESS"`
 	CategoryServiceAddress     string `yaml:"categoryServiceAddress" env-default:"localhost:5009" env:"GRPC_CATEGORY_SERVICE_ADDRESS"`
@@ -55,8 +55,13 @@ type RedisConfig struct {
 
 func MustLoad() *Config {
 	configPath := fetchConfigPath()
+
 	if configPath == "" {
-		panic("config path is empty")
+		var cfg Config
+		if err := cleanenv.ReadEnv(&cfg); err != nil {
+			panic("cannot read config from env: " + err.Error())
+		}
+		return &cfg
 	}
 
 	return MustLoadPath(configPath)

@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"flag"
 	"os"
 	"time"
 
@@ -13,35 +13,61 @@ type Config struct {
 	JwtSecret        string        `yaml:"jwtSecret" env:"JWT_SECRET" env-required:"true"`
 	ConnectionString string        `yaml:"connectionString" env:"CONNECTION_STRING"`
 	TokenTTL         time.Duration `yaml:"token_ttl" env-default:"15m" env:"TOKEN_TTL"`
+	Http             Http          `yaml:"http"`
+	Redis            Redis         `yaml:"redis"`
+}
 
-	Http struct {
-		Host        string        `yaml:"host" env-default:"localhost" env:"HTTP_HOST"`
-		Port        int           `yaml:"port" env-default:"8090" env:"HTTP_PORT"`
-		Timeout     time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
-		CallTimeout time.Duration `yaml:"call_timeout" env-default:"5s" env:"HTTP_CALL_TIMEOUT"`
-	} `yaml:"http"`
+type Http struct {
+	Host        string        `yaml:"host" env-default:"0.0.0.0" env:"HTTP_HOST"`
+	Port        int           `yaml:"port" env-default:"8090" env:"HTTP_PORT"`
+	Timeout     time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
+	CallTimeout time.Duration `yaml:"call_timeout" env-default:"5s" env:"HTTP_CALL_TIMEOUT"`
+}
 
-	Redis struct {
-		Addr     string `yaml:"addr" env-default:"localhost:6379" env:"REDIS_ADDR"`
-		Password string `yaml:"password" env-default:"" env:"REDIS_PASSWORD"`
-		DB       int    `yaml:"db" env-default:"0" env:"REDIS_DB"`
-		Pattern  string `yaml:"pattern" env-default:"room:*" env:"REDIS_PATTERN"`
-	} `yaml:"redis"`
+type Redis struct {
+	Addr     string `yaml:"addr" env-default:"localhost:6379" env:"REDIS_ADDR"`
+	Password string `yaml:"password" env-default:"" env:"REDIS_PASSWORD"`
+	DB       int    `yaml:"db" env-default:"0" env:"REDIS_DB"`
+	Pattern  string `yaml:"pattern" env-default:"room:*" env:"REDIS_PATTERN"`
 }
 
 func MustLoad() *Config {
-	path := os.Getenv("CONFIG_PATH")
-	if path == "" {
-		path = "config/config.yaml"
+	configPath := fetchConfigPath()
+
+	if configPath == "" {
+		var cfg Config
+		if err := cleanenv.ReadEnv(&cfg); err != nil {
+			panic("cannot read config from env: " + err.Error())
+		}
+		return &cfg
 	}
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		log.Fatalf("config file does not exist: %s", path)
+	return MustLoadPath(configPath)
+}
+
+func MustLoadPath(configPath string) *Config {
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		panic("config file does not exist: " + configPath)
 	}
 
 	var cfg Config
-	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
-		log.Fatalf("cannot read config: %s", err)
+
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+		panic("cannot read config: " + err.Error())
 	}
+
 	return &cfg
+}
+
+func fetchConfigPath() string {
+	var res string
+
+	flag.StringVar(&res, "config", "", "path to config file")
+	flag.Parse()
+
+	if res == "" {
+		res = os.Getenv("CONFIG_PATH")
+	}
+
+	return res
 }
