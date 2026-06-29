@@ -13,13 +13,13 @@ namespace Webby.AuthService.Services;
 
 public class AuthService : IAuthService
 {
-   private readonly IRepository<User> _repository;
+   private readonly IAuthRepository _repository;
    private readonly IPasswordHasher _passwordHasher;
    private readonly IMailService _mailService;
    private readonly IMapper _mapper;
    private readonly ITokenService _tokenService;
 
-   public AuthService(IPasswordHasher passwordHasher, IRepository<User> repository,
+   public AuthService(IPasswordHasher passwordHasher, IAuthRepository repository,
       IMailService mailService, IMapper mapper, ITokenService tokenService)
    {
       _passwordHasher = passwordHasher;
@@ -283,6 +283,12 @@ public class AuthService : IAuthService
       user.Password = newPasswordHash;
 
       await _repository.Update(user);
+   }
+
+   public async Task<bool> IsValidRole(Guid userId,string accessToken)
+   {
+      var tokenRoles = _tokenService.ParseUserRolesFromToken(accessToken);
+      return await _repository.HasUserRoles(userId, tokenRoles);
    }
 
 

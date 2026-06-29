@@ -7,5 +7,5 @@ public interface ITokenService
 {
    Task<AuthToken> GenerateToken(User user);
    Task<Guid> ExtractUserInfo(string accessToken);
-
+   IEnumerable<string> ParseUserRolesFromToken(string accessToken);
 }

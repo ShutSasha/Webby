@@ -402,6 +402,7 @@ public class UserService : IUserService
 
       targetUser.Role = userRole;
       await _userRepository.Update(targetUser);
+      await _notificationGrpcServiceClient.ReportBlockingAsync(new ReportBlockingRequest { UserId = targetUserId.ToString() });
    }
 
    private bool CanChangeBanStatus(User requester, User target)

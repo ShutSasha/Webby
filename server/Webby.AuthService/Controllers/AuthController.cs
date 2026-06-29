@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyModel.Resolution;
 using Swashbuckle.AspNetCore.Annotations;
 using Webby.AuthService.Dtos;
 using Webby.AuthService.Helpers.Exception;
@@ -22,11 +23,14 @@ public class AuthController : ControllerBase
       _authService = authService;
    }
 
-   [HttpGet("check")]
-   [SwaggerOperation("Test check auth route","AUTH REQUIRED")]
-   public Task<ActionResult<ApiResponse>> Check()
+   [HttpGet("is-valid-role")]
+   [SwaggerOperation("Checks whether user has a valid role", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<bool>>> IsRoleValid()
    {
-      return Task.FromResult<ActionResult<ApiResponse>>(Ok(ApiResponse.Ok("Server is running")));
+      var userId = JwtHelper.ExtractUserId(HttpContext);
+      var token = HttpContext.Request.Headers.Authorization.ToString().Substring("Bearer ".Length);
+      var isValidRoleResult = await _authService.IsValidRole(userId, token);
+      return Ok(ApiResponse<bool>.Ok("Successfully retrieved", isValidRoleResult));
    }
     
    [HttpPost("sign-up")]

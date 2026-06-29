@@ -75,6 +75,7 @@ public static class ApiExtension
    public static void AddRepositories(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IRepository<User>, GenericRepository<User>>();
+      serviceCollection.AddScoped<IAuthRepository, AuthRepository>();
    }
 
    public static void AddServices(this IServiceCollection serviceCollection)
