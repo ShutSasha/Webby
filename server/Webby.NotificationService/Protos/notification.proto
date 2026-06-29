@@ -1,6 +1,7 @@
 ﻿syntax="proto3";
 
 option csharp_namespace = "Webby.NotificationService.GrpcService";
+import "google/protobuf/empty.proto";
 
 enum GrpcNotificationTargetType {
   GRPC_NOTIFICATION_TARGET_TYPE_UNSPECIFIED = 0;
@@ -14,7 +15,10 @@ enum GrpcNotificationTargetType {
 
 service NotificationGrpcService{
   rpc SendNotificationToUser(CreateNotificationRequest) returns (CreateNotificationResponse);
+  rpc ReportBlocking(ReportBlockingRequest) returns(google.protobuf.Empty);
 }
+
+// REQUESTS
 
 message CreateNotificationRequest{
   string userId = 1;
@@ -23,6 +27,12 @@ message CreateNotificationRequest{
   GrpcNotificationTargetType targetType = 4;
   string targetIdentifier = 5;
 }
+
+message ReportBlockingRequest{
+  string userId = 1;
+}
+
+//RESPONSES
 
 message CreateNotificationResponse {
   bool success = 1;

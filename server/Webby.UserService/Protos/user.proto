@@ -3,6 +3,7 @@ syntax = "proto3";
 option csharp_namespace = "UserService";
 
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
 
 service UserGrpcService {
   rpc GetUserById (GetUserRequest) returns (UserResponse);
@@ -12,6 +13,12 @@ service UserGrpcService {
   rpc CheckIfUserExist(CheckIfUserExistsRequest) returns (google.protobuf.BoolValue);
   rpc FindUserIDs(FindUserIDsRequest) returns (FindUserIDsResponse);
   rpc IsFollowed(IsFollowedRequest) returns (IsFollowedResponse);
+  rpc BanUser(BanUserRequest) returns (google.protobuf.Empty);
+  rpc GetMonthlyRegistrations(google.protobuf.Empty) returns (GetMonthlyRegistrationsResponse);
+  rpc GetMonthlySubscriptions(google.protobuf.Empty) returns (GetMonthlySubscriptionsResponse);
+  rpc GetTotalRegistrations(google.protobuf.Empty) returns (GetTotalRegistrationsResponse);
+  rpc GetMonthRevenue(google.protobuf.Empty) returns (GetMonthRevenueResponse);
+  rpc CheckUserCanBlockVideo(CheckUserCanBlockVideoRequest) returns (google.protobuf.BoolValue);
 }
 
 // REQUESTS
@@ -49,6 +56,16 @@ message IsFollowedRequest {
   string secondUserId = 2;
 }
 
+message BanUserRequest {
+  string userID = 1;
+  string requestUserID = 2;
+}
+
+message CheckUserCanBlockVideoRequest{
+  string requestedUserId = 1;
+  string videoAuthorId = 2;
+}
+
 //RESPONSES
 
 message UserResponse {
@@ -84,4 +101,20 @@ message FindUserIDsResponse {
 
 message IsFollowedResponse {
   bool isFollowed = 1;
+}
+
+message GetMonthlyRegistrationsResponse {
+  map<int32, int32> registrations = 1;
+}
+
+message GetMonthlySubscriptionsResponse {
+  map<int32, int32> subscriptions = 1;
+}
+
+message GetTotalRegistrationsResponse {
+  int32 totalRegistrations  = 1;
+}
+
+message GetMonthRevenueResponse {
+  int32 monthRevenue  = 1;
 }

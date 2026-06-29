@@ -12,15 +12,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Repository struct {
+type repository struct {
 	db *pgxpool.Pool
 }
 
-func New(db *pgxpool.Pool) *Repository {
-	return &Repository{db: db}
+func New(db *pgxpool.Pool) *repository {
+	return &repository{db: db}
 }
 
-func (r *Repository) Create(ctx context.Context, name string) error {
+func (r *repository) Create(ctx context.Context, name string) error {
 	const op = "repository.Create"
 
 	query := sq.Insert("categories").
@@ -47,7 +47,7 @@ func (r *Repository) Create(ctx context.Context, name string) error {
 	return nil
 }
 
-func (r *Repository) List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int, error) {
+func (r *repository) List(ctx context.Context, search string, offset int, limit int) ([]models.Category, int, error) {
 	const op = "repository.List"
 
 	query := sq.Select("id", "name", "COUNT(*) OVER() AS total").
@@ -90,7 +90,7 @@ func (r *Repository) List(ctx context.Context, search string, offset int, limit 
 	return categories, total, nil
 }
 
-func (r *Repository) Update(ctx context.Context, oldName string, newName string) error {
+func (r *repository) Update(ctx context.Context, oldName string, newName string) error {
 	const op = "repository.CategoryRepository.Update"
 
 	query := sq.Update("categories").
@@ -121,7 +121,7 @@ func (r *Repository) Update(ctx context.Context, oldName string, newName string)
 	return nil
 }
 
-func (r *Repository) Delete(ctx context.Context, name string) error {
+func (r *repository) Delete(ctx context.Context, name string) error {
 	const op = "repository.CategoryRepository.Delete"
 
 	query := sq.Delete("categories").
@@ -145,7 +145,7 @@ func (r *Repository) Delete(ctx context.Context, name string) error {
 	return nil
 }
 
-func (r *Repository) Exists(ctx context.Context, name string) (bool, error) {
+func (r *repository) Exists(ctx context.Context, name string) (bool, error) {
 	const op = "repository.CategoryRepository.Exists"
 
 	subQuery := sq.Select("1").

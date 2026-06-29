@@ -1,0 +1,14 @@
+env: "local"
+connectionString: "{{UriConnectionString}}"
+jwtSecret: "{{JwtAccessSecretKey}}"
+
+http:
+  host: "localhost"
+  port: 8085
+  timeout: 10s
+  
+grpc:
+  mediaServiceAddress: "localhost:5005"
+  roomServiceAddress: "localhost:50054"
+  complaintServiceAddress: "localhost:5004"
+  notificationServiceAddress: "localhost:5007"

@@ -1,11 +1,9 @@
-import { useRef, useState, useTransition } from 'react'
+import { useRef, useState } from 'react'
 
-import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop'
 
-import { uploadNewUserPhoto } from '@/lib/actions/user.actions'
-import { serverLog } from '@/lib/utils/general.utils'
+import { useUploadAvatarMutation } from '@/lib/hooks/api/user/useUploadAvatarMutation'
 import { useProfileStore } from '@/stores/profile.store'
 import { useToastStore } from '@/stores/toast-store'
 
@@ -13,10 +11,8 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 export const useAvatarUpload = () => {
   const setLoading = useProfileStore(state => state.setLoading)
-  const { data: session, update } = useSession()
-  const router = useRouter()
+  const { data: session } = useSession()
   const addToast = useToastStore(state => state.addToast)
-  const [isPending, startTransition] = useTransition()
 
   const [imgSrc, setImgSrc] = useState('')
   const [crop, setCrop] = useState<Crop>()
@@ -24,6 +20,16 @@ export const useAvatarUpload = () => {
 
   const imgRef = useRef<HTMLImageElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { mutate: uploadAvatar, isPending } = useUploadAvatarMutation({
+    onSuccess: () => {
+      setImgSrc('')
+      setLoading(false) 
+    },
+    onError: () => {
+      setLoading(false)
+    },
+  })
 
   const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -80,30 +86,16 @@ export const useAvatarUpload = () => {
         canvas.height,
       )
 
-      canvas.toBlob(async blob => {
+      canvas.toBlob(blob => {
         if (!blob) return
 
-        startTransition(async () => {
-          try {
-            setLoading(true)
-            const file = new File([blob], 'avatar.png', { type: 'image/png' })
-            const formData = new FormData()
-            formData.append('file', file)
+        setLoading(true)
 
-            const data = await uploadNewUserPhoto(session.user.id, formData)
-            if (data?.avatarUrl) {
-              await update({ image: data.avatarUrl })
-              router.refresh()
-              addToast('Avatar updated!', 'success')
-              setImgSrc('')
-            }
-          } catch (error) {
-            serverLog('upload error', error)
-            addToast('Upload failed', 'error')
-          } finally {
-            setLoading(false)
-          }
-        })
+        const file = new File([blob], 'avatar.png', { type: 'image/png' })
+        const formData = new FormData()
+        formData.append('file', file)
+
+        uploadAvatar({ id: session.user.id, formData })
       }, 'image/png')
     }
   }

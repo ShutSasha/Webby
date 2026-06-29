@@ -2,17 +2,17 @@ export default function VideoNotFound() {
   return (
     <div className="h-fit min-w-0 w-full animate-in fade-in duration-500">
       <div
-        className="w-full aspect-video bg-neutral-900 rounded-2xl mb-3 flex flex-col items-center justify-center border
-          border-neutral-800/50"
+        className="w-full aspect-video bg-surface rounded-2xl mb-3 flex flex-col items-center justify-center border
+          border-border/50"
       >
-        <div className="size-16 rounded-full bg-neutral-800 flex items-center justify-center mb-4">
+        <div className="size-16 rounded-full bg-background flex items-center justify-center mb-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="size-8 text-neutral-500"
+            className="size-8 text-foreground-faint"
           >
             <path
               strokeLinecap="round"
@@ -23,18 +23,18 @@ export default function VideoNotFound() {
           </svg>
         </div>
 
-        <p className="text-neutral-300 text-[20px] font-bold">Video unavailable</p>
-        <p className="text-neutral-500 text-sm mt-2 max-w-sm text-center">
+        <p className="text-foreground text-[20px] font-bold">Video unavailable</p>
+        <p className="text-foreground-faint text-sm mt-2 max-w-sm text-center">
           This video has been deleted, hidden, or the link you followed is invalid.
         </p>
       </div>
 
-      <div className="h-8 bg-neutral-800/50 rounded-lg w-1/3 mt-6 mb-4" />
+      <div className="h-8 bg-background/50 rounded-lg w-1/3 mt-6 mb-4" />
       <div className="flex gap-3 items-center mb-6">
-        <div className="size-9 bg-neutral-800/50 rounded-full" />
-        <div className="h-5 bg-neutral-800/50 rounded-md w-32" />
+        <div className="size-9 bg-background/50 rounded-full" />
+        <div className="h-5 bg-background/50 rounded-md w-32" />
       </div>
-      <div className="w-full h-24 bg-neutral-800/50 rounded-xl" />
+      <div className="w-full h-24 bg-background/50 rounded-xl" />
     </div>
   )
 }

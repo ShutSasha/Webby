@@ -11,6 +11,7 @@ import { useToastStore } from '@/stores/toast-store'
 import { MediaType } from '@/types/general.types'
 
 import PlaylistItem from './SaveToPlaylistBtn/PlaylistItem'
+import { PlaylistItemSkeleton } from './SaveToPlaylistBtn/PlaylistItemSkeleton'
 import Search from './SaveToPlaylistBtn/Search'
 import Modal from '../../shared/Modal'
 
@@ -43,7 +44,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
     true,
   )
 
-  const playlists = data?.pages.flatMap(page => page?.data?.items || []) || []
+  const playlists = data?.pages.flatMap(page => page?.items || []) || []
 
   const lastElementRef = useInfiniteScroll({
     isLoading,
@@ -106,13 +107,15 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
       <div className="flex flex-col w-full gap-4">
         <Search handleSearchChange={debouncedSearch} />
 
-        <div className="flex flex-col max-h-[400px] min-h-60 overflow-y-auto custom-scrollbar pr-1">
+        <div className="flex flex-col h-70 overflow-y-auto scrollbar-hide">
           {isLoading && playlists.length === 0 ? (
-            <div className="flex justify-center py-10">
-              <div className="size-6 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+            <div className="flex flex-col gap-0.5 mt-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <PlaylistItemSkeleton key={i} />
+              ))}
             </div>
           ) : !isLoading && playlists.length === 0 ? (
-            <p className="text-center text-neutral-500 py-10">
+            <p className="text-center text-foreground-faint py-10">
               {query.trim() !== '' ? 'No playlists found' : 'You have no playlists'}
             </p>
           ) : (
@@ -125,6 +128,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
 
               const countDiff = isActuallyAdded === playlist.isVideoAdded ? 0 : isActuallyAdded ? 1 : -1
               const displayCount = playlist.countOfVideos + countDiff
+              const itemStatus = isActuallyAdded ? 'added' : playlist.isVideoAdded ? 'removed' : 'none'
 
               const item = (
                 <PlaylistItem
@@ -133,7 +137,7 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
                   image={playlist.playlistCover}
                   name={playlist.name}
                   count={displayCount}
-                  isAdded={isActuallyAdded}
+                  status={itemStatus}
                   disabled={isPending}
                   onToggle={() => handleToggle(playlist.playlistId, playlist.isVideoAdded)}
                 />
@@ -157,16 +161,15 @@ export default function SaveToPlaylistModal({ isOpen, onClose, videoId, userId, 
           )}
         </div>
 
-        {/* Action Button */}
-        <div className="pt-3 mt-1 border-t border-neutral-800/50">
+        <div className="pt-3 mt-1 border-t border-border/50">
           <button
             onClick={handleSave}
             disabled={localSelections.size === 0 || isPending}
             className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
               localSelections.size > 0 && !isPending
-                ? `bg-emerald-500 hover:bg-emerald-400 text-neutral-950 shadow-[0_4px_12px_rgba(16,185,129,0.25)]
+                ? `bg-emerald-500 hover:bg-emerald-400 text-foreground-inverse shadow-[0_4px_12px_rgba(16,185,129,0.25)]
                   cursor-pointer`
-                : 'bg-neutral-800/60 text-neutral-500 cursor-not-allowed'
+                : 'bg-background/60 text-foreground-faint cursor-not-allowed'
               }`}
           >
             {isPending ? 'Saving...' : 'Save'}

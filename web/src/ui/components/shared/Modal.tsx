@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { RemoveScroll } from 'react-remove-scroll'
 
+import { useIsClient } from '@/lib/hooks/useIsClient'
+
 interface Props {
   isOpen: boolean
   onClose: () => void
@@ -12,13 +14,25 @@ interface Props {
 }
 
 export default function Modal({ isOpen, onClose, children, modalClasses = '' }: Props) {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useIsClient()
 
   const [shouldRender, setShouldRender] = useState(isOpen)
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, onClose])
 
   useEffect(() => {
     if (isOpen) {
@@ -46,11 +60,11 @@ export default function Modal({ isOpen, onClose, children, modalClasses = '' }: 
         />
 
         <div
-          className={`relative w-full max-w-[440px] border border-neutral-800 bg-neutral-900 shadow-2xl p-6 rounded-2xl
+          className={`relative w-full max-w-[440px] border border-border bg-surface shadow-2xl p-6 rounded-2xl
             transition-all duration-400 ease-out ${modalClasses}
             ${isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8'}`}
         >
-          <div className="text-neutral-300">{children}</div>
+          <div className="text-foreground-subtle">{children}</div>
         </div>
       </div>
     </RemoveScroll>,

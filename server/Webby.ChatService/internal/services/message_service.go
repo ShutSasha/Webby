@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 	"webby/chat-service/internal/apperrors"
 	"webby/chat-service/internal/models"
 	"webby/chat-service/pkg/logger"
 
 	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 )
 
 type messageRepo interface {
@@ -26,7 +26,7 @@ type chatMemberExister interface {
 }
 
 type lastChatMessageUpdater interface {
-	UpdateLastMessage(ctx context.Context, chatID, lastMessageID uuid.UUID, createdAt time.Time) error
+	UpdateLastMessage(ctx context.Context, chatID, lastMessageID uuid.UUID) error
 }
 
 type userRetriever interface {
@@ -44,9 +44,9 @@ type eventEnvelope struct {
 }
 
 const (
-	EventTypeNewMessage     = "NEW_MESSAGE"
-	EventTypeMessageUpdated = "MESSAGE_UPDATED"
-	EventTypeMessageDeleted = "MESSAGE_DELETED"
+	eventTypeNewMessage     = "NEW_MESSAGE"
+	eventTypeMessageUpdated = "MESSAGE_UPDATED"
+	eventTypeMessageDeleted = "MESSAGE_DELETED"
 )
 
 type messageService struct {
@@ -95,14 +95,30 @@ func (s *messageService) SaveMessage(ctx context.Context, chatID, senderID uuid.
 		return fmt.Errorf("%s: create message: %w", op, err)
 	}
 
-	err = s.lastChatMessageUpdater.UpdateLastMessage(ctx, chatID, created.ID, created.CreatedAt)
-	if err != nil {
-		return fmt.Errorf("%s: update last message: %w", op, err)
-	}
+	g, bgCtx := errgroup.WithContext(context.Background())
 
-	sender, err := s.userRetriever.GetUserByID(ctx, created.SenderID)
-	if err != nil {
-		return fmt.Errorf("%s: get sender: %w", op, err)
+	var sender *models.Sender
+	g.Go(func() error {
+		sender, err = s.userRetriever.GetUserByID(bgCtx, created.SenderID)
+		if err != nil {
+			return fmt.Errorf("%s: get sender: %w", op, err)
+		}
+
+		return nil
+	})
+
+	g.Go(func() error {
+
+		err = s.lastChatMessageUpdater.UpdateLastMessage(bgCtx, chatID, created.ID)
+		if err != nil {
+			return fmt.Errorf("%s: update last message: %w", op, err)
+		}
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	richMessage := &models.RichMessage{
@@ -114,7 +130,7 @@ func (s *messageService) SaveMessage(ctx context.Context, chatID, senderID uuid.
 	}
 
 	envelope := eventEnvelope{
-		Type:    EventTypeNewMessage,
+		Type:    eventTypeNewMessage,
 		Payload: richMessage,
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
@@ -230,7 +246,7 @@ func (s *messageService) Update(ctx context.Context, chatID, messageID, userID u
 	}
 
 	envelope := eventEnvelope{
-		Type:    EventTypeMessageUpdated,
+		Type:    eventTypeMessageUpdated,
 		Payload: richMessage,
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
@@ -264,7 +280,7 @@ func (s *messageService) Delete(ctx context.Context, chatID, messageID, userID u
 	}
 
 	envelope := eventEnvelope{
-		Type:    EventTypeMessageDeleted,
+		Type:    eventTypeMessageDeleted,
 		Payload: map[string]uuid.UUID{"id": messageID},
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())

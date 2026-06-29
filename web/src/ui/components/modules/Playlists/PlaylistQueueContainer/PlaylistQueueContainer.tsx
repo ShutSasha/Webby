@@ -43,7 +43,7 @@ export default function PlaylistQueueContainer({
     fetchNextPage,
   } = useSearchPlaylistVideosQuery(playlistId, query)
 
-  const uiVideos = searchData?.pages.flatMap(page => page?.data?.items || []) || []
+  const uiVideos = searchData?.pages.flatMap(page => page?.items || []) || []
 
   const {
     data: queueData,
@@ -52,7 +52,7 @@ export default function PlaylistQueueContainer({
     isFetchingNextPage: isFetchingQueue,
   } = useSearchPlaylistVideosQuery(playlistId, '')
 
-  const queueVideos = queueData?.pages.flatMap(page => page?.data?.items || []) || []
+  const queueVideos = queueData?.pages.flatMap(page => page?.items || []) || []
 
   const lastElementRef = useInfiniteScroll({
     isLoading,

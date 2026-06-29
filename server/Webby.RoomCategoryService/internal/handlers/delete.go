@@ -19,7 +19,8 @@ func (h *handler) Delete(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.Delete(ctx, uri.Name); err != nil {
+	err := h.service.Delete(ctx, uri.Name)
+	if err != nil {
 		HandleAppError(c, "Delete category error", err)
 		return
 	}

@@ -14,7 +14,7 @@ type service interface {
 	CastVote(ctx context.Context, roomID, voteID, userID uuid.UUID, choice string) error
 	CreateVotingForNextVideo(ctx context.Context, roomID, userID uuid.UUID) error
 	VoteForNextVideo(ctx context.Context, roomID, userID, queueItemID uuid.UUID) error
-	HasNextVideoVoting(ctx context.Context, roomID, userID uuid.UUID) (bool, error)
+	HasNextVideoVoting(context.Context, uuid.UUID, uuid.UUID) (*models.NextVideoInfo, error)
 }
 
 type handler struct {

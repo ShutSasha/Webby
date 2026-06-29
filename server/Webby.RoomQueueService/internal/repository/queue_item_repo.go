@@ -455,7 +455,7 @@ func (r *queueItemRepository) MakeNext(ctx context.Context, roomID, queueItemID 
 
 	var positions []int
 
-	if prevPosition == activePosition || prevPosition == activePosition+1 {
+	if prevPosition == activePosition {
 		return []int{}, nil
 	}
 
@@ -478,6 +478,7 @@ func (r *queueItemRepository) MakeNext(ctx context.Context, roomID, queueItemID 
 
 		moveSql, moveArgs, err := sq.Update("queue_items").
 			Set("position", activePosition+1).
+			Set("is_active", true).
 			Where(sq.Eq{"id": queueItemID}).
 			PlaceholderFormat(sq.Dollar).
 			ToSql()
@@ -488,6 +489,18 @@ func (r *queueItemRepository) MakeNext(ctx context.Context, roomID, queueItemID 
 		_, err = tx.Exec(ctx, moveSql, moveArgs...)
 		if err != nil {
 			return nil, fmt.Errorf("%s: failed to update target queue item forward: %w", op, err)
+		}
+
+		deactivate, deactivateArgs, err := sq.Update("queue_items").
+			Set("is_active", false).
+			Where(sq.Eq{"position": activePosition}).
+			PlaceholderFormat(sq.Dollar).ToSql()
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to build deactivate query: %w", op, err)
+		}
+		_, err = tx.Exec(ctx, deactivate, deactivateArgs...)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to update target queue item deactivate: %w", op, err)
 		}
 
 		for i := activePosition + 1; i <= prevPosition; i++ {
@@ -512,6 +525,7 @@ func (r *queueItemRepository) MakeNext(ctx context.Context, roomID, queueItemID 
 
 		moveSql, moveArgs, err := sq.Update("queue_items").
 			Set("position", activePosition).
+			Set("is_active", true).
 			Where(sq.Eq{"id": queueItemID}).
 			PlaceholderFormat(sq.Dollar).
 			ToSql()
@@ -523,6 +537,19 @@ func (r *queueItemRepository) MakeNext(ctx context.Context, roomID, queueItemID 
 		if err != nil {
 			return nil, fmt.Errorf("%s: failed to update target queue item backward: %w", op, err)
 		}
+
+		deactivate, deactivateArgs, err := sq.Update("queue_items").
+			Set("is_active", false).
+			Where(sq.Eq{"position": activePosition - 1}).
+			PlaceholderFormat(sq.Dollar).ToSql()
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to build deactivate query: %w", op, err)
+		}
+		_, err = tx.Exec(ctx, deactivate, deactivateArgs...)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to update target queue item deactivate: %w", op, err)
+		}
+
 		for i := prevPosition; i <= activePosition; i++ {
 			positions = append(positions, i)
 		}

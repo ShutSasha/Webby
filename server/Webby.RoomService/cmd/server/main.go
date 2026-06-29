@@ -97,7 +97,7 @@ func run(ctx context.Context, w io.Writer) error {
 	logger.Info("repositories initialized")
 
 	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, categoryClient, chatClient)
-	roomMemberService := services.NewRoomMemberService(roomRepository, roomMemberRepository, chatClient, notificationClient)
+	roomMemberService := services.NewRoomMemberService(roomRepository, roomMemberRepository, chatClient, notificationClient, chatClient, publisher)
 	syncService := services.NewSynchronizeService(chatClient, publisher, timecodesRepository, roomMemberRepository)
 
 	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService)

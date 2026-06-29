@@ -4,7 +4,6 @@ import { MouseEvent } from 'react'
 
 import TrashIcon from '@/assets/icons/ic_trash.svg'
 import { useToggleFollowMutation } from '@/lib/hooks/api/user/useToggleFollow'
-import { useToastStore } from '@/stores/toast-store'
 
 type Props = {
   targetId: string
@@ -12,7 +11,6 @@ type Props = {
 }
 
 export default function UnfollowButton({ targetId, currentUserId }: Props) {
-  const addToast = useToastStore(state => state.addToast)
   const { mutate: toggle, isPending } = useToggleFollowMutation(currentUserId)
 
   const handleToggle = (e: MouseEvent<HTMLButtonElement>) => {
@@ -20,11 +18,7 @@ export default function UnfollowButton({ targetId, currentUserId }: Props) {
 
     if (isPending) return
 
-    toggle(targetId, {
-      onError: error => {
-        addToast(error.message, 'error')
-      },
-    })
+    toggle(targetId)
   }
 
   return (

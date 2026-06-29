@@ -9,6 +9,7 @@ package roompb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -109,17 +110,66 @@ func (x *GetRoomHostResponse) GetHostId() string {
 	return ""
 }
 
+type GetTotalRoomsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TotalRooms    int32                  `protobuf:"varint,1,opt,name=totalRooms,proto3" json:"totalRooms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTotalRoomsResponse) Reset() {
+	*x = GetTotalRoomsResponse{}
+	mi := &file_proto_room_room_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTotalRoomsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTotalRoomsResponse) ProtoMessage() {}
+
+func (x *GetTotalRoomsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_room_room_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTotalRoomsResponse.ProtoReflect.Descriptor instead.
+func (*GetTotalRoomsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_room_room_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetTotalRoomsResponse) GetTotalRooms() int32 {
+	if x != nil {
+		return x.TotalRooms
+	}
+	return 0
+}
+
 var File_proto_room_room_proto protoreflect.FileDescriptor
 
 const file_proto_room_room_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/room/room.proto\x12\x04room\",\n" +
+	"\x15proto/room/room.proto\x12\x04room\x1a\x1bgoogle/protobuf/empty.proto\",\n" +
 	"\x12GetRoomHostRequest\x12\x16\n" +
 	"\x06roomId\x18\x01 \x01(\tR\x06roomId\"-\n" +
 	"\x13GetRoomHostResponse\x12\x16\n" +
-	"\x06hostId\x18\x01 \x01(\tR\x06hostId2U\n" +
+	"\x06hostId\x18\x01 \x01(\tR\x06hostId\"7\n" +
+	"\x15GetTotalRoomsResponse\x12\x1e\n" +
+	"\n" +
+	"totalRooms\x18\x01 \x01(\x05R\n" +
+	"totalRooms2\x9b\x01\n" +
 	"\x0fRoomGrpcService\x12B\n" +
-	"\vGetRoomHost\x12\x18.room.GetRoomHostRequest\x1a\x19.room.GetRoomHostResponseB)Z'webby/room-service/internal/grpc/roompbb\x06proto3"
+	"\vGetRoomHost\x12\x18.room.GetRoomHostRequest\x1a\x19.room.GetRoomHostResponse\x12D\n" +
+	"\rGetTotalRooms\x12\x16.google.protobuf.Empty\x1a\x1b.room.GetTotalRoomsResponseB)Z'webby/room-service/internal/grpc/roompbb\x06proto3"
 
 var (
 	file_proto_room_room_proto_rawDescOnce sync.Once
@@ -133,16 +183,20 @@ func file_proto_room_room_proto_rawDescGZIP() []byte {
 	return file_proto_room_room_proto_rawDescData
 }
 
-var file_proto_room_room_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_room_room_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_proto_room_room_proto_goTypes = []any{
-	(*GetRoomHostRequest)(nil),  // 0: room.GetRoomHostRequest
-	(*GetRoomHostResponse)(nil), // 1: room.GetRoomHostResponse
+	(*GetRoomHostRequest)(nil),    // 0: room.GetRoomHostRequest
+	(*GetRoomHostResponse)(nil),   // 1: room.GetRoomHostResponse
+	(*GetTotalRoomsResponse)(nil), // 2: room.GetTotalRoomsResponse
+	(*emptypb.Empty)(nil),         // 3: google.protobuf.Empty
 }
 var file_proto_room_room_proto_depIdxs = []int32{
 	0, // 0: room.RoomGrpcService.GetRoomHost:input_type -> room.GetRoomHostRequest
-	1, // 1: room.RoomGrpcService.GetRoomHost:output_type -> room.GetRoomHostResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	3, // 1: room.RoomGrpcService.GetTotalRooms:input_type -> google.protobuf.Empty
+	1, // 2: room.RoomGrpcService.GetRoomHost:output_type -> room.GetRoomHostResponse
+	2, // 3: room.RoomGrpcService.GetTotalRooms:output_type -> room.GetTotalRoomsResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -159,7 +213,7 @@ func file_proto_room_room_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_room_room_proto_rawDesc), len(file_proto_room_room_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

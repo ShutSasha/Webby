@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type TabType = 'playlist' | 'users' | 'settings' | 'chat'
+export type TabType = 'queue' | 'users' | 'settings' | 'chat'
 
 interface RoomState {
   tab: TabType
@@ -16,10 +16,13 @@ interface RoomState {
   setSyncTargetTimecode: (timecode: number | null) => void
   setSyncCooldown: (isOnCooldown: boolean) => void
   setOptimisticPendingId: (id: string | null) => void
+
+  isVotesModalOpen: boolean
+  setVotesModalOpen: (isOpen: boolean) => void
 }
 
 export const useRoomStore = create<RoomState>(set => ({
-  tab: 'playlist',
+  tab: 'queue',
   setTab: tab => set({ tab: tab }),
 
   syncTriggerId: null,
@@ -31,4 +34,7 @@ export const useRoomStore = create<RoomState>(set => ({
   setSyncTargetTimecode: timecode => set({ syncTargetTimecode: timecode }),
   setSyncCooldown: isOnCooldown => set({ isSyncCooldown: isOnCooldown }),
   setOptimisticPendingId: id => set({ optimisticPendingId: id }),
+
+  isVotesModalOpen: false,
+  setVotesModalOpen: isOpen => set({ isVotesModalOpen: isOpen }),
 }))

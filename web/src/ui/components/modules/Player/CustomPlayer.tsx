@@ -1,11 +1,13 @@
 'use client'
 
+import { memo } from 'react'
+
 import ReactPlayer from 'react-player'
 
 import { useCustomPlayerLogic } from '@/lib/hooks/useCustomPlayerLogic'
-import { useIsClient } from '@/lib/hooks/useIsClient'
 import { usePlayerControls } from '@/lib/hooks/usePlayerControls'
 import { usePlayerHotkeys } from '@/lib/hooks/usePlayerHotkeys'
+import { useSafeVideoTransition } from '@/lib/hooks/useSafeVideoTransition'
 import { useVideoViewTracker } from '@/lib/hooks/useVideoViewTracker'
 
 import PlayerBottomControls from './PlayerBottomControls'
@@ -18,11 +20,14 @@ type PlayerProps = {
   videoUrl: string
   videoId?: string
   roomId?: string
-  isRoom?: boolean
 }
 
-export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false }: PlayerProps) {
-  const isMounted = useIsClient()
+const CustomPlayer = memo(function CustomPlayer({ videoUrl, videoId, roomId }: PlayerProps) {
+  const { isActuallyReady } = useSafeVideoTransition({
+    videoUrl,
+    delayMs: 800,
+  })
+
   const isPlatformModeHook = usePlayerControls(videoUrl)
   const trackViewProgress = useVideoViewTracker(videoId)
 
@@ -45,19 +50,23 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
     setState,
   })
 
-  if (!isMounted)
+  if (!isActuallyReady) {
     return (
-      <div className="aspect-video bg-black w-full rounded-2xl flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+      <div
+        className="aspect-video bg-neutral-100 dark:bg-surface-strong/80 w-full rounded-2xl flex items-center
+          justify-center"
+      >
+        <div className="w-16 h-16 border-6 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
       </div>
     )
+  }
 
   return (
     <div
       ref={refs.playerContainerRef}
       onMouseMove={actions.handleMouseMove}
       onMouseLeave={actions.handleMouseLeave}
-      className={`group relative w-full bg-transparent transition-all
+      className={`group relative w-full bg-black transition-all
         ${uiState.isFullScreen ? 'w-screen h-screen' : 'aspect-video'} ${!isTwitch ? 'rounded-2xl overflow-hidden' : ''}
         ${!isPlatformMode && !uiState.showCustomControls ? 'cursor-none' : 'cursor-default'}`}
     >
@@ -88,7 +97,8 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
       />
 
       {state.error && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 text-center px-4">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-neutral-900/80 text-center
+          px-4">
           <svg className="w-12 h-12 text-red-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -97,8 +107,8 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <p className="text-neutral-200 font-semibold text-lg">Playback Error</p>
-          <p className="text-neutral-400 text-sm mt-1">{state.error}</p>
+          <p className="text-neutral-100 font-semibold text-lg">Playback Error</p>
+          <p className="text-foreground-muted text-sm mt-1">{state.error}</p>
         </div>
       )}
 
@@ -146,7 +156,6 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
               playedFraction={state.played}
               baseUserVolume={uiState.baseUserVolume}
               showSettings={state.showSettings}
-              isRoom={isRoom}
               onPlayPause={actions.handlePlayPause}
               onVolumeChange={actions.handleVolumeChange}
               onToggleMute={actions.toggleMute}
@@ -158,4 +167,6 @@ export default function CustomPlayer({ videoUrl, videoId, roomId, isRoom = false
       )}
     </div>
   )
-}
+})
+
+export default CustomPlayer

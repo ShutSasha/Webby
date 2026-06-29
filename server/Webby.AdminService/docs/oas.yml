@@ -1,0 +1,733 @@
+openapi: 3.0.0
+info:
+  title: Webby Admin Service API
+  description: |
+    # Webby Admin Service
+
+    The Admin Service is responsible for managing user complaints and moderation tasks.
+    It provides endpoints for administrators to review, accept, or reject user complaints
+    with detailed reasoning and audit trails.
+
+    ## Authentication
+    All protected endpoints require a valid JWT token in the `Authorization` header:
+
+    ## Features
+    - **Complaint Management**: Review and moderate user complaints
+    - **Pagination**: Efficiently browse large complaint lists
+    - **Audit Trail**: Track which admin processed each complaint and when
+    - **Flexible Denial Reasons**: Provide detailed explanations when rejecting complaints
+
+  version: 1.0.0
+
+tags:
+  - name: Complaints
+    description: |
+      Endpoints for managing user complaints.
+
+      Complaints are user reports about content violations, inappropriate behavior,
+      or other policy breaches. Administrators can review the complete details
+      and either accept (mark as valid) or deny (dismiss as unfounded) each complaint.
+
+  - name: Statistics
+    description: |
+      Endpoints for retrieving platform statistics and analytics.
+
+      These endpoints provide administrators with insights into platform metrics,
+      including registration trends, subscription data, and overall system statistics.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token required for authentication.
+
+        To obtain a token, use the Auth Service.
+        The token must be included in the Authorization header for all protected endpoints.
+
+  schemas:
+    Complaint:
+      type: object
+      description: Represents a user complaint about content or behavior
+      required:
+        - id
+        - complainer
+        - target
+        - reasonType
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the complaint
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+        complainer:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            username:
+              type: string
+
+        target:
+          type: object
+          properties:
+            type:
+              type: string
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+
+        reasonType:
+          type: string
+          enum:
+            [
+              harassment,
+              hate_speech,
+              inappropriate_content,
+              spam,
+              copyright,
+              other,
+            ]
+          description: |
+            Classification of the complaint reason:
+            - `harassment`: Targeted harassment or bullying
+            - `hate_speech`: Hate speech or discrimination
+            - `inappropriate_content`: Adult or offensive content
+            - `spam`: Spam or promotional content
+            - `copyright`: Copyright or intellectual property violation
+            - `other`: Other policy violation
+          example: inappropriate_content
+
+        additionalInfo:
+          type: string
+          nullable: true
+          description: Optional additional details provided by the complainant
+          example: "This video contains explicit content not suitable for children"
+
+        createdAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the complaint was created
+          example: "2024-06-17T10:30:00Z"
+
+    PaginatedComplaints:
+      type: object
+      description: Paginated list of complaints
+      required:
+        - items
+        - page
+        - pageSize
+        - totalCount
+      properties:
+        items:
+          type: array
+          description: Array of complaints
+          items:
+            $ref: "#/components/schemas/Complaint"
+
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number
+          example: 1
+
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Number of items per page
+          example: 10
+
+        totalCount:
+          type: integer
+          minimum: 0
+          description: Total number of complaints available
+          example: 245
+
+    ApiResponse:
+      type: object
+      description: Standard API response wrapper
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Indicates whether the request was successful
+          example: true
+
+        message:
+          type: string
+          description: Human-readable message about the operation
+          example: "Operation completed successfully"
+
+        data:
+          type: object
+          nullable: true
+          description: Response data (structure varies by endpoint)
+
+        errors:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: string
+          description: |
+            Map of field names to error messages (only present for validation errors).
+            Example: `{"page": "must be at least 1", "limit": "must not exceed 100"}`
+
+    ErrorResponse:
+      type: object
+      description: Error response when something goes wrong
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Always false for error responses
+          example: false
+
+        message:
+          type: string
+          description: Error description
+          example: "Complaint not found"
+
+        errors:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: string
+          description: Detailed error information by field
+
+    AcceptComplaintRequest:
+      type: object
+      description: Request body is empty for accept endpoint
+      example: {}
+
+    DenyComplaintRequest:
+      type: object
+      description: Request to deny a complaint with detailed reasoning
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: |
+            Explanation for why the complaint is being denied.
+
+            This should clearly explain why the content/user was not in violation
+            of policies and help the complainant understand the decision.
+          example: "After review, this content does not violate our policies. Please refer to our community guidelines for more information."
+
+    StatsResponse:
+      type: object
+      description: Generic statistics response containing key-value pairs
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Indicates whether the request was successful
+          example: true
+
+        message:
+          type: string
+          description: Human-readable message about the operation
+          example: "Statistics retrieved successfully"
+
+        data:
+          type: object
+          nullable: true
+          description: Key-value pairs containing statistics
+          additionalProperties:
+            type: integer
+          example:
+            totalRegistrations: 1250
+            monthRevenue: 450
+            totalRooms: 800
+            activeReportsCount: 800
+
+    RegistrationsStatsResponse:
+      type: object
+      description: Registration statistics response
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+
+        message:
+          type: string
+          example: "Registrations retrieved successfully"
+
+        data:
+          type: object
+          nullable: true
+          description: Registration statistics with key-value pairs
+          additionalProperties:
+            type: integer
+          example:
+            Jan: 45
+            Feb: 42
+
+    SubscriptionsStatsResponse:
+      type: object
+      description: Subscription statistics response
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+
+        message:
+          type: string
+          example: "Subscriptions retrieved successfully"
+
+        data:
+          type: object
+          nullable: true
+          description: Subscription statistics with key-value pairs
+          additionalProperties:
+            type: integer
+          example:
+            Jan: 45
+            Feb: 42
+
+  responses:
+    SuccessResponse:
+      description: Request completed successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiResponse"
+          example:
+            success: true
+            message: "Operation completed successfully"
+            data: null
+
+    UnauthorizedError:
+      description: |
+        Authentication required or authentication failed.
+
+        **Possible reasons:**
+        - Missing `Authorization` header
+        - Invalid or expired JWT token
+        - Insufficient permissions for the requested action
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: "Unauthorized"
+
+    NotFoundError:
+      description: |
+        The requested resource was not found.
+
+        **Possible reasons:**
+        - Complaint ID does not exist
+        - The complaint was already processed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: "Complaint not found"
+
+    BadRequestError:
+      description: |
+        The request was invalid.
+
+        **Possible reasons:**
+        - Invalid UUID format
+        - Missing required fields
+        - Invalid query parameters
+        - Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: "Validation error"
+            errors:
+              page: "must be at least 1"
+              limit: "must not exceed 100"
+
+    InternalServerError:
+      description: |
+        An unexpected server error occurred.
+
+        Please contact support if this persists.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: "Internal server error"
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/complaints:
+    get:
+      tags:
+        - Complaints
+      summary: List all complaints
+      description: |
+        Retrieve a paginated list of all complaints in the system.
+
+        **Features:**
+        - Supports pagination with page number and limit
+        - Results are sorted by creation date (newest first)
+        - Includes full complaint details including author, target, and reason information
+
+        **Use cases:**
+        - Dashboard display for moderators
+        - Monitoring complaint volume
+        - Historical complaint review
+
+      operationId: listComplaints
+
+      parameters:
+        - name: page
+          in: query
+          description: |
+            Page number for pagination (starts at 1).
+
+            Default: 1
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+
+        - name: limit
+          in: query
+          description: |
+            Maximum number of complaints to return per page.
+
+            Default: 10
+            Maximum: 100
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          example: 10
+
+      responses:
+        "200":
+          description: Successfully retrieved complaints list
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                  - data
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Queue retrieved successfully"
+                  data:
+                    $ref: "#/components/schemas/PaginatedComplaints"
+              examples:
+                success:
+                  summary: Successful response with complaints
+                  value:
+                    success: true
+                    message: "Queue retrieved successfully"
+                    data:
+                      items:
+                        - id: "123e4567-e89b-12d3-a456-426614174000"
+                          authorId: "223e4567-e89b-12d3-a456-426614174000"
+                          targetType: "video"
+                          targetId: "323e4567-e89b-12d3-a456-426614174000"
+                          reasonType: "inappropriate_content"
+                          additionalInfo: "This video contains explicit content"
+                          createdAt: "2024-06-17T10:30:00Z"
+                        - id: "133e4567-e89b-12d3-a456-426614174000"
+                          authorId: "233e4567-e89b-12d3-a456-426614174000"
+                          targetType: "user"
+                          targetId: "333e4567-e89b-12d3-a456-426614174000"
+                          reasonType: "harassment"
+                          additionalInfo: null
+                          createdAt: "2024-06-16T15:20:00Z"
+                      page: 1
+                      pageSize: 10
+                      totalCount: 245
+
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/complaints/{complaintId}/accept:
+    post:
+      tags:
+        - Complaints
+      summary: Accept a complaint
+      description: |
+        Accept a complaint, marking the reported content or user as violating platform policies.
+
+        **Effects:**
+        - Marks the complaint as approved
+        - Records which admin processed it and when
+        - Typically triggers automatic actions (content removal, user suspension, etc.)
+        - Creates an audit trail for accountability
+
+        **Important:**
+        - Each complaint can only be processed once
+        - Accepting is irreversible without database intervention
+        - Admin action is logged for audit purposes
+
+      operationId: acceptComplaint
+
+      parameters:
+        - name: complaintId
+          in: path
+          required: true
+          description: UUID of the complaint to accept
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+      responses:
+        "200":
+          description: Complaint successfully accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Complaint accepted"
+                  data:
+                    type: null
+              example:
+                success: true
+                message: "Complaint accepted"
+                data: null
+
+        "400":
+          description: Invalid complaint ID or request format
+          $ref: "#/components/responses/BadRequestError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          description: Complaint not found or already processed
+          $ref: "#/components/responses/NotFoundError"
+
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/complaints/{complaintId}/deny:
+    post:
+      tags:
+        - Complaints
+      summary: Deny a complaint
+      description: |
+        Reject a complaint, indicating the reported content or user does not violate platform policies.
+
+        **Effects:**
+        - Marks the complaint as denied/rejected
+        - Records the admin's reasoning for the denial
+        - Creates an audit trail for review
+        - Notifies the complainant (implementation-dependent)
+
+        **Important:**
+        - Each complaint can only be processed once
+        - Denying is irreversible without database intervention
+        - The reason is required to provide clear feedback
+        - Admin action is logged for accountability
+
+        **Best practices:**
+        - Provide detailed, professional reasoning
+        - Reference specific policy sections if applicable
+        - Keep tone neutral and helpful
+
+      operationId: denyComplaint
+
+      parameters:
+        - name: complaintId
+          in: path
+          required: true
+          description: UUID of the complaint to deny
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+      requestBody:
+        required: true
+        description: Reason for denying the complaint
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DenyComplaintRequest"
+            examples:
+              policyCheck:
+                summary: Policy review reason
+                value:
+                  reason: "After careful review, this content does not violate our community guidelines. Users are entitled to express diverse opinions."
+              contextualReview:
+                summary: Contextual reason
+                value:
+                  reason: "The reported message was in the context of a debate. While it may seem harsh, it does not constitute harassment under our policies."
+              appealableReason:
+                summary: Clear and professional reason
+                value:
+                  reason: "This complaint does not meet the threshold for policy violation. Please refer to section 3.2 of our Community Guidelines for clarification."
+
+      responses:
+        "200":
+          description: Complaint successfully denied
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Complaint denied"
+                  data:
+                    type: null
+              example:
+                success: true
+                message: "Complaint denied"
+                data: null
+
+        "400":
+          description: |
+            Invalid request (bad UUID format or validation error).
+
+            Possible issues:
+            - Invalid complaint ID
+            - Missing or empty reason
+            - Reason exceeds 500 characters
+          $ref: "#/components/responses/BadRequestError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          description: Complaint not found or already processed
+          $ref: "#/components/responses/NotFoundError"
+
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/stats:
+    get:
+      tags:
+        - Statistics
+      summary: Get absolute platform statistics
+      description: |
+        Retrieve comprehensive statistics about the entire Webby platform.
+
+      operationId: getAbsoluteStats
+
+      responses:
+        "200":
+          description: Successfully retrieved absolute statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/stats/registrations:
+    get:
+      tags:
+        - Statistics
+      summary: Get user registration statistics
+      description: |
+        Retrieve detailed statistics about user registrations on the platform.
+
+      operationId: getRegistrationsStats
+
+      responses:
+        "200":
+          description: Successfully retrieved registration statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegistrationsStatsResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/stats/subscriptions:
+    get:
+      tags:
+        - Statistics
+      summary: Get subscription statistics
+      description: |
+        Retrieve detailed statistics about user subscriptions on the platform.
+
+      operationId: getSubscriptionsStats
+
+      responses:
+        "200":
+          description: Successfully retrieved subscription statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionsStatsResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "500":
+          $ref: "#/components/responses/InternalServerError"

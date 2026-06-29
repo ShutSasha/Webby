@@ -33,7 +33,8 @@ func (h *handler) Update(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.Update(ctx, uri.Name, req.Name); err != nil {
+	err := h.service.Update(ctx, uri.Name, req.Name)
+	if err != nil {
 		HandleAppError(c, "Update category error", err)
 		return
 	}

@@ -1,18 +1,102 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds & Surfaces */
+  --surface-strong: #ffffff; /* white */
+  --surface: #ffffff; /* white */
+  --background: #f5f5f5; /* neutral-100 */
+  --card: #f5f5f5; /* neutral-100 */
+  --surface-secondary: #e5e5e5; /* neutral-200 */
+  --surface-tertiary: #d4d4d4; /* neutral-300 */
+  --surface-muted: #a3a3a3; /* neutral-400 */
+  --surface-faint: #737373; /* neutral-500 */
+  --surface-subtle: rgba(229, 229, 229, 0.5); /* neutral-200 / 50% opacity */
+  --surface-inverse-muted: #262626; /* neutral-800 variant */
+  --surface-inverse-secondary: #171717; /* neutral-800 */
+  --surface-inverse: #0a0a0a; /* neutral-900 */
+  --surface-inverse-strong: #000000; /* black */
+
+  /* Borders & Skeletons */
+  --border: #e5e5e5; /* neutral-200 */
+  --skeleton: #e5e5e5; /* neutral-200 */
+  --skeleton-pulse: #d4d4d4; /* neutral-300 */
+
+  /* Text & Content */
+  --muted: #a3a3a3; /* neutral-400 */
+  --muted-active: #a3a3a3; /* neutral-400 */
+
+  --foreground-strong: #000000; /* neutral-950 */
+  --foreground: #0a0a0a; /* neutral-900  */
+  --foreground-secondary: #171717; /* neutral-800 */
+  --foreground-tertiary: #404040; /* neutral-700 */
+  --foreground-subtle: #525252; /* neutral-600 */
+  --foreground-muted: #737373; /* neutral-500 */
+  --foreground-faint: #737373; /* neutral-500 */
+  --foreground-disabled: #a3a3a3; /* neutral-400 */
+  --foreground-ghost: #d4d4d4; /* neutral-300 */
+  --foreground-inverse-muted: #e5e5e5; /* neutral-200 */
+  --foreground-inverse-subtle: #f5f5f5; /* neutral-100 */
+  --foreground-inverse: #fafafa; /* neutral-50 */
+  --foreground-inverse-strong: #ffffff; /* white */
+
+  /* Overlays */
+  --overlay: transparent; /* white / 0% opacity */
 }
+
+.dark {
+  /* Backgrounds & Surfaces */
+  --surface-strong: #000000; /* black */
+  --surface: #0a0a0a; /* neutral-900 */
+  --background: #171717; /* neutral-800 */
+  --card: #171717; /* neutral-800 */
+  --surface-secondary: #262626; /* neutral-800 variant */
+  --surface-tertiary: #404040; /* neutral-700 */
+  --surface-muted: #525252; /* neutral-600 */
+  --surface-faint: #737373; /* neutral-500 */
+  --surface-subtle: rgba(23, 23, 23, 0.5); /* neutral-800 / 50% opacity */
+  --surface-inverse-muted: #e5e5e5; /* neutral-200 */
+  --surface-inverse-secondary: #f5f5f5; /* neutral-100 */
+  --surface-inverse: #ffffff; /* white */
+  --surface-inverse-strong: #ffffff; /* white */
+
+  /* Borders & Skeletons */
+  --border: #262626; /* neutral-800 variant */
+  --skeleton: #262626; /* neutral-800 variant */
+  --skeleton-pulse: #404040; /* neutral-700 */
+
+  /* Text & Content */
+
+  --muted: #737373; /* neutral-500 */
+  --muted-active: #a3a3a3; /* neutral-400 */
+
+  --foreground-strong: #ffffff; /* white */
+  --foreground: #fafafa; /* neutral-50 */
+  --foreground-secondary: #f5f5f5; /* neutral-100 */
+  --foreground-tertiary: #e5e5e5; /* neutral-200 */
+  --foreground-subtle: #d4d4d4; /* neutral-300 */
+  --foreground-muted: #a3a3a3; /* neutral-400 */
+  --foreground-faint: #737373; /* neutral-500 */
+  --foreground-disabled: #525252; /* neutral-600 */
+  --foreground-ghost: #404040; /* neutral-700 */
+  --foreground-inverse-muted: #171717; /* neutral-800 */
+  --foreground-inverse-subtle: #0a0a0a; /* neutral-900 */
+  --foreground-inverse: #000000; /* neutral-950 */
+  --foreground-inverse-strong: #000000; /* black */
+
+  /* Overlays */
+  --overlay: rgba(0, 0, 0, 0.05); /* black / 5% opacity */
+}
+
+@custom-variant dark (&:is(.dark *));
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  transition: background-color 10000s ease-in-out 0s; /* This postpones default browser autofill bg */
-  -webkit-text-fill-color: #d4d4d4 !important;
-  -webkit-box-shadow: 0 0 0 30px #0a0a0a inset !important;
-  caret-color: #d4d4d4;
+  transition: background-color 5000s ease-in-out 0s;
+  -webkit-text-fill-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0 30px var(--surface) inset !important;
+  caret-color: var(--foreground);
 }
 
 input::-ms-reveal {
@@ -20,8 +104,47 @@ input::-ms-reveal {
 }
 
 @theme inline {
+  /* Surfaces & Backgrounds */
+  --color-surface-strong: var(--surface-strong);
+  --color-surface: var(--surface);
   --color-background: var(--background);
+  --color-card: var(--card);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-tertiary: var(--surface-tertiary);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-faint: var(--surface-faint);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-inverse-muted: var(--surface-inverse-muted);
+  --color-surface-inverse-secondary: var(--surface-inverse-secondary);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-inverse-strong: var(--surface-inverse-strong);
+
+  /* Borders & Skeletons */
+  --color-border: var(--border);
+  --color-skeleton: var(--skeleton);
+  --color-skeleton-pulse: var(--skeleton-pulse);
+
+  /* UI Elements */
+  --color-muted: var(--muted);
+  --color-muted-active: var(--muted-active);
+
+  /* Text Colors Mapping */
+  --color-foreground-strong: var(--foreground-strong);
   --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-tertiary: var(--foreground-tertiary);
+  --color-foreground-subtle: var(--foreground-subtle);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-faint: var(--foreground-faint);
+  --color-foreground-disabled: var(--foreground-disabled);
+  --color-foreground-ghost: var(--foreground-ghost);
+  --color-foreground-inverse-muted: var(--foreground-inverse-muted);
+  --color-foreground-inverse-subtle: var(--foreground-inverse-subtle);
+  --color-foreground-inverse: var(--foreground-inverse);
+  --color-foreground-inverse-strong: var(--foreground-inverse-strong);
+
+  --color-overlay: var(--overlay);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -33,8 +156,6 @@ input::-ms-reveal {
   --color-neutral-300: #d4d4d4;
   --color-neutral-100: #f5f5f5;
 
-  --color-border: #fcffff29;
-
   --color-emerald-500: #00bc7d;
   --color-emerald-100: #00d492;
 
@@ -43,54 +164,91 @@ input::-ms-reveal {
   --color-red-500: #fb2c36;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  background-color: #171717;
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 @layer base {
   ::-webkit-scrollbar {
-    @apply w-4;
+    width: 14px;
+    height: 14px;
   }
+
   ::-webkit-scrollbar-track {
-    @apply bg-neutral-900;
+    background: transparent;
   }
+
+  ::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full border-4 border-neutral-900 bg-neutral-700/70;
+    background-color: var(--surface-tertiary);
+    border-radius: 10px;
+    border: 4px solid transparent;
+    background-clip: content-box;
   }
+
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-neutral-600/80;
+    background-color: var(--surface-faint);
   }
+
+  ::-webkit-scrollbar-thumb:active {
+    background-color: var(--surface-faint);
+  }
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 @layer components {
   .custom-scrollbar {
-    &::-webkit-scrollbar {
-      @apply w-1.5;
-    }
-
-    &::-webkit-scrollbar-track {
-      @apply bg-transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      @apply rounded-full border-0 bg-neutral-900;
-    }
-
-    &:hover::-webkit-scrollbar-thumb {
-      @apply bg-neutral-800;
-    }
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-tertiary) transparent;
   }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--surface-tertiary);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: var(--surface-faint);
+  }
+}
+
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  z-index: 999999 !important;
 }

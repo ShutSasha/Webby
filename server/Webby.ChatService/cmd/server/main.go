@@ -92,7 +92,7 @@ func run(ctx context.Context, w io.Writer) error {
 	redisPublisher := repository.NewRedisPublisher(rdb)
 
 	// Services
-	chatService := services.NewChatService(chatRepo, chatMemberRepo, roomMemberClient, userClient)
+	chatService := services.NewChatService(chatRepo, chatMemberRepo, roomMemberClient, userClient, redisPublisher)
 	chatMemberService := services.NewChatMemberService(chatRepo, chatMemberRepo)
 	messageService := services.NewMessageService(messageRepo, chatMemberRepo, chatRepo, userClient, redisPublisher)
 

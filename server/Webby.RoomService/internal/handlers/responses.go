@@ -83,8 +83,11 @@ func mapAppErrorToStatus(err error) int {
 		return http.StatusNotFound
 	case errors.Is(err, apperrors.ErrNotHost),
 		errors.Is(err, apperrors.ErrNotMember),
-		errors.Is(err, apperrors.ErrRemoveHost):
+		errors.Is(err, apperrors.ErrRemoveHost),
+		errors.Is(err, apperrors.ErrBanned):
 		return http.StatusForbidden
+	case errors.Is(err, apperrors.ErrMaxMembersReached):
+		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
 	}
@@ -104,6 +107,10 @@ func mapAppErrorToClientMessage(err error) string {
 		return "You are not a member of this room"
 	case errors.Is(err, apperrors.ErrRemoveHost):
 		return "Host can not be removed from room"
+	case errors.Is(err, apperrors.ErrBanned):
+		return "You are banned in this room"
+	case errors.Is(err, apperrors.ErrMaxMembersReached):
+		return "The amount of room members can not be more than 20"
 	default:
 		return "An unexpected error occurred"
 	}

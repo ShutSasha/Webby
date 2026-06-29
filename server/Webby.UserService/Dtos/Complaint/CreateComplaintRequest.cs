@@ -7,7 +7,7 @@ public class CreateComplaintRequest
 {
    
    [Required]
-   public Guid TargetId { get; set; }
+   public string TargetId { get; set; }
    
    [Required]
    public required string ReasonType { get; set; }

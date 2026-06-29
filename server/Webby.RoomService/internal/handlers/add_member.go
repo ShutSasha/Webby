@@ -12,7 +12,7 @@ type addMembersUri struct {
 }
 
 type addMembersBody struct {
-	UserIDs []uuid.UUID `json:"userIds" binding:"required,min=1,dive"`
+	UserIDs []uuid.UUID `json:"userIds" binding:"required,min=1,max=20,dive"`
 }
 
 func (h *handler) AddMembers(c *gin.Context) {

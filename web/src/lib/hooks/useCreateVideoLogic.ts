@@ -1,7 +1,5 @@
 import { MouseEvent, useState } from 'react'
 
-import { useRouter } from 'next/navigation'
-
 import { useCreateVideoMetadata, useUploadVideoFile } from '@/lib/hooks/api/video/useCreateVideo'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { base64ToFile, fileToBase64 } from '@/lib/utils/file.utils'
@@ -12,7 +10,6 @@ import { useVideoDraftStore } from '@/stores/video-draft.store'
 export const MAX_TAGS = 5
 
 export const useCreateVideoLogic = () => {
-  const router = useRouter()
   const addToast = useToastStore(state => state.addToast)
 
   const step = useVideoDraftStore(state => state.step)
@@ -27,7 +24,10 @@ export const useCreateVideoLogic = () => {
   const setDraft = useVideoDraftStore(state => state.setDraft)
   const clearDraft = useVideoDraftStore(state => state.clearDraft)
 
+  const [uploadProgress, setUploadProgress] = useState(0)
+
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadVideoFile()
+
   const { mutateAsync: createMetadata, isPending: isSaving } = useCreateVideoMetadata()
 
   const isClient = useIsClient()
@@ -37,10 +37,27 @@ export const useCreateVideoLogic = () => {
     const file = e.target.files?.[0]
     if (!file) return addToast('Please select a valid video file.', 'error')
 
+    const allowedTypes = ['video/mp4', 'video/webm']
+    if (!allowedTypes.includes(file.type)) {
+      addToast('Unsupported file format. Please select an MP4 or WEBM video.', 'info')
+      e.target.value = ''
+      return
+    }
+
     const formData = new FormData()
     formData.append('VideoFile', file)
 
-    const response = await uploadFile(formData)
+    setUploadProgress(0)
+
+    const response = await uploadFile({
+      formData,
+      onUploadProgress: progressEvent => {
+        if (progressEvent.total) {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          setUploadProgress(percentCompleted)
+        }
+      },
+    })
 
     if (response.success && response.data) {
       setDraft({
@@ -91,12 +108,7 @@ export const useCreateVideoLogic = () => {
       videoTags.forEach(tag => formData.append('VideoTags', tag))
     }
 
-    const response = await createMetadata(formData)
-
-    if (response.success) {
-      router.push('/studio')
-      clearDraft()
-    }
+    await createMetadata(formData)
   }
 
   const cancelUploadVideo = async () => {
@@ -140,6 +152,7 @@ export const useCreateVideoLogic = () => {
       isClient,
       step,
       isUploading,
+      uploadProgress,
       isSaving,
       name,
       description,

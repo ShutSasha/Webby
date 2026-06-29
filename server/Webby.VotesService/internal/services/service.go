@@ -15,9 +15,8 @@ import (
 )
 
 type votingResults struct {
-	VotingID    uuid.UUID   `json:"votingId"`
-	RightChoice string      `json:"rightChoice"`
-	Winners     []uuid.UUID `json:"winners"`
+	VotingID    uuid.UUID `json:"votingId"`
+	RightChoice string    `json:"rightChoice"`
 }
 
 type eventEnvelope struct {
@@ -36,17 +35,17 @@ const (
 type repository interface {
 	CreateVoteWithRightChoice(ctx context.Context, vote *models.Vote) error
 	SaveChoices(ctx context.Context, vodeID uuid.UUID, choices []string) error
-	GetVotingUserWinners(ctx context.Context, voteID uuid.UUID, rightChoice string) ([]uuid.UUID, error)
 	ListByRoom(ctx context.Context, roomID uuid.UUID) ([]models.Vote, error)
 	GetChoicesForVoting(ctx context.Context, voteID uuid.UUID) ([]string, error)
 	IsChoiceValid(ctx context.Context, voteID uuid.UUID, rightChoice string) (bool, error)
 	SetVotingRightOption(ctx context.Context, roomID, voteID uuid.UUID, rightChoice string) error
 	MarkVoteAsLocked(ctx context.Context, voteID uuid.UUID) error
 	CastVote(ctx context.Context, voteID, userID uuid.UUID, choice string) error
-	CreateVotingForNextVideo(ctx context.Context, roomID uuid.UUID) error
+	CreateVotingForNextVideo(ctx context.Context, roomID uuid.UUID, duration int) error
 	GetNextVideoResults(ctx context.Context, roomID uuid.UUID) (map[uuid.UUID]int, error)
 	VoteForNextVideo(ctx context.Context, roomID, userID, queueItemID uuid.UUID) error
-	HasNextVideoVoting(ctx context.Context, roomID uuid.UUID) (bool, error)
+	GetNextVideoVoting(ctx context.Context, roomID uuid.UUID) (*models.NextVideoInfo, error)
+	GetUserVote(ctx context.Context, voteID, userID uuid.UUID) (*string, error)
 }
 
 type roomHostGetter interface {
@@ -133,7 +132,7 @@ func (s *service) CreateWithRightChoice(ctx context.Context, roomID, userID uuid
 			ID:        vote.ID,
 			VoteText:  voteText,
 			Duration:  duration,
-			CreatedAt: vote.CreatedAt,
+			ExpiresAt: vote.CreatedAt.Add(time.Duration(duration) * time.Second),
 			Choices:   choices,
 		},
 	}
@@ -205,17 +204,11 @@ func (s *service) ResolveVoting(ctx context.Context, roomID, userID, voteID uuid
 		return fmt.Errorf("%s: set right option: %w", op, err)
 	}
 
-	userIDs, err := s.repository.GetVotingUserWinners(ctx, voteID, rightChoice)
-	if err != nil {
-		return fmt.Errorf("%s: get winners: %w", op, err)
-	}
-
 	resultsEnvelope := eventEnvelope{
 		Type: eventTypeVotingResults,
 		Payload: votingResults{
 			VotingID:    voteID,
 			RightChoice: rightChoice,
-			Winners:     userIDs,
 		},
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
@@ -249,15 +242,24 @@ func (s *service) ListVotings(ctx context.Context, roomID, userID uuid.UUID) ([]
 	for _, v := range votes {
 		choices, err := s.repository.GetChoicesForVoting(ctx, v.ID)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", op, err)
+			return nil, fmt.Errorf("%s: get choices: %w", op, err)
 		}
+
+		myVote, err := s.repository.GetUserVote(ctx, v.ID, userID)
+		if err != nil {
+			return nil, fmt.Errorf("%s: get user vote: %w", op, err)
+		}
+
+		isLocked := v.Status != "active"
 
 		enrichedVoting := models.EnrichedVoting{
 			ID:        v.ID,
 			VoteText:  v.VoteText,
 			Duration:  v.Duration,
-			CreatedAt: v.CreatedAt,
+			ExpiresAt: v.CreatedAt.Add(time.Duration(v.Duration) * time.Second),
 			Choices:   choices,
+			IsLocked:  isLocked,
+			MyVote:    myVote,
 		}
 
 		log.Debug("List enriched votings", "voting", enrichedVoting)
@@ -307,26 +309,37 @@ func (s *service) CreateVotingForNextVideo(ctx context.Context, roomID, userID u
 		return fmt.Errorf("%s: %w", op, apperrors.ErrNotHost)
 	}
 
+	nextVoting, err := s.repository.GetNextVideoVoting(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if nextVoting.Exists {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrVotingAlreadyExist)
+	}
+
 	chatID, err := s.chatRetriever.GetChatIDByRoomID(ctx, roomID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = s.repository.CreateVotingForNextVideo(ctx, roomID)
+	err = s.repository.CreateVotingForNextVideo(ctx, roomID, 20)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	envelope := eventEnvelope{
-		Type:    eventTypeNextVideoVotingStarted,
-		Payload: map[string]string{"roomId": roomID.String()},
+		Type: eventTypeNextVideoVotingStarted,
+		Payload: map[string]any{
+			"duration":  20,
+			"expiresAt": time.Now().Add(time.Duration(20) * time.Second),
+		},
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
 	if err := s.publisher.Publish(ctx, topic, envelope); err != nil {
 		log.Error("failed to publish next video voting", slog.String("err", err.Error()))
 	}
 
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(15*time.Second))
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(20*time.Second))
 	s.activeTimers.Store(roomID, cancel)
 	go func(asyncCtx context.Context, rID, cID uuid.UUID) {
 		defer cancel()
@@ -339,6 +352,21 @@ func (s *service) CreateVotingForNextVideo(ctx context.Context, roomID, userID u
 		videoResults, err := s.repository.GetNextVideoResults(context.Background(), rID)
 		if err != nil {
 			bgLog.Error("Failed to get video results", "err", err.Error())
+			return
+		}
+
+		if len(videoResults) == 0 {
+			bgLog.Info("No votes cast, skipping next video selection")
+
+			resultsEnvelope := eventEnvelope{
+				Type:    eventTypeNextVideoVotingResult,
+				Payload: map[string]string{"winnerId": "none"},
+			}
+			topic := fmt.Sprintf("chat:%s", cID.String())
+			if err := s.publisher.Publish(context.Background(), topic, resultsEnvelope); err != nil {
+				log.Error("failed to publish empty voting results", slog.String("err", err.Error()))
+			}
+
 			return
 		}
 
@@ -381,6 +409,14 @@ func (s *service) VoteForNextVideo(ctx context.Context, roomID, userID, queueIte
 		return fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
 	}
 
+	voting, err := s.repository.GetNextVideoVoting(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if !voting.Exists {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNoVoting)
+	}
+
 	err = s.repository.VoteForNextVideo(ctx, roomID, userID, queueItemID)
 	if err != nil {
 		return fmt.Errorf("%s, %w", op, err)
@@ -389,21 +425,21 @@ func (s *service) VoteForNextVideo(ctx context.Context, roomID, userID, queueIte
 	return nil
 }
 
-func (s *service) HasNextVideoVoting(ctx context.Context, roomID, userID uuid.UUID) (bool, error) {
+func (s *service) HasNextVideoVoting(ctx context.Context, roomID, userID uuid.UUID) (*models.NextVideoInfo, error) {
 	const op = "service.HasNextVideoVoting"
 
 	exists, err := s.memberChecker.Exists(ctx, roomID, userID)
 	if err != nil {
-		return false, fmt.Errorf("%s, %w", op, err)
+		return nil, fmt.Errorf("%s, %w", op, err)
 	}
 	if !exists {
-		return false, fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
+		return nil, fmt.Errorf("%s, %w", op, apperrors.ErrNotMember)
 	}
 
-	hasVoting, err := s.repository.HasNextVideoVoting(ctx, roomID)
+	voting, err := s.repository.GetNextVideoVoting(ctx, roomID)
 	if err != nil {
-		return false, fmt.Errorf("%s, %w", op, err)
+		return nil, fmt.Errorf("%s, %w", op, err)
 	}
 
-	return hasVoting, nil
+	return voting, nil
 }

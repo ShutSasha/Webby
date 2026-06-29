@@ -2,11 +2,14 @@
 
 option csharp_namespace = "UserService";
 
+import "google/protobuf/wrappers.proto";
+
 service UserGrpcService {
   rpc GetUserById (GetUserRequest) returns (UserResponse);
   rpc GetUsersByIds (GetUsersRequest) returns (GetUsersResponse);
   rpc GetUserSubscriptionIds (GetUserSubscriptionIdsRequest) returns (GetUserSubscriptionsIdsResponse);
   rpc GetPremiumStatus(GetPremiumStatusRequest) returns (GetPremiumStatusResponse);
+  rpc CheckUserCanBlockVideo(CheckUserCanBlockVideoRequest) returns (google.protobuf.BoolValue);
 }
 
 // REQUESTS
@@ -26,6 +29,11 @@ message GetUserSubscriptionIdsRequest{
 
 message GetPremiumStatusRequest{
   string userId = 1;
+}
+
+message CheckUserCanBlockVideoRequest{
+  string requestedUserId = 1;
+  string videoAuthorId = 2;
 }
 
 //RESPONSES

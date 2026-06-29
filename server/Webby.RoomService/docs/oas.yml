@@ -462,7 +462,7 @@ paths:
       tags:
         - Members
       summary: Remove a member
-      description: Remove a user from a room. Only the room host can remove members. The host cannot be removed.
+      description: Remove a user from a room. Only the room host can remove members. The host cannot be removed. After removing a member, it will loose access to the room, and will be notified about it through event №13 `REMOVE_MEMBER`. (You can read about this event in the [WsGateway documentation](/index.html?urls.primaryName=WsGateway))
       operationId: removeMember
       security:
         - bearerAuth: []

@@ -4,5 +4,5 @@ type Props = {
 }
 
 export default async function Layout({ children }: Props) {
-  return <div className="bg-neutral-900 rounded-[20px] p-5 gap-4">{children}</div>
+  return <div className="bg-surface rounded-[20px] p-5 gap-4">{children}</div>
 }

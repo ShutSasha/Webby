@@ -43,14 +43,14 @@ export default function PlayerProgressBar({
 
   return (
     <div
-      className="relative h-1 md:h-1.5 w-full bg-white/20 rounded-full group/bar cursor-pointer"
+      className="relative h-1 md:h-1.5 w-full bg-neutral-100/20 rounded-full group/bar cursor-pointer"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
       {/* Tooltip */}
       {hoverTime !== null && (
         <div
-          className="absolute bottom-4.5 -translate-x-1/2 bg-neutral-100 text-black px-2 py-1 rounded-md text-sm
+          className="absolute bottom-4.5 -translate-x-1/2 bg-neutral-100 text-neutral-900 px-2 py-1 rounded-md text-sm
             font-bold shadow-lg pointer-events-none transition-opacity"
           style={{ left: `${hoverX}px` }}
         >
@@ -59,7 +59,10 @@ export default function PlayerProgressBar({
       )}
 
       {/* Pre-Loaded line */}
-      <div className="absolute h-full bg-white/30 rounded-full transition-all" style={{ width: `${loaded * 100}%` }} />
+      <div
+        className="absolute h-full bg-neutral-100/40 rounded-full transition-all"
+        style={{ width: `${loaded * 100}%` }}
+      />
 
       {/* Played line */}
       <div className="absolute h-full bg-emerald-500 rounded-full" style={{ width: `${played * 100}%` }} />

@@ -29,6 +29,7 @@ public class Video
    public string? PreviewUrl { get; set; }
    public bool IsPrivate { get; set; }
    public bool IsPublished { get; set; }
+   public bool IsBanned { get; set; }
    public ICollection<VideoTag>? VideoTags { get; set; }
    
 }

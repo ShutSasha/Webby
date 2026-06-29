@@ -9,7 +9,7 @@ export const PREMIUM_FEATURES = [
     icon: UsersIcon,
     description:
       'Gather large groups for watch parties or mass streams. Forget about limits and invite all your friends at once!',
-    freeLimit: 'Limit of 8 participants per room.',
+    freeLimit: 'Limit of 20 participants per room.',
     premiumLimit: 'Increased limit up to 50 participants.',
   },
   {

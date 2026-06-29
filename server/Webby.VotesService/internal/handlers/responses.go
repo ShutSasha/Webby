@@ -81,8 +81,11 @@ func mapAppErrorToStatus(err error) int {
 		errors.Is(err, apperrors.ErrVotingLocked),
 		errors.Is(err, apperrors.ErrNotMember):
 		return http.StatusForbidden
-	case errors.Is(err, apperrors.ErrAlreadyClosed):
+	case errors.Is(err, apperrors.ErrAlreadyClosed),
+		errors.Is(err, apperrors.ErrVotingAlreadyExist):
 		return http.StatusConflict
+	case errors.Is(err, apperrors.ErrNoVoting):
+		return http.StatusNotFound
 	case errors.Is(err, apperrors.ErrInvalidChoice):
 		return http.StatusBadRequest
 	default:
@@ -102,6 +105,10 @@ func mapAppErrorToClientMessage(err error) string {
 		return "There is no this choice in the voting"
 	case errors.Is(err, apperrors.ErrVotingLocked):
 		return "The voting is locked"
+	case errors.Is(err, apperrors.ErrVotingAlreadyExist):
+		return "This voting is already started"
+	case errors.Is(err, apperrors.ErrNoVoting):
+		return "This voting does not exist"
 	default:
 		return "An unexpected error occurred"
 	}

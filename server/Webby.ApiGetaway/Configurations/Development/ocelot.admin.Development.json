@@ -1,0 +1,132 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/swagger/doc.yaml",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8085
+        }
+      ],
+      "UpstreamPathTemplate": "/admin/swagger/v1/swagger.json",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AllowAnonymous": true
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/complaints",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8085
+        }
+      ],
+      "UpstreamPathTemplate": "/api/complaints",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/complaints/{complaintId}/accept",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8085
+        }
+      ],
+      "UpstreamPathTemplate": "/api/complaints/{complaintId}/accept",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/complaints/{complaintId}/deny",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8085
+        }
+      ],
+      "UpstreamPathTemplate": "/api/complaints/{complaintId}/deny",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/stats",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8085
+        }
+      ],
+      "UpstreamPathTemplate": "/api/stats",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/stats/registrations",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8085
+        }
+      ],
+      "UpstreamPathTemplate": "/api/stats/registrations",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/stats/subscriptions",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8085
+        }
+      ],
+      "UpstreamPathTemplate": "/api/stats/subscriptions",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "RoleClaimsRequirement": {
+        "Role": "Admin"
+      }
+    }
+  ]
+}

@@ -8,25 +8,29 @@ type EmptyStateProps = {
   description?: string
   className?: string
   icon?: React.ReactNode
+  disableFlex?: boolean
 }
 
-export default function EmptyState({ title, description, className, icon }: EmptyStateProps) {
+export default function EmptyState({ title, description, className, icon, disableFlex }: EmptyStateProps) {
   return (
     <div
       className={cn(
-        'flex flex-col flex-1 items-center justify-center w-full py-20 px-4 animate-in fade-in zoom-in-95 duration-500',
+        'flex flex-col items-center justify-center w-full py-20 px-4 animate-in fade-in zoom-in-95 duration-500',
+        !disableFlex && 'flex-1',
         className,
       )}
     >
       <div
-        className="size-20 bg-neutral-900/50 rounded-full flex items-center justify-center mb-6 border
-          border-neutral-800 shadow-inner"
+        className="size-20 bg-surface/50 rounded-full flex items-center justify-center mb-6 border border-border
+          shadow-inner"
       >
-        {icon ? icon : <SadSmileIcon className="size-9 text-neutral-600 stroke-[1.5px]" />}
+        {icon ? icon : <SadSmileIcon className="size-9 text-foreground-disabled stroke-[1.5px]" />}
       </div>
-      <h3 className="text-xl font-bold text-neutral-300 text-center mb-2">{title}</h3>
+      <h3 className="text-xl font-bold text-foreground-subtle text-center mb-2">{title}</h3>
 
-      {description && <p className="text-sm text-neutral-500 text-center max-w-sm leading-relaxed">{description}</p>}
+      {description && (
+        <p className="text-sm text-foreground-faint text-center max-w-sm leading-relaxed">{description}</p>
+      )}
     </div>
   )
 }

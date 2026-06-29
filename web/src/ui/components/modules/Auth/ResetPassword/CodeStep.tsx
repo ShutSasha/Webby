@@ -67,10 +67,10 @@ export default function CodeStep() {
   return (
     <div className="flex flex-col items-center gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center space-y-2">
-        <h2 className="text-white text-2xl font-bold">Confirm your email</h2>
-        <p className="text-neutral-400 text-sm">
+        <h2 className="text-foreground-strong text-2xl font-bold">Confirm your email</h2>
+        <p className="text-foreground-muted text-sm">
           We have sent a recovery code to <br />
-          <span className="text-white font-medium">{forgotPasswordEmail}</span>
+          <span className="text-foreground-strong font-medium">{forgotPasswordEmail}</span>
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export default function CodeStep() {
           type="button"
           className={`text-sm transition-all ${
             timeLeft > 0 || loading
-              ? 'text-neutral-500 cursor-not-allowed'
+              ? 'text-foreground-faint cursor-not-allowed'
               : 'text-emerald-500 hover:underline cursor-pointer'
             }`}
           onClick={handleResendCode}
@@ -118,7 +118,7 @@ export default function CodeStep() {
       <button
         type="button"
         onClick={() => setForgotPasswordStep(1)}
-        className="mt-2 text-neutral-500 text-sm hover:text-white transition-colors cursor-pointer"
+        className="mt-2 text-foreground-faint text-sm hover:text-foreground-strong transition-colors cursor-pointer"
       >
         Wrong email? <span className="text-emerald-500 hover:underline">Change it</span>
       </button>

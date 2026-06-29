@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Grpc.Core;
 using UserService;
+using Webby.VideoService.ComplaintGrpcClient;
 using Webby.VideoService.Dtos.Event;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.Search;
@@ -20,7 +21,6 @@ using Webby.VideoService.Interfaces.Services;
 using Webby.VideoService.Models;
 using Webby.VideoService.Models.Enums;
 using Webby.VideoService.Services.Background;
-using NewsStyleUriParser = System.NewsStyleUriParser;
 
 namespace Webby.VideoService.Services;
 
@@ -28,6 +28,7 @@ public class VideoService : IVideoService
 {
    private readonly IVideoRepository _videoRepository;
    private readonly IStorageService _storageService;
+   private readonly ComplaintGrpcService.ComplaintGrpcServiceClient _complaintGrpcClient;
    private readonly ITagService _tagService;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
    private readonly IMapper _mapper;
@@ -43,7 +44,7 @@ public class VideoService : IVideoService
       IMapper mapper, IBackgroundTaskQueue queue,
       IServiceScopeFactory scopeFactory, IYouTubeSearchService youtubeSearchService,
       ITwitchSearchService twitchSearchService, IEventPublisher eventPublisher,
-      ILogger<VideoService> logger)
+      ILogger<VideoService> logger, ComplaintGrpcService.ComplaintGrpcServiceClient complaintGrpcClient)
    {
       _videoRepository = videoRepository;
       _storageService = storageService;
@@ -56,16 +57,22 @@ public class VideoService : IVideoService
       _twitchSearchService = twitchSearchService;
       _eventPublisher = eventPublisher;
       _logger = logger;
+      _complaintGrpcClient = complaintGrpcClient;
    }
 
-   public async Task<Video> GetVideoById(Guid videoId)
+   public async Task<Video> GetVideoById(Guid videoId, bool showPrivate = false)
    {
       var video = await _videoRepository.FindById(videoId)
                   ?? throw new ApiException("Get video error", 404, "Video wasn't found");
 
-      if (video.IsPrivate)
+      if (video.IsPrivate && !showPrivate)
       {
          throw new ApiException("Get video error", 403, "Requested video is private");
+      }
+
+      if (video.IsBanned)
+      {
+         throw new ApiException("Get video error", 400, "Provided video is banned");
       }
 
       if (video.VideoUploadStatus is 
@@ -402,6 +409,45 @@ public class VideoService : IVideoService
       };
    }
 
+   public async Task<PagedResponse<VideoModerationPreview>> SearchModerationVideos(SearchOptions options)
+   {
+      var skip = (options.Page - 1) * options.PageSize;
+      var (additionalConditional, parameters, predicate) = VideoQueryFilters.ForModerationSearch();
+      
+      var (videos, total) = await _videoRepository.SearchAsync(
+         tableName: "Videos",
+         columnName: "Name",
+         searchText: options.SearchText,
+         skip: skip,
+         take: options.PageSize,
+         additionalWhere: additionalConditional,
+         parameters: parameters,
+         predicateFactory: predicate
+      );
+      
+      if (videos.Count == 0)
+      {
+         return new PagedResponse<VideoModerationPreview>
+         {
+            Items = [],
+            TotalCount = total,
+            Page = options.Page,
+            PageSize = options.PageSize
+         };
+      }
+
+      var videoItems = await MapAndEnrichWithUsersAsync<VideoModerationPreview>(videos);
+
+      return new PagedResponse<VideoModerationPreview>()
+      {
+         Items = videoItems,
+         TotalCount = total,
+         Page = options.Page,
+         PageSize = options.PageSize
+      };
+
+   }
+
    public async Task<PagedResponse<VideoDto>> SearchVideoInPlaylist(Guid? requestUserId, Guid playlistId, SearchOptions searchOptions)
    {
        var searchText = searchOptions.SearchText?.Trim();
@@ -674,6 +720,7 @@ public class VideoService : IVideoService
          var webbyVideos = await _videoRepository
             .GetByPredicate(v => webbyIds.Contains(v.VideoId) && 
                                  !v.IsPrivate &&
+                                 !v.IsBanned &&
                                  v.IsPublished);
          
          if (webbyVideos != null && webbyVideos.Any())
@@ -794,7 +841,7 @@ public class VideoService : IVideoService
        {
            throw new ApiException("Get video statistic error", 403, "You don't have permission to get statistics for this video");
        }
-
+       
        var now = DateTime.UtcNow;
        var targetYear = year is > 0 ? year.Value : now.Year;
        var targetMonth = month is >= 1 and <= 12 ? month.Value : now.Month;
@@ -825,6 +872,55 @@ public class VideoService : IVideoService
            ViewsTrend = fullMonthViews,
            HourlyActivity = fullHourlyActivity
        };
+   }
+
+   public Task BanVideo(string videoId)
+   {
+      return ChangeVideoBanStatusAsync(videoId, true);
+   }
+
+   public Task UnbanVideo(string videoId)
+   {
+      return ChangeVideoBanStatusAsync(videoId, false);
+   }
+
+   private async Task ChangeVideoBanStatusAsync(string videoId, bool targetStatus)
+   {
+      var actualId = videoId;
+      
+      if (videoId.StartsWith("wb_"))
+      {
+         var parseResult = PlatformPrefixToPlatformConverter.ParseLocalPlatform(videoId);
+         if (parseResult == null)
+         {
+            throw new ApiException("Process action error", 400, "Invalid id prefix type");
+         }
+
+         (_, actualId) = parseResult.Value;
+      }
+
+      if (!Guid.TryParse(actualId, out var actualIdGuid))
+      {
+         throw new ApiException("Process action error", 400, "Invalid video id guid type");
+      }
+      
+      var video = await _videoRepository.FindById(actualIdGuid)
+                  ?? throw new ApiException("Ban video error", 404, "Video wasn't found");
+
+      if (video.IsBanned == targetStatus)
+      {
+         var errorMessage = targetStatus ? "Video has already banned" : "Video doesn't have ban";
+         throw new ApiException("Process action error", 400, errorMessage);
+      }
+
+      video.IsBanned = targetStatus;
+
+      await _videoRepository.Update(video);
+      await _complaintGrpcClient.SetVideoComplaintsBannedAsync(new SetVideoComplaintsBannedRequest()
+      {
+         BanFlag = targetStatus,
+         TargetId = video.VideoId.ToString()
+      });
    }
 
    private List<VideoDto> MapToDto(IEnumerable<Video> videos) =>

@@ -74,9 +74,7 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer mediaClient.Close()
 
-	chatClient, err := grpcserver.NewChatClient(
-		cfg.Grpc.ChatServiceAddress,
-	)
+	chatClient, err := grpcserver.NewChatClient(cfg.Grpc.ChatServiceAddress)
 	if err != nil {
 		logger.Error(
 			"chat service gRPC connection failed",
@@ -86,14 +84,9 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer chatClient.Close()
 
-	memberClient, err := grpcserver.NewMemberClient(
-		cfg.Grpc.RoomServiceAddress,
-	)
+	memberClient, err := grpcserver.NewMemberClient(cfg.Grpc.RoomServiceAddress)
 	if err != nil {
-		logger.Error(
-			"room service gRPC connection failed",
-			slog.String("error", err.Error()),
-		)
+		logger.Error("room service gRPC connection failed", slog.String("error", err.Error()))
 		return err
 	}
 	defer memberClient.Close()

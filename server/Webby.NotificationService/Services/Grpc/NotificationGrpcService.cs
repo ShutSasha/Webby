@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using Microsoft.AspNetCore.SignalR;
 using Webby.NotificationService.Constants;
 using Webby.NotificationService.GrpcService;
@@ -72,5 +73,12 @@ public class NotificationGrpcService: GrpcService.NotificationGrpcService.Notifi
       {
          Success = true
       };
+   }
+
+   public override async Task<Empty> ReportBlocking(ReportBlockingRequest request, ServerCallContext context)
+   {
+      await _hubContext.Clients.User(request.UserId).SendAsync(WebSocketMethodNames.UserBanSystemNotificationMethod, request.UserId);
+
+      return new Empty();
    }
 }

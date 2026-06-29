@@ -34,20 +34,20 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      modalClasses="max-w-[740px] w-full bg-[#0A0A0A] border-neutral-800 shadow-2xl p-0 overflow-hidden"
+      modalClasses="max-w-[740px] w-full border-border shadow-2xl p-0 overflow-hidden"
     >
       <div className="flex flex-col w-full h-[85vh] max-h-[800px]">
-        <div className="p-4 border-b border-neutral-800/50 shrink-0">
+        <div className="p-4 border-b border-border/50 shrink-0">
           <div
-            className="relative flex items-center w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3
+            className="relative flex items-center w-full bg-surface border border-border rounded-xl px-4 py-3
               transition-colors focus-within:border-emerald-500/50"
           >
-            <SearchIcon className="w-5 h-5 text-neutral-500 shrink-0" />
+            <SearchIcon className="w-5 h-5 text-foreground-faint shrink-0" />
             <input
               type="text"
               placeholder="Search users, rooms, videos, or streams..."
-              className="w-full bg-transparent border-none outline-none text-neutral-200 placeholder:text-neutral-500
-                ml-3 text-sm"
+              className="w-full bg-transparent border-none outline-none text-foreground-tertiary
+                placeholder:text-foreground-faint ml-3 text-sm"
               value={query}
               onChange={e => setQuery(e.target.value)}
               autoFocus
@@ -55,9 +55,9 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="hover:bg-neutral-800 rounded-full transition-colors shrink-0 ml-2"
+                className="hover:bg-background rounded-full transition-colors shrink-0 ml-2"
               >
-                <XIcon className="w-4 h-4 text-neutral-400 hover:text-neutral-200" />
+                <XIcon className="w-4 h-4 text-foreground-muted hover:text-foreground-tertiary" />
               </button>
             )}
           </div>
@@ -67,10 +67,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
           <GlobalSearchTabs activeTab={activeTab} onChange={setActiveTab} />
         </div>
 
-        <div
-          className="flex-1 min-h-0 overflow-y-auto pb-6 relative scrollbar-thin scrollbar-track-red-400
-            scrollbar-thumb-white hover:scrollbar-thumb-neutral-300"
-        >
+        <div className="flex-1 min-h-0 overflow-y-auto pb-6 relative">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -119,17 +116,31 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
   const rawYT = ytData?.pages.flatMap(p => p.data?.items || []) || []
   const ytVideos = Array.from(new Map(rawYT.map(v => [v.videoId, v])).values())
 
-  const displayWebby = webbyExpanded ? webbyVideos : webbyVideos.slice(0, 3)
-  const displayYT = ytExpanded ? ytVideos : ytVideos.slice(0, 3)
-
   if (webbyLoading || ytLoading) return <Skeletons count={7} />
   if (webbyVideos.length === 0 && ytVideos.length === 0) return <EmptyState title="No videos found" />
+
+  const MAX_TOTAL_SLOTS = 7
+  const BASE_SLOTS = 3
+
+  let webbyLimit = BASE_SLOTS
+  let ytLimit = BASE_SLOTS
+
+  if (webbyVideos.length < BASE_SLOTS) {
+    ytLimit = MAX_TOTAL_SLOTS - webbyVideos.length
+  } else if (ytVideos.length < BASE_SLOTS) {
+    webbyLimit = MAX_TOTAL_SLOTS - ytVideos.length
+  }
+
+  const displayWebby = webbyExpanded ? webbyVideos : webbyVideos.slice(0, webbyLimit)
+  const displayYT = ytExpanded ? ytVideos : ytVideos.slice(0, ytLimit)
 
   return (
     <div className="flex flex-col gap-6 px-1">
       {webbyVideos.length > 0 && (
         <div className="flex flex-col">
-          <h3 className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-3 px-2">Webby Videos</h3>
+          <h3 className="text-[11px] font-bold text-foreground-faint uppercase tracking-wider mb-3 px-2">
+            Webby Videos
+          </h3>
           <div className="flex flex-col gap-1">
             {displayWebby.map(video => (
               <GlobalSearchCard
@@ -145,7 +156,7 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
             ))}
           </div>
 
-          {!webbyExpanded && webbyVideos.length > 3 ? (
+          {!webbyExpanded && webbyVideos.length > webbyLimit ? (
             <button
               onClick={() => setWebbyExpanded(true)}
               className="text-sm text-emerald-500 hover:text-emerald-400 font-medium py-2.5 mt-2 text-center w-full
@@ -168,7 +179,7 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
 
       {ytVideos.length > 0 && (
         <div className="flex flex-col">
-          <h3 className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-3 px-2">YouTube</h3>
+          <h3 className="text-[11px] font-bold text-foreground-faint uppercase tracking-wider mb-3 px-2">YouTube</h3>
           <div className="flex flex-col gap-1">
             {displayYT.map(video => (
               <GlobalSearchCard
@@ -184,7 +195,7 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
             ))}
           </div>
 
-          {!ytExpanded && ytVideos.length > 3 ? (
+          {!ytExpanded && ytVideos.length > ytLimit ? (
             <button
               onClick={() => setYtExpanded(true)}
               className="text-sm text-emerald-500 hover:text-emerald-400 font-medium py-2.5 mt-2 text-center w-full
@@ -248,7 +259,7 @@ function RoomsTab({ query, onCloseSearchModal }: { query: string; onCloseSearchM
 
 function PlaylistsTab({ query, onCloseSearchModal }: { query: string; onCloseSearchModal: () => void }) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useSearchPlaylistsQuery(query)
-  const rawPlaylists = data?.pages.flatMap(p => p.data?.items || []) || []
+  const rawPlaylists = data?.pages.flatMap(p => p?.items || []) || []
   const playlists = Array.from(new Map(rawPlaylists.map(pl => [pl.playlistId, pl])).values())
 
   const lastElementRef = useInfiniteScroll({ isLoading, isFetchingNextPage, hasNextPage, fetchNextPage })

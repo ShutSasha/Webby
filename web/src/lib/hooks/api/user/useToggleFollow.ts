@@ -1,21 +1,21 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { toggleFollow } from '@/lib/actions/user.actions'
+import { extractServerMessage, ServerActionError, unwrapServerAction } from '@/lib/utils/general.utils'
+import { useToastStore } from '@/stores/toast-store'
 
 export const useToggleFollowMutation = (currentUserId?: string) => {
   const queryClient = useQueryClient()
+  const addToast = useToastStore(state => state.addToast)
 
   return useMutation({
     mutationFn: async (targetId: string) => {
-      const response = await toggleFollow(targetId)
-
-      if (!response.success) {
-        throw new Error(response.message || 'Toggle follow error')
-      }
-
-      return response
+      return unwrapServerAction(await toggleFollow(targetId))
     },
-
+    onError: (error: ServerActionError) => {
+      const errorMessage = extractServerMessage(error.errors) || error.message
+      addToast(errorMessage, 'error')
+    },
     onSettled: (_, __, targetId) => {
       queryClient.invalidateQueries({ queryKey: ['user-followers', targetId] })
       queryClient.invalidateQueries({ queryKey: ['user-profile', targetId] })

@@ -1,12 +1,17 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { createUserPlaylist } from '@/lib/actions/playlist.actions'
-import { extractServerMessage, serverLog } from '@/lib/utils/general.utils'
+import { extractServerMessage, ServerActionError, unwrapServerAction } from '@/lib/utils/general.utils'
+import { addPaginatedCacheItem } from '@/lib/utils/query.utils'
 import { useToastStore } from '@/stores/toast-store'
+import { PaginatedData } from '@/types/general.types'
+import { CachedPlaylist } from '@/types/playlist.types'
 
 type UseCreatePlaylistProps = {
   onSuccess: () => void
 }
+
+type PlaylistPage = PaginatedData<CachedPlaylist>
 
 export function useCreatePlaylist({ onSuccess }: UseCreatePlaylistProps) {
   const queryClient = useQueryClient()
@@ -14,30 +19,23 @@ export function useCreatePlaylist({ onSuccess }: UseCreatePlaylistProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async ({ name, isPrivate }: { name: string; isPrivate: boolean }) => {
-      const response = await createUserPlaylist(name, isPrivate)
-
-      if (!response.success) {
-        const msg = extractServerMessage(response.errors)
-        throw new Error(msg ?? `Something went wrong while creating ${name} playlist`)
-      }
-
-      return response
+      return unwrapServerAction(await createUserPlaylist(name, isPrivate))
     },
-    onSuccess: () => {
+
+    onSuccess: newPlaylist => {
       addToast('User playlist has been created successfully', 'success')
       onSuccess()
 
-      queryClient.invalidateQueries({
-        queryKey: ['search-user-playlists'],
-      })
+      const updateCache = (oldData: InfiniteData<PlaylistPage> | undefined) => {
+        return addPaginatedCacheItem(oldData, newPlaylist)
+      }
 
-      queryClient.invalidateQueries({
-        queryKey: ['search-playlists'],
-      })
+      queryClient.setQueriesData({ queryKey: ['search-user-playlists'] }, updateCache)
     },
-    onError: error => {
-      serverLog('Handle submit for create user playlist', error, true)
-      addToast(error.message, 'error')
+
+    onError: (error: ServerActionError) => {
+      const errorMessage = extractServerMessage(error.errors) || error.message
+      addToast(errorMessage, 'error')
     },
   })
 

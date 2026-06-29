@@ -27,7 +27,7 @@ public class GrpcExceptionInterceptor : Interceptor
          };
          
          var detail = apiEx.Errors != null 
-            ? string.Join("; ", apiEx.Errors.Select(x => $"{x.Key}: {x.Value}"))
+            ? string.Join("; ", apiEx.Errors.Select(x => $"{x.Value}"))
             : apiEx.Message;
 
          throw new RpcException(new Status(grpcStatus, detail));

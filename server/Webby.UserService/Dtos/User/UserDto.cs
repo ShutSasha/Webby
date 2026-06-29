@@ -9,5 +9,7 @@ public class UserDto
    public string Username { get; set; }
    public string About { get; set; }
    public string AvatarUrl { get; set; }
+   public bool IsBanned { get; set; }
+   public DateTime CreatedAt { get; set; }
    public Role Role { get; set; }
 }

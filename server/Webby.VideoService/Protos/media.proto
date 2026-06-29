@@ -7,6 +7,7 @@ option csharp_namespace = "Webby.MediaService.GrpcServer";
 service MediaService {
   rpc GetVideo(GetVideoRequest) returns (VideoResponse);
   rpc GetVideosBatch(GetVideosBatchRequest) returns (GetVideosBatchResponse);
+  rpc GetAuthorIDByVideoID(GetAuthorIDByVideoIDRequest) returns (GetAuthorIDByVideoIDResponse);
 }
 
 message GetVideoRequest {
@@ -27,4 +28,12 @@ message GetVideosBatchRequest {
 message GetVideosBatchResponse {
   repeated VideoResponse videos = 1;
   repeated string unavailableVideoIds = 2;
+}
+
+message GetAuthorIDByVideoIDRequest {
+  string videoID = 1;
+}
+
+message GetAuthorIDByVideoIDResponse {
+  string authorID = 1;
 }

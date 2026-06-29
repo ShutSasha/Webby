@@ -3,7 +3,7 @@
 import { useGetChatMessagesQuery } from '@/lib/hooks/api/chat/useGetChatMessages'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 
-import RoomChatMessage from './RoomChatMessage'
+import RoomChatMessage, { RoomChatMessageSkeleton } from './RoomChatMessage'
 
 type Props = {
   chatId: string
@@ -12,7 +12,8 @@ type Props = {
 export default function RoomChat({ chatId }: Props) {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useGetChatMessagesQuery(chatId)
 
-  const messages = data?.pages.flatMap(page => page.data?.items || []) || []
+  const rawMessages = data?.pages.flatMap(page => page.data?.items || []) || []
+  const messages = Array.from(new Map(rawMessages.map(msg => [msg.id, msg])).values())
 
   const lastElementRef = useInfiniteScroll({
     isLoading,
@@ -23,8 +24,10 @@ export default function RoomChat({ chatId }: Props) {
 
   if (isLoading && messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="size-6 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+      <div className="flex-1 overflow-hidden flex flex-col-reverse gap-2 pr-1">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <RoomChatMessageSkeleton key={`skeleton-${i}`} index={i} />
+        ))}
       </div>
     )
   }
@@ -32,12 +35,16 @@ export default function RoomChat({ chatId }: Props) {
   return (
     <div
       className="flex-1 overflow-y-auto min-h-0 flex flex-col-reverse gap-1 pr-1 [&::-webkit-scrollbar]:w-1.5
-        [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-900
+        [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-surface
         [&::-webkit-scrollbar-thumb]:border-0 [&::-webkit-scrollbar-thumb]:rounded-full
-        hover:[&::-webkit-scrollbar-thumb]:bg-neutral-800"
+        hover:[&::-webkit-scrollbar-thumb]:bg-background"
     >
+      <div className="shrink-0 h-px w-full" style={{ overflowAnchor: 'auto' }} />
       {messages.length === 0 ? (
-        <div className="h-full flex items-center justify-center text-neutral-600 text-sm italic rotate-180 transform">
+        <div
+          className="h-full flex items-center justify-center text-foreground-disabled text-sm italic rotate-180
+            transform"
+        >
           <span className="rotate-180">No messages yet. Be the first to say hello!</span>
         </div>
       ) : (

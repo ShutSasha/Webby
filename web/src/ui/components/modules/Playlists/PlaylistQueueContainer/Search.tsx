@@ -21,7 +21,7 @@ export default function Search({ loading, handleSearchChange }: Props) {
   return (
     <div className="relative mb-3">
       <SearchIcon
-        className="absolute top-1/2 -translate-y-1/2 left-4 h-5 w-5 text-neutral-600 stroke-[1.5px]"
+        className="absolute top-1/2 -translate-y-1/2 left-4 h-5 w-5 text-foreground-disabled stroke-[1.5px]"
         aria-hidden="true"
       />
       <input
@@ -29,8 +29,8 @@ export default function Search({ loading, handleSearchChange }: Props) {
         type="text"
         autoComplete="off"
         className="focus:border-emerald-500 focus:ring-emerald-500 ring-[0.3px] ring-transparent block
-          placeholder:text-neutral-600 focus:outline-none pl-12 py-3 rounded-2xl font-medium text-sm border
-          border-border w-full bg-neutral-900/50 text-neutral-200 transition-all"
+          placeholder:text-foreground-disabled focus:outline-none pl-12 py-3 rounded-2xl font-medium text-sm border
+          border-border w-full bg-surface/50 text-foreground-tertiary transition-all"
         placeholder="Search a video in playlist"
         value={query}
         onChange={handleInput}

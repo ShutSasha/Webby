@@ -33,17 +33,22 @@ export async function getUser(id: string): Promise<GetUserResponse | undefined |
   }
 }
 
-export async function uploadNewUserPhoto(id: string, formData: FormData): Promise<User | null> {
+export async function uploadNewUserPhoto(id: string, formData: FormData): Promise<BaseServerResponse<User>> {
   try {
     const { data: response } = await $api.patch<BaseServerResponse<User>>(
       `${endpoint}/update-user-avatar/${id}`,
       formData,
     )
 
-    return response.data
+    return response
   } catch (error: unknown) {
     serverLog('USER_UPLOAD_ERROR', error, true)
-    return null
+    return {
+      success: false,
+      data: null,
+      message: 'Failed to upload user avatar',
+      errors: parseAxiosError(error),
+    }
   }
 }
 

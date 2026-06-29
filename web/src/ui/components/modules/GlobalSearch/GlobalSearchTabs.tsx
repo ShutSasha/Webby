@@ -12,14 +12,14 @@ type Props = {
 
 export default function GlobalSearchTabs({ activeTab, onChange }: Props) {
   return (
-    <div className="flex items-center gap-1 border-b border-neutral-800 mb-4 no-scrollbar px-2">
+    <div className="flex items-center gap-1 border-b border-border mb-4 no-scrollbar px-2">
       {SEARCH_TABS.map(tab => (
         <button
           key={tab}
           onClick={() => onChange(tab)}
           className={cn(
             'relative px-4 py-3 text-sm font-medium transition-colors shrink-0 outline-none',
-            activeTab === tab ? 'text-emerald-500' : 'text-neutral-400 hover:text-neutral-200',
+            activeTab === tab ? 'text-emerald-500' : 'text-foreground-muted hover:text-foreground-tertiary',
           )}
         >
           {tab}
