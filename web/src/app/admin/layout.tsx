@@ -1,8 +1,16 @@
+import { isValidRole } from '@/lib/actions/auth.actions'
 import MainContainer from '@/ui/components/layouts/MainContainer'
 import MainLayout from '@/ui/components/layouts/MainLayout'
 import AdminNavTabs from '@/ui/components/modules/Admin/AdminNavTabs'
+import ForceLogout from '@/ui/components/shared/ForceLogout'
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const userHasAccessToAdminPage = await isValidRole()
+
+  if (!userHasAccessToAdminPage.data) {
+    return <ForceLogout />
+  }
+
   return (
     <MainLayout>
       <MainContainer>

@@ -7,7 +7,7 @@ import { AuthError } from 'next-auth'
 import $api from '@/lib/config/api.config'
 import { parseAxiosError, serverLog } from '@/lib/utils/general.utils'
 import { LoginResponse } from '@/types/auth.types'
-import { FormActionState } from '@/types/general.types'
+import { BaseServerResponse, FormActionState } from '@/types/general.types'
 import { signIn } from '@/workspace/auth'
 
 export type ReturnAuthError = {
@@ -165,6 +165,23 @@ export async function resetPasswordAction(_prevState: FormActionState, formData:
 
     return {
       success: false,
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function isValidRole(): Promise<BaseServerResponse<boolean>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<boolean>>(`/auth/is-valid-role`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('GET_VALID_ROLE_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to retrieve valid role',
       errors: parseAxiosError(error),
     }
   }
