@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Webby.ApiGetaway/Dockerfile
     ports:
-      - "5000:8080"
+      - "5000:8000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - JwtOptions__AccessSecretKey=${JwtAccessSecretKey}
@@ -131,15 +131,14 @@ services:
       context: .
       dockerfile: Webby.ChatService/Dockerfile
     environment:
-      - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - REDIS_ADDR=redis:6379
       - REDIS_PASSWORD=${RedisPassword}
       - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=5050
-      - GRPC_PORT=5008
-      - GRPC_ROOM_SERVICE_ADDRESS=room-service:5006
+      - HTTP_PORT=8081
+      - GRPC_PORT=50051
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
     depends_on:
       - redis
     container_name: webby-chat-service
@@ -149,7 +148,6 @@ services:
       context: .
       dockerfile: Webby.RoomService/Dockerfile
     environment:
-      - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - AWS_ACCESS_KEY=${AwsAccessKey}
@@ -157,13 +155,13 @@ services:
       - AWS_BUCKET=${AwsBucketName}
       - AWS_REGION=${AwsRegion}
       - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=5050
+      - HTTP_PORT=8080
       - GRPC_HOST=0.0.0.0
-      - GRPC_PORT=5006
+      - GRPC_PORT=50054
       - GRPC_MEDIA_SERVICE_ADDRESS=video-service:5005
-      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:5008
-      - GRPC_CATEGORY_SERVICE_ADDRESS=room-category-service:5009
-      - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:5007
+      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:50051
+      - GRPC_CATEGORY_SERVICE_ADDRESS=room-category-service:50052
+      - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:50053
       - REDIS_ADDR=redis:6379
       - REDIS_PASSWORD=${RedisPassword}
     depends_on:
@@ -175,13 +173,12 @@ services:
       context: .
       dockerfile: Webby.RoomCategoryService/Dockerfile
     environment:
-      - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=5050
+      - HTTP_PORT=8082
       - GRPC_HOST=0.0.0.0
-      - GRPC_PORT=5009
+      - GRPC_PORT=50052
     container_name: webby-room-category-service
 
   room-queue-service:
@@ -189,16 +186,15 @@ services:
       context: .
       dockerfile: Webby.RoomQueueService/Dockerfile
     environment:
-      - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=5050
+      - HTTP_PORT=8083
       - GRPC_HOST=0.0.0.0
-      - GRPC_PORT=5007
+      - GRPC_PORT=50053
       - GRPC_MEDIA_SERVICE_ADDRESS=video-service:5005
-      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:5008
-      - GRPC_ROOM_SERVICE_ADDRESS=room-service:5006
+      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:50051
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:50053
       - REDIS_ADDR=redis:6379
       - REDIS_PASSWORD=${RedisPassword}
     depends_on:
@@ -210,15 +206,12 @@ services:
       context: .
       dockerfile: Webby.VotesService/Dockerfile
     environment:
-      - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=5050
-      - GRPC_HOST=0.0.0.0
-      - GRPC_PORT=5010
-      - GRPC_ROOM_SERVICE_ADDRESS=room-service:5006
-      - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:5007
+      - HTTP_PORT=8084
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
+      - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:50053
     container_name: webby-votes-service
 
   ws-gateway:
@@ -226,17 +219,13 @@ services:
       context: .
       dockerfile: Webby.WsGateway/Dockerfile
     environment:
-      - CONFIG_PATH=config/config.yaml
       - CONNECTION_STRING=${DatabaseConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=5050
-      - TOKEN_TTL=15m
+      - HTTP_PORT=8090
+      - TOKEN_TTL=5m
       - REDIS_ADDR=redis:6379
       - REDIS_PASSWORD=${RedisPassword}
-      - GRPC_CHAT=chat-service:5008
-      - GRPC_VOTES=votes-service:5010
-      - GRPC_ROOM=room-service:5006
     depends_on:
       - redis
     container_name: webby-ws-gateway
