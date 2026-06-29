@@ -11,6 +11,7 @@ import { useCategoriesQuery } from '@/lib/hooks/api/category/useCategoriesQuery'
 import { useDeleteRoom } from '@/lib/hooks/api/room/useDeleteRoom'
 import { useUpdateRoom } from '@/lib/hooks/api/room/useUpdateRoom'
 import { cn } from '@/lib/utils/general.utils'
+import { useToastStore } from '@/stores/toast-store'
 import { UserRoom } from '@/types/room.types'
 import Button from '@/ui/components/shared/Button'
 import Input from '@/ui/components/shared/Input'
@@ -18,11 +19,14 @@ import Modal from '@/ui/components/shared/Modal'
 import Switch from '@/ui/components/shared/Switch'
 import { BLUR_DATA_URLS } from '@/ui/images'
 
+const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
+
 type Props = {
   room: UserRoom
 }
 
 export default function UserRoomItem({ room }: Props) {
+  const addToast = useToastStore(state => state.addToast)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -98,6 +102,20 @@ export default function UserRoomItem({ room }: Props) {
     }
 
     updateRoom({ roomId: room.id, formData })
+  }
+
+  const handleChangeThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
+
+    if (file && file.size > MAX_FILE_SIZE) {
+      addToast('File is too large. Maximum size is 2MB', 'error')
+
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      setEditThumbnail(null)
+      return
+    }
+
+    setEditThumbnail(file)
   }
 
   return (
@@ -229,7 +247,7 @@ export default function UserRoomItem({ room }: Props) {
               type="file"
               ref={fileInputRef}
               accept="image/*"
-              onChange={e => setEditThumbnail(e.target.files?.[0] || null)}
+              onChange={handleChangeThumbnail}
               className="block w-full text-sm text-foreground-muted file:mr-4 file:py-2.5 file:px-4 file:rounded-xl
                 file:border-0 file:text-sm file:font-semibold file:bg-emerald-500/10 file:text-emerald-500
                 hover:file:bg-emerald-500/20 transition-colors cursor-pointer"

@@ -115,11 +115,7 @@ export async function deleteRoomAction(roomId: string): Promise<BaseServerRespon
 
 export async function updateRoomAction(roomId: string, formData: FormData): Promise<BaseServerResponse<Room>> {
   try {
-    const { data: response } = await $api.put<BaseServerResponse<Room>>(`${endpoint}/${roomId}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    const { data: response } = await $api.put<BaseServerResponse<Room>>(`${endpoint}/${roomId}`, formData)
     return response
   } catch (error: unknown) {
     serverLog('UPDATE_ROOM_ERROR', error, true)
