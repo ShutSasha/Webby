@@ -99,6 +99,7 @@ export function StudioVideoRow({ video }: Props) {
             src={video.previewUrl || DEFAULT_VIDEO_THUMBNAIL}
             alt="Video thumbnail"
             fill
+            sizes="112px"
             className={cn('object-cover transition-all', (!isReady || video.isBanned) && 'opacity-40 grayscale-50')}
             placeholder="blur"
             blurDataURL={BLUR_DATA_URLS['neutral900']}

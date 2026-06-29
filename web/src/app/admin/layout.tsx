@@ -4,6 +4,8 @@ import MainLayout from '@/ui/components/layouts/MainLayout'
 import AdminNavTabs from '@/ui/components/modules/Admin/AdminNavTabs'
 import ForceLogout from '@/ui/components/shared/ForceLogout'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const userHasAccessToAdminPage = await isValidRole()
 
