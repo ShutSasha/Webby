@@ -229,3 +229,83 @@ export async function changeUserRoleAction(userId: string, userRole: Role): Prom
     }
   }
 }
+
+export type AdminVideoUser = {
+  avatarUrl: string
+  isFollowed: boolean
+  userId: string
+  username: string
+}
+
+export type AdminVideoRecord = {
+  videoId: string
+  previewUrl: string
+  name: string
+  isBanned: boolean
+  createdAt: string
+  user: AdminVideoUser
+}
+
+export async function searchModerationVideosAction(
+  searchText: string = '',
+  page: number = 1,
+  limit: number = 20,
+): Promise<BaseServerResponse<PaginatedData<AdminVideoRecord>>> {
+  try {
+    const { data: response } = await $api.get<BaseServerResponse<PaginatedData<AdminVideoRecord>>>(
+      '/videos/moderation/search',
+      {
+        params: {
+          searchText,
+          page,
+          pageSize: limit,
+        },
+      },
+    )
+
+    return response
+  } catch (error: unknown) {
+    serverLog('SEARCH_MODERATION_VIDEOS_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to search moderation videos',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function banVideoAction(videoId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/videos/blocks/${videoId}/ban`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('BAN_VIDEO_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to ban video',
+      errors: parseAxiosError(error),
+    }
+  }
+}
+
+export async function unbanVideoAction(videoId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/videos/blocks/${videoId}/unban`)
+
+    return response
+  } catch (error: unknown) {
+    serverLog('UNBAN_VIDEO_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to unban video',
+      errors: parseAxiosError(error),
+    }
+  }
+}
