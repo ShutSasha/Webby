@@ -131,7 +131,7 @@ services:
       context: .
       dockerfile: Webby.ChatService/Dockerfile
     environment:
-      - CONNECTION_STRING=${DatabaseConnectionString}
+      - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - REDIS_ADDR=redis:6379
       - REDIS_PASSWORD=${RedisPassword}
@@ -148,7 +148,7 @@ services:
       context: .
       dockerfile: Webby.RoomService/Dockerfile
     environment:
-      - CONNECTION_STRING=${DatabaseConnectionString}
+      - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - AWS_ACCESS_KEY=${AwsAccessKey}
       - AWS_SECRET_KEY=${AwsSecretKey}
@@ -173,7 +173,7 @@ services:
       context: .
       dockerfile: Webby.RoomCategoryService/Dockerfile
     environment:
-      - CONNECTION_STRING=${DatabaseConnectionString}
+      - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_HOST=0.0.0.0
       - HTTP_PORT=8082
@@ -186,7 +186,7 @@ services:
       context: .
       dockerfile: Webby.RoomQueueService/Dockerfile
     environment:
-      - CONNECTION_STRING=${DatabaseConnectionString}
+      - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_HOST=0.0.0.0
       - HTTP_PORT=8083
@@ -206,7 +206,7 @@ services:
       context: .
       dockerfile: Webby.VotesService/Dockerfile
     environment:
-      - CONNECTION_STRING=${DatabaseConnectionString}
+      - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_HOST=0.0.0.0
       - HTTP_PORT=8084
@@ -219,7 +219,7 @@ services:
       context: .
       dockerfile: Webby.WsGateway/Dockerfile
     environment:
-      - CONNECTION_STRING=${DatabaseConnectionString}
+      - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_HOST=0.0.0.0
       - HTTP_PORT=8090

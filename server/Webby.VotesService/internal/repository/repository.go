@@ -329,7 +329,7 @@ func (r *repository) GetNextVideoResults(ctx context.Context, roomID uuid.UUID) 
 	for userID, choice := range allVotes {
 		choiceID, parseErr := uuid.Parse(choice)
 		if parseErr != nil {
-			log.Warn("Failed to parse choidce ID, removing from set", "choice", choice)
+			log.Warn("Failed to parse choice ID, removing from set", "choice", choice)
 			r.client.HDel(ctx, votesKey, userID)
 			continue
 		}
