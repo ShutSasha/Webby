@@ -5,7 +5,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-category-server",
+          "Host": "room-category-service",
           "Port": 8082
         }
       ],
@@ -20,7 +20,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-category-server",
+          "Host": "room-category-service",
           "Port": 8082
         }
       ],
@@ -32,7 +32,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-category-server",
+          "Host": "room-category-service",
           "Port": 8082
         }
       ],
@@ -50,7 +50,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-category-server",
+          "Host": "room-category-service",
           "Port": 8082
         }
       ],

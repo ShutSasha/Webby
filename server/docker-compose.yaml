@@ -143,6 +143,21 @@ services:
       - redis
     container_name: webby-chat-service
 
+  admin-service:
+    build:
+      context: .
+      dockerfile: Webby.AdminService/Dockerfile
+    environment:
+      - CONNECTION_STRING=${UriConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=8085
+      - GRPC_MEDIA_SERVICE_ADDRESS=room-service:5005
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
+      - GRPC_COMPLAINT_SERVICE_ADDRESS=room-service:5004
+      - GRPC_NOTIFICATION_SERVICE_ADDRESS=room-service:5007
+    container_name: webby-admin-service
+
   room-service:
     build:
       context: .

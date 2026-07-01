@@ -5,7 +5,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],
@@ -20,7 +20,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],
@@ -35,7 +35,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],
@@ -50,7 +50,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],
@@ -62,7 +62,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],
@@ -77,7 +77,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],
@@ -92,7 +92,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],
@@ -107,7 +107,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],
@@ -122,7 +122,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],
@@ -137,7 +137,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],
@@ -152,7 +152,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "room-server",
+          "Host": "room-service",
           "Port": 8080
         }
       ],

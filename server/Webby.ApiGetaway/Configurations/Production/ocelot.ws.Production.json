@@ -5,7 +5,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "wsgateway-server",
+          "Host": "ws-gateway",
           "Port": 8090
         }
       ],
@@ -20,7 +20,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "wsgateway-server",
+          "Host": "ws-gateway",
           "Port": 8090
         }
       ],
@@ -35,7 +35,7 @@
       "DownstreamScheme": "ws",
       "DownstreamHostAndPorts": [
         {
-          "Host": "wsgateway-server",
+          "Host": "ws-gateway",
           "Port": 8090
         }
       ],
