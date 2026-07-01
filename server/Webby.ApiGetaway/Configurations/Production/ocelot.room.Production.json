@@ -1,11 +1,11 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/swagger/doc.json",
+      "DownstreamPathTemplate": "/swagger/doc.yaml",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "127.0.0.1",
+          "Host": "room-server",
           "Port": 8080
         }
       ],
@@ -20,7 +20,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "127.0.0.1",
+          "Host": "room-server",
           "Port": 8080
         }
       ],
@@ -35,7 +35,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "127.0.0.1",
+          "Host": "room-server",
           "Port": 8080
         }
       ],
@@ -50,7 +50,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "127.0.0.1",
+          "Host": "room-server",
           "Port": 8080
         }
       ],
@@ -62,7 +62,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "127.0.0.1",
+          "Host": "room-server",
           "Port": 8080
         }
       ],
@@ -77,7 +77,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "127.0.0.1",
+          "Host": "room-server",
           "Port": 8080
         }
       ],
@@ -92,7 +92,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "127.0.0.1",
+          "Host": "room-server",
           "Port": 8080
         }
       ],
@@ -103,11 +103,26 @@
       }
     },
     {
+      "DownstreamPathTemplate": "/api/rooms/{id}/members/points",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "room-server",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/members/points",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
       "DownstreamPathTemplate": "/api/rooms/{id}/members/{memberId}/points",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "127.0.0.1",
+          "Host": "room-server",
           "Port": 8080
         }
       ],
@@ -122,7 +137,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "127.0.0.1",
+          "Host": "room-server",
           "Port": 8080
         }
       ],
@@ -137,7 +152,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "127.0.0.1",
+          "Host": "room-server",
           "Port": 8080
         }
       ],

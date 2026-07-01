@@ -5,71 +5,75 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "webby-vote-service",
-          "Port": 8080
+          "Host": "room-queue-server",
+          "Port": 8083
         }
       ],
-      "UpstreamPathTemplate": "/vote/swagger/v1/swagger.json",
+      "UpstreamPathTemplate": "/room-queue/swagger/v1/swagger.json",
       "UpstreamHttpMethod": ["GET"],
       "AuthenticationOptions": {
         "AllowAnonymous": true
       }
     },
     {
-      "DownstreamPathTemplate": "/api/rooms/{id}/votes/right-choice",
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue",
       "DownstreamScheme": "http",
+      "Priority": 10,
       "DownstreamHostAndPorts": [
         {
-          "Host": "webby-vote-service",
-          "Port": 8080
+          "Host": "room-queue-server",
+          "Port": 8083
         }
       ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/votes/right-choice",
-      "UpstreamHttpMethod": ["POST"],
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue",
+      "UpstreamHttpMethod": ["POST", "GET"],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
     {
-      "DownstreamPathTemplate": "/api/rooms/{id}/votes",
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
       "DownstreamScheme": "http",
+      "Priority": 10,
       "DownstreamHostAndPorts": [
         {
-          "Host": "webby-vote-service",
-          "Port": 8080
+          "Host": "room-queue-server",
+          "Port": 8083
         }
       ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/votes",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}",
+      "UpstreamHttpMethod": ["DELETE"],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
     {
-      "DownstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/vote",
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}/activate",
       "DownstreamScheme": "http",
+      "Priority": 10,
       "DownstreamHostAndPorts": [
         {
-          "Host": "webby-vote-service",
-          "Port": 8080
+          "Host": "room-queue-server",
+          "Port": 8083
         }
       ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/vote",
-      "UpstreamHttpMethod": ["GET"],
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue/{itemId}/activate",
+      "UpstreamHttpMethod": ["PATCH"],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
     {
-      "DownstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/resolve",
+      "DownstreamPathTemplate": "/api/rooms/{id}/queue/deactivate",
       "DownstreamScheme": "http",
+      "Priority": 10,
       "DownstreamHostAndPorts": [
         {
-          "Host": "webby-vote-service",
-          "Port": 8080
+          "Host": "room-queue-server",
+          "Port": 8083
         }
       ],
-      "UpstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/resolve",
+      "UpstreamPathTemplate": "/api/rooms/{id}/queue/deactivate",
       "UpstreamHttpMethod": ["POST"],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"

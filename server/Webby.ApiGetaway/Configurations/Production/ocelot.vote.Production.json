@@ -1,0 +1,131 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/swagger/doc.yaml",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "votes-server",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/vote/swagger/v1/swagger.json",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AllowAnonymous": true
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/votes/right-choice",
+      "DownstreamScheme": "http",
+      "Priority": 11,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "votes-server",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/votes/right-choice",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/votes",
+      "DownstreamScheme": "http",
+      "Priority": 11,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "votes-server",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/votes",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/vote",
+      "DownstreamScheme": "http",
+      "Priority": 11,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "votes-server",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/vote",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/resolve",
+      "DownstreamScheme": "http",
+      "Priority": 11,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "votes-server",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/votes/{voteId}/resolve",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/votes/next-video",
+      "DownstreamScheme": "http",
+      "Priority": 11,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "votes-server",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/votes/next-video",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/votes/next-video/vote",
+      "DownstreamScheme": "http",
+      "Priority": 11,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "votes-server",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/votes/next-video/vote",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/has-next-video-voting",
+      "DownstreamScheme": "http",
+      "Priority": 11,
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "votes-server",
+          "Port": 8084
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/has-next-video-voting",
+      "UpstreamHttpMethod": ["GET"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    }
+  ]
+}
