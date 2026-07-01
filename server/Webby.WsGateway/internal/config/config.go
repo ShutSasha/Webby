@@ -28,7 +28,7 @@ type Redis struct {
 	Addr     string `yaml:"addr" env-default:"localhost:6379" env:"REDIS_ADDR"`
 	Password string `yaml:"password" env-default:"" env:"REDIS_PASSWORD"`
 	DB       int    `yaml:"db" env-default:"0" env:"REDIS_DB"`
-	Pattern  string `yaml:"pattern" env-default:"room:*" env:"REDIS_PATTERN"`
+	Pattern  string `yaml:"pattern" env-default:"*:*" env:"REDIS_PATTERN"`
 }
 
 func MustLoad() *Config {
