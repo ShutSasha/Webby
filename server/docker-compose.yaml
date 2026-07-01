@@ -209,7 +209,7 @@ services:
       - GRPC_PORT=50053
       - GRPC_MEDIA_SERVICE_ADDRESS=video-service:5005
       - GRPC_CHAT_SERVICE_ADDRESS=chat-service:50051
-      - GRPC_ROOM_SERVICE_ADDRESS=room-service:50053
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
       - REDIS_ADDR=redis:6379
       - REDIS_PASSWORD=${RedisPassword}
     depends_on:
