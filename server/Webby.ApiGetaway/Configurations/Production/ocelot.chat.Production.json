@@ -5,7 +5,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "chat-server",
+          "Host": "chat-service",
           "Port": 8081
         }
       ],
@@ -20,7 +20,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "chat-server",
+          "Host": "chat-service",
           "Port": 8081
         }
       ],
@@ -35,7 +35,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "chat-server",
+          "Host": "chat-service",
           "Port": 8081
         }
       ],
@@ -50,7 +50,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "chat-server",
+          "Host": "chat-service",
           "Port": 8081
         }
       ],
@@ -65,7 +65,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "chat-server",
+          "Host": "chat-service",
           "Port": 8081
         }
       ],
@@ -80,7 +80,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "chat-server",
+          "Host": "chat-service",
           "Port": 8081
         }
       ],
@@ -95,7 +95,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "chat-server",
+          "Host": "chat-service",
           "Port": 8081
         }
       ],
@@ -110,7 +110,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "chat-server",
+          "Host": "chat-service",
           "Port": 8081
         }
       ],
@@ -125,7 +125,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "chat-server",
+          "Host": "chat-service",
           "Port": 8081
         }
       ],
