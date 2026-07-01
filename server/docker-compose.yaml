@@ -139,6 +139,7 @@ services:
       - HTTP_PORT=8081
       - GRPC_PORT=50051
       - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
+      - GRPC_USER_SERVICE_ADDRESS=user-service:5004
     depends_on:
       - redis
     container_name: webby-chat-service
@@ -177,6 +178,7 @@ services:
       - GRPC_CHAT_SERVICE_ADDRESS=chat-service:50051
       - GRPC_CATEGORY_SERVICE_ADDRESS=room-category-service:50052
       - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:50053
+      - GRPC_NOTIFICATION_SERVICE_ADDRESS=notification-service:5007
       - REDIS_ADDR=redis:6379
       - REDIS_PASSWORD=${RedisPassword}
     depends_on:
@@ -227,6 +229,7 @@ services:
       - HTTP_PORT=8084
       - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
       - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:50053
+      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:50051
     container_name: webby-votes-service
 
   ws-gateway:
@@ -241,6 +244,8 @@ services:
       - TOKEN_TTL=5m
       - REDIS_ADDR=redis:6379
       - REDIS_PASSWORD=${RedisPassword}
+      - REDIS_PATTERN=*:*
+      - REDIS_DB:0
     depends_on:
       - redis
     container_name: webby-ws-gateway
