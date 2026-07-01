@@ -58,6 +58,8 @@ services:
       - GrpcClients__VideoServiceUrl=${VideoGrpcServiceUrl}
       - GrpcClients__NotificationServiceUrl=${NotificationGrpcServiceUrl}
       - GrpcClients__AchievementServiceUrl=${AchievementGrpcServiceUrl}
+    depends_on:
+      - redis
     container_name: webby-user-service
 
   video-service:
@@ -78,6 +80,8 @@ services:
       - ExternalServices__TwitchOptions__ThumbnailWidth=1280
       - ExternalServices__TwitchOptions__ThumbnailHeight=720
       - GrpcClients__UserServiceUrl=${UserGrpcServiceUrl}
+    depends_on:
+      - redis
     container_name: webby-video-service
 
   achievement-service:
@@ -92,6 +96,8 @@ services:
       - AwsOptions__SecretKey=${AwsSecretKey}
       - AwsOptions__BucketName=${AwsBucketName}
       - AwsOptions__Region=${AwsRegion}
+    depends_on:
+      - redis
     container_name: webby-achievement-service
 
   redis:
@@ -230,6 +236,10 @@ services:
       - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
       - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:50053
       - GRPC_CHAT_SERVICE_ADDRESS=chat-service:50051
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${RedisPassword}
+    depends_on:
+      - redis
     container_name: webby-votes-service
 
   ws-gateway:
