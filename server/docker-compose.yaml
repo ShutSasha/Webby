@@ -130,6 +130,7 @@ services:
       - AUTH_SECRET=${WebAuthSecret}
       - AUTH_GOOGLE_ID=${WebAuthGoogleId}
       - AUTH_GOOGLE_SECRET=${WebGoogleAuthSecret}
+      - NEXTAUTH_URL=${NextAuthUrl}
     restart: unless-stopped
 
   chat-service:
