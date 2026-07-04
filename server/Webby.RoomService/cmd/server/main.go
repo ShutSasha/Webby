@@ -59,6 +59,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	roomRepository := repository.NewRoomRepository(db)
 	roomMemberRepository := repository.NewRoomMemberRepository(db)
+	reactionRepository := repository.NewReactionRepository(db)
 	fileStorage := repository.NewFileStorage(cfg)
 
 	rdb := redis.NewClient(&redis.Options{
@@ -98,9 +99,10 @@ func run(ctx context.Context, w io.Writer) error {
 
 	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, categoryClient, chatClient)
 	roomMemberService := services.NewRoomMemberService(roomRepository, roomMemberRepository, chatClient, notificationClient, chatClient, publisher)
+	reactionService := services.NewReactionService(reactionRepository)
 	syncService := services.NewSynchronizeService(chatClient, publisher, timecodesRepository, roomMemberRepository)
 
-	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService)
+	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService, reactionService)
 	httpServer := &http.Server{
 		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
 		ReadTimeout:  cfg.Http.Timeout,

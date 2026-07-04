@@ -15,6 +15,7 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 	api := router.Group("/api")
 	{
 		api.GET("/rooms/public", handler.ListPublic)
+		api.GET("/reactions", handler.Reactions)
 
 		rooms := api.Group("/rooms")
 		rooms.Use(requireAuth)

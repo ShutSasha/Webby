@@ -24,7 +24,7 @@ import (
 func setupListPublicRouter(mockRoomService *handlermocks.MockroomService, mockMemberService *handlermocks.MockroomMemberService, mockSyncService *handlermocks.MocksynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
+	h := handlers.New(mockRoomService, mockMemberService, mockSyncService, nil)
 	router.GET("/api/rooms/public", func(c *gin.Context) {
 		ctx := logger.ToContext(c.Request.Context(), log)
 		c.Request = c.Request.WithContext(ctx)
