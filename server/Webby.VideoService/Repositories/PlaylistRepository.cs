@@ -175,7 +175,25 @@ public class PlaylistRepository : GenericRepository<Playlist>, IPlaylistReposito
    
       return ids.ToHashSet();
    }
-   
+
+   public async Task<int> CountUserPlaylists(Guid userId)
+   {
+      return await _context.Playlists
+         .Where(p => p.UserId == userId)
+         .CountAsync();
+   }
+
+   public async Task<(Guid playlistId, int count)> GetBiggestPlaylistId(List<Guid> playlistIds)
+   {
+      var result = await _context.Playlists
+         .Where(p => playlistIds.Contains(p.PlaylistId))
+         .OrderByDescending(p => p.PlaylistVideos.Count)
+         .Select(p => new { p.PlaylistId, Count = p.PlaylistVideos.Count })
+         .FirstOrDefaultAsync();
+
+      return result != null ? (result.PlaylistId, result.Count) : (Guid.Empty, 0);
+   }
+
    public async Task<(List<PlaylistVideo> ItemsToAdd, List<PlaylistVideo> ItemsToDelete)> GetPlaylistItemsDiffAsync(Guid playlistId, 
       MediaType mediaType, 
       List<PlaylistVideo> requestedItems)

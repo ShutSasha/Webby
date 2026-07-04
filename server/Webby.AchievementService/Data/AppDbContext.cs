@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
    public DbSet<Achievement> Achievements { get; set; }
    public DbSet<UserAchievement> UserAchievements { get; set; }
    public DbSet<UserAchievementProgress> UserAchievementProgresses { get; set; }
+   public DbSet<EventType> EventTypes { get; set; }
 
    protected override void OnModelCreating(ModelBuilder modelBuilder)
    {

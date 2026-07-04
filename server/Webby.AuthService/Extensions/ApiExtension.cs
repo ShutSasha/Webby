@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using Webby.AuthService.Data;
 using Webby.AuthService.Helpers;
+using Webby.AuthService.Helpers.Events;
 using Webby.AuthService.Helpers.Jwt;
 using Webby.AuthService.Interfaces.Helpers;
 using Webby.AuthService.Interfaces.Repositories;
@@ -89,7 +91,13 @@ public static class ApiExtension
    {
       serviceCollection.AddScoped<IPasswordHasher, PasswordHasher>();
       serviceCollection.AddScoped<IJwtProvider, JwtProvider>();
-      
+      serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
+   }
+   
+   public static void ConfigureRedisConnection(this IServiceCollection serviceCollection, IConfiguration configuration)
+   {
+      serviceCollection.AddSingleton<IConnectionMultiplexer>(sp =>
+         ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis") ?? string.Empty));
    }
    
 }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using MimeKit.Encodings;
 using Webby.AuthService.Consts;
 using Webby.AuthService.Dtos;
+using Webby.AuthService.Dtos.Events;
 using Webby.AuthService.Helpers.Exception;
 using Webby.AuthService.Interfaces.Helpers;
 using Webby.AuthService.Interfaces.Repositories;
@@ -18,15 +19,18 @@ public class AuthService : IAuthService
    private readonly IMailService _mailService;
    private readonly IMapper _mapper;
    private readonly ITokenService _tokenService;
+   private readonly IEventPublisher _eventPublisher;
 
    public AuthService(IPasswordHasher passwordHasher, IAuthRepository repository,
-      IMailService mailService, IMapper mapper, ITokenService tokenService)
+      IMailService mailService, IMapper mapper,
+      ITokenService tokenService, IEventPublisher eventPublisher)
    {
       _passwordHasher = passwordHasher;
       _repository = repository;
       _mailService = mailService;
       _mapper = mapper;
       _tokenService = tokenService;
+      _eventPublisher = eventPublisher;
    }
 
    public async Task<bool> Register(RegisterUserRequest request)
@@ -283,6 +287,13 @@ public class AuthService : IAuthService
       user.Password = newPasswordHash;
 
       await _repository.Update(user);
+
+      var resetPasswordEvent = new ResetPasswordEvent(user.UserId)
+      {
+         Value = 1
+      };
+
+      await _eventPublisher.PublishAsync(resetPasswordEvent);
    }
 
    public async Task<bool> IsValidRole(Guid userId,string accessToken)

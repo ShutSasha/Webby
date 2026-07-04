@@ -5,6 +5,7 @@ using Webby.NotificationService.GrpcClient;
 using Webby.UserService.Clients;
 using Webby.UserService.Consts;
 using Webby.UserService.Dtos.Achievement;
+using Webby.UserService.Dtos.Event;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Dtos.Notification;
 using Webby.UserService.Dtos.Search;
@@ -28,6 +29,7 @@ public class UserService : IUserService
    private readonly NotificationGrpcService.NotificationGrpcServiceClient _notificationGrpcServiceClient;
    private readonly AchievementGrpcService.AchievementGrpcServiceClient _achievementGrpcServiceClient;
    private readonly VideoGrpcService.VideoGrpcServiceClient _videoGrpcServiceClient;
+   private readonly IEventPublisher _eventPublisher;
    private readonly INotificationFactory _notificationFactory;
    private readonly ILogger<UserService> _logger;
    
@@ -36,7 +38,7 @@ public class UserService : IUserService
    public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService,
       IUserPremiumRepository userPremiumRepository, NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient,
       INotificationFactory notificationFactory,AchievementGrpcService.AchievementGrpcServiceClient achievementGrpcServiceClient,
-      ILogger<UserService> logger, VideoGrpcService.VideoGrpcServiceClient videoGrpcServiceClient, IComplaintRepository complaintRepository)
+      ILogger<UserService> logger, VideoGrpcService.VideoGrpcServiceClient videoGrpcServiceClient, IComplaintRepository complaintRepository, IEventPublisher eventPublisher)
    {
       _userRepository = userRepository;
       _mapper = mapper;
@@ -48,6 +50,7 @@ public class UserService : IUserService
       _logger = logger;
       _videoGrpcServiceClient = videoGrpcServiceClient;
       _complaintRepository = complaintRepository;
+      _eventPublisher = eventPublisher;
    }
    
    public async Task<UserProfileResponse> GetUserInformation(Guid userId)
@@ -402,7 +405,14 @@ public class UserService : IUserService
 
       targetUser.Role = userRole;
       await _userRepository.Update(targetUser);
+      
       await _notificationGrpcServiceClient.ReportBlockingAsync(new ReportBlockingRequest { UserId = targetUserId.ToString() });
+      
+      if (userRole == Role.Moderator)
+      {
+         var getModeratorRoleEvent = new GetModeratorRoleEvent(targetUser.UserId);
+         await _eventPublisher.PublishAsync(getModeratorRoleEvent);
+      }
    }
 
    private bool CanChangeBanStatus(User requester, User target)
