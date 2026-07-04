@@ -2,9 +2,11 @@
 using Stripe;
 using Stripe.Checkout;
 using Webby.UserService.Consts;
+using Webby.UserService.Dtos.Event;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Helpers.Exception;
 using Webby.UserService.Helpers.Payment;
+using Webby.UserService.Interfaces.Helpers;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
 using Webby.UserService.Models;
@@ -16,12 +18,15 @@ public class PaymentService : IPaymentService
 {
     private readonly IPaymentRepository _paymentRepository;
     private readonly IUserPremiumRepository _userPremiumRepository;
+    private readonly IEventPublisher _eventPublisher;
     private readonly PaymentSettings _settings;
 
-    public PaymentService(IPaymentRepository paymentRepository, IUserPremiumRepository userPremiumRepository, IOptions<PaymentSettings> paymentSettings)
+    public PaymentService(IPaymentRepository paymentRepository, IUserPremiumRepository userPremiumRepository,
+        IOptions<PaymentSettings> paymentSettings, IEventPublisher eventPublisher)
     {
         _paymentRepository = paymentRepository;
         _userPremiumRepository = userPremiumRepository;
+        _eventPublisher = eventPublisher;
         _settings = paymentSettings.Value;
         StripeConfiguration.ApiKey = _settings.PaymentSecretKey;
     }
@@ -156,6 +161,12 @@ public class PaymentService : IPaymentService
             premium.ExpiresAt = start.AddMonths(1);
             await _userPremiumRepository.Update(premium);
         }
+
+        var getPremiumEvent = new GetPremiumEvent(payment.UserId)
+        {
+            Value = 1
+        };
+        await _eventPublisher.PublishAsync(getPremiumEvent);
     }
 
     private async Task HandleFailure(string externalId, PaymentStatus status)

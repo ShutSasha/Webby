@@ -8,6 +8,7 @@ using Webby.AchievementService.Interfaces.Helpers.Notification;
 using Webby.AchievementService.Interfaces.Repositories;
 using Webby.AchievementService.Interfaces.Services;
 using Webby.AchievementService.Middlewares;
+using Webby.AchievementService.Models;
 using Webby.AchievementService.Repositories;
 using Webby.AchievementService.Services;
 using Webby.AchievementService.Services.Background;
@@ -84,6 +85,7 @@ public static class ApiExtension
    public static void AddRepositories(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IAchievementRepository, AchievementRepository>();
+      serviceCollection.AddScoped<IEventTypeRepository, EventTypeRepository>();
    }
 
    public static void AddServices(this IServiceCollection serviceCollection)
@@ -91,6 +93,7 @@ public static class ApiExtension
       serviceCollection.AddScoped<IAchievementService, Services.AchievementService>();
       serviceCollection.AddScoped<IStorageService, StorageService>();
       serviceCollection.AddScoped<AchievementHandler>();
+      serviceCollection.AddScoped<IEventTypeService, EventTypeService>();
    }
 
    public static void ConfigureGrpcConnection(this IServiceCollection serviceCollection)

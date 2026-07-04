@@ -4,6 +4,7 @@ using StackExchange.Redis;
 using Webby.AchievementService.Data;
 using Webby.AchievementService.Dtos.Event;
 using Webby.AchievementService.Interfaces.Helpers.Notification;
+using Webby.AchievementService.Interfaces.Services;
 using Webby.AchievementService.Models;
 using Webby.NotificationService.GrpcClient;
 
@@ -15,16 +16,20 @@ public class AchievementHandler
     private readonly AppDbContext _dbContext;
     private readonly NotificationGrpcService.NotificationGrpcServiceClient _notificationGrpcServiceClient;
     private readonly INotificationFactory _notificationFactory;
-    public AchievementHandler(IConnectionMultiplexer redis, AppDbContext dbContext, NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient, INotificationFactory notificationFactory)
+    private readonly IEventTypeService _eventTypeService;
+    
+    public AchievementHandler(IConnectionMultiplexer redis, AppDbContext dbContext, NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient, INotificationFactory notificationFactory, IEventTypeService eventTypeService)
     {
         _redisDb = redis.GetDatabase();
         _dbContext = dbContext;
         _notificationGrpcServiceClient = notificationGrpcServiceClient;
         _notificationFactory = notificationFactory;
+        _eventTypeService = eventTypeService;
     }
 
     public async Task HandleEventAsync(string eventType, string payloadJson)
     {
+        
         var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         var basePayload = JsonSerializer.Deserialize<BaseEventPayload>(payloadJson, options);
 
@@ -51,6 +56,14 @@ public class AchievementHandler
             {
                 continue;
             }
+
+            var progress = await _dbContext.UserAchievementProgresses
+                .FirstOrDefaultAsync(p => p.UserId == basePayload.UserId && p.AchievementId == ach.AchievementId);
+
+            if (!basePayload.IsIncrementOperation && progress != null && progress.CurrentValue >= basePayload.Value)
+            {
+                continue;
+            }
                 
             var redisKey = $"user:{basePayload.UserId}:progress";
             var fieldKey = ach.AchievementId.ToString();
@@ -65,9 +78,6 @@ public class AchievementHandler
                 await _redisDb.HashSetAsync(redisKey, fieldKey, basePayload.Value);
                 currentValue = basePayload.Value;
             }
-
-            var progress = await _dbContext.UserAchievementProgresses
-                .FirstOrDefaultAsync(p => p.UserId == basePayload.UserId && p.AchievementId == ach.AchievementId);
 
             if (progress == null)
             {
@@ -89,13 +99,15 @@ public class AchievementHandler
             if (currentValue >= ach.TargetValue)
             {
                 await UnlockAchievementAsync(basePayload.UserId, ach);
-
                 await _redisDb.HashDeleteAsync(redisKey, fieldKey);
-                
                 _dbContext.UserAchievementProgresses.Remove(progress);
             }
+            
+            if (!await _eventTypeService.HasEventType(eventType))
+                await _eventTypeService.AddEventType(eventType);
         }
     }
+    
 
     private async Task UnlockAchievementAsync(Guid userId, Achievement achievement)
     {
