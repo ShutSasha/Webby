@@ -22,6 +22,9 @@ interface RoomState {
 
   isVotesModalOpen: boolean
   setVotesModalOpen: (isOpen: boolean) => void
+
+  isReactionsModalOpen: boolean
+  setReactionsModalOpen: (isOpen: boolean) => void
 }
 
 export const useRoomStore = create<RoomState>(set => ({
@@ -43,4 +46,7 @@ export const useRoomStore = create<RoomState>(set => ({
 
   isVotesModalOpen: false,
   setVotesModalOpen: isOpen => set({ isVotesModalOpen: isOpen }),
+
+  isReactionsModalOpen: false,
+  setReactionsModalOpen: isOpen => set({ isReactionsModalOpen: isOpen }),
 }))
