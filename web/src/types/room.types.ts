@@ -49,3 +49,10 @@ export type RoomMember = {
 }
 
 export type GetRoomMembersResponse = PaginatedData<RoomMember>
+
+export type Reaction = {
+  id: string
+  name: string
+  cost: number
+  stickerUrl: string
+}
