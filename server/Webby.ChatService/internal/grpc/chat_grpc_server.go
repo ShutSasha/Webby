@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"webby/chat-service/internal/grpc/chatpb"
 	"webby/chat-service/internal/models"
@@ -15,6 +16,8 @@ type chatService interface {
 	CreateForRoom(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
 	GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
 	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
+	RoomIDByChatIDBatch(ctx context.Context, chatIDs []string) (map[string]uuid.UUID, error)
+	IsChatRelatedToRoom(ctx context.Context, chatID uuid.UUID) (bool, error)
 }
 
 type chatMemberEnsurer interface {
@@ -135,4 +138,40 @@ func (s *chatGrpcServer) GetChatIDByRoomID(ctx context.Context, req *chatpb.GetC
 	}
 
 	return &chatpb.ChatIDByRoomIDResponse{ChatID: id.String()}, nil
+}
+
+func (s *chatGrpcServer) RoomIDByChatIDBatch(ctx context.Context, req *chatpb.RoomIDByChatIDBatchRequest) (*chatpb.RoomIDByChatIDBatchResponse, error) {
+	const op = "grpc.ChatGrpcServer.RoomIDByChatIDBatch"
+
+	chatIDroomIDMap, err := s.chatService.RoomIDByChatIDBatch(ctx, req.ChatIDs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "%s: %v", op, err)
+	}
+
+	result := make(map[string]string)
+	for chatID, roomID := range chatIDroomIDMap {
+		result[chatID] = roomID.String()
+	}
+
+	return &chatpb.RoomIDByChatIDBatchResponse{
+		ChatIDroomIDMap: result,
+	}, nil
+}
+
+func (s *chatGrpcServer) IsChatRelatedToRoom(ctx context.Context, req *chatpb.IsChatRelatedToRoomRequest) (*chatpb.IsChatRelatedToRoomResponse, error) {
+	const op = "grpc.chatGrpcServer.IsChatRelatedToRoom"
+
+	chatID, err := uuid.Parse(req.ChatID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	isRelated, err := s.chatService.IsChatRelatedToRoom(ctx, chatID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &chatpb.IsChatRelatedToRoomResponse{
+		IsRelated: isRelated,
+	}, nil
 }

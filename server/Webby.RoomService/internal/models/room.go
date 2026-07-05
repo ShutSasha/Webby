@@ -28,3 +28,9 @@ type PublicRoom struct {
 	IsPrivate     bool
 	CreatedAt     time.Time
 }
+
+type ActiveRoom struct {
+	ID      uuid.UUID
+	ChatID  string
+	UserIDs []uuid.UUID
+}

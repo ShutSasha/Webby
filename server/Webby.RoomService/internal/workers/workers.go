@@ -4,21 +4,18 @@ import (
 	"context"
 	"log/slog"
 	"time"
+	"webby/room-service/internal/models"
+	"webby/room-service/pkg/logger"
 
 	"github.com/google/uuid"
 )
 
-type ActiveRoom struct {
-	ChatID  string
-	UserIDs []uuid.UUID
-}
-
 type presenceRetriever interface {
-	GetActiveRooms(ctx context.Context, minMembers int, zombieTTL time.Duration) ([]ActiveRoom, error)
+	GetActiveRooms(ctx context.Context, minMembers int, zombieTTL time.Duration) ([]models.ActiveRoom, error)
 }
 
-type pointsRepository interface {
-	AddPointsBulk(ctx context.Context, userIDs []uuid.UUID, points int) (map[uuid.UUID]int, error)
+type pointsAdder interface {
+	AddPointsBulk(ctx context.Context, roomID uuid.UUID, userIDs []uuid.UUID, points int) (map[uuid.UUID]int, error)
 }
 
 type eventPublisher interface {
@@ -26,18 +23,18 @@ type eventPublisher interface {
 }
 
 type pointsWorker struct {
-	presenceRepo  presenceRetriever
-	repo          pointsRepository
-	pub           eventPublisher
-	logger        *slog.Logger
-	interval      time.Duration
-	pointsPerTick int
-	zombieTTL     time.Duration
+	presenceRetriever presenceRetriever
+	pointsAdder       pointsAdder
+	pub               eventPublisher
+	logger            *slog.Logger
+	interval          time.Duration
+	pointsPerTick     int
+	zombieTTL         time.Duration
 }
 
 func NewPointsWorker(
-	presenceRepo presenceRetriever,
-	repo pointsRepository,
+	presenceRetriever presenceRetriever,
+	pointsAdder pointsAdder,
 	pub eventPublisher,
 	logger *slog.Logger,
 	interval time.Duration,
@@ -45,27 +42,28 @@ func NewPointsWorker(
 	zombieTTL time.Duration,
 ) *pointsWorker {
 	return &pointsWorker{
-		presenceRepo:  presenceRepo,
-		repo:          repo,
-		pub:           pub,
-		logger:        logger,
-		interval:      interval,
-		pointsPerTick: pointsPerTick,
-		zombieTTL:     zombieTTL,
+		presenceRetriever: presenceRetriever,
+		pointsAdder:       pointsAdder,
+		pub:               pub,
+		logger:            logger,
+		interval:          interval,
+		pointsPerTick:     pointsPerTick,
+		zombieTTL:         zombieTTL,
 	}
 }
 
 func (w *pointsWorker) Run(ctx context.Context) {
+	ctxWithLogger := logger.ToContext(ctx, w.logger)
 	ticker := time.NewTicker(w.interval)
 	defer ticker.Stop()
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-ctxWithLogger.Done():
 			w.logger.Info("points worker stopped")
 			return
 		case <-ticker.C:
-			w.processPoints(ctx)
+			w.processPoints(ctxWithLogger)
 		}
 	}
 }
@@ -74,14 +72,14 @@ func (w *pointsWorker) processPoints(ctx context.Context) {
 	const op = "workers.pointsWorker.processPoints"
 	log := w.logger.With("op", op)
 
-	rooms, err := w.presenceRepo.GetActiveRooms(ctx, 2, w.zombieTTL)
+	rooms, err := w.presenceRetriever.GetActiveRooms(ctx, 2, w.zombieTTL)
 	if err != nil {
 		log.Error("failed to get active rooms", slog.String("err", err.Error()))
 		return
 	}
 
 	for _, room := range rooms {
-		updatedTotals, err := w.repo.AddPointsBulk(ctx, room.UserIDs, w.pointsPerTick)
+		updatedTotals, err := w.pointsAdder.AddPointsBulk(ctx, room.ID, room.UserIDs, w.pointsPerTick)
 		if err != nil {
 			log.Error("failed to add points", slog.String("err", err.Error()), slog.String("chat_id", room.ChatID))
 			continue

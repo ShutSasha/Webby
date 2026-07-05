@@ -15,3 +15,6 @@ redis:
   password: "{{RedisPassword}}"
   db: 0
   pattern: "*:*"
+
+grpc:
+  chatServiceAddress: "localhost:50051"

@@ -30,6 +30,7 @@ type synchronizeService interface {
 
 type reactionService interface {
 	List(ctx context.Context) ([]models.Reaction, error)
+	UseReaction(ctx context.Context, roomID, userID, reactionID uuid.UUID) error
 }
 
 type handler struct {

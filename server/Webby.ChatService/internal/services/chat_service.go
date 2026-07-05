@@ -23,6 +23,8 @@ type chatReposotory interface {
 	Exists(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error)
 	GetByMembers(ctx context.Context, firstUserID, secondUserID uuid.UUID) (*models.Chat, error)
 	Delete(ctx context.Context, chatID uuid.UUID) error
+	RoomIDByChatIDBatch(ctx context.Context, chatIDs []string) (map[string]uuid.UUID, error)
+	IsChatRelatedToRoom(ctx context.Context, chatID uuid.UUID) (bool, error)
 }
 
 type chatServiceChatMemberRepository interface {
@@ -256,4 +258,26 @@ func (s *chatService) Delete(ctx context.Context, userID, chatID uuid.UUID) erro
 	}
 
 	return nil
+}
+
+func (s *chatService) RoomIDByChatIDBatch(ctx context.Context, chatIDs []string) (map[string]uuid.UUID, error) {
+	const op = "chatService.RoomIDByChatIDBatch"
+
+	chatIDroomIDMap, err := s.chatRepository.RoomIDByChatIDBatch(ctx, chatIDs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return chatIDroomIDMap, nil
+}
+
+func (s *chatService) IsChatRelatedToRoom(ctx context.Context, chatID uuid.UUID) (bool, error) {
+	const op = "chatService.IsChatRelatedToRoom"
+
+	isRelated, err := s.chatRepository.IsChatRelatedToRoom(ctx, chatID)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return isRelated, nil
 }

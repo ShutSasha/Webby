@@ -27,6 +27,12 @@ type Config struct {
 		DB       int    `yaml:"db" env-default:"0" env:"REDIS_DB"`
 		Pattern  string `yaml:"pattern" env-default:"room:*" env:"REDIS_PATTERN"`
 	} `yaml:"redis"`
+
+	Grpc Grpc `yaml:"grpc"`
+}
+
+type Grpc struct {
+	ChatServiceAddress string `yaml:"addr" env-default:"localhost:50051" env:"CHAT_SERVICE_ADDR"`
 }
 
 func MustLoad() *Config {

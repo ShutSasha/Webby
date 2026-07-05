@@ -23,6 +23,7 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 			rooms.POST("", handler.Create)
 			rooms.GET("/my", handler.ListMy)
 			rooms.GET("/:id", handler.Get)
+			rooms.POST("/:id/react", handler.UseReaction)
 			rooms.PUT("/:id", handler.Update)
 			rooms.DELETE("/:id", handler.Delete)
 			rooms.POST("/:id/sync", handler.Synchronize)

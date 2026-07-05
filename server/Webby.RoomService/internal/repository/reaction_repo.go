@@ -7,6 +7,7 @@ import (
 	"webby/room-service/internal/models"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -54,4 +55,25 @@ func (r *reactionRepository) List(ctx context.Context) ([]models.Reaction, error
 	}
 
 	return reactions, nil
+}
+
+func (r *reactionRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Reaction, error) {
+	const op = "reactionRepository.GetByID"
+
+	sql, args, err := sq.Select("id", "name", "cost", "sticker_url").
+		From("reactions").
+		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build failed: %w", op, err)
+	}
+
+	var reaction models.Reaction
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&reaction.ID, &reaction.Name, &reaction.Cost, &reaction.StickerURL)
+	if err != nil {
+		return nil, fmt.Errorf("%s: row scan failed: %w", op, err)
+	}
+
+	return &reaction, nil
 }

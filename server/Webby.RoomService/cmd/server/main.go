@@ -75,11 +75,11 @@ func run(ctx context.Context, w io.Writer) error {
 
 	chatClient, err := grpcClient.NewChatClient(cfg.Grpc.ChatServiceAddress)
 	if err != nil {
-		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
-		chatClient = nil
-	} else {
-		defer chatClient.Close()
+		logger.Error("chat service gRPC connection failed", slog.String("error", err.Error()))
+		return err
+
 	}
+	defer chatClient.Close()
 
 	categoryClient, err := grpcClient.NewCategoryClient(cfg.Grpc.CategoryServiceAddress)
 	if err != nil {
@@ -97,9 +97,10 @@ func run(ctx context.Context, w io.Writer) error {
 
 	logger.Info("repositories initialized")
 
+	presenceSerivce := services.NewPresenceService(roomPresenceRepository, chatClient)
 	roomService := services.NewRoomService(roomRepository, roomMemberRepository, fileStorage, categoryClient, chatClient)
 	roomMemberService := services.NewRoomMemberService(roomRepository, roomMemberRepository, chatClient, notificationClient, chatClient, publisher)
-	reactionService := services.NewReactionService(reactionRepository)
+	reactionService := services.NewReactionService(reactionRepository, roomMemberRepository, chatClient, roomMemberRepository, publisher)
 	syncService := services.NewSynchronizeService(chatClient, publisher, timecodesRepository, roomMemberRepository)
 
 	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService, reactionService)
@@ -151,7 +152,7 @@ func run(ctx context.Context, w io.Writer) error {
 		}
 	}()
 
-	worker := workers.NewPointsWorker(roomPresenceRepository, roomMemberRepository, publisher, logger, cfg.Worker.Interval, cfg.Worker.PointsPerTick, cfg.Worker.ZombieTTL)
+	worker := workers.NewPointsWorker(presenceSerivce, roomMemberRepository, publisher, logger, cfg.Worker.Interval, cfg.Worker.PointsPerTick, cfg.Worker.ZombieTTL)
 
 	go worker.Run(ctx)
 
