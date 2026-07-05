@@ -24,6 +24,8 @@ services:
       - JwtOptions__AccessSecretKey=${JwtAccessSecretKey}
       - JwtOptions__AccessExpiresDuration=${JwtAccessExpiresDuration}
       - AutoMapper__LicenseKey=${AutoMapperLicenseKey}
+    depends_on:
+      - redis
     container_name: webby-auth-service
   
   notification-service:
@@ -45,7 +47,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
-      - ConnectionStrings__Redis=${RedisPassword}
+      - ConnectionStrings__Redis=${RedisDbConnectionString}
       - AwsOptions__AccessKey=${AwsAccessKey}
       - AwsOptions__SecretKey=${AwsSecretKey}
       - AwsOptions__BucketName=${AwsBucketName}
@@ -119,6 +121,7 @@ services:
       args:
         - NEXT_PUBLIC_API_URL=${ServerUrl}
         - NEXT_PUBLIC_SIGNALR_URL=${SignalRUrl}
+        - NEXT_PUBLIC_SSE_URL=${WsGatewaySSEConnectionString}
     container_name: webby-frontend
     ports:
       - "3000:3000"
@@ -128,6 +131,7 @@ services:
       - AUTH_TRUST_HOST=true
       - NEXT_PUBLIC_API_URL=${ServerUrl}
       - NEXT_PUBLIC_SIGNALR_URL=${SignalRUrl}
+      - NEXT_PUBLIC_SSE_URL=${WsGatewaySSEConnectionString}
       - AUTH_SECRET=${WebAuthSecret}
       - AUTH_GOOGLE_ID=${WebAuthGoogleId}
       - AUTH_GOOGLE_SECRET=${WebGoogleAuthSecret}
