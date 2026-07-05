@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 	"webby/room-service/internal/models"
-	"webby/room-service/pkg/logger"
 
 	"github.com/google/uuid"
 )
@@ -32,7 +31,6 @@ func NewPresenceService(presenceRetriever presenceRetriever, roomIDRetriever roo
 
 func (s *presenceService) GetActiveRooms(ctx context.Context, minMembers int, zombieTTL time.Duration) ([]models.ActiveRoom, error) {
 	const op = "presenceService.GetActiveRooms"
-	log := logger.FromContext(ctx).With("op", op)
 
 	rooms, err := s.presenceRetriever.GetActiveRooms(ctx, minMembers, zombieTTL)
 	if err != nil {
