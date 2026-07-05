@@ -184,7 +184,7 @@ services:
       - HTTP_ROOM_ADDRESS=${HttpRoomAddress}
       - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
       - GRPC_MEDIA_SERVICE_ADDRESS=${GoVideoGrpcServiceUrl}
-      - GRPC_CHAT_SERVICE_ADDRESS=${GoUserGrpcServiceUrl}
+      - GRPC_CHAT_SERVICE_ADDRESS=${ChatGrpcServiceUrl}
       - GRPC_ROOM_CATEGORY_SERVICE_ADDRESS=${RoomCategoryGrpcServiceUrl}
       - GRPC_ROOM_QUEUE_SERVICE_ADDRESS=${RoomQueueGrpcServiceUrl}
       - GRPC_NOTIFICATION_SERVICE_ADDRESS=${GoNotificationGrpcServiceUrl}
