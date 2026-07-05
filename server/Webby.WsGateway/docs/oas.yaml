@@ -363,6 +363,21 @@ info:
 
     **Triggered By:** When the chat member deletes the chat. You can make user to exit the current chat and update chat history if needed.
 
+    ### 15. `REACTION_SENT`
+    Notifies all room members about reaction sent
+
+    **Triggered By:** When the user uses reaction
+
+    **Payload:**
+    ```json
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440005"
+      "name": "sigma"
+      "cost": 1400
+      "stickerUrl": "https://.../reactions/high_cost_1.png"
+    }
+    ```
+
     ---------
     ### SSE-EVENTS
 

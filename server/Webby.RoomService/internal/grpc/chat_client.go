@@ -67,10 +67,10 @@ func (c *chatClient) GetChatByRoomID(ctx context.Context, roomID uuid.UUID) (uui
 	return chatID, nil
 }
 
-func (m *chatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
+func (c *chatClient) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
 	const op = "grpc.chatClient.GetChatIDByRoomID"
 
-	resp, err := m.client.GetChatIDByRoomID(ctx, &chatpb.GetChatIDByRoomIDRequest{
+	resp, err := c.client.GetChatIDByRoomID(ctx, &chatpb.GetChatIDByRoomIDRequest{
 		RoomID: roomID.String(),
 	})
 	if err != nil {
@@ -91,4 +91,23 @@ func (c *chatClient) AddChatMember(ctx context.Context, chatID, userID uuid.UUID
 	}
 
 	return nil
+}
+
+func (c *chatClient) RoomIDByChatIDBatch(ctx context.Context, chatIDs []string) (map[string]uuid.UUID, error) {
+	const op = "grpc.chatClient.RoomIDByChatIDRetrieverBatch"
+
+	chatIDroomIDMap, err := c.client.RoomIDByChatIDBatch(ctx, &chatpb.RoomIDByChatIDBatchRequest{
+		ChatIDs: chatIDs,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	result := make(map[string]uuid.UUID)
+	for chatID, roomIDStr := range chatIDroomIDMap.ChatIDroomIDMap {
+		roomID, _ := uuid.Parse(roomIDStr)
+		result[chatID] = roomID
+	}
+
+	return result, nil
 }

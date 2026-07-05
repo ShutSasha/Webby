@@ -15,6 +15,7 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 	api := router.Group("/api")
 	{
 		api.GET("/rooms/public", handler.ListPublic)
+		api.GET("/reactions", handler.Reactions)
 
 		rooms := api.Group("/rooms")
 		rooms.Use(requireAuth)
@@ -22,6 +23,7 @@ func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
 			rooms.POST("", handler.Create)
 			rooms.GET("/my", handler.ListMy)
 			rooms.GET("/:id", handler.Get)
+			rooms.POST("/:id/react", handler.UseReaction)
 			rooms.PUT("/:id", handler.Update)
 			rooms.DELETE("/:id", handler.Delete)
 			rooms.POST("/:id/sync", handler.Synchronize)

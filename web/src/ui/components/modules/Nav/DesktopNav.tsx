@@ -5,9 +5,9 @@ import Link from 'next/link'
 
 import LogoIcon from '@/assets/icons/ic_logo.svg'
 import ExpandIcon from '@/assets/icons/Nav/arrow-right-from-line.svg'
+import { useUnreadNotificationsCountQuery } from '@/lib/hooks/api/notifications/useUnreadNotificationsCount'
 import { navDesktopElements } from '@/lib/placeholder-data/nav-side'
 import { cn } from '@/lib/utils/general.utils'
-import { useNotificationPopupStore } from '@/stores/notification-popup.store'
 
 import { DesktopNavElement } from './DesktopNavElement'
 import { ThemeToggleNavElement } from './ThemeToggleNavElement'
@@ -21,7 +21,7 @@ type Props = {
 export default function DesktopNav({ isAdmin }: Props) {
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false)
-  const unreadCount = useNotificationPopupStore(state => state.unreadCount)
+  const { data: unreadCount = 0 } = useUnreadNotificationsCountQuery()
 
   const visibleNavElements = navDesktopElements.filter(item => !item.requireAdmin || isAdmin)
 

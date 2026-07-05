@@ -28,20 +28,28 @@ type synchronizeService interface {
 	ReportTimecode(ctx context.Context, userID, roomID, syncID uuid.UUID, timecode int) error
 }
 
+type reactionService interface {
+	List(ctx context.Context) ([]models.Reaction, error)
+	UseReaction(ctx context.Context, roomID, userID, reactionID uuid.UUID) error
+}
+
 type handler struct {
 	roomService        roomService
 	roomMemberService  roomMemberService
 	synchronizeService synchronizeService
+	reactionService    reactionService
 }
 
 func New(
 	roomService roomService,
 	roomMemberService roomMemberService,
 	synchronizeService synchronizeService,
+	reactionService reactionService,
 ) handler {
 	return handler{
 		roomService:        roomService,
 		roomMemberService:  roomMemberService,
 		synchronizeService: synchronizeService,
+		reactionService:    reactionService,
 	}
 }
