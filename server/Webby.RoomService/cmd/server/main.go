@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"sync"
 	"time"
 	"webby/room-service/internal/config"
@@ -51,22 +50,22 @@ func run(ctx context.Context) error {
 
 	var logWriter io.Writer = os.Stdout
 
-	if cfg.Env == envDev || cfg.Env == envProd {
-		if err := os.MkdirAll("logs", 0755); err != nil {
-			return fmt.Errorf("failed to create logs directory: %w", err)
-		}
+	// if cfg.Env == envDev || cfg.Env == envProd {
+	// 	if err := os.MkdirAll("logs", 0755); err != nil {
+	// 		return fmt.Errorf("failed to create logs directory: %w", err)
+	// 	}
 
-		fileName := fmt.Sprintf("app_%s.log", time.Now().Format("2006-01-02_15-04-05"))
-		logPath := filepath.Join("logs", fileName)
+	// 	fileName := fmt.Sprintf("app_%s.log", time.Now().Format("2006-01-02_15-04-05"))
+	// 	logPath := filepath.Join("logs", fileName)
 
-		logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-		if err != nil {
-			return fmt.Errorf("failed to open log file: %w", err)
-		}
+	// 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to open log file: %w", err)
+	// 	}
 
-		defer logFile.Close()
-		logWriter = logFile
-	}
+	// 	defer logFile.Close()
+	// 	logWriter = logFile
+	// }
 
 	logger := setupLogger(cfg.Env, logWriter)
 
