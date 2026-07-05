@@ -13,6 +13,6 @@ redis:
 
 grpc:
   roomQueueServiceAddress: "{{RoomQueueGrpcServiceUrl}}"
-  mediaServiceAddress: "{{VideoGrpcServiceUrl}}"
+  mediaServiceAddress: "{{GoVideoGrpcServiceUrl}}"
   chatServiceAddress: "{{ChatGrpcServiceUrl}}"
   roomServiceAddress: "{{RoomGrpcServiceUrl}}"

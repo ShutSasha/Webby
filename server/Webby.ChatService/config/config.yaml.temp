@@ -3,7 +3,7 @@ connectionString: "{{UriConnectionString}}"
 jwtSecret: "{{JwtAccessSecretKey}}"
 
 http:
-	serviceAddress: "{{HttpChatAddress}}"
+  serviceAddress: "{{HttpChatAddress}}"
   timeout: 10s
 
 redis:
@@ -14,4 +14,4 @@ redis:
 grpc:
   chatServiceAddress: "{{ChatGrpcServiceUrl}}"
   roomServiceAddress: "{{RoomGrpcServiceUrl}}"
-  userServiceAddress: "{{UserGrpcServiceUrl}}"
+  userServiceAddress: "{{GoUserGrpcServiceUrl}}"

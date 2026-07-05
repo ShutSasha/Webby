@@ -146,7 +146,7 @@ services:
       - HTTP_CHAT_ADDRESS=${HttpChatAddress}
       - GRPC_CHAT_SERVICE_ADDRESS=${ChatGrpcServiceUrl}
       - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
-      - GRPC_USER_SERVICE_ADDRESS=${UserGrpcServiceUrl}
+      - GRPC_USER_SERVICE_ADDRESS=${GoUserGrpcServiceUrl}
     depends_on:
       - redis
     container_name: webby-chat-service
@@ -159,10 +159,10 @@ services:
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_ADMIN_ADDRESS=${HttpAdminAddress}
-      - GRPC_MEDIA_SERVICE_ADDRESS=${VideoGrpcServiceUrl}
+      - GRPC_MEDIA_SERVICE_ADDRESS=${GoVideoGrpcServiceUrl}
       - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
-      - GRPC_COMPLAINT_SERVICE_ADDRESS=${UserGrpcServiceUrl}
-      - GRPC_NOTIFICATION_SERVICE_ADDRESS=${NotificationGrpcServiceUrl}
+      - GRPC_COMPLAINT_SERVICE_ADDRESS=${GoUserGrpcServiceUrl}
+      - GRPC_NOTIFICATION_SERVICE_ADDRESS=${GoNotificationGrpcServiceUrl}
     container_name: webby-admin-service
 
   room-service:
@@ -180,11 +180,11 @@ services:
       - AWS_REGION=${AwsRegion}
       - HTTP_ROOM_ADDRESS=${HttpRoomAddress}
       - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
-      - GRPC_MEDIA_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
-      - GRPC_CHAT_SERVICE_ADDRESS=${UserGrpcServiceUrl}
+      - GRPC_MEDIA_SERVICE_ADDRESS=${GoRoomGrpcServiceUrl}
+      - GRPC_CHAT_SERVICE_ADDRESS=${GoUserGrpcServiceUrl}
       - GRPC_ROOM_CATEGORY_SERVICE_ADDRESS=${RoomCategoryGrpcServiceUrl}
       - GRPC_ROOM_QUEUE_SERVICE_ADDRESS=${RoomQueueGrpcServiceUrl}
-      - GRPC_NOTIFICATION_SERVICE_ADDRESS=${NotificationGrpcServiceUrl}
+      - GRPC_NOTIFICATION_SERVICE_ADDRESS=${GoNotificationGrpcServiceUrl}
     depends_on:
       - redis
     container_name: webby-room-service
@@ -211,7 +211,7 @@ services:
       - REDIS_PASSWORD=${RedisPassword}
       - HTTP_ROOM_QUEUE_ADDRESS=${HttpRoomQueueAddress}
       - GRPC_ROOM_QUEUE_SERVICE_ADDRESS=${RoomQueueGrpcServiceUrl}
-      - GRPC_MEDIA_SERVICE_ADDRESS=${VideoGrpcServiceUrl}
+      - GRPC_MEDIA_SERVICE_ADDRESS=${GoVideoGrpcServiceUrl}
       - GRPC_CHAT_SERVICE_ADDRESS=${ChatGrpcServiceUrl}
       - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
     depends_on:

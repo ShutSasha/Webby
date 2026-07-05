@@ -21,9 +21,7 @@ func NewMemberClient(address string) (*memberClient, error) {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to connect to member service: %w", err,
-		)
+		return nil, fmt.Errorf("failed to connect to member service: %w", err)
 	}
 
 	client := memberpb.NewMemberGrpcServiceClient(conn)

@@ -20,10 +20,10 @@ aws:
 grpc:
   roomServiceAddress: "{{RoomGrpcServiceUrl}}"
   roomQueueServiceAddress: "{{RoomQueueGrpcServiceUrl}}"
-  mediaServiceAddress: "{{VideoGrpcServiceUrl}}"
+  mediaServiceAddress: "{{GoVideoGrpcServiceUrl}}"
   chatServiceAddress: "{{ChatGrpcServiceUrl}}"
   roomCategoryServiceAddress: "{{RoomCategoryGrpcServiceUrl}}"
-  notificationServiceAddress: "{{NotificationGrpcServiceUrl}}"
+  notificationServiceAddress: "{{GoNotificationGrpcServiceUrl}}"
 
 redis:
   addr: "{{RedisAddress}}"

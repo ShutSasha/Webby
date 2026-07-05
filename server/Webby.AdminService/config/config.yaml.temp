@@ -7,7 +7,7 @@ http:
   timeout: 10s
   
 grpc:
-  mediaServiceAddress: "{{VideoGrpcServiceUrl}}"
+  mediaServiceAddress: "{{GoVideoGrpcServiceUrl}}"
   roomServiceAddress: "{{RoomGrpcServiceUrl}}"
-  complaintServiceAddress: "{{UserGrpcServiceUrl}}"
-  notificationServiceAddress: "{{NotificationGrpcServiceUrl}}"
+  complaintServiceAddress: "{{GoUserGrpcServiceUrl}}"
+  notificationServiceAddress: "{{GoNotificationGrpcServiceUrl}}"
