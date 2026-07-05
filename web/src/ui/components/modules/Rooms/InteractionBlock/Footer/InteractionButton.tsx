@@ -13,7 +13,7 @@ export default function InteractionButton({ icon, text, onClick, className, chil
     <div
       onClick={onClick}
       className={cn(
-        'relative flex flex-row items-center bg-surface py-1.5 px-3 gap-2.5 rounded-md group',
+        'relative flex flex-row items-center bg-surface py-1.5 px-3 gap-2.5 rounded-md group select-none',
         'hover:bg-neutral-100 dark:hover:bg-emerald-500 transition-colors duration-300 ease-in-out cursor-pointer',
         className,
       )}

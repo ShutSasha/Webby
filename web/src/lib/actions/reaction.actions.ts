@@ -26,3 +26,22 @@ export async function getReactionsAction(): Promise<BaseServerResponse<Reaction[
     }
   }
 }
+
+export async function sendReactionAction(roomId: string, reactionId: string): Promise<BaseServerResponse<null>> {
+  try {
+    const { data: response } = await $api.post<BaseServerResponse<null>>(`/rooms/${roomId}/react`, {
+      reactionId,
+    })
+
+    return response
+  } catch (error: unknown) {
+    serverLog('SEND_REACTION_ERROR', error, true)
+
+    return {
+      data: null,
+      success: false,
+      message: 'Failed to send reaction',
+      errors: parseAxiosError(error),
+    }
+  }
+}

@@ -10,14 +10,16 @@ export default function Reactions() {
   const setIsOpen = useRoomStore(state => state.setReactionsModalOpen)
 
   return (
-    <InteractionButton
-      onClick={() => setIsOpen(!isOpen)}
-      icon={
-        <ReactionSmileIcon
-          className="size-5 text-foreground-subtle dark:group-hover:text-foreground-inverse-subtle transition-colors
-            duration-300 ease-in-out"
-        />
-      }
-    />
+    <div className="reaction-trigger">
+      <InteractionButton
+        onClick={() => setIsOpen(!isOpen)}
+        icon={
+          <ReactionSmileIcon
+            className="size-5 text-foreground-subtle dark:group-hover:text-foreground-inverse-subtle transition-colors
+              duration-300 ease-in-out"
+          />
+        }
+      />
+    </div>
   )
 }

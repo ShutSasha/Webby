@@ -48,7 +48,7 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
       <RoomInteractionHeader isHost={isHost} />
 
       <ActiveVoteOverlay roomId={roomId} />
-      <ActiveReactionsOverlay />
+      <ActiveReactionsOverlay roomId={roomId}/>
 
       {tab === 'queue' && <RoomQueue />}
       {tab === 'chat' && <RoomChatContainer chatId={chatId} />}
