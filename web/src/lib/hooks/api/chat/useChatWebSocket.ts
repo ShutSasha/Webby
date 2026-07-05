@@ -21,7 +21,7 @@ export const useChatWebSocket = (chatId: string) => {
 
       if (!tokenRes.success || !tokenRes.data || !isMounted) return
 
-      socketRef.current = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
+      socketRef.current = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:5000', {
         query: {
           token: tokenRes.data,
           chat_id: chatId,
