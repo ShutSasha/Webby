@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"sync"
 	"time"
 	"webby/vote-service/internal/config"
@@ -84,7 +82,7 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer chatClient.Close()
 
-	queueClient, err := grpcserver.NewQueueClient(cfg.Grpc.QueueServiceAddress)
+	queueClient, err := grpcserver.NewQueueClient(cfg.Grpc.RoomQueueServiceAddress)
 	if err != nil {
 		logger.Warn(
 			"queue service gRPC connection failed "+
@@ -101,20 +99,14 @@ func run(ctx context.Context, w io.Writer) error {
 
 	server := httpserver.NewServer(cfg, logger, voteService)
 	httpServer := &http.Server{
-		Addr: net.JoinHostPort(
-			cfg.Http.Host, strconv.Itoa(cfg.Http.Port),
-		),
+		Addr:         cfg.Http.HostPort,
 		ReadTimeout:  cfg.Http.Timeout,
 		WriteTimeout: cfg.Http.Timeout,
 		Handler:      server,
 	}
 
 	go func() {
-		logger.Info(
-			"Server listening",
-			slog.String("host", cfg.Http.Host),
-			slog.Int("port", cfg.Http.Port),
-		)
+		logger.Info("Server listening", "host:port", cfg.Http.HostPort)
 		if err := httpServer.ListenAndServe(); err != nil &&
 			err != http.ErrServerClosed {
 			logger.Error(

@@ -5,16 +5,15 @@ connectionString: "{{UriConnectionString}}"
 token_ttl: 5m
 
 http:
-  host: "localhost"
-  port: 8090
+  serviceAddress: "{{HttpWsGatewayAddress}}" 
   timeout: 10s
   call_timeout: 5s
 
 redis:
-  addr: "localhost:6379"
+  addr: "{{RedisAddress}}"
   password: "{{RedisPassword}}"
   db: 0
   pattern: "*:*"
 
 grpc:
-  chatServiceAddress: "localhost:50051"
+  chatServiceAddress: "{{ChatGrpcServiceUrl}}"

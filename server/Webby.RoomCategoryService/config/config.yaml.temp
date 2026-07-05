@@ -2,9 +2,7 @@ env: "local"
 connectionString: "{{UriConnectionString}}"
 jwtSecret: "{{JwtAccessSecretKey}}"
 http:
-  host: "localhost"
-  port: 8082
+  serviceAddress: "{{HttpRoomCategoryAddress}}"
   timeout: 10s
 grpc:
-  host: "localhost"
-  port: 50052
+  roomCategoryServiceAddress: "{{RoomCategoryGrpcServiceUrl}}"

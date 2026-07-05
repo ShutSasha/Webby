@@ -3,16 +3,15 @@ connectionString: "{{UriConnectionString}}"
 jwtSecret: "{{JwtAccessSecretKey}}"
 
 http:
-  host: "localhost"
-  port: 8081
+	serviceAddress: "{{HttpChatAddress}}"
   timeout: 10s
 
 redis:
-  addr: "localhost:6379"
+  addr: "{{RedisAddress}}"
   password: "{{RedisPassword}}"
   db: 0
 
 grpc:
-  port: 50051
-  roomServiceAddress: "localhost:50054"
-  userServiceAddress: "localhost:5004"
+  chatServiceAddress: "{{ChatGrpcServiceUrl}}"
+  roomServiceAddress: "{{RoomGrpcServiceUrl}}"
+  userServiceAddress: "{{UserGrpcServiceUrl}}"

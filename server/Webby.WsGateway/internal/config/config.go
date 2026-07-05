@@ -19,8 +19,7 @@ type Config struct {
 }
 
 type Http struct {
-	Host        string        `yaml:"host" env-default:"0.0.0.0" env:"HTTP_HOST"`
-	Port        int           `yaml:"port" env-default:"8090" env:"HTTP_PORT"`
+	HostPort    string        `yaml:"serviceAddress" env-default:"localhost:8090" env:"HTTP_WSGATEWAY_ADDRESS"`
 	Timeout     time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
 	CallTimeout time.Duration `yaml:"call_timeout" env-default:"5s" env:"HTTP_CALL_TIMEOUT"`
 }
@@ -33,7 +32,7 @@ type Redis struct {
 }
 
 type Grpc struct {
-	ChatServiceAddress string `yaml:"addr" env-default:"localhost:50051" env:"CHAT_SERVICE_ADDR"`
+	ChatServiceAddress string `yaml:"chatServiceAddress" env-default:"localhost:50051" env:"GRPC_CHAT_SERVICE_ADDRESS"`
 }
 
 func MustLoad() *Config {

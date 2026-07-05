@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"sync"
 	"time"
 	"webby/admin-service/internal/config"
@@ -102,18 +100,14 @@ func run(ctx context.Context, w io.Writer) error {
 
 	server := httpserver.NewServer(cfg, logger, complaintService, statsService)
 	httpServer := &http.Server{
-		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
+		Addr:         cfg.Http.HostPort,
 		ReadTimeout:  cfg.Http.Timeout,
 		WriteTimeout: cfg.Http.Timeout,
 		Handler:      server,
 	}
 
 	go func() {
-		logger.Info(
-			"Server listening",
-			slog.String("host", cfg.Http.Host),
-			slog.Int("port", cfg.Http.Port),
-		)
+		logger.Info("Server listening", "host", cfg.Http.HostPort)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("error listening and serving", slog.Any("error", err))
 		}

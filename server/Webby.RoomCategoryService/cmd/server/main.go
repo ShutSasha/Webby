@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"sync"
 	"time"
 	"webby/room-category-service/internal/config"
@@ -65,24 +64,20 @@ func run(ctx context.Context, w io.Writer) error {
 		categoryService,
 	)
 	httpServer := &http.Server{
-		Addr:         net.JoinHostPort(config.Http.Host, strconv.Itoa(config.Http.Port)),
+		Addr:         config.Http.HostPort,
 		ReadTimeout:  config.Http.Timeout,
 		WriteTimeout: config.Http.Timeout,
 		Handler:      server,
 	}
 
 	go func() {
-		logger.Info(
-			"Server listening",
-			slog.String("host", config.Http.Host),
-			slog.Int("port", config.Http.Port),
-		)
+		logger.Info("Server listening", "host", config.Http.HostPort)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("error listening and serving", slog.Any("error", err))
 		}
 	}()
 
-	grpcListener, err := net.Listen("tcp", net.JoinHostPort(config.Grpc.Host, strconv.Itoa(config.Grpc.Port)))
+	grpcListener, err := net.Listen("tcp", config.Grpc.HostPort)
 	if err != nil {
 		logger.Error("grpc listen failed", slog.Any("error", err))
 		return err
@@ -92,11 +87,7 @@ func run(ctx context.Context, w io.Writer) error {
 	categorypb.RegisterCategoryGrpcServiceServer(grpcSrv, grpcserver.NewCategoryServer(categoryService))
 
 	go func() {
-		logger.Info(
-			"gRPC server listening",
-			slog.String("host", config.Grpc.Host),
-			slog.Int("port", config.Grpc.Port),
-		)
+		logger.Info("gRPC server listening", "host", config.Grpc.HostPort)
 		if err := grpcSrv.Serve(grpcListener); err != nil {
 			logger.Error("error serving grpc", slog.Any("error", err))
 		}

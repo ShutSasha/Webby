@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"sync"
 	"time"
 	"webby/chat-service/internal/config"
@@ -99,17 +98,14 @@ func run(ctx context.Context, w io.Writer) error {
 	// HTTP server
 	server := handlers.NewServer(cfg, logger, chatService, messageService)
 	httpServer := &http.Server{
-		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
+		Addr:         cfg.Http.HostPort,
 		ReadTimeout:  cfg.Http.Timeout,
 		WriteTimeout: cfg.Http.Timeout,
 		Handler:      server,
 	}
 
 	go func() {
-		logger.Info("HTTP server listening",
-			slog.String("host", cfg.Http.Host),
-			slog.Int("port", cfg.Http.Port),
-		)
+		logger.Info("HTTP server listening", "host", cfg.Http.HostPort)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("error listening and serving", slog.Any("error", err))
 		}
@@ -120,14 +116,14 @@ func run(ctx context.Context, w io.Writer) error {
 	chatGrpcServer := grpcserver.NewChatGrpcServer(chatService, chatMemberService, logger)
 	chatpb.RegisterChatGrpcServiceServer(grpcSrv, chatGrpcServer)
 
-	grpcListener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Grpc.Port))
+	grpcListener, err := net.Listen("tcp", cfg.Grpc.ChatServiceAddress)
 	if err != nil {
 		logger.Error("failed to listen for gRPC", slog.String("error", err.Error()))
 		return err
 	}
 
 	go func() {
-		logger.Info("gRPC server listening", slog.Int("port", cfg.Grpc.Port))
+		logger.Info("gRPC server listening", "host:port", cfg.Grpc.ChatServiceAddress)
 		if err := grpcSrv.Serve(grpcListener); err != nil {
 			logger.Error("gRPC server error", slog.String("error", err.Error()))
 		}

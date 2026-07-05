@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"sync"
 	"time"
 	"webby/room-queue-service/internal/config"
@@ -62,9 +61,7 @@ func run(ctx context.Context, w io.Writer) error {
 
 	queueItemRepo := repository.NewQueueItemRepository(db)
 
-	mediaClient, err := grpcserver.NewMediaClient(
-		cfg.Grpc.MediaServiceAddress,
-	)
+	mediaClient, err := grpcserver.NewMediaClient(cfg.Grpc.MediaServiceAddress)
 	if err != nil {
 		logger.Error(
 			"media service gRPC connection failed",
@@ -107,20 +104,14 @@ func run(ctx context.Context, w io.Writer) error {
 
 	server := httpserver.NewServer(cfg, logger, queueService)
 	httpServer := &http.Server{
-		Addr: net.JoinHostPort(
-			cfg.Http.Host, strconv.Itoa(cfg.Http.Port),
-		),
+		Addr:         cfg.Http.HostPort,
 		ReadTimeout:  cfg.Http.Timeout,
 		WriteTimeout: cfg.Http.Timeout,
 		Handler:      server,
 	}
 
 	go func() {
-		logger.Info(
-			"Server listening",
-			slog.String("host", cfg.Http.Host),
-			slog.Int("port", cfg.Http.Port),
-		)
+		logger.Info("Server listening", "host:port", cfg.Http.HostPort)
 		if err := httpServer.ListenAndServe(); err != nil &&
 			err != http.ErrServerClosed {
 			logger.Error(
@@ -130,10 +121,7 @@ func run(ctx context.Context, w io.Writer) error {
 		}
 	}()
 
-	grpcListener, err := net.Listen(
-		"tcp",
-		net.JoinHostPort(cfg.Grpc.Host, strconv.Itoa(cfg.Grpc.Port)),
-	)
+	grpcListener, err := net.Listen("tcp", cfg.Grpc.RoomQueueServiceAddress)
 	if err != nil {
 		logger.Error("grpc listen failed", slog.Any("error", err))
 		return err
@@ -146,11 +134,7 @@ func run(ctx context.Context, w io.Writer) error {
 	)
 
 	go func() {
-		logger.Info(
-			"gRPC server listening",
-			slog.String("host", cfg.Grpc.Host),
-			slog.Int("port", cfg.Grpc.Port),
-		)
+		logger.Info("gRPC server listening", "host:port", cfg.Grpc.RoomQueueServiceAddress)
 		if err := grpcSrv.Serve(grpcListener); err != nil {
 			logger.Error(
 				"error serving grpc",

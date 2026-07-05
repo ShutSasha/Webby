@@ -25,9 +25,8 @@ type WorkerConfig struct {
 	ZombieTTL     time.Duration `yaml:"zombie_ttl" env-default:"2m" env:"ZOMBIE_TTL"`
 }
 type HttpConfig struct {
-	Host    string        `yaml:"host" env-default:"0.0.0.0" env:"HTTP_HOST"`
-	Port    int           `yaml:"port" env-default:"8080" env:"HTTP_PORT"`
-	Timeout time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
+	HostPort string        `yaml:"serviceAddress" env-default:"localhost:8080" env:"HTTP_ROOM_ADDRESS"`
+	Timeout  time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
 }
 
 type AwsConfig struct {
@@ -38,12 +37,11 @@ type AwsConfig struct {
 }
 
 type GrpcConfig struct {
-	Host                       string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
-	Port                       int    `yaml:"port" env-default:"50054" env:"GRPC_PORT"`
+	RoomServiceAddress         string `yaml:"roomServiceAddress" env-default:"localhost:50054" env:"GRPC_ROOM_SERVICE_ADDRESS"`
 	MediaServiceAddress        string `yaml:"mediaServiceAddress" env-default:"localhost:5005" env:"GRPC_MEDIA_SERVICE_ADDRESS"`
-	ChatServiceAddress         string `yaml:"chatServiceAddress" env-default:"localhost:5008" env:"GRPC_CHAT_SERVICE_ADDRESS"`
-	CategoryServiceAddress     string `yaml:"categoryServiceAddress" env-default:"localhost:5009" env:"GRPC_CATEGORY_SERVICE_ADDRESS"`
-	QueueServiceAddress        string `yaml:"queueServiceAddress" env-default:"localhost:5007" env:"GRPC_QUEUE_SERVICE_ADDRESS"`
+	ChatServiceAddress         string `yaml:"chatServiceAddress" env-default:"localhost:50051" env:"GRPC_CHAT_SERVICE_ADDRESS"`
+	RoomCategoryServiceAddress string `yaml:"roomCategoryServiceAddress" env-default:"localhost:50052" env:"GRPC_ROOM_CATEGORY_SERVICE_ADDRESS"`
+	RoomQueueServiceAddress    string `yaml:"roomQueueServiceAddress" env-default:"localhost:50053" env:"GRPC_ROOM_QUEUE_SERVICE_ADDRESS"`
 	NotificationServiceAddress string `yaml:"notificationServiceAddress" env-default:"localhost:5007" env:"GRPC_NOTIFICATION_SERVICE_ADDRESS"`
 }
 

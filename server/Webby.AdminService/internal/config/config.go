@@ -17,9 +17,8 @@ type Config struct {
 }
 
 type HttpConfig struct {
-	Host    string        `yaml:"host" env-default:"0.0.0.0" env:"HTTP_HOST"`
-	Port    int           `yaml:"port" env-default:"8085" env:"HTTP_PORT"`
-	Timeout time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
+	HostPort string        `yaml:"serviceAddress" env-default:"0.0.0.0:8085" env:"HTTP_ADMIN_ADDRESS"`
+	Timeout  time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
 }
 
 type GrpcConfig struct {

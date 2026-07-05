@@ -18,6 +18,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
+      - ConnectionStrings__Redis=${RedisDbConnectionString}
       - SenderData__SenderPassword=${SenderPassword}
       - SenderData__SenderEmail=${SenderEmail}
       - JwtOptions__AccessSecretKey=${JwtAccessSecretKey}
@@ -140,13 +141,12 @@ services:
     environment:
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
-      - REDIS_ADDR=redis:6379
+      - REDIS_ADDR=${RedisAddress}
       - REDIS_PASSWORD=${RedisPassword}
-      - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=8081
-      - GRPC_PORT=50051
-      - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
-      - GRPC_USER_SERVICE_ADDRESS=user-service:5004
+      - HTTP_CHAT_ADDRESS=${HttpChatAddress}
+      - GRPC_CHAT_SERVICE_ADDRESS=${ChatGrpcServiceUrl}
+      - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
+      - GRPC_USER_SERVICE_ADDRESS=${UserGrpcServiceUrl}
     depends_on:
       - redis
     container_name: webby-chat-service
@@ -158,12 +158,11 @@ services:
     environment:
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
-      - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=8085
-      - GRPC_MEDIA_SERVICE_ADDRESS=video-service:5005
-      - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
-      - GRPC_COMPLAINT_SERVICE_ADDRESS=user-service:5004
-      - GRPC_NOTIFICATION_SERVICE_ADDRESS=notification-service:5007
+      - HTTP_ADMIN_ADDRESS=${HttpAdminAddress}
+      - GRPC_MEDIA_SERVICE_ADDRESS=${VideoGrpcServiceUrl}
+      - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
+      - GRPC_COMPLAINT_SERVICE_ADDRESS=${UserGrpcServiceUrl}
+      - GRPC_NOTIFICATION_SERVICE_ADDRESS=${NotificationGrpcServiceUrl}
     container_name: webby-admin-service
 
   room-service:
@@ -173,21 +172,19 @@ services:
     environment:
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
+      - REDIS_ADDR=${RedisAddress}
+      - REDIS_PASSWORD=${RedisPassword}
       - AWS_ACCESS_KEY=${AwsAccessKey}
       - AWS_SECRET_KEY=${AwsSecretKey}
       - AWS_BUCKET=${AwsBucketName}
       - AWS_REGION=${AwsRegion}
-      - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=8080
-      - GRPC_HOST=0.0.0.0
-      - GRPC_PORT=50054
-      - GRPC_MEDIA_SERVICE_ADDRESS=video-service:5005
-      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:50051
-      - GRPC_CATEGORY_SERVICE_ADDRESS=room-category-service:50052
-      - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:50053
-      - GRPC_NOTIFICATION_SERVICE_ADDRESS=notification-service:5007
-      - REDIS_ADDR=redis:6379
-      - REDIS_PASSWORD=${RedisPassword}
+      - HTTP_ROOM_ADDRESS=${HttpRoomAddress}
+      - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
+      - GRPC_MEDIA_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
+      - GRPC_CHAT_SERVICE_ADDRESS=${UserGrpcServiceUrl}
+      - GRPC_ROOM_CATEGORY_SERVICE_ADDRESS=${RoomCategoryGrpcServiceUrl}
+      - GRPC_ROOM_QUEUE_SERVICE_ADDRESS=${RoomQueueGrpcServiceUrl}
+      - GRPC_NOTIFICATION_SERVICE_ADDRESS=${NotificationGrpcServiceUrl}
     depends_on:
       - redis
     container_name: webby-room-service
@@ -199,10 +196,8 @@ services:
     environment:
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
-      - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=8082
-      - GRPC_HOST=0.0.0.0
-      - GRPC_PORT=50052
+      - HTTP_ROOM_CATEGORY_ADDRESS=${HttpRoomCategoryAddress}
+      - GRPC_ROOM_CATEGORY_SERVICE_ADDRESS=${RoomCategoryGrpcServiceUrl}
     container_name: webby-room-category-service
 
   room-queue-service:
@@ -212,15 +207,13 @@ services:
     environment:
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
-      - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=8083
-      - GRPC_HOST=0.0.0.0
-      - GRPC_PORT=50053
-      - GRPC_MEDIA_SERVICE_ADDRESS=video-service:5005
-      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:50051
-      - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
-      - REDIS_ADDR=redis:6379
+      - REDIS_ADDR=${RedisAddress}
       - REDIS_PASSWORD=${RedisPassword}
+      - HTTP_ROOM_QUEUE_ADDRESS=${HttpRoomQueueAddress}
+      - GRPC_ROOM_QUEUE_SERVICE_ADDRESS=${RoomQueueGrpcServiceUrl}
+      - GRPC_MEDIA_SERVICE_ADDRESS=${VideoGrpcServiceUrl}
+      - GRPC_CHAT_SERVICE_ADDRESS=${ChatGrpcServiceUrl}
+      - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
     depends_on:
       - redis
     container_name: webby-room-queue-service
@@ -232,13 +225,12 @@ services:
     environment:
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
-      - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=8084
-      - GRPC_ROOM_SERVICE_ADDRESS=room-service:50054
-      - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:50053
-      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:50051
-      - REDIS_ADDR=redis:6379
+      - REDIS_ADDR=${RedisAddress}
       - REDIS_PASSWORD=${RedisPassword}
+      - HTTP_VOTES_ADDRESS=${HttpVotesAddress}
+      - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
+      - GRPC_ROOM_QUEUE_SERVICE_ADDRESS=${RoomQueueGrpcServiceUrl}
+      - GRPC_CHAT_SERVICE_ADDRESS=${ChatGrpcServiceUrl}
     depends_on:
       - redis
     container_name: webby-votes-service
@@ -250,13 +242,13 @@ services:
     environment:
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
-      - HTTP_HOST=0.0.0.0
-      - HTTP_PORT=8090
-      - TOKEN_TTL=5m
-      - REDIS_ADDR=redis:6379
+      - REDIS_ADDR=${RedisAddress}
       - REDIS_PASSWORD=${RedisPassword}
       - REDIS_PATTERN=*:*
       - REDIS_DB:0
+      - HTTP_WSGATEWAY_ADDRESS=${HttpWsGatewayAddress}
+      - GRPC_CHAT_SERVICE_ADDRESS=${ChatGrpcServiceUrl}
+      - TOKEN_TTL=5m
     depends_on:
       - redis
     container_name: webby-ws-gateway

@@ -8,8 +8,7 @@ worker:
   zombie_ttl: 2m
 
 http:
-  host: "localhost"
-  port: 8080
+  serviceAddress: "{{HttpRoomAddress}}" 
   timeout: 10s
 
 aws:
@@ -19,15 +18,14 @@ aws:
   bucket: "{{AwsBucketName}}"
   
 grpc:
-  host: "localhost"
-  port: 50054
-  mediaServiceAddress: "localhost:5005"
-  chatServiceAddress: "localhost:50051"
-  categoryServiceAddress: "localhost:50052"
-  queueServiceAddress: "localhost:50053"
-  notificationServiceAddress: "localhost:5007"
+  roomServiceAddress: "{{RoomGrpcServiceUrl}}"
+  roomQueueServiceAddress: "{{RoomQueueGrpcServiceUrl}}"
+  mediaServiceAddress: "{{VideoGrpcServiceUrl}}"
+  chatServiceAddress: "{{ChatGrpcServiceUrl}}"
+  roomCategoryServiceAddress: "{{RoomCategoryGrpcServiceUrl}}"
+  notificationServiceAddress: "{{NotificationGrpcServiceUrl}}"
 
 redis:
-  addr: "localhost:6379"
+  addr: "{{RedisAddress}}"
   password: "{{RedisPassword}}"
   db: 0

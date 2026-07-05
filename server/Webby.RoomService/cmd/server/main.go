@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"sync"
 	"time"
 	"webby/room-service/internal/config"
@@ -81,7 +80,7 @@ func run(ctx context.Context, w io.Writer) error {
 	}
 	defer chatClient.Close()
 
-	categoryClient, err := grpcClient.NewCategoryClient(cfg.Grpc.CategoryServiceAddress)
+	categoryClient, err := grpcClient.NewCategoryClient(cfg.Grpc.RoomCategoryServiceAddress)
 	if err != nil {
 		logger.Error("category service gRPC connection failed", slog.String("error", err.Error()))
 		return err
@@ -105,27 +104,20 @@ func run(ctx context.Context, w io.Writer) error {
 
 	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService, reactionService)
 	httpServer := &http.Server{
-		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
+		Addr:         cfg.Http.HostPort,
 		ReadTimeout:  cfg.Http.Timeout,
 		WriteTimeout: cfg.Http.Timeout,
 		Handler:      server,
 	}
 
 	go func() {
-		logger.Info(
-			"Server listening",
-			slog.String("host", cfg.Http.Host),
-			slog.Int("port", cfg.Http.Port),
-		)
+		logger.Info("Server listening", "host", cfg.Http.HostPort)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("error listening and serving", slog.Any("error", err))
 		}
 	}()
 
-	grpcListener, err := net.Listen(
-		"tcp",
-		net.JoinHostPort(cfg.Grpc.Host, strconv.Itoa(cfg.Grpc.Port)),
-	)
+	grpcListener, err := net.Listen("tcp", cfg.Grpc.RoomServiceAddress)
 	if err != nil {
 		logger.Error("grpc listen failed", slog.Any("error", err))
 		return err
@@ -142,11 +134,7 @@ func run(ctx context.Context, w io.Writer) error {
 	)
 
 	go func() {
-		logger.Info(
-			"gRPC server listening",
-			slog.String("host", cfg.Grpc.Host),
-			slog.Int("port", cfg.Grpc.Port),
-		)
+		logger.Info("gRPC server listening", "host", cfg.Grpc.RoomServiceAddress)
 		if err := grpcSrv.Serve(grpcListener); err != nil {
 			logger.Error("error serving grpc", slog.Any("error", err))
 		}

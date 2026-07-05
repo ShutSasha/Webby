@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -61,10 +59,8 @@ func main() {
 	apiRouter := handlers.NewServer(cfg, tokenService, logger, wsSrv, sseBroker)
 
 	httpSrv := &http.Server{
-		Addr:    net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
+		Addr:    cfg.Http.HostPort,
 		Handler: apiRouter,
-		// ReadTimeout:  cfg.Http.Timeout,
-		// WriteTimeout: cfg.Http.Timeout,
 	}
 
 	var wg sync.WaitGroup

@@ -2,14 +2,13 @@ env: "local"
 jwtSecret: "{{JwtAccessSecretKey}}"
 
 http:
-  host: "localhost"
-  port: 8084
+  serviceAddress: "{{HttpVotesAddress}}" 
   timeout: 10s
 
 grpc:
-  roomServiceAddress: "localhost:50054"
-  queueServiceAddress: "localhost:50053"
-  chatServiceAddress: "localhost:50051"
+  roomServiceAddress: "{{RoomGrpcServiceUrl}}"
+  roomQueueServiceAddress: "{{RoomQueueGrpcServiceUrl}}"
+  chatServiceAddress: "{{ChatGrpcServiceUrl}}"
 
 redis:
   addr: "localhost:6379"

@@ -17,14 +17,12 @@ type Config struct {
 }
 
 type HttpConfig struct {
-	Host    string        `yaml:"host" env-default:"0.0.0.0" env:"HTTP_HOST"`
-	Port    int           `yaml:"port" env-default:"8082" env:"HTTP_PORT"`
+	HostPort string        `yaml:"serviceAddress" env-default:"localhost:8082" env:"HTTP_ROOM_CATEGORY_ADDRESS"`
 	Timeout time.Duration `yaml:"timeout" env-default:"10s" env:"HTTP_TIMEOUT"`
 }
 
 type GrpcConfig struct {
-	Host string `yaml:"host" env-default:"localhost" env:"GRPC_HOST"`
-	Port int    `yaml:"port" env-default:"50052" env:"GRPC_PORT"`
+	HostPort string `yaml:"roomCategoryServiceAddress" env-default:"localhost:50052" env:"GRPC_ROOM_CATEGORY_SERVICE_ADDRESS"`
 }
 
 func MustLoad() *Config {
