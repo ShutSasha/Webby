@@ -139,6 +139,7 @@ services:
       context: .
       dockerfile: Webby.ChatService/Dockerfile
     environment:
+      - ENV=${Env}
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - REDIS_ADDR=${RedisAddress}
@@ -156,6 +157,7 @@ services:
       context: .
       dockerfile: Webby.AdminService/Dockerfile
     environment:
+      - ENV=${Env}
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_ADMIN_ADDRESS=${HttpAdminAddress}
@@ -170,6 +172,7 @@ services:
       context: .
       dockerfile: Webby.RoomService/Dockerfile
     environment:
+      - ENV=${Env}
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - REDIS_ADDR=${RedisAddress}
@@ -180,7 +183,7 @@ services:
       - AWS_REGION=${AwsRegion}
       - HTTP_ROOM_ADDRESS=${HttpRoomAddress}
       - GRPC_ROOM_SERVICE_ADDRESS=${RoomGrpcServiceUrl}
-      - GRPC_MEDIA_SERVICE_ADDRESS=${GoRoomGrpcServiceUrl}
+      - GRPC_MEDIA_SERVICE_ADDRESS=${GoVideoGrpcServiceUrl}
       - GRPC_CHAT_SERVICE_ADDRESS=${GoUserGrpcServiceUrl}
       - GRPC_ROOM_CATEGORY_SERVICE_ADDRESS=${RoomCategoryGrpcServiceUrl}
       - GRPC_ROOM_QUEUE_SERVICE_ADDRESS=${RoomQueueGrpcServiceUrl}
@@ -194,6 +197,7 @@ services:
       context: .
       dockerfile: Webby.RoomCategoryService/Dockerfile
     environment:
+      - ENV=${Env}
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - HTTP_ROOM_CATEGORY_ADDRESS=${HttpRoomCategoryAddress}
@@ -205,6 +209,7 @@ services:
       context: .
       dockerfile: Webby.RoomQueueService/Dockerfile
     environment:
+      - ENV=${Env}
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - REDIS_ADDR=${RedisAddress}
@@ -223,6 +228,7 @@ services:
       context: .
       dockerfile: Webby.VotesService/Dockerfile
     environment:
+      - ENV=${Env}
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - REDIS_ADDR=${RedisAddress}
@@ -240,6 +246,7 @@ services:
       context: .
       dockerfile: Webby.WsGateway/Dockerfile
     environment:
+      - ENV=${Env}
       - CONNECTION_STRING=${UriConnectionString}
       - JWT_SECRET=${JwtAccessSecretKey}
       - REDIS_ADDR=${RedisAddress}

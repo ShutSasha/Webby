@@ -1,4 +1,4 @@
-env: "local"
+env: "{{Env}}"
 connectionString: "{{UriConnectionString}}"
 jwtSecret: "{{JwtAccessSecretKey}}"
 http:

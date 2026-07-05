@@ -1,4 +1,4 @@
-env: "local"
+env: "{{Env}}"
 jwtSecret: "MyExtraMegaSuperKeyThatYouCanUnderstand"
 connectionString: "{{UriConnectionString}}"
 
