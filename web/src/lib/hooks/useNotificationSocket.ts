@@ -12,7 +12,6 @@ import { getOneTimeTicket } from '../actions/notification.actions'
 export const useNotificationSocket = () => {
   const { status } = useSession()
   const addPopup = useNotificationPopupStore(state => state.addPopup)
-  const setUnreadCount = useNotificationPopupStore(state => state.setUnreadCount)
   const connectionRef = useRef<HubConnection | null>(null)
   const queryClient = useQueryClient()
   const { data: session } = useSession()
@@ -60,13 +59,12 @@ export const useNotificationSocket = () => {
         })
 
         connection.on('AccountSuspended', async (userId: string) => {
-          if (userId === session?.user.id) {
+          if (userId === session?.user?.id) {
             await signOut({ redirectTo: '/login' })
           }
         })
 
         connection.on('UpdateUnreadNotificationsCount', (count: number) => {
-          setUnreadCount(count)
           queryClient.setQueryData(['unread-notifications-count'], count)
         })
 
@@ -92,5 +90,5 @@ export const useNotificationSocket = () => {
         connectionRef.current.stop()
       }
     }
-  }, [status, addPopup, setUnreadCount, queryClient])
+  }, [status, addPopup, queryClient, session?.user?.id])
 }
