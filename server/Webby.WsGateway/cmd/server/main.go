@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sync"
 	"syscall"
 	"time"
@@ -21,11 +24,47 @@ import (
 	"webby/wsgateway/internal/services"
 	"webby/wsgateway/internal/sse"
 	"webby/wsgateway/internal/ws"
+	"webby/wsgateway/pkg/slogpretty"
+)
+
+const (
+	envLocal = "local"
+	envDev   = "dev"
+	envProd  = "prod"
 )
 
 func main() {
+	ctx := context.Background()
+
+	if err := run(ctx); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context) error {
 	cfg := config.MustLoad()
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	var logWriter io.Writer = os.Stdout
+
+	if cfg.Env == envDev || cfg.Env == envProd {
+		if err := os.MkdirAll("logs", 0755); err != nil {
+			return fmt.Errorf("failed to create logs directory: %w", err)
+		}
+
+		fileName := fmt.Sprintf("app_%s.log", time.Now().Format("2006-01-02_15-04-05"))
+		logPath := filepath.Join("logs", fileName)
+
+		logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			return fmt.Errorf("failed to open log file: %w", err)
+		}
+
+		defer logFile.Close()
+		logWriter = logFile
+	}
+
+	logger := setupLogger(cfg.Env, logWriter)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -48,11 +87,10 @@ func main() {
 
 	chatClient, err := grpcClient.NewChatClient(cfg.Grpc.ChatServiceAddress)
 	if err != nil {
-		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
-		chatClient = nil
-	} else {
-		defer chatClient.Close()
+		logger.Error("chat service gRPC connection failed", slog.String("error", err.Error()))
+		return err
 	}
+	defer chatClient.Close()
 
 	sseBroker := sse.New()
 	wsSrv := ws.NewServer(tokenService, presenceService, chatClient, logger, cfg.Http.CallTimeout)
@@ -102,13 +140,51 @@ func main() {
 	logger.Info("shutting down http server...")
 	if err := httpSrv.Shutdown(shutdownCtx); err != nil {
 		logger.Error("http server shutdown failed", slog.String("err", err.Error()))
+		return err
 	}
 
 	logger.Info("closing socket.io server...")
 	if err := wsSrv.Close(); err != nil {
 		logger.Error("socket.io server close failed", slog.String("err", err.Error()))
+		return err
 	}
 
 	wg.Wait()
 	logger.Info("all systems stopped clean. bye")
+	return nil
+}
+
+func setupLogger(env string, w io.Writer) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case envLocal:
+		log = setupPrettySlog(w)
+	case envDev:
+		log = slog.New(
+			slog.NewJSONHandler(
+				w, &slog.HandlerOptions{Level: slog.LevelDebug},
+			),
+		)
+	case envProd:
+		log = slog.New(
+			slog.NewJSONHandler(
+				w, &slog.HandlerOptions{Level: slog.LevelInfo},
+			),
+		)
+	}
+
+	return log
+}
+
+func setupPrettySlog(w io.Writer) *slog.Logger {
+	opts := slogpretty.PrettyHandlerOptions{
+		SlogOpts: &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		},
+	}
+
+	handler := opts.NewPrettyHandler(w)
+
+	return slog.New(handler)
 }
