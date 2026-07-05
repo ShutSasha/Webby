@@ -5,6 +5,7 @@ using UserService.AchievementGrpcClient;
 using Webby.UserService.Clients;
 using Webby.UserService.Data;
 using Webby.UserService.Dtos.Storage;
+using Webby.UserService.Helpers.Events;
 using Webby.UserService.Helpers.Notification;
 using Webby.UserService.Helpers.Payment;
 using Webby.UserService.Interfaces.Helpers;
@@ -105,6 +106,7 @@ public static class ApiExtension
    public static void AddHelpers(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<INotificationFactory,NotificationFactory>();
+      serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
    }
 
    public static void ConfigureOptionDependencies(this IServiceCollection serviceCollection, IConfiguration config)

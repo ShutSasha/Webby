@@ -89,7 +89,8 @@ export function StudioVideoRow({ video }: Props) {
     <div
       className={cn(
         'flex items-center border-b border-border py-3 px-4 transition-colors group',
-        isReady ? 'hover:bg-background/40' : 'bg-surface/50',
+        isReady && !video.isBanned ? 'hover:bg-background/40' : 'bg-surface/50',
+        video.isBanned && 'opacity-80',
       )}
     >
       <div className="flex-1 flex gap-4 min-w-[300px]">
@@ -98,12 +99,13 @@ export function StudioVideoRow({ video }: Props) {
             src={video.previewUrl || DEFAULT_VIDEO_THUMBNAIL}
             alt="Video thumbnail"
             fill
-            className={cn('object-cover transition-all', !isReady && 'opacity-40 grayscale-50')}
+            sizes="112px"
+            className={cn('object-cover transition-all', (!isReady || video.isBanned) && 'opacity-40 grayscale-50')}
             placeholder="blur"
             blurDataURL={BLUR_DATA_URLS['neutral900']}
           />
 
-          {isReady && (
+          {isReady && !video.isBanned && (
             <div
               className="absolute bottom-1 right-1 bg-black/80 backdrop-blur-sm px-1 py-0.5 rounded text-[10px]
                 font-medium text-neutral-50"
@@ -127,8 +129,12 @@ export function StudioVideoRow({ video }: Props) {
           {isReady ? (
             <Link
               href={`/videos/${video.videoId}`}
-              className="text-sm font-semibold text-foreground-secondary line-clamp-2 wrap-break-word
-                hover:text-emerald-400 transition-colors"
+              className={cn(
+                'text-sm font-semibold line-clamp-2 wrap-break-word transition-colors',
+                video.isBanned
+                  ? 'text-foreground-muted line-through hover:text-red-400'
+                  : 'text-foreground-secondary hover:text-emerald-400',
+              )}
             >
               {video.name}
             </Link>
@@ -161,14 +167,23 @@ export function StudioVideoRow({ video }: Props) {
       </div>
 
       <div className="w-28 flex justify-center shrink-0">
-        <div
-          className={cn(
-            'flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md',
-            video.isPublished ? 'text-foreground-subtle' : 'bg-surface-faint/10 text-foreground-muted',
-          )}
-        >
-          {video.isPublished ? 'Published' : 'Draft'}
-        </div>
+        {video.isBanned ? (
+          <div
+            className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md bg-red-500/10 text-red-500
+              border border-red-500/20"
+          >
+            Banned
+          </div>
+        ) : (
+          <div
+            className={cn(
+              'flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md',
+              video.isPublished ? 'text-foreground-subtle' : 'bg-surface-faint/10 text-foreground-muted',
+            )}
+          >
+            {video.isPublished ? 'Published' : 'Draft'}
+          </div>
+        )}
       </div>
 
       <div className="w-28 flex justify-center shrink-0">
@@ -183,7 +198,7 @@ export function StudioVideoRow({ video }: Props) {
       </div>
 
       <div className="w-24 text-center text-xs text-foreground-subtle shrink-0">
-        {isReady ? formatViews(video.views) : '-'}
+        {isReady && !video.isBanned ? formatViews(video.views) : '-'}
       </div>
 
       <div className="w-12 flex justify-end shrink-0 relative" ref={menuRef}>

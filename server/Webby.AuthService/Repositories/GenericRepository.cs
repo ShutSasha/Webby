@@ -7,7 +7,7 @@ namespace Webby.AuthService.Repositories;
 
 public class GenericRepository<T> : IRepository<T> where T : class
 {
-   private readonly  AppDbContext _context;
+   public readonly  AppDbContext _context;
    private readonly DbSet<T> _dbSet;
 
    public GenericRepository(AppDbContext context)

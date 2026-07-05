@@ -26,6 +26,9 @@ type presenceManager interface {
 	RemoveUser(ctx context.Context, chatID, userID string) error
 	UpdateHeartbeats(ctx context.Context, sessions []SessionInfo) error
 }
+type roomChecker interface {
+	IsChatRelatedToRoom(ctx context.Context, chatID uuid.UUID) (bool, error)
+}
 
 type session struct {
 	ChatID uuid.UUID
@@ -41,13 +44,14 @@ type Server struct {
 
 	service         userIDRetriever
 	presenceManager presenceManager
+	roomChecker     roomChecker
 	logger          *slog.Logger
 	callTimeout     time.Duration
 
 	activeSessions sync.Map
 }
 
-func NewServer(service userIDRetriever, presenceManager presenceManager, logger *slog.Logger, callTimeout time.Duration) *Server {
+func NewServer(service userIDRetriever, presenceManager presenceManager, roomChecker roomChecker, logger *slog.Logger, callTimeout time.Duration) *Server {
 	s := &Server{
 		io: socketio.NewServer(&engineio.Options{
 			Transports: []transport.Transport{
@@ -66,6 +70,7 @@ func NewServer(service userIDRetriever, presenceManager presenceManager, logger 
 
 		service:         service,
 		presenceManager: presenceManager,
+		roomChecker:     roomChecker,
 		logger:          logger,
 		callTimeout:     callTimeout,
 	}
@@ -121,9 +126,17 @@ func (server *Server) onConnect(c socketio.Conn) error {
 		UserID: userID.String(),
 	})
 
-	err = server.presenceManager.AddUser(ctx, chatID.String(), userID.String())
+	isRoom, err := server.roomChecker.IsChatRelatedToRoom(ctx, chatID)
 	if err != nil {
-		log.Error("failed to add presence", slog.String("err", err.Error()))
+		log.Error("failed to check if chat related to room", slog.String("err", err.Error()))
+		isRoom = false
+	}
+
+	if isRoom {
+		err = server.presenceManager.AddUser(ctx, chatID.String(), userID.String())
+		if err != nil {
+			log.Error("failed to add presence", slog.String("err", err.Error()))
+		}
 	}
 
 	log.Info("ws connected",

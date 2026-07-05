@@ -24,6 +24,7 @@ try
 
     services.AddCorsPolicy("AllowApiGetaway");
     services.AddDbConnection(configuration);
+    services.ConfigureRedisConnection(configuration);
 
     services.AddControllers().AddJsonOptions(options =>
     {

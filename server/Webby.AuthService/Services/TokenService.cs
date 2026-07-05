@@ -39,4 +39,7 @@ public class TokenService: ITokenService
 
       return Task.FromResult(Guid.Parse(userId));
    }
+
+   public IEnumerable<string> ParseUserRolesFromToken(string accessToken)
+      => _jwtProvider.GetUserRoles(accessToken);
 }

@@ -4,9 +4,11 @@ import { useState } from 'react'
 
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { useDebounce } from 'use-debounce'
 
 import SearchIcon from '@/assets/icons/ic_search.svg'
+import { useChatHistorySSE } from '@/lib/hooks/api/chat/useChatHistorySSE'
 import { useGetChatHistoryQuery } from '@/lib/hooks/api/chat/useGetChatHistory'
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll'
 import { cn } from '@/lib/utils/general.utils'
@@ -19,6 +21,8 @@ export default function ChatSidebar() {
   const [debouncedSearch] = useDebounce(searchValue, 300)
   const params = useParams()
   const currentChatId = params?.chatId as string | undefined
+  const { data: session } = useSession()
+  useChatHistorySSE(session?.user.accessToken)
 
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useGetChatHistoryQuery(debouncedSearch)
 

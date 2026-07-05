@@ -16,6 +16,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"webby/wsgateway/internal/config"
+	grpcClient "webby/wsgateway/internal/grpc"
 	"webby/wsgateway/internal/handlers"
 	redisbus "webby/wsgateway/internal/redis"
 	"webby/wsgateway/internal/repositories"
@@ -47,8 +48,16 @@ func main() {
 	presenceRepository := repositories.NewPresenceRepository(rdb)
 	presenceService := services.NewPresenceService(presenceRepository)
 
+	chatClient, err := grpcClient.NewChatClient(cfg.Grpc.ChatServiceAddress)
+	if err != nil {
+		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
+		chatClient = nil
+	} else {
+		defer chatClient.Close()
+	}
+
 	sseBroker := sse.New()
-	wsSrv := ws.NewServer(tokenService, presenceService, logger, cfg.Http.CallTimeout)
+	wsSrv := ws.NewServer(tokenService, presenceService, chatClient, logger, cfg.Http.CallTimeout)
 	apiRouter := handlers.NewServer(cfg, tokenService, logger, wsSrv, sseBroker)
 
 	httpSrv := &http.Server{

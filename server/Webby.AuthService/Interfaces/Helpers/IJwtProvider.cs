@@ -8,4 +8,5 @@ public interface IJwtProvider
 {
    AuthToken GenerateAccessToken(User user);
    ClaimsPrincipal GetPrincipal(string accessToken);
+   IEnumerable<string> GetUserRoles(string accessToken);
 }

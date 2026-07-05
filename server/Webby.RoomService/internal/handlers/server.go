@@ -21,6 +21,7 @@ func NewServer(
 	roomService roomService,
 	roomMemberService roomMemberService,
 	synchronizeService synchronizeService,
+	reactionService reactionService,
 ) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -42,7 +43,7 @@ func NewServer(
 	router.Use(gin.Recovery())
 	router.Use(cors.CORS())
 
-	handler := New(roomService, roomMemberService, synchronizeService)
+	handler := New(roomService, roomMemberService, synchronizeService, reactionService)
 	addRoutes(router, config, handler)
 
 	return router

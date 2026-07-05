@@ -42,8 +42,8 @@ export default function AdminUsersTable({ searchQuery }: Props) {
   }
 
   return (
-    <div className="bg-surface border border-border rounded-2xl overflow-hidden flex flex-col">
-      <div className="overflow-x-auto custom-scrollbar">
+    <div className="bg-surface border border-border rounded-2xl flex flex-col">
+      <div className="custom-scrollbar">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="border-b border-border bg-surface/50 text-foreground-faint text-sm">

@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils/general.utils'
 const adminNav = [
   { name: 'Overview', href: '/admin' },
   { name: 'Users Management', href: '/admin/users' },
+  { name: 'Videos Management', href: '/admin/videos' },
   { name: 'Reports', href: '/admin/reports' },
 ]
 

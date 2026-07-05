@@ -6,9 +6,11 @@ import { useSession } from 'next-auth/react'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { useRoomStore } from '@/stores/room.store'
 
+import ActiveReactionsOverlay from './ActiveReactionsOverlay'
 import ActiveVoteOverlay from './ActiveVoteOverlay'
 import RoomChatContainer from './Chat/RoomChatContainer'
 import RoomQueue from './Queue/RoomQueue'
+import ReactionBubbles from './ReactionBubbles'
 import RoomInteractionHeader from './RoomInteractionHeader'
 import RoomInteractionSkeleton from './RoomInteractionSkeleton'
 import RoomSettings from './Settings/RoomSettings'
@@ -47,6 +49,8 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
       <RoomInteractionHeader isHost={isHost} />
 
       <ActiveVoteOverlay roomId={roomId} />
+      <ActiveReactionsOverlay roomId={roomId} />
+      <ReactionBubbles />
 
       {tab === 'queue' && <RoomQueue />}
       {tab === 'chat' && <RoomChatContainer chatId={chatId} />}

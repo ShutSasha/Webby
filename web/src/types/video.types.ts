@@ -18,6 +18,7 @@ export type Video = {
   views: number
   previewUrl: string
   isPrivate: boolean
+  isBanned: boolean
   isPublished: boolean
   createdAt: string
   videoTags: string[] | null

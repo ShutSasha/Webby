@@ -58,6 +58,33 @@
       "UpstreamHttpMethod": ["GET"]
     },
     {
+      "DownstreamPathTemplate": "/api/reactions",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "room-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/reactions",
+      "UpstreamHttpMethod": ["GET"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/rooms/{id}/react",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "room-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/api/rooms/{id}/react",
+      "UpstreamHttpMethod": ["POST"],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
       "DownstreamPathTemplate": "/api/rooms/{id}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

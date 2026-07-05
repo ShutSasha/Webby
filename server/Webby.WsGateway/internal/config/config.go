@@ -15,6 +15,7 @@ type Config struct {
 	TokenTTL         time.Duration `yaml:"token_ttl" env-default:"15m" env:"TOKEN_TTL"`
 	Http             Http          `yaml:"http"`
 	Redis            Redis         `yaml:"redis"`
+	Grpc             Grpc          `yaml:"grpc"`
 }
 
 type Http struct {
@@ -29,6 +30,10 @@ type Redis struct {
 	Password string `yaml:"password" env-default:"" env:"REDIS_PASSWORD"`
 	DB       int    `yaml:"db" env-default:"0" env:"REDIS_DB"`
 	Pattern  string `yaml:"pattern" env-default:"*:*" env:"REDIS_PATTERN"`
+}
+
+type Grpc struct {
+	ChatServiceAddress string `yaml:"addr" env-default:"localhost:50051" env:"CHAT_SERVICE_ADDR"`
 }
 
 func MustLoad() *Config {
