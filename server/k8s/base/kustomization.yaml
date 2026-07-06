@@ -5,6 +5,13 @@ resources:
   - user-service/
   - video-service/
   - achievement-service/
+  - admin-service/
+  - chat-service/
+  - room-service/
+  - room-category-service/
+  - room-queue-service/
+  - votes-service/
+  - ws-gateway/
   - redis/
   - infisical/
   - ingress/ 

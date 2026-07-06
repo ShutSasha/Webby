@@ -22,6 +22,7 @@ func NewServer(
 	roomMemberService roomMemberService,
 	synchronizeService synchronizeService,
 	reactionService reactionService,
+	healthCheckers ...HealthChecker,
 ) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -42,6 +43,20 @@ func NewServer(
 	router.Use(loggerMw.Logger(logger))
 	router.Use(gin.Recovery())
 	router.Use(cors.CORS())
+
+	hc := NewHealthCheck(healthCheckers...)
+
+	// Health check endpoints
+	router.GET("/livez", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "alive"})
+	})
+	router.GET("/readyz", func(c *gin.Context) {
+		if err := hc.Check(c.Request.Context()); err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "not ready", "error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ready"})
+	})
 
 	handler := New(roomService, roomMemberService, synchronizeService, reactionService)
 	addRoutes(router, config, handler)

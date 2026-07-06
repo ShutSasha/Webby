@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ws-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ws-gateway
+  template:
+    metadata:
+      labels:
+        app: ws-gateway
+    spec:
+      imagePullSecrets:
+        - name: ocir-secret
+      containers:
+        - name: ws-gateway
+          image: eu-frankfurt-1.ocir.io/fr3wma7oqvij/webby-ws-gateway:latest
+          ports:
+            - containerPort: 8090
+          env:
+            - name: ENV
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: Env
+            - name: CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: UriConnectionString
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: JwtAccessSecretKey
+            - name: REDIS_ADDR
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RedisAddress
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RedisPassword
+            - name: REDIS_PATTERN
+              value: "*:*"
+            - name: REDIS_DB
+              value: "0"
+            - name: HTTP_WSGATEWAY_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: HttpWsGatewayAddress
+            - name: GRPC_CHAT_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: ChatGrpcServiceUrl
+            - name: TOKEN_TTL
+              value: "5m"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8090
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8090
+            initialDelaySeconds: 10
+            periodSeconds: 10

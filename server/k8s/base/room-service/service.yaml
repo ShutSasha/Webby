@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: room-service
+spec:
+  selector:
+    app: room-service
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

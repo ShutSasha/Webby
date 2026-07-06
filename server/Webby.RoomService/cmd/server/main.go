@@ -121,8 +121,11 @@ func run(ctx context.Context) error {
 	roomMemberService := services.NewRoomMemberService(roomRepository, roomMemberRepository, chatClient, notificationClient, chatClient, publisher)
 	reactionService := services.NewReactionService(reactionRepository, roomMemberRepository, chatClient, roomMemberRepository, publisher)
 	syncService := services.NewSynchronizeService(chatClient, publisher, timecodesRepository, roomMemberRepository)
+	
+	databaseChecker := handlers.NewDatabaseChecker(db)
+	redisChecker := handlers.NewRedisChecker(rdb)
 
-	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService, reactionService)
+	server := handlers.NewServer(cfg, logger, roomService, roomMemberService, syncService, reactionService, databaseChecker, redisChecker)
 	httpServer := &http.Server{
 		Addr:         cfg.Http.HostPort,
 		ReadTimeout:  cfg.Http.Timeout,

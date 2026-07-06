@@ -94,7 +94,10 @@ func run(ctx context.Context) error {
 
 	sseBroker := sse.New()
 	wsSrv := ws.NewServer(tokenService, presenceService, chatClient, logger, cfg.Http.CallTimeout)
-	apiRouter := handlers.NewServer(cfg, tokenService, logger, wsSrv, sseBroker)
+
+	redisChecker := handlers.NewRedisChecker(rdb)
+
+	apiRouter := handlers.NewServer(cfg, tokenService, logger, wsSrv, sseBroker, redisChecker)
 
 	httpSrv := &http.Server{
 		Addr:    cfg.Http.HostPort,

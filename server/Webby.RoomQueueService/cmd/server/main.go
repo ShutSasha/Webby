@@ -123,7 +123,10 @@ func run(ctx context.Context) error {
 		redisPublisher,
 	)
 
-	server := httpserver.NewServer(cfg, logger, queueService)
+	databaseChecker := httpserver.NewDatabaseChecker(db)
+	redisChecker := httpserver.NewRedisChecker(rdb)
+
+	server := httpserver.NewServer(cfg, logger, queueService, databaseChecker, redisChecker)
 	httpServer := &http.Server{
 		Addr:         cfg.Http.HostPort,
 		ReadTimeout:  cfg.Http.Timeout,

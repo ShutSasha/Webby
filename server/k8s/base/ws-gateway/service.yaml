@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ws-gateway
+spec:
+  selector:
+    app: ws-gateway
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090

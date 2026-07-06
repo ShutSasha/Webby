@@ -15,7 +15,7 @@ import (
 	loggerMw "webby/wsgateway/pkg/http/middleware/logger"
 )
 
-func NewServer(cfg *config.Config, service tokenGenerator, logger *slog.Logger, wsSrv *ws.Server, broker broker) http.Handler {
+func NewServer(cfg *config.Config, service tokenGenerator, logger *slog.Logger, wsSrv *ws.Server, broker broker, healthCheckers ...HealthChecker) http.Handler {
 	requireAuth := auth.AuthMiddleware([]byte(cfg.JwtSecret))
 
 	handler := New(service, broker)
@@ -24,6 +24,19 @@ func NewServer(cfg *config.Config, service tokenGenerator, logger *slog.Logger, 
 
 	router := gin.New()
 	router.Use(loggerMw.Logger(logger), gin.Recovery(), cors.CORS())
+
+	hc := NewHealthCheck(healthCheckers...)
+
+	router.GET("/livez", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "alive"})
+	})
+	router.GET("/readyz", func(c *gin.Context) {
+		if err := hc.Check(c.Request.Context()); err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "not ready", "error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ready"})
+	})
 
 	router.Any("/socket.io/*any", gin.WrapH(wsSrv.IO()))
 

@@ -14,6 +14,7 @@ import (
 	"webby/admin-service/internal/config"
 	"webby/admin-service/internal/database"
 	grpcClient "webby/admin-service/internal/grpc"
+	"webby/admin-service/internal/handlers"
 	httpserver "webby/admin-service/internal/handlers"
 	"webby/admin-service/internal/repository"
 	"webby/admin-service/internal/services"
@@ -118,8 +119,9 @@ func run(ctx context.Context) error {
 
 	complaintService := services.NewComplaintsService(complaintRepository, complaintClient, mediaClient, videoClient, userClient, notificationClient)
 	statsService := services.NewStatsService(userClient, roomClient, complaintRepository)
-
-	server := httpserver.NewServer(cfg, logger, complaintService, statsService)
+	// Health checkers
+	databaseChecker := handlers.NewDatabaseChecker(db)
+	server := httpserver.NewServer(cfg, logger, complaintService, statsService, databaseChecker)
 	httpServer := &http.Server{
 		Addr:         cfg.Http.HostPort,
 		ReadTimeout:  cfg.Http.Timeout,

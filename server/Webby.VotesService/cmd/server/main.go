@@ -118,7 +118,9 @@ func run(ctx context.Context) error {
 
 	logger.Info("services initialized")
 
-	server := httpserver.NewServer(cfg, logger, voteService)
+	redisChecker := httpserver.NewRedisChecker(rdb)
+
+	server := httpserver.NewServer(cfg, logger, voteService, redisChecker)
 	httpServer := &http.Server{
 		Addr:         cfg.Http.HostPort,
 		ReadTimeout:  cfg.Http.Timeout,

@@ -116,7 +116,10 @@ func run(ctx context.Context) error {
 	messageService := services.NewMessageService(messageRepo, chatMemberRepo, chatRepo, userClient, redisPublisher)
 
 	// HTTP server
-	server := handlers.NewServer(cfg, logger, chatService, messageService)
+	databaseChecker := handlers.NewDatabaseChecker(db)
+	redisChecker := handlers.NewRedisChecker(rdb)
+
+	server := handlers.NewServer(cfg, logger, chatService, messageService, databaseChecker, redisChecker)
 	httpServer := &http.Server{
 		Addr:         cfg.Http.HostPort,
 		ReadTimeout:  cfg.Http.Timeout,

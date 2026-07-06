@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-service
+  template:
+    metadata:
+      labels:
+        app: chat-service
+    spec:
+      imagePullSecrets:
+        - name: ocir-secret
+      containers:
+        - name: chat-service
+          image: eu-frankfurt-1.ocir.io/fr3wma7oqvij/webby-chat-service:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: ENV
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: Env
+            - name: CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: UriConnectionString
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: JwtAccessSecretKey
+            - name: REDIS_ADDR
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RedisAddress
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RedisPassword
+            - name: HTTP_CHAT_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: HttpChatAddress
+            - name: GRPC_CHAT_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: ChatGrpcServiceUrl
+            - name: GRPC_ROOM_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RoomGrpcServiceUrl
+            - name: GRPC_USER_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: GoUserGrpcServiceUrl
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10

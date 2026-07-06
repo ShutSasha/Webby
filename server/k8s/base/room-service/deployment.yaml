@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: room-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: room-service
+  template:
+    metadata:
+      labels:
+        app: room-service
+    spec:
+      imagePullSecrets:
+        - name: ocir-secret
+      containers:
+        - name: room-service
+          image: eu-frankfurt-1.ocir.io/fr3wma7oqvij/webby-room-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ENV
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: Env
+            - name: CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: UriConnectionString
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: JwtAccessSecretKey
+            - name: REDIS_ADDR
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RedisAddress
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RedisPassword
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: AwsAccessKey
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: AwsSecretKey
+            - name: AWS_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: AwsBucketName
+            - name: AWS_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: AwsRegion
+            - name: HTTP_ROOM_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: HttpRoomAddress
+            - name: GRPC_ROOM_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RoomGrpcServiceUrl
+            - name: GRPC_MEDIA_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: GoVideoGrpcServiceUrl
+            - name: GRPC_CHAT_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: ChatGrpcServiceUrl
+            - name: GRPC_ROOM_CATEGORY_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RoomCategoryGrpcServiceUrl
+            - name: GRPC_ROOM_QUEUE_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RoomQueueGrpcServiceUrl
+            - name: GRPC_NOTIFICATION_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: GoNotificationGrpcServiceUrl
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10

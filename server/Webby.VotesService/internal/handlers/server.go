@@ -15,7 +15,12 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func NewServer(config *config.Config, logger *slog.Logger, service service) http.Handler {
+func NewServer(
+	config *config.Config,
+	logger *slog.Logger,
+	service service,
+	healthCheckers ...HealthChecker,
+) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
@@ -32,6 +37,19 @@ func NewServer(config *config.Config, logger *slog.Logger, service service) http
 	router.Use(loggerMw.Logger(logger))
 	router.Use(gin.Recovery())
 	router.Use(cors.CORS())
+
+	hc := NewHealthCheck(healthCheckers...)
+
+	router.GET("/livez", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "alive"})
+	})
+	router.GET("/readyz", func(c *gin.Context) {
+		if err := hc.Check(c.Request.Context()); err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "not ready", "error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ready"})
+	})
 
 	handler := New(service)
 	addRoutes(router, config, handler)

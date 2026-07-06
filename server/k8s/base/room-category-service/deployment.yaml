@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: room-category-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: room-category-service
+  template:
+    metadata:
+      labels:
+        app: room-category-service
+    spec:
+      imagePullSecrets:
+        - name: ocir-secret
+      containers:
+        - name: room-category-service
+          image: eu-frankfurt-1.ocir.io/fr3wma7oqvij/webby-room-category-service:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: ENV
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: Env
+            - name: CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: UriConnectionString
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: JwtAccessSecretKey
+            - name: HTTP_ROOM_CATEGORY_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: HttpRoomCategoryAddress
+            - name: GRPC_ROOM_CATEGORY_SERVICE_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: webby-secrets
+                  key: RoomCategoryGrpcServiceUrl
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 10

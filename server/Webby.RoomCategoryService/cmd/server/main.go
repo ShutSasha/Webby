@@ -78,11 +78,13 @@ func run(ctx context.Context) error {
 
 	categoryRepository := repository.New(db)
 	categoryService := services.New(categoryRepository)
+	databaseChecker := httpserver.NewDatabaseChecker(db)
 
 	server := httpserver.NewServer(
 		cfg,
 		logger,
 		categoryService,
+		databaseChecker,
 	)
 	httpServer := &http.Server{
 		Addr:         cfg.Http.HostPort,
