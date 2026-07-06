@@ -40,7 +40,7 @@ public class TwitchSearchService : ITwitchSearchService
 
         if (isSearch)
         {
-            var searchUrl = DefaultLinks.BaseTwitchUserLink;
+            var searchUrl = DefaultLinks.BaseTwitchChannelLink;
             var searchParams = new Dictionary<string, string?>
             {
                 ["query"] = searchText,
@@ -50,7 +50,7 @@ public class TwitchSearchService : ITwitchSearchService
 
             if (!string.IsNullOrEmpty(nextPageToken))
                 searchParams["after"] = nextPageToken;
-
+            
             var searchResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(
                 QueryHelpers.AddQueryString(searchUrl, searchParams));
 
@@ -64,8 +64,9 @@ public class TwitchSearchService : ITwitchSearchService
             if (searchResponse.Data.Any())
             {
                 var ids = searchResponse.Data.Select(i => i.Id);
-                var streamsUrl = DefaultLinks.BaseTwitchStreamLink + $"?user_id={string.Join("&user_id=", ids)}";
                 
+                var streamsUrl = DefaultLinks.BaseTwitchStreamLink + $"?user_id={string.Join("&user_id=", ids)}";
+        
                 var streamsResponse = await SendTwitchRequest<TwitchResponse<TwitchItem>>(streamsUrl);
                 streamData = streamsResponse.Data;
             }
