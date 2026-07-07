@@ -25,4 +25,8 @@
     <ProjectReference Include="..\Webby.VideoService\Webby.VideoService.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Tests\Video\" />
+  </ItemGroup>
+
 </Project>

@@ -25,10 +25,10 @@ public class UserController : ControllerBase
 
    [HttpGet("{userId:guid}")]
    [SwaggerOperation("Get user information by id")]
-   public async Task<ActionResult<ApiResponse<UserDto>>> GetUserInformation([FromRoute] Guid userId)
+   public async Task<ActionResult<ApiResponse<UserProfileResponse>>> GetUserInformation([FromRoute] Guid userId)
    {
       var userExtractionResult = await _userService.GetUserInformation(userId);
-      return Ok(ApiResponse.Ok("Successfully extract user", userExtractionResult));
+      return Ok(ApiResponse<UserProfileResponse>.Ok("Successfully extract user", userExtractionResult));
    }
    
    [HttpGet("{userId:guid}/follows")]
