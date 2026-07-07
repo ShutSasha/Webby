@@ -81,4 +81,22 @@ public static class VideoQueryFilters
                          && !v.IsBanned
       );
    }
+   
+   public static (string Additional,object[] Params,Func<AppDbContext, Expression<Func<Models.Video, bool>>> PredicateFactory) ForModerationSearch()
+   {
+      return (
+         @"
+      (
+          ""IsPublished"" = TRUE 
+          AND ""VideoUploadStatus"" = {2}
+      )
+      ",
+         new object[] 
+         { 
+            VideoStatus.Ready.ToString() 
+         },
+         context => v => v.IsPublished == true
+                         && v.VideoUploadStatus == VideoStatus.Ready
+      );
+   }
 }

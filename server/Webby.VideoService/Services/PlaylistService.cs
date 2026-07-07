@@ -2,6 +2,7 @@
 using Grpc.Core;
 using UserService;
 using Webby.VideoService.Constants;
+using Webby.VideoService.Dtos.Event;
 using Webby.VideoService.Dtos.Playlist;
 using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Dtos.Stream;
@@ -25,21 +26,19 @@ public class PlaylistService : IPlaylistService
    private readonly IMapper _mapper;
    private readonly UserGrpcService.UserGrpcServiceClient _userClient;
    private readonly IVideoRepository _videoRepository;
-   private readonly IYouTubeSearchService _youtubeSearchService;
-   private readonly ITwitchSearchService _twitchSearchService;
    private readonly IExternalContentFetcher _externalContentFetcher;
+   private readonly IEventPublisher _eventPublisher;
 
    public PlaylistService(IPlaylistRepository playlistRepository, IMapper mapper,
       UserGrpcService.UserGrpcServiceClient userClient, IVideoRepository videoRepository,
-      IYouTubeSearchService youtubeSearchService, ITwitchSearchService twitchSearchService, IExternalContentFetcher externalContentFetcher)
+      IExternalContentFetcher externalContentFetcher, IEventPublisher eventPublisher)
    {
       _playlistRepository = playlistRepository;
       _mapper = mapper;
       _userClient = userClient;
       _videoRepository = videoRepository;
-      _youtubeSearchService = youtubeSearchService;
-      _twitchSearchService = twitchSearchService;
       _externalContentFetcher = externalContentFetcher;
+      _eventPublisher = eventPublisher;
    }
 
    public async Task<Playlist> GetPlaylistById(Guid playlistId)
@@ -65,6 +64,13 @@ public class PlaylistService : IPlaylistService
       };
 
       await _playlistRepository.Add(playlist);
+
+      var createPlaylistEvent = new CreatePlaylistEvent(UserId: userId, playlist.PlaylistId)
+      {
+         Value = await _playlistRepository.CountUserPlaylists(userId)
+      };
+      
+      await _eventPublisher.PublishAsync(createPlaylistEvent);
 
       return _mapper.Map<PlaylistDto>(playlist);
    }
@@ -279,7 +285,7 @@ public class PlaylistService : IPlaylistService
        var parsedIds = ParseAndValidateIds(videoIds, "Attach video");
        ValidatePlatformForMediaType(parsedIds, MediaType.Video);
        await ValidateLocalVideos(parsedIds, requestUserId);
-       await ApplyPlaylistItemsDiff([playlistId], MediaType.Video, parsedIds);
+       await ApplyPlaylistItemsDiff([playlistId], MediaType.Video, parsedIds,requestUserId);
    }
 
    public async Task AttachVideoToPlaylists(List<Guid> playlistIds, List<string> videoIds, Guid requestUserId)
@@ -297,7 +303,7 @@ public class PlaylistService : IPlaylistService
        var parsedIds = ParseAndValidateIds(videoIds, "Attach video");
        ValidatePlatformForMediaType(parsedIds, MediaType.Video);
        await ValidateLocalVideos(parsedIds, requestUserId);
-       await ApplyPlaylistItemsDiff(playlistIds, MediaType.Video, parsedIds);
+       await ApplyPlaylistItemsDiff(playlistIds, MediaType.Video, parsedIds,requestUserId);
    }
 
    public async Task AttachStreamToPlaylist(Guid playlistId, List<string> streamIds, Guid requestUserId)
@@ -308,7 +314,7 @@ public class PlaylistService : IPlaylistService
        await ValidatePlaylistsOwnership([playlistId], requestUserId, "Attach stream to playlist");
 
        var parsedIds = ParseAndValidateIds(streamIds, "Attach stream");
-       await ApplyPlaylistItemsDiff([playlistId], MediaType.LiveStream,parsedIds);
+       await ApplyPlaylistItemsDiff([playlistId], MediaType.LiveStream,parsedIds,requestUserId);
    }
 
    public async Task AttachStreamToPlaylists(List<Guid> playlistIds, List<string> streamIds, Guid requestUserId)
@@ -324,7 +330,7 @@ public class PlaylistService : IPlaylistService
        await ValidatePlaylistsOwnership(playlistIds, requestUserId, "Attach stream to playlists");
 
        var parsedIds = ParseAndValidateIds(streamIds, "Attach stream");
-       await ApplyPlaylistItemsDiff(playlistIds, MediaType.LiveStream,parsedIds);
+       await ApplyPlaylistItemsDiff(playlistIds, MediaType.LiveStream,parsedIds,requestUserId);
    }
 
    public async Task<PagedResponse<SearchPlaylistDto>> SearchPlaylists(
@@ -556,7 +562,7 @@ public class PlaylistService : IPlaylistService
    }  
 
    private async Task ApplyPlaylistItemsDiff(List<Guid> playlistIds, MediaType mediaType, 
-      List<(SystemPlatforms Platform, string ActualId)> parsedIds)
+      List<(SystemPlatforms Platform, string ActualId)> parsedIds, Guid playlistOwnerId)
    {
        var allItemsToAdd = new List<PlaylistVideo>();
        var allItemsToDelete = new List<PlaylistVideo>();
@@ -586,10 +592,23 @@ public class PlaylistService : IPlaylistService
        }
 
        if (allItemsToAdd.Count > 0)
-           await _playlistRepository.AddPlaylistVideos(allItemsToAdd);
+          await _playlistRepository.AddPlaylistVideos(allItemsToAdd);
+       
+
 
        if (allItemsToDelete.Count > 0)
            await _playlistRepository.DeletePlaylistVideos(allItemsToDelete);
+
+       var (biggestPlaylistId,count) = await _playlistRepository.GetBiggestPlaylistId(playlistIds);
+
+       if (biggestPlaylistId != Guid.Empty)
+       {
+          var addPlaylistEvent = new AddSourceToPlaylistEvent(playlistOwnerId, biggestPlaylistId)
+          {
+             Value = count
+          };
+          await _eventPublisher.PublishAsync(addPlaylistEvent);
+       }
    }
    
    private static void ValidatePlatformForMediaType(

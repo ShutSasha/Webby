@@ -34,6 +34,17 @@ public class ComplaintGrpcService : Webby.UserService.ComplaintGrpcService.Compl
          AdditionalInfo = complaint.AdditionalInfo,
          CreatedAt = complaint.CreatedAt.ToTimestamp()
       };
-      
+   }
+
+   public override async Task<Empty> SetVideoComplaintsBanned(SetVideoComplaintsBannedRequest request, ServerCallContext context)
+   {
+      if (!Guid.TryParse(request.TargetId, out var targetIdGuid))
+      {
+         throw new ApiException("Send video complaints banned", 400, "Incorrect type of target id");
+      }
+
+      await _complaintService.SetBanStatus(targetIdGuid, request.BanFlag);
+
+      return new Empty();
    }
 }

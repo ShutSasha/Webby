@@ -45,8 +45,8 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
     return (
       <div
         onClick={() => setVotesModalOpen(true)}
-        className="absolute top-2 left-2 right-2 z-20 bg-neutral-800/95 backdrop-blur-sm border border-purple-500/30
-          rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.15)] cursor-pointer group hover:bg-neutral-800 transition-colors
+        className="absolute top-2 left-2 right-2 z-20 bg-background/95 backdrop-blur-sm border border-purple-500/30
+          rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.15)] cursor-pointer group hover:bg-background transition-colors
           animate-in slide-in-from-top-4 fade-in duration-300 overflow-hidden"
       >
         <div className="p-3">
@@ -55,8 +55,8 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
               e.stopPropagation()
               setIsNextVideoDismissed(true)
             }}
-            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-neutral-500 hover:text-neutral-300
-              transition-colors rounded-full hover:bg-neutral-700/50"
+            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-foreground-faint
+              hover:text-foreground-subtle transition-colors rounded-full hover:bg-surface-tertiary/50"
           >
             <CloseIcon className="size-4.5" />
           </button>
@@ -74,10 +74,10 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
                   Quick Vote • {nvTimer.secondsLeft}s
                 </span>
               </div>
-              <p className="text-sm font-medium text-neutral-200 truncate">Choose the next video!</p>
+              <p className="text-sm font-medium text-foreground-tertiary truncate">Choose the next video!</p>
             </div>
             <button
-              className="shrink-0 bg-purple-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg
+              className="shrink-0 bg-purple-500 text-foreground-strong text-xs font-semibold px-3 py-1.5 rounded-lg
                 group-hover:bg-purple-600 transition-colors"
             >
               Vote
@@ -97,8 +97,8 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
     return (
       <div
         onClick={() => setVotesModalOpen(true)}
-        className="absolute top-2 left-2 right-2 z-20 bg-neutral-800/95 backdrop-blur-sm border border-emerald-500/30
-          rounded-xl shadow-lg shadow-black/50 cursor-pointer group hover:bg-neutral-800 transition-colors animate-in
+        className="absolute top-2 left-2 right-2 z-20 bg-background/95 backdrop-blur-sm border border-emerald-500/30
+          rounded-xl shadow-lg shadow-black/50 cursor-pointer group hover:bg-background transition-colors animate-in
           slide-in-from-top-4 fade-in duration-300 overflow-hidden"
       >
         <div className="p-3">
@@ -107,8 +107,8 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
               e.stopPropagation()
               setDismissedRightChoiceId(activeRightChoiceVote.id)
             }}
-            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-neutral-500 hover:text-neutral-300
-              transition-colors rounded-full hover:bg-neutral-700/50"
+            className="absolute top-1/2 -translate-y-1/2 right-1.5 p-1 text-foreground-faint
+              hover:text-foreground-subtle transition-colors rounded-full hover:bg-surface-tertiary/50"
           >
             <CloseIcon className="size-4.5" />
           </button>
@@ -126,10 +126,10 @@ export default function ActiveVoteOverlay({ roomId }: Props) {
                   Active Poll • {rcTimer.secondsLeft}s
                 </span>
               </div>
-              <p className="text-sm font-medium text-neutral-200 truncate">{activeRightChoiceVote.voteText}</p>
+              <p className="text-sm font-medium text-foreground-tertiary truncate">{activeRightChoiceVote.voteText}</p>
             </div>
             <button
-              className="shrink-0 bg-emerald-500 text-neutral-950 text-xs font-semibold px-3 py-1.5 rounded-lg
+              className="shrink-0 bg-emerald-500 text-foreground-inverse text-xs font-semibold px-3 py-1.5 rounded-lg
                 group-hover:bg-emerald-400 transition-colors"
             >
               Vote

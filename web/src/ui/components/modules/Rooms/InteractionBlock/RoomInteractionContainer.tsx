@@ -6,9 +6,11 @@ import { useSession } from 'next-auth/react'
 import { useIsClient } from '@/lib/hooks/useIsClient'
 import { useRoomStore } from '@/stores/room.store'
 
+import ActiveReactionsOverlay from './ActiveReactionsOverlay'
 import ActiveVoteOverlay from './ActiveVoteOverlay'
 import RoomChatContainer from './Chat/RoomChatContainer'
 import RoomQueue from './Queue/RoomQueue'
+import ReactionBubbles from './ReactionBubbles'
 import RoomInteractionHeader from './RoomInteractionHeader'
 import RoomInteractionSkeleton from './RoomInteractionSkeleton'
 import RoomSettings from './Settings/RoomSettings'
@@ -31,7 +33,7 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
   if (!isClient) {
     return (
       <div
-        className="flex items-center justify-center flex-none bg-black rounded-2xl py-1 px-2 w-full h-[500px]
+        className="flex items-center justify-center flex-none bg-surface-strong rounded-2xl py-1 px-2 w-full h-[500px]
           xl:w-[300px] 2xl:w-[340px] xl:h-auto"
       >
         <RoomInteractionSkeleton />
@@ -41,12 +43,14 @@ export default function RoomInteractionContainer({ chatId, hostId }: Props) {
 
   return (
     <div
-      className="flex flex-col flex-none bg-black rounded-2xl pt-1 pb-3 px-2 relative w-full h-[500px] xl:w-[300px]
-        2xl:w-[340px] xl:h-0 xl:min-h-full"
+      className="flex flex-col flex-none dark:bg-surface-strong rounded-2xl pt-1 pb-3 border-border border
+        dark:border-none px-2 relative w-full h-[500px] xl:w-[300px] 2xl:w-[340px] xl:h-0 xl:min-h-full"
     >
       <RoomInteractionHeader isHost={isHost} />
 
       <ActiveVoteOverlay roomId={roomId} />
+      <ActiveReactionsOverlay roomId={roomId} />
+      <ReactionBubbles />
 
       {tab === 'queue' && <RoomQueue />}
       {tab === 'chat' && <RoomChatContainer chatId={chatId} />}

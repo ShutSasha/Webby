@@ -154,13 +154,14 @@ func (r *roomMemberRepository) ListByRoom(ctx context.Context, roomId uuid.UUID,
 	return members, total, nil
 }
 
-func (r *roomMemberRepository) AddPointsBulk(ctx context.Context, userIDs []uuid.UUID, pointsToAdd int) (map[uuid.UUID]int, error) {
+func (r *roomMemberRepository) AddPointsBulk(ctx context.Context, roomID uuid.UUID, userIDs []uuid.UUID, pointsToAdd int) (map[uuid.UUID]int, error) {
 	const op = "repository.roomMemberRepository.AddPointsBulk"
 
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Update("room_members").
 		Set("room_points", sq.Expr("room_points + ?", pointsToAdd)).
 		Where(sq.Eq{"user_id": userIDs}).
+		Where(sq.Eq{"room_id": roomID}).
 		Suffix("RETURNING user_id, room_points").
 		ToSql()
 	if err != nil {

@@ -18,14 +18,14 @@ export default async function Layout({ children, params }: Props) {
         title="Sign in to access your settings"
         description="Please log in to manage your account details, update your public profile description,
         customize your display settings, and configure security preferences to keep your account safe."
-        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }
 
   if (session.user.id !== id) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+      <div className="flex-1 flex items-center justify-center bg-surface/20 rounded-[20px]">
         <EmptyState
           title="Access Denied"
           description="You can only view and manage the settings for your own profile."

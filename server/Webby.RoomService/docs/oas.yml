@@ -18,8 +18,33 @@ tags:
     description: Endpoints for managing rooms
   - name: Members
     description: Endpoints for managing room members
+  - name: Reactions
+    description: Endpoints for listing available reactions and sending reactions in rooms
 
 paths:
+  /api/reactions:
+    get:
+      tags:
+        - Reactions
+      summary: List available reactions
+      description: |
+        Retrieve all available reactions that can be sent from a room.
+        This endpoint is publicly accessible and returns reaction metadata including cost and sticker URL.
+      operationId: listReactions
+      responses:
+        "200":
+          description: Reactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReactionListResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/rooms/public:
     get:
       tags:
@@ -550,6 +575,63 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/rooms/{id}/react:
+    post:
+      tags:
+        - Reactions
+      summary: Send a reaction in a room
+      description: |
+        Send a reaction to the specified room.
+        The user must be a room member and not banned. Sends `ROOM_POINTS_UPDATED` and `REACTION_SENT` events.
+      operationId: useReaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UseReactionRequest"
+      responses:
+        "200":
+          description: Reaction sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error or invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — user is not a member or is banned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room or reaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/rooms/{id}/sync:
     post:
       tags:
@@ -998,6 +1080,44 @@ components:
           type: integer
           description: Points delta (positive to add, negative to subtract)
           example: 10
+
+    UseReactionRequest:
+      type: object
+      required:
+        - reactionId
+      properties:
+        reactionId:
+          type: string
+          format: uuid
+          description: Reaction ID to send
+    ReactionItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        cost:
+          type: integer
+        stickerUrl:
+          type: string
+          nullable: true
+    ReactionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Reactions retrieved successfully
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReactionItem"
+        errors:
+          nullable: true
 
     ReportTimecodeRequest:
       type: object

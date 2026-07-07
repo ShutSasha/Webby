@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ChatGrpcService_CreateChat_FullMethodName        = "/chat.ChatGrpcService/CreateChat"
-	ChatGrpcService_GetChatByRoomID_FullMethodName   = "/chat.ChatGrpcService/GetChatByRoomID"
-	ChatGrpcService_GetChatIDByRoomID_FullMethodName = "/chat.ChatGrpcService/GetChatIDByRoomID"
-	ChatGrpcService_AddChatMember_FullMethodName     = "/chat.ChatGrpcService/AddChatMember"
+	ChatGrpcService_CreateChat_FullMethodName          = "/chat.ChatGrpcService/CreateChat"
+	ChatGrpcService_GetChatByRoomID_FullMethodName     = "/chat.ChatGrpcService/GetChatByRoomID"
+	ChatGrpcService_GetChatIDByRoomID_FullMethodName   = "/chat.ChatGrpcService/GetChatIDByRoomID"
+	ChatGrpcService_AddChatMember_FullMethodName       = "/chat.ChatGrpcService/AddChatMember"
+	ChatGrpcService_RoomIDByChatIDBatch_FullMethodName = "/chat.ChatGrpcService/RoomIDByChatIDBatch"
+	ChatGrpcService_IsChatRelatedToRoom_FullMethodName = "/chat.ChatGrpcService/IsChatRelatedToRoom"
 )
 
 // ChatGrpcServiceClient is the client API for ChatGrpcService service.
@@ -33,6 +35,8 @@ type ChatGrpcServiceClient interface {
 	GetChatByRoomID(ctx context.Context, in *GetChatByRoomIdRequest, opts ...grpc.CallOption) (*ChatResponse, error)
 	GetChatIDByRoomID(ctx context.Context, in *GetChatIDByRoomIDRequest, opts ...grpc.CallOption) (*ChatIDByRoomIDResponse, error)
 	AddChatMember(ctx context.Context, in *AddChatMemberRequest, opts ...grpc.CallOption) (*AddChatMemberResponse, error)
+	RoomIDByChatIDBatch(ctx context.Context, in *RoomIDByChatIDBatchRequest, opts ...grpc.CallOption) (*RoomIDByChatIDBatchResponse, error)
+	IsChatRelatedToRoom(ctx context.Context, in *IsChatRelatedToRoomRequest, opts ...grpc.CallOption) (*IsChatRelatedToRoomResponse, error)
 }
 
 type chatGrpcServiceClient struct {
@@ -83,6 +87,26 @@ func (c *chatGrpcServiceClient) AddChatMember(ctx context.Context, in *AddChatMe
 	return out, nil
 }
 
+func (c *chatGrpcServiceClient) RoomIDByChatIDBatch(ctx context.Context, in *RoomIDByChatIDBatchRequest, opts ...grpc.CallOption) (*RoomIDByChatIDBatchResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RoomIDByChatIDBatchResponse)
+	err := c.cc.Invoke(ctx, ChatGrpcService_RoomIDByChatIDBatch_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatGrpcServiceClient) IsChatRelatedToRoom(ctx context.Context, in *IsChatRelatedToRoomRequest, opts ...grpc.CallOption) (*IsChatRelatedToRoomResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IsChatRelatedToRoomResponse)
+	err := c.cc.Invoke(ctx, ChatGrpcService_IsChatRelatedToRoom_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChatGrpcServiceServer is the server API for ChatGrpcService service.
 // All implementations must embed UnimplementedChatGrpcServiceServer
 // for forward compatibility.
@@ -91,6 +115,8 @@ type ChatGrpcServiceServer interface {
 	GetChatByRoomID(context.Context, *GetChatByRoomIdRequest) (*ChatResponse, error)
 	GetChatIDByRoomID(context.Context, *GetChatIDByRoomIDRequest) (*ChatIDByRoomIDResponse, error)
 	AddChatMember(context.Context, *AddChatMemberRequest) (*AddChatMemberResponse, error)
+	RoomIDByChatIDBatch(context.Context, *RoomIDByChatIDBatchRequest) (*RoomIDByChatIDBatchResponse, error)
+	IsChatRelatedToRoom(context.Context, *IsChatRelatedToRoomRequest) (*IsChatRelatedToRoomResponse, error)
 	mustEmbedUnimplementedChatGrpcServiceServer()
 }
 
@@ -112,6 +138,12 @@ func (UnimplementedChatGrpcServiceServer) GetChatIDByRoomID(context.Context, *Ge
 }
 func (UnimplementedChatGrpcServiceServer) AddChatMember(context.Context, *AddChatMemberRequest) (*AddChatMemberResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddChatMember not implemented")
+}
+func (UnimplementedChatGrpcServiceServer) RoomIDByChatIDBatch(context.Context, *RoomIDByChatIDBatchRequest) (*RoomIDByChatIDBatchResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RoomIDByChatIDBatch not implemented")
+}
+func (UnimplementedChatGrpcServiceServer) IsChatRelatedToRoom(context.Context, *IsChatRelatedToRoomRequest) (*IsChatRelatedToRoomResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method IsChatRelatedToRoom not implemented")
 }
 func (UnimplementedChatGrpcServiceServer) mustEmbedUnimplementedChatGrpcServiceServer() {}
 func (UnimplementedChatGrpcServiceServer) testEmbeddedByValue()                         {}
@@ -206,6 +238,42 @@ func _ChatGrpcService_AddChatMember_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChatGrpcService_RoomIDByChatIDBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoomIDByChatIDBatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatGrpcServiceServer).RoomIDByChatIDBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatGrpcService_RoomIDByChatIDBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatGrpcServiceServer).RoomIDByChatIDBatch(ctx, req.(*RoomIDByChatIDBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatGrpcService_IsChatRelatedToRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsChatRelatedToRoomRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatGrpcServiceServer).IsChatRelatedToRoom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatGrpcService_IsChatRelatedToRoom_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatGrpcServiceServer).IsChatRelatedToRoom(ctx, req.(*IsChatRelatedToRoomRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChatGrpcService_ServiceDesc is the grpc.ServiceDesc for ChatGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +296,14 @@ var ChatGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddChatMember",
 			Handler:    _ChatGrpcService_AddChatMember_Handler,
+		},
+		{
+			MethodName: "RoomIDByChatIDBatch",
+			Handler:    _ChatGrpcService_RoomIDByChatIDBatch_Handler,
+		},
+		{
+			MethodName: "IsChatRelatedToRoom",
+			Handler:    _ChatGrpcService_IsChatRelatedToRoom_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

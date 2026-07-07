@@ -62,12 +62,15 @@ export default function RoomVotesModal({ roomId, isHost }: Props) {
         />
       )}
 
-      {view === 'DETAILS_NEXT_VIDEO' && <NextVideoVoteDetails roomId={roomId} onBack={() => setView('LIST')} />}
-
       {view === 'CREATE_RIGHT_CHOICE' && (
-        <CreateRightChoiceVote roomId={roomId} onBack={() => setView('SELECT_TYPE')} />
+        <CreateRightChoiceVote
+          roomId={roomId}
+          onBack={() => setView('SELECT_TYPE')}
+          onSuccess={() => setView('LIST')}
+        />
       )}
 
+      {view === 'DETAILS_NEXT_VIDEO' && <NextVideoVoteDetails roomId={roomId} onBack={() => setView('LIST')} />}
       {view === 'DETAILS_RIGHT_CHOICE' && selectedVoteId && (
         <RightChoiceVoteDetails
           roomId={roomId}

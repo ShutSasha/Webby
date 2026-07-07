@@ -3,12 +3,15 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"webby/admin-service/internal/apperrors"
 	"webby/admin-service/internal/grpc/mediapb"
 	"webby/admin-service/internal/models"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 type mediaClient struct {
@@ -43,6 +46,14 @@ func (c *mediaClient) GetVideoByID(ctx context.Context, videoID uuid.UUID) (*mod
 		Id: "wb_" + videoID.String(),
 	})
 	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.InvalidArgument:
+				return nil, fmt.Errorf("%s: %w", op, apperrors.ErrVideoAlreadyBanned)
+			}
+		}
+
 		return nil, fmt.Errorf("%s %w", op, err)
 	}
 
@@ -50,6 +61,43 @@ func (c *mediaClient) GetVideoByID(ctx context.Context, videoID uuid.UUID) (*mod
 		ID:    video.Id,
 		Title: video.Title,
 	}, nil
+}
+
+func (m *mediaClient) GetVideosBatch(ctx context.Context, ids []string) (map[string]string, error) {
+	const op = "grpc.mediaClient.GetVideosBatch"
+
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	resp, err := m.client.GetVideosBatch(ctx, &mediapb.GetVideosBatchRequest{Ids: ids})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	videoMap := make(map[string]*mediapb.VideoResponse, len(resp.GetVideos()))
+	for _, v := range resp.GetVideos() {
+		videoMap[v.Id] = v
+	}
+
+	unavailableMap := make(map[string]struct{}, len(resp.GetUnavailableVideoIds()))
+	for _, id := range resp.GetUnavailableVideoIds() {
+		unavailableMap[id] = struct{}{}
+	}
+
+	resultVideos := make(map[string]string, len(ids))
+	for _, id := range ids {
+		if _, unavailable := unavailableMap[id]; unavailable {
+			resultVideos[id] = "Unavailable video"
+			continue
+		}
+
+		if v, ok := videoMap[id]; ok {
+			resultVideos[id] = v.Title
+		}
+	}
+
+	return resultVideos, nil
 }
 
 func (c *mediaClient) GetAuthorIDByVideoID(ctx context.Context, videoID string) (uuid.UUID, error) {

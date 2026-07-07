@@ -30,15 +30,16 @@ export default function AnimatedTabs({ tabs, layoutId = 'active-pill', className
           className={cn(
             'relative px-5 py-2 z-10 block text-sm font-semibold transition-all duration-300 rounded-full',
             tab.isActive
-              ? 'text-neutral-900'
-              : 'text-neutral-400 hover:text-neutral-100 bg-neutral-800/40 hover:bg-neutral-800/80',
+              ? 'text-surface'
+              : `text-muted-active hover:text-foreground-strong bg-overlay hover:bg-background/10
+                dark:hover:bg-background/80 `,
             linkClassName,
           )}
         >
           {tab.isActive && (
             <motion.div
               layoutId={layoutId}
-              className="absolute inset-0 bg-neutral-100 rounded-full -z-10"
+              className="absolute inset-0 bg-foreground-strong rounded-full -z-10"
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             />
           )}
@@ -59,10 +60,7 @@ export function AnimatedTabsSkeleton({ count = 3, className, tabClassName }: Ske
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {Array.from({ length: count }).map((_, index) => (
-        <div
-          key={index}
-          className={cn('h-9 w-24 rounded-full bg-neutral-800/80 animate-pulse shrink-0', tabClassName)}
-        />
+        <div key={index} className={cn('h-9 w-24 rounded-full bg-card animate-pulse shrink-0', tabClassName)} />
       ))}
     </div>
   )

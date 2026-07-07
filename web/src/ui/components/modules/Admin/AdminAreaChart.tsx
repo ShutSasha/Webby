@@ -1,6 +1,6 @@
 'use client'
 
-import { useId } from 'react'
+import { useId, useCallback } from 'react'
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -13,7 +13,7 @@ type Props = {
   title: string
   data: ChartDataPoint[]
   colorTheme?: 'emerald' | 'purple' | 'blue'
-  valueFormatter?: (value: number) => string
+  formatType?: 'number' | 'currency'
 }
 
 const THEMES = {
@@ -22,16 +22,16 @@ const THEMES = {
   blue: { stroke: '#3b82f6', stop: '#3b82f6' },
 }
 
-const CustomTooltip = ({ active, payload, label, valueFormatter, colorTheme }: any) => {
+const CustomTooltip = ({ active, payload, label, formatter, colorTheme }: any) => {
   if (active && payload && payload.length) {
     const colorClass =
       colorTheme === 'purple' ? 'text-purple-400' : colorTheme === 'blue' ? 'text-blue-400' : 'text-emerald-400'
 
     return (
-      <div className="bg-[#0A0A0A] border border-neutral-800/80 p-4 rounded-2xl shadow-2xl backdrop-blur-md">
-        <p className="text-neutral-500 text-xs font-medium mb-1 uppercase tracking-wider">{label}</p>
+      <div className="bg-surface border border-border/80 p-4 rounded-2xl shadow-2xl backdrop-blur-md">
+        <p className="text-foreground-faint text-xs font-medium mb-1 uppercase tracking-wider">{label}</p>
         <p className={`font-bold text-2xl ${colorClass}`}>
-          {valueFormatter ? valueFormatter(payload[0].value) : payload[0].value}
+          {formatter ? formatter(payload[0].value) : payload[0].value}
         </p>
       </div>
     )
@@ -39,13 +39,21 @@ const CustomTooltip = ({ active, payload, label, valueFormatter, colorTheme }: a
   return null
 }
 
-export default function AdminAreaChart({ title, data, colorTheme = 'emerald', valueFormatter }: Props) {
+export default function AdminAreaChart({ title, data, colorTheme = 'emerald', formatType = 'number' }: Props) {
   const chartId = useId()
   const theme = THEMES[colorTheme]
 
+  const formatValue = useCallback(
+    (value: number) => {
+      if (formatType === 'currency') return `€${value.toLocaleString()}`
+      return value.toLocaleString()
+    },
+    [formatType],
+  )
+
   return (
-    <div className="bg-[#0A0A0A] border border-neutral-800/60 rounded-2xl p-6 flex flex-col w-full h-full">
-      <h3 className="text-lg font-bold text-neutral-100 mb-6">{title}</h3>
+    <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col w-full h-full">
+      <h3 className="text-lg font-bold text-foreground-secondary mb-6">{title}</h3>
 
       <div className="w-full h-72">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
@@ -60,10 +68,10 @@ export default function AdminAreaChart({ title, data, colorTheme = 'emerald', va
             <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
 
             <XAxis dataKey="label" stroke="#737373" fontSize={12} tickLine={false} axisLine={false} dy={10} />
-            <YAxis stroke="#737373" fontSize={12} tickLine={false} axisLine={false} tickFormatter={valueFormatter} />
+            <YAxis stroke="#737373" fontSize={12} tickLine={false} axisLine={false} tickFormatter={formatValue} />
 
             <Tooltip
-              content={<CustomTooltip valueFormatter={valueFormatter} colorTheme={colorTheme} />}
+              content={<CustomTooltip formatter={formatValue} colorTheme={colorTheme} />}
               cursor={{ stroke: '#404040', strokeWidth: 1, strokeDasharray: '4 4' }}
             />
 

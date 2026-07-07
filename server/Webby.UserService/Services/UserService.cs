@@ -5,6 +5,7 @@ using Webby.NotificationService.GrpcClient;
 using Webby.UserService.Clients;
 using Webby.UserService.Consts;
 using Webby.UserService.Dtos.Achievement;
+using Webby.UserService.Dtos.Event;
 using Webby.UserService.Dtos.User;
 using Webby.UserService.Dtos.Notification;
 using Webby.UserService.Dtos.Search;
@@ -15,6 +16,7 @@ using Webby.UserService.Interfaces.Helpers;
 using Webby.UserService.Interfaces.Repository;
 using Webby.UserService.Interfaces.Service;
 using Webby.UserService.Models;
+using Webby.UserService.Models.Enums;
 
 namespace Webby.UserService.Services;
 
@@ -23,9 +25,11 @@ public class UserService : IUserService
    private readonly IUserRepository _userRepository;
    private readonly IStorageService _storageService;
    private readonly IUserPremiumRepository _userPremiumRepository;
+   private readonly IComplaintRepository _complaintRepository;
    private readonly NotificationGrpcService.NotificationGrpcServiceClient _notificationGrpcServiceClient;
    private readonly AchievementGrpcService.AchievementGrpcServiceClient _achievementGrpcServiceClient;
    private readonly VideoGrpcService.VideoGrpcServiceClient _videoGrpcServiceClient;
+   private readonly IEventPublisher _eventPublisher;
    private readonly INotificationFactory _notificationFactory;
    private readonly ILogger<UserService> _logger;
    
@@ -34,7 +38,7 @@ public class UserService : IUserService
    public UserService(IUserRepository userRepository, IMapper mapper, IStorageService storageService,
       IUserPremiumRepository userPremiumRepository, NotificationGrpcService.NotificationGrpcServiceClient notificationGrpcServiceClient,
       INotificationFactory notificationFactory,AchievementGrpcService.AchievementGrpcServiceClient achievementGrpcServiceClient,
-      ILogger<UserService> logger, VideoGrpcService.VideoGrpcServiceClient videoGrpcServiceClient)
+      ILogger<UserService> logger, VideoGrpcService.VideoGrpcServiceClient videoGrpcServiceClient, IComplaintRepository complaintRepository, IEventPublisher eventPublisher)
    {
       _userRepository = userRepository;
       _mapper = mapper;
@@ -45,6 +49,8 @@ public class UserService : IUserService
       _achievementGrpcServiceClient = achievementGrpcServiceClient;
       _logger = logger;
       _videoGrpcServiceClient = videoGrpcServiceClient;
+      _complaintRepository = complaintRepository;
+      _eventPublisher = eventPublisher;
    }
    
    public async Task<UserProfileResponse> GetUserInformation(Guid userId)
@@ -324,6 +330,119 @@ public class UserService : IUserService
          _logger.LogError(ex, "Failed to fetch user statistics from VideoService via gRPC for user {UserId}", userId);
          throw new ApiException("Internal error", 500, "Failed to fetch statistics from video service");
       }
+   }
+
+   public async Task BanUser(Guid requestedUserId, Guid targetUserId)
+   {
+      var requestedUser = await _userRepository.FindById(requestedUserId);
+      var targetUser = await _userRepository.FindById(targetUserId);
+
+      if (requestedUser == null || targetUser == null)
+      {
+         throw new ApiException("Ban user error",404,"User wasn't found");
+      }
+
+      if (!CanChangeBanStatus(requestedUser, targetUser))
+      {
+         throw new ApiException("Ban user error",403,"You don't have permissions to ban this user");
+      }
+
+      if (targetUser.IsBanned)
+      {
+         throw new ApiException("Ban user error",400,"You has already banned");
+      }
+
+      targetUser.IsBanned = true;
+      await _userRepository.Update(targetUser);
+      await _notificationGrpcServiceClient.ReportBlockingAsync(new ReportBlockingRequest { UserId = targetUserId.ToString() });
+      await _complaintRepository.SetIsBanComplaintStatus(targetUser.UserId, true);
+   }
+
+   public async Task UnbanUser(Guid requestedUserId, Guid targetUserId)
+   {
+      var requestedUser = await _userRepository.FindById(requestedUserId);
+      var targetUser = await _userRepository.FindById(targetUserId);
+
+      if (requestedUser == null || targetUser == null)
+      {
+         throw new ApiException("Unban user error",404,"User wasn't found");
+      }
+
+      if (!CanChangeBanStatus(requestedUser, targetUser))
+      {
+         throw new ApiException("Unban user error",403,"You don't have permissions to unban this user");
+      }
+
+      if (!targetUser.IsBanned)
+      {
+         throw new ApiException("Unban user error", 400, "User doesn't have a ban");
+      }
+
+      targetUser.IsBanned = false;
+      await _userRepository.Update(targetUser);
+      await _complaintRepository.SetIsBanComplaintStatus(targetUser.UserId, false);
+   }
+
+   public async Task ChangeRole(Guid requestedUserId, Guid targetUserId, Role userRole)
+   {
+      if (!Enum.IsDefined(userRole))
+      {
+         userRole = Role.User;
+      }
+      
+      var requestedUser = await _userRepository.FindById(requestedUserId);
+      var targetUser = await _userRepository.FindById(targetUserId);
+
+      if (requestedUser == null || targetUser == null)
+      {
+         throw new ApiException("Change role error",404,"User wasn't found");
+      }
+      
+      if (!CanChangeRoleStatus(requestedUser, targetUser, userRole))
+      {
+         throw new ApiException("Change role error",403,"You don't have permissions to change role to this user or can't change to specified role");
+      }
+
+      targetUser.Role = userRole;
+      await _userRepository.Update(targetUser);
+      
+      await _notificationGrpcServiceClient.ReportBlockingAsync(new ReportBlockingRequest { UserId = targetUserId.ToString() });
+      
+      if (userRole == Role.Moderator)
+      {
+         var getModeratorRoleEvent = new GetModeratorRoleEvent(targetUser.UserId);
+         await _eventPublisher.PublishAsync(getModeratorRoleEvent);
+      }
+   }
+
+   private bool CanChangeBanStatus(User requester, User target)
+   {
+      if (requester.UserId == target.UserId) 
+      {
+         return false; 
+      }
+
+      return requester.Role switch
+      {
+         Role.Admin => target.Role != Role.Admin,
+         Role.Moderator => target.Role == Role.User, 
+         _ => false 
+      };
+   }
+   
+   private bool CanChangeRoleStatus(User requester, User target, Role userRole)
+   {
+      if (requester.UserId == target.UserId) 
+      {
+         return false; 
+      }
+
+      return requester.Role switch
+      {
+         Role.Admin => target.Role != Role.Admin,
+         Role.Moderator => target.Role == Role.User || userRole != Role.Admin,
+         _ => false 
+      };
    }
 
    private async Task SendNotification(SendNotificationDto notificationDto) 

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import { HubConnection, HubConnectionBuilder, LogLevel, HttpTransportType } from '@microsoft/signalr'
 import { useQueryClient } from '@tanstack/react-query'
-import { useSession } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 
 import { useNotificationPopupStore } from '@/stores/notification-popup.store'
 import { Notification } from '@/types/notification.types'
@@ -12,9 +12,9 @@ import { getOneTimeTicket } from '../actions/notification.actions'
 export const useNotificationSocket = () => {
   const { status } = useSession()
   const addPopup = useNotificationPopupStore(state => state.addPopup)
-  const setUnreadCount = useNotificationPopupStore(state => state.setUnreadCount)
   const connectionRef = useRef<HubConnection | null>(null)
   const queryClient = useQueryClient()
+  const { data: session } = useSession()
 
   useEffect(() => {
     if (status !== 'authenticated') return
@@ -58,8 +58,13 @@ export const useNotificationSocket = () => {
           queryClient.invalidateQueries({ queryKey: ['unread-notifications'] })
         })
 
+        connection.on('AccountSuspended', async (userId: string) => {
+          if (userId === session?.user?.id) {
+            await signOut({ redirectTo: '/login' })
+          }
+        })
+
         connection.on('UpdateUnreadNotificationsCount', (count: number) => {
-          setUnreadCount(count)
           queryClient.setQueryData(['unread-notifications-count'], count)
         })
 
@@ -85,5 +90,5 @@ export const useNotificationSocket = () => {
         connectionRef.current.stop()
       }
     }
-  }, [status, addPopup, setUnreadCount, queryClient])
+  }, [status, addPopup, queryClient, session?.user?.id])
 }

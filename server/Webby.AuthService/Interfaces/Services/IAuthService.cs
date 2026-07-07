@@ -14,5 +14,5 @@ public interface IAuthService
    Task<LoginUserResponse> RefreshToken(string accessToken);
    Task ChangeUserPassword(Guid userId, ChangeUserPasswordRequest request);
    Task ResetUserPassword(ResetUserPasswordRequest request);
-
+   Task<bool> IsValidRole(Guid userId, string accessToken);
 }

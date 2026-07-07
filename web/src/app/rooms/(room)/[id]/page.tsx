@@ -25,14 +25,14 @@ export default async function RoomPage({ params }: Props) {
       <AuthPlaceholder
         title="Sign in to view rooms"
         description="Manage your custom rooms, adjust privacy settings, and host synchronized viewing sessions by logging into your account."
-        icon={<LockIcon className="size-10 text-neutral-500 stroke-1" />}
+        icon={<LockIcon className="size-10 text-foreground-faint stroke-1" />}
       />
     )
   }
 
   if (!room) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-neutral-900/20 rounded-[20px]">
+      <div className="flex-1 flex items-center justify-center bg-surface/20 rounded-[20px]">
         <EmptyState title="Room not found" description="This room doesn't exist, is private, or has been deleted." />
       </div>
     )

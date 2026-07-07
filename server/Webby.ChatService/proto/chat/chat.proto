@@ -9,6 +9,8 @@ service ChatGrpcService {
   rpc GetChatByRoomID(GetChatByRoomIdRequest) returns (ChatResponse);
   rpc GetChatIDByRoomID(GetChatIDByRoomIDRequest) returns (ChatIDByRoomIDResponse);
   rpc AddChatMember(AddChatMemberRequest) returns (AddChatMemberResponse);
+  rpc RoomIDByChatIDBatch(RoomIDByChatIDBatchRequest) returns(RoomIDByChatIDBatchResponse);
+  rpc IsChatRelatedToRoom(IsChatRelatedToRoomRequest) returns (IsChatRelatedToRoomResponse);
 }
 
 message CreateChatRequest {
@@ -37,4 +39,20 @@ message GetChatIDByRoomIDRequest {
 
 message ChatIDByRoomIDResponse {
   string chatID = 2;
+}
+
+message RoomIDByChatIDBatchRequest {
+  repeated string chatIDs = 1;
+}
+
+message RoomIDByChatIDBatchResponse {
+  map<string, string> chatIDroomIDMap = 1;
+}
+
+message IsChatRelatedToRoomRequest {
+  string chatID = 1;
+}
+
+message IsChatRelatedToRoomResponse {
+  bool isRelated = 1;
 }

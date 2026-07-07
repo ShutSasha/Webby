@@ -107,6 +107,27 @@
          "RouteClaimsRequirement": {
             "Role": "Moderator"
          }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/events",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5008
+            }
+         ],
+         "UpstreamPathTemplate": "/api/events",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
       }
    ]
 }

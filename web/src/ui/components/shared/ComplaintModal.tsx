@@ -62,7 +62,7 @@ export default function ComplaintModal({ isOpen, onClose, targetId, targetType }
       <div className="flex flex-col w-full gap-3">
         {step === 'REASON' && (
           <>
-            <h2 className="text-xl font-semibold text-neutral-300 mb-2 text-center">Why are you reporting?</h2>
+            <h2 className="text-xl font-semibold text-foreground-subtle mb-2 text-center">Why are you reporting?</h2>
             <div className="flex flex-col gap-3">
               {currentReasons.map(r => (
                 <ReasonButton key={r} reason={r} onClick={() => handleSelectReason(r)} />
@@ -73,14 +73,14 @@ export default function ComplaintModal({ isOpen, onClose, targetId, targetType }
 
         {step === 'DETAILS' && (
           <>
-            <h2 className="text-xl font-semibold text-neutral-300 text-center">Details</h2>
-            <p className="text-sm text-neutral-500 text-center -mt-1 mb-2">
+            <h2 className="text-xl font-semibold text-foreground-subtle text-center">Details</h2>
+            <p className="text-sm text-foreground-faint text-center -mt-1 mb-2">
               You can skip this or add more info (optional)
             </p>
 
             <textarea
               autoFocus
-              className="w-full h-32 bg-neutral-900 border border-neutral-700 rounded-xl p-3 text-neutral-300
+              className="w-full h-32 bg-surface border border-neutral-700 rounded-xl p-3 text-foreground-subtle
                 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
               placeholder="Describe the issue..."
               value={description}
@@ -90,8 +90,8 @@ export default function ComplaintModal({ isOpen, onClose, targetId, targetType }
             <div className="flex gap-2">
               <button
                 onClick={() => setStep('REASON')}
-                className="flex-1 py-2 text-neutral-400 hover:text-neutral-300 transition-colors border border-border
-                  rounded-xl cursor-pointer"
+                className="flex-1 py-2 text-foreground-muted hover:text-foreground-subtle transition-colors border
+                  border-border rounded-xl cursor-pointer"
               >
                 Back
               </button>
@@ -99,11 +99,11 @@ export default function ComplaintModal({ isOpen, onClose, targetId, targetType }
                 disabled={isPending}
                 onClick={handleSubmit}
                 className={cn(
-                  `flex-2 py-2 bg-emerald-500 hover:bg-emerald-400 rounded-xl text-neutral-900 font-medium
+                  `flex-2 py-2 bg-emerald-500 hover:bg-emerald-400 rounded-xl text-foreground-inverse-subtle font-medium
                   transition-all `,
                   {
                     'cursor-pointer': !isPending,
-                    'cursor-not-allowed disabled:bg-neutral-700': isPending,
+                    'cursor-not-allowed disabled:bg-surface-tertiary': isPending,
                   },
                 )}
               >
@@ -116,12 +116,12 @@ export default function ComplaintModal({ isOpen, onClose, targetId, targetType }
         {step === 'SUCCESS' && (
           <div className="text-center py-6">
             <div className="text-emerald-500 text-4xl mb-4">✓</div>
-            <h2 className="text-xl font-semibold text-neutral-300">Thank you!</h2>
-            <p className="text-neutral-400 mt-2">We will review your report shortly.</p>
+            <h2 className="text-xl font-semibold text-foreground-subtle">Thank you!</h2>
+            <p className="text-foreground-muted mt-2">We will review your report shortly.</p>
             <button
               onClick={handleClose}
-              className="mt-6 px-8 py-2 rounded-full text-neutral-300 cursor-pointer border border-border
-                hover:bg-neutral-900/70 transition-all duration-300"
+              className="mt-6 px-8 py-2 rounded-full text-foreground-subtle cursor-pointer border border-border
+                hover:bg-surface/70 transition-all duration-300"
             >
               Close
             </button>
@@ -136,8 +136,8 @@ function ReasonButton({ reason, onClick }: { reason: string; onClick: () => void
   return (
     <button
       onClick={onClick}
-      className="w-full border border-neutral-700 rounded-2xl py-3 px-4 text-left cursor-pointer bg-neutral-900/50
-        hover:bg-neutral-800 hover:border-emerald-500 transition-all text-neutral-200"
+      className="w-full border border-neutral-700 rounded-2xl py-3 px-4 text-left cursor-pointer bg-surface/50
+        hover:bg-background hover:border-emerald-500 transition-all text-foreground-tertiary"
     >
       {reason}
     </button>

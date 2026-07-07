@@ -74,23 +74,23 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
     <div className="relative shrink-0" ref={menuRef}>
       <button
         onClick={toggleMenu}
-        className="p-1.5 rounded-full text-neutral-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors
-          opacity-0 group-hover:opacity-100 shrink-0"
+        className="p-1.5 rounded-full text-foreground-faint hover:text-emerald-500 hover:bg-emerald-500/10
+          transition-colors opacity-0 group-hover:opacity-100 shrink-0"
       >
         <PlusIcon className="w-5 h-5 stroke-2" />
       </button>
 
       {isOpen && (
         <div
-          className="absolute right-0 top-full mt-2 w-48 bg-neutral-800 border border-neutral-700/60 shadow-xl
+          className="absolute right-0 top-full mt-2 w-48 bg-background border border-neutral-700/60 shadow-xl
             shadow-black/50 z-50 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200"
           onClick={e => e.preventDefault()}
         >
           {canAddToPlaylist && (
             <button
               onClick={handleAddToPlaylist}
-              className="w-full text-left px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-700/50 transition-colors
-                flex items-center gap-3 cursor-pointer"
+              className="w-full text-left px-4 py-2 text-sm text-foreground-tertiary hover:bg-surface-tertiary/50
+                transition-colors flex items-center gap-3 cursor-pointer"
             >
               <span>Add to playlist</span>
             </button>
@@ -100,8 +100,9 @@ export const SearchCardMenu = ({ type, id, onOpenPlaylistModal }: Props) => {
             <button
               onClick={handleAddToRoom}
               disabled={isPending}
-              className={`w-full text-left px-4 py-2 text-sm text-neutral-200 transition-colors flex items-center gap-3
-              ${isPending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neutral-700/50 cursor-pointer'}`}
+              className={`w-full text-left px-4 py-2 text-sm text-foreground-tertiary transition-colors flex
+              items-center gap-3
+              ${isPending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-surface-tertiary/50 cursor-pointer'}`}
             >
               <span>{isPending ? 'Adding...' : 'Add to room'}</span>
             </button>

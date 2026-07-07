@@ -9,6 +9,7 @@ using Webby.UserService.Helpers.Jwt;
 using Webby.UserService.Helpers.Response;
 using Webby.UserService.Interfaces.Service;
 using Webby.UserService.Models;
+using Webby.UserService.Models.Enums;
 
 namespace Webby.UserService.Controllers;
 
@@ -85,6 +86,36 @@ public class UserController : ControllerBase
       var statisticBlock = await _userService.GetUserStatistic(requestUserId.Value, request.Year, request.Month);
 
       return Ok(ApiResponse<UserStatisticDto>.Ok("Successfully retrieved user statistics", statisticBlock));
+   }
+
+   [HttpPost("blocks/{userId:guid}/ban")]
+   [SwaggerOperation("Ban user in system", "MODERATION ROLE REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> BanUser([FromRoute] Guid userId)
+   {
+      var requestedUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _userService.BanUser(requestedUserId.Value,userId);
+
+      return Ok(ApiResponse.Ok("Successfully ban user"));
+   }
+   
+   [HttpPost("blocks/{userId:guid}/unban")]
+   [SwaggerOperation("Unban user in system", "MODERATION ROLE REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> UnBanUser([FromRoute] Guid userId)
+   {
+      var requestedUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _userService.UnbanUser(requestedUserId.Value,userId);
+
+      return Ok(ApiResponse.Ok("Successfully unban user"));
+   }
+   
+   [HttpPost("roles/{userId:guid}/change-role")]
+   [SwaggerOperation("Change role for specified user", "MODERATION ROLE REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> ChangeUserRole([FromRoute] Guid userId,[FromQuery] Role userRole)
+   {
+      var requestedUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _userService.ChangeRole(requestedUserId.Value,userId,userRole);
+
+      return Ok(ApiResponse.Ok("Successfully change role for specified user"));
    }
    
    

@@ -9,5 +9,6 @@ service VideoGrpcService {
 }
 
 message BanVideoRequest {
-    string videoID = 1;
+  string videoID = 1;
+  string requestedUserID = 2;
 }

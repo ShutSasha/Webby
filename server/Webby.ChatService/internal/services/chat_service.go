@@ -3,11 +3,16 @@ package services
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"webby/chat-service/internal/apperrors"
 	"webby/chat-service/internal/models"
+	"webby/chat-service/pkg/logger"
 
 	"github.com/google/uuid"
 )
+
+const eventUpdateChatHistory = "UPDATE_CHAT_HISTORY"
+const eventChatDeleted = "CHAT_DELETED"
 
 type chatReposotory interface {
 	Create(ctx context.Context, chat *models.Chat) (uuid.UUID, error)
@@ -18,6 +23,8 @@ type chatReposotory interface {
 	Exists(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error)
 	GetByMembers(ctx context.Context, firstUserID, secondUserID uuid.UUID) (*models.Chat, error)
 	Delete(ctx context.Context, chatID uuid.UUID) error
+	RoomIDByChatIDBatch(ctx context.Context, chatIDs []string) (map[string]uuid.UUID, error)
+	IsChatRelatedToRoom(ctx context.Context, chatID uuid.UUID) (bool, error)
 }
 
 type chatServiceChatMemberRepository interface {
@@ -43,6 +50,7 @@ type chatService struct {
 	chatMemberRepository chatServiceChatMemberRepository
 	roomMemberExister    roomMemberExister
 	userManager          userManager
+	eventPublisher       eventPublisher
 }
 
 func NewChatService(
@@ -50,12 +58,14 @@ func NewChatService(
 	chatMemberRepository chatServiceChatMemberRepository,
 	roomMemberExister roomMemberExister,
 	userManager userManager,
+	eventPublisher eventPublisher,
 ) *chatService {
 	return &chatService{
 		chatRepository:       chatRepository,
 		chatMemberRepository: chatMemberRepository,
 		roomMemberExister:    roomMemberExister,
 		userManager:          userManager,
+		eventPublisher:       eventPublisher,
 	}
 }
 
@@ -79,6 +89,7 @@ func (s *chatService) CreateForRoom(ctx context.Context, roomID uuid.UUID) (*mod
 
 func (s *chatService) CreatePrivate(ctx context.Context, initiatorID, targetID uuid.UUID) (*models.Chat, error) {
 	const op = "services.chatService.CreatePrivate"
+	log := logger.FromContext(ctx).With("op", op)
 
 	isFollowed, err := s.userManager.IsFollowed(ctx, initiatorID, targetID)
 	if err != nil {
@@ -103,6 +114,17 @@ func (s *chatService) CreatePrivate(ctx context.Context, initiatorID, targetID u
 	err = s.chatMemberRepository.AddMembersBulk(ctx, chatID, initiatorID, targetID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	envelope := eventEnvelope{
+		Type:    eventUpdateChatHistory,
+		Payload: struct{}{},
+	}
+	for _, userID := range []uuid.UUID{initiatorID, targetID} {
+		topic := fmt.Sprintf("user:%s", userID.String())
+		if err := s.eventPublisher.Publish(ctx, topic, envelope); err != nil {
+			log.Error("failed to publish update chat history", slog.String("err", err.Error()))
+		}
 	}
 
 	chat.ID = chatID
@@ -176,14 +198,7 @@ func (s *chatService) History(ctx context.Context, userID uuid.UUID, page, limit
 		return nil, 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	if page < 1 {
-		page = 1
-	}
-	if limit < 1 || limit > 100 {
-		limit = 50
-	}
 	offset := (page - 1) * limit
-
 	searchedIDs, total, err := s.userManager.FindUserIDs(ctx, search, interlocutorsIDs, offset, limit)
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: %w", op, err)
@@ -218,6 +233,7 @@ func (s *chatService) History(ctx context.Context, userID uuid.UUID, page, limit
 
 func (s *chatService) Delete(ctx context.Context, userID, chatID uuid.UUID) error {
 	const op = "services.chatService.Delete"
+	log := logger.FromContext(ctx).With("op", op)
 
 	isMember, err := s.chatMemberRepository.Exists(ctx, chatID, userID)
 	if err != nil {
@@ -232,5 +248,36 @@ func (s *chatService) Delete(ctx context.Context, userID, chatID uuid.UUID) erro
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	chatDeletedEnvelope := eventEnvelope{
+		Type:    eventChatDeleted,
+		Payload: struct{}{},
+	}
+	chatTopic := fmt.Sprintf("chat:%s", chatID.String())
+	if err := s.eventPublisher.Publish(ctx, chatTopic, chatDeletedEnvelope); err != nil {
+		log.Error("failed to publish chat deleted", slog.String("err", err.Error()))
+	}
+
 	return nil
+}
+
+func (s *chatService) RoomIDByChatIDBatch(ctx context.Context, chatIDs []string) (map[string]uuid.UUID, error) {
+	const op = "chatService.RoomIDByChatIDBatch"
+
+	chatIDroomIDMap, err := s.chatRepository.RoomIDByChatIDBatch(ctx, chatIDs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return chatIDroomIDMap, nil
+}
+
+func (s *chatService) IsChatRelatedToRoom(ctx context.Context, chatID uuid.UUID) (bool, error) {
+	const op = "chatService.IsChatRelatedToRoom"
+
+	isRelated, err := s.chatRepository.IsChatRelatedToRoom(ctx, chatID)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return isRelated, nil
 }

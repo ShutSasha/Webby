@@ -24,7 +24,7 @@ import (
 func setupAddMembersRouter(mockRoomService *handlermocks.MockroomService, mockMemberService *handlermocks.MockroomMemberService, mockSyncService *handlermocks.MocksynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
+	h := handlers.New(mockRoomService, mockMemberService, mockSyncService, nil)
 	router.POST("/api/rooms/:id/members", func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "userID", c.GetHeader("X-User-ID"))
 		ctx = logger.ToContext(ctx, log)
@@ -136,7 +136,7 @@ func TestAddMembers(t *testing.T) {
 func setupRemoveMemberRouter(mockRoomService *handlermocks.MockroomService, mockMemberService *handlermocks.MockroomMemberService, mockSyncService *handlermocks.MocksynchronizeService) *gin.Engine {
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	router := gin.New()
-	h := handlers.New(mockRoomService, mockMemberService, mockSyncService)
+	h := handlers.New(mockRoomService, mockMemberService, mockSyncService, nil)
 	router.DELETE("/api/rooms/:id/members/:memberId", func(c *gin.Context) {
 		ctx := context.WithValue(c.Request.Context(), "userID", c.GetHeader("X-User-ID"))
 		ctx = logger.ToContext(ctx, log)

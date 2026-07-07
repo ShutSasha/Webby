@@ -190,26 +190,14 @@ func (r *chatRepository) History(ctx context.Context, userID uuid.UUID, userIDs 
 	return items, len(items), nil
 }
 
-func (r *chatRepository) UpdateLastMessage(ctx context.Context, chatID, lastMessageID uuid.UUID, createdAt time.Time) error {
+func (r *chatRepository) UpdateLastMessage(ctx context.Context, chatID, lastMessageID uuid.UUID) error {
 	const op = "repositories.chatRepository.UpdateLastMessage"
 
-	currentMessageTimeSubquery := sq.Select("COALESCE(m.created_at, '0001-01-01 00:00:00'::timestamp)").
-		From("chats c").
-		LeftJoin("messages m ON c.last_message_id = m.id").
-		Where(sq.Eq{"c.id": chatID})
-
-	subQuerySql, subQueryArgs, err := currentMessageTimeSubquery.ToSql()
-
-	if err != nil {
-		return fmt.Errorf("%s: building subquery: %w", op, err)
-	}
-
-	exprArgs := append([]interface{}{createdAt}, subQueryArgs...)
 	query, args, err := sq.Update("chats").
 		Set("last_message_id", lastMessageID).
 		Where(sq.Eq{"id": chatID}).
-		Where(sq.Expr("? >= ("+subQuerySql+")", exprArgs...)).
-		PlaceholderFormat(sq.Dollar).ToSql()
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
 
 	if err != nil {
 		return fmt.Errorf("%s: building query: %w", op, err)
@@ -221,12 +209,7 @@ func (r *chatRepository) UpdateLastMessage(ctx context.Context, chatID, lastMess
 	}
 
 	if res.RowsAffected() == 0 {
-		var exists bool
-		checkErr := r.db.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM chats WHERE id = $1)", chatID).Scan(&exists)
-		if checkErr == nil && !exists {
-			return fmt.Errorf("%s: chat not found: %w", op, apperrors.ErrChatNotFound)
-		}
-		return nil
+		return fmt.Errorf("%s: chat not found: %w", op, apperrors.ErrChatNotFound)
 	}
 
 	return nil
@@ -304,4 +287,65 @@ func (r *chatRepository) GetByMembers(ctx context.Context, firstUserID, secondUs
 	}
 
 	return &chat, nil
+}
+
+func (r *chatRepository) RoomIDByChatIDBatch(ctx context.Context, chatIDs []string) (map[string]uuid.UUID, error) {
+	const op = "chatRepository.RoomIDByChatIDBatch"
+
+	sql, args, err := sq.Select("id", "room_id").
+		From("chats").
+		Where(sq.Eq{"id": chatIDs}).
+		PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: sql build failed: %w", op, err)
+	}
+
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return map[string]uuid.UUID{}, nil
+		}
+
+		return nil, fmt.Errorf("%s: failed to execute: %w", op, err)
+	}
+
+	chatIDroomIDMap := make(map[string]uuid.UUID)
+	for rows.Next() {
+		var roomID uuid.UUID
+		var chatID string
+		if err := rows.Scan(&chatID, &roomID); err != nil {
+			return nil, fmt.Errorf("%s: failed to scan: %w", op, err)
+		}
+
+		chatIDroomIDMap[chatID] = roomID
+	}
+
+	return chatIDroomIDMap, nil
+}
+
+func (r *chatRepository) IsChatRelatedToRoom(ctx context.Context, chatID uuid.UUID) (bool, error) {
+	const op = "chatRepository.IsChatRelatedToRoom"
+
+	sql, args, err := sq.Select("1").
+		From("chats").
+		Where(sq.And{
+			sq.Eq{"id": chatID},
+			sq.NotEq{"room_id": nil},
+		}).
+		PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return false, fmt.Errorf("%s: sql build failed: %w", op, err)
+	}
+
+	var isRelated int64
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&isRelated)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return true, nil
 }

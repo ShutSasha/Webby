@@ -3,15 +3,25 @@
 option csharp_namespace = "Webby.UserService.ComplaintGrpcService";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 service ComplaintGrpcService{
   rpc GetComplaintByID(GetComplaintByIDRequest) returns (GetComplaintByIDResponse);
+  rpc SetVideoComplaintsBanned(SetVideoComplaintsBannedRequest) returns(google.protobuf.Empty);
 }
 
+//REQUESTS
 message GetComplaintByIDRequest{
   string complaintID = 1;
 }
 
+message SetVideoComplaintsBannedRequest{
+  string targetId = 1;
+  bool banFlag = 2;
+}
+
+
+// RESPONSES
 message GetComplaintByIDResponse {
   string complaintID = 1;
   string authorId = 2;

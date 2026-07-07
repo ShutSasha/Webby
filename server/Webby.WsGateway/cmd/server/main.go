@@ -16,10 +16,12 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"webby/wsgateway/internal/config"
+	grpcClient "webby/wsgateway/internal/grpc"
 	"webby/wsgateway/internal/handlers"
 	redisbus "webby/wsgateway/internal/redis"
 	"webby/wsgateway/internal/repositories"
 	"webby/wsgateway/internal/services"
+	"webby/wsgateway/internal/sse"
 	"webby/wsgateway/internal/ws"
 )
 
@@ -46,14 +48,23 @@ func main() {
 	presenceRepository := repositories.NewPresenceRepository(rdb)
 	presenceService := services.NewPresenceService(presenceRepository)
 
-	wsSrv := ws.NewServer(tokenService, presenceService, logger, cfg.Http.CallTimeout)
-	apiRouter := handlers.NewServer(cfg, tokenService, logger, wsSrv)
+	chatClient, err := grpcClient.NewChatClient(cfg.Grpc.ChatServiceAddress)
+	if err != nil {
+		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
+		chatClient = nil
+	} else {
+		defer chatClient.Close()
+	}
+
+	sseBroker := sse.New()
+	wsSrv := ws.NewServer(tokenService, presenceService, chatClient, logger, cfg.Http.CallTimeout)
+	apiRouter := handlers.NewServer(cfg, tokenService, logger, wsSrv, sseBroker)
 
 	httpSrv := &http.Server{
-		Addr:         net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
-		Handler:      apiRouter,
-		ReadTimeout:  cfg.Http.Timeout,
-		WriteTimeout: cfg.Http.Timeout,
+		Addr:    net.JoinHostPort(cfg.Http.Host, strconv.Itoa(cfg.Http.Port)),
+		Handler: apiRouter,
+		// ReadTimeout:  cfg.Http.Timeout,
+		// WriteTimeout: cfg.Http.Timeout,
 	}
 
 	var wg sync.WaitGroup
@@ -71,7 +82,7 @@ func main() {
 		logger.Info("heartbeat worker stopped")
 	})
 
-	sub := redisbus.NewSubscriber(logger, rdb, wsSrv, cfg.Redis.Pattern)
+	sub := redisbus.NewSubscriber(logger, rdb, wsSrv, sseBroker, cfg.Redis.Pattern)
 	wg.Go(func() {
 		if err := sub.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
 			logger.Error("redis subscriber error", slog.String("err", err.Error()))

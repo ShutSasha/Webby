@@ -24,9 +24,8 @@ public class PlaylistServiceTests
    private readonly IMapper _mapperMock;
    private readonly UserGrpcService.UserGrpcServiceClient _userClientMock;
    private readonly IVideoRepository _videoRepositoryMock;
-   private readonly IYouTubeSearchService _youtubeSearchServiceMock;
-   private readonly ITwitchSearchService _twitchSearchServiceMock;
    private readonly IExternalContentFetcher _externalContentFetcherMock;
+   private readonly IEventPublisher _eventPublisherMock;
    
    private readonly PlaylistService _sut;
 
@@ -36,18 +35,16 @@ public class PlaylistServiceTests
       _mapperMock = Substitute.For<IMapper>();
       _userClientMock = Substitute.For<UserGrpcService.UserGrpcServiceClient>();
       _videoRepositoryMock = Substitute.For<IVideoRepository>();
-      _youtubeSearchServiceMock = Substitute.For<IYouTubeSearchService>();
-      _twitchSearchServiceMock = Substitute.For<ITwitchSearchService>();
       _externalContentFetcherMock = Substitute.For<IExternalContentFetcher>();
+      _eventPublisherMock = Substitute.For<IEventPublisher>();
       
       _sut = new PlaylistService(
          _playlistRepositoryMock,
          _mapperMock,
          _userClientMock,
          _videoRepositoryMock,
-         _youtubeSearchServiceMock,
-         _twitchSearchServiceMock,
-         _externalContentFetcherMock
+         _externalContentFetcherMock,
+         _eventPublisherMock
       );
    }
    

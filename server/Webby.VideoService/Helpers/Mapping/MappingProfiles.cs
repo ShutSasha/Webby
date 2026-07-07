@@ -98,6 +98,8 @@ public class MappingProfiles : Profile
             AvatarUrl = "",
             IsFollowed = false
          }));
+
+      CreateMap<Models.Video, VideoModerationPreview>();
       
    }
 }

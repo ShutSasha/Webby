@@ -115,11 +115,7 @@ export async function deleteRoomAction(roomId: string): Promise<BaseServerRespon
 
 export async function updateRoomAction(roomId: string, formData: FormData): Promise<BaseServerResponse<Room>> {
   try {
-    const { data: response } = await $api.put<BaseServerResponse<Room>>(`${endpoint}/${roomId}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    const { data: response } = await $api.put<BaseServerResponse<Room>>(`${endpoint}/${roomId}`, formData)
     return response
   } catch (error: unknown) {
     serverLog('UPDATE_ROOM_ERROR', error, true)
@@ -318,9 +314,14 @@ export async function addRoomMembersAction(roomId: string, userIds: string[]): P
     }
   }
 }
-export async function getRoomMemberPointsAction(roomId: string): Promise<BaseServerResponse<{ points: number }>> {
+
+export type MemberPoints = {
+  points: number
+}
+
+export async function getRoomMemberPointsAction(roomId: string): Promise<BaseServerResponse<MemberPoints>> {
   try {
-    const { data: response } = await $api.get<BaseServerResponse<{ points: number }>>(`/rooms/${roomId}/members/points`)
+    const { data: response } = await $api.get<BaseServerResponse<MemberPoints>>(`/rooms/${roomId}/members/points`)
     return response
   } catch (error: unknown) {
     serverLog('GET_ROOM_MEMBER_POINTS_ERROR', error, true)

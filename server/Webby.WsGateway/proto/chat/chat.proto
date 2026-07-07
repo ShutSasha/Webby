@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "webby/wsgateway/internal/grpc/chatpb";
+
+service ChatGrpcService {
+  rpc IsChatRelatedToRoom(IsChatRelatedToRoomRequest) returns (IsChatRelatedToRoomResponse);
+}
+
+message IsChatRelatedToRoomRequest {
+  string chatID = 1;
+}
+
+message IsChatRelatedToRoomResponse {
+  bool isRelated = 1;
+}
+

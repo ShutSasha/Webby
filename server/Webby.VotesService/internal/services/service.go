@@ -15,9 +15,8 @@ import (
 )
 
 type votingResults struct {
-	VotingID    uuid.UUID   `json:"votingId"`
-	RightChoice string      `json:"rightChoice"`
-	Winners     []uuid.UUID `json:"winners"`
+	VotingID    uuid.UUID `json:"votingId"`
+	RightChoice string    `json:"rightChoice"`
 }
 
 type eventEnvelope struct {
@@ -36,7 +35,6 @@ const (
 type repository interface {
 	CreateVoteWithRightChoice(ctx context.Context, vote *models.Vote) error
 	SaveChoices(ctx context.Context, vodeID uuid.UUID, choices []string) error
-	GetVotingUserWinners(ctx context.Context, voteID uuid.UUID, rightChoice string) ([]uuid.UUID, error)
 	ListByRoom(ctx context.Context, roomID uuid.UUID) ([]models.Vote, error)
 	GetChoicesForVoting(ctx context.Context, voteID uuid.UUID) ([]string, error)
 	IsChoiceValid(ctx context.Context, voteID uuid.UUID, rightChoice string) (bool, error)
@@ -206,17 +204,11 @@ func (s *service) ResolveVoting(ctx context.Context, roomID, userID, voteID uuid
 		return fmt.Errorf("%s: set right option: %w", op, err)
 	}
 
-	userIDs, err := s.repository.GetVotingUserWinners(ctx, voteID, rightChoice)
-	if err != nil {
-		return fmt.Errorf("%s: get winners: %w", op, err)
-	}
-
 	resultsEnvelope := eventEnvelope{
 		Type: eventTypeVotingResults,
 		Payload: votingResults{
 			VotingID:    voteID,
 			RightChoice: rightChoice,
-			Winners:     userIDs,
 		},
 	}
 	topic := fmt.Sprintf("chat:%s", chatID.String())
@@ -338,7 +330,7 @@ func (s *service) CreateVotingForNextVideo(ctx context.Context, roomID, userID u
 	envelope := eventEnvelope{
 		Type: eventTypeNextVideoVotingStarted,
 		Payload: map[string]any{
-			"duration": 20,
+			"duration":  20,
 			"expiresAt": time.Now().Add(time.Duration(20) * time.Second),
 		},
 	}

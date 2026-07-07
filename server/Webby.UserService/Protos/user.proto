@@ -18,6 +18,7 @@ service UserGrpcService {
   rpc GetMonthlySubscriptions(google.protobuf.Empty) returns (GetMonthlySubscriptionsResponse);
   rpc GetTotalRegistrations(google.protobuf.Empty) returns (GetTotalRegistrationsResponse);
   rpc GetMonthRevenue(google.protobuf.Empty) returns (GetMonthRevenueResponse);
+  rpc CheckUserCanBlockVideo(CheckUserCanBlockVideoRequest) returns (google.protobuf.BoolValue);
 }
 
 // REQUESTS
@@ -57,6 +58,12 @@ message IsFollowedRequest {
 
 message BanUserRequest {
   string userID = 1;
+  string requestUserID = 2;
+}
+
+message CheckUserCanBlockVideoRequest{
+  string requestedUserId = 1;
+  string videoAuthorId = 2;
 }
 
 //RESPONSES

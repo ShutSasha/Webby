@@ -34,20 +34,20 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      modalClasses="max-w-[740px] w-full bg-[#0A0A0A] border-neutral-800 shadow-2xl p-0 overflow-hidden"
+      modalClasses="max-w-[740px] w-full border-border shadow-2xl p-0 overflow-hidden"
     >
       <div className="flex flex-col w-full h-[85vh] max-h-[800px]">
-        <div className="p-4 border-b border-neutral-800/50 shrink-0">
+        <div className="p-4 border-b border-border/50 shrink-0">
           <div
-            className="relative flex items-center w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3
+            className="relative flex items-center w-full bg-surface border border-border rounded-xl px-4 py-3
               transition-colors focus-within:border-emerald-500/50"
           >
-            <SearchIcon className="w-5 h-5 text-neutral-500 shrink-0" />
+            <SearchIcon className="w-5 h-5 text-foreground-faint shrink-0" />
             <input
               type="text"
               placeholder="Search users, rooms, videos, or streams..."
-              className="w-full bg-transparent border-none outline-none text-neutral-200 placeholder:text-neutral-500
-                ml-3 text-sm"
+              className="w-full bg-transparent border-none outline-none text-foreground-tertiary
+                placeholder:text-foreground-faint ml-3 text-sm"
               value={query}
               onChange={e => setQuery(e.target.value)}
               autoFocus
@@ -55,9 +55,9 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="hover:bg-neutral-800 rounded-full transition-colors shrink-0 ml-2"
+                className="hover:bg-background rounded-full transition-colors shrink-0 ml-2"
               >
-                <XIcon className="w-4 h-4 text-neutral-400 hover:text-neutral-200" />
+                <XIcon className="w-4 h-4 text-foreground-muted hover:text-foreground-tertiary" />
               </button>
             )}
           </div>
@@ -138,7 +138,9 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
     <div className="flex flex-col gap-6 px-1">
       {webbyVideos.length > 0 && (
         <div className="flex flex-col">
-          <h3 className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-3 px-2">Webby Videos</h3>
+          <h3 className="text-[11px] font-bold text-foreground-faint uppercase tracking-wider mb-3 px-2">
+            Webby Videos
+          </h3>
           <div className="flex flex-col gap-1">
             {displayWebby.map(video => (
               <GlobalSearchCard
@@ -177,7 +179,7 @@ function VideosTab({ query, onCloseSearchModal }: { query: string; onCloseSearch
 
       {ytVideos.length > 0 && (
         <div className="flex flex-col">
-          <h3 className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-3 px-2">YouTube</h3>
+          <h3 className="text-[11px] font-bold text-foreground-faint uppercase tracking-wider mb-3 px-2">YouTube</h3>
           <div className="flex flex-col gap-1">
             {displayYT.map(video => (
               <GlobalSearchCard

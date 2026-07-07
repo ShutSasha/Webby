@@ -333,6 +333,69 @@
          "UpstreamHttpMethod": [
             "GET"
          ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/blocks/{videoId}/ban",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/blocks/{videoId}/ban",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/blocks/{videoId}/unban",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/blocks/{videoId}/unban",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/moderation/search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/moderation/search",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
       }
    ]
 }

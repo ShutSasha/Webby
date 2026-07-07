@@ -24,7 +24,7 @@ export default function StudioVideosContainer({ currentUserId }: Props) {
     return (
       <div className="flex flex-col w-full animate-pulse">
         {[...new Array(8)].map((_, i) => (
-          <div key={i} className="h-24 w-full border-b border-neutral-800 bg-neutral-800/20" />
+          <div key={i} className="h-24 w-full border-b border-border bg-background/20" />
         ))}
       </div>
     )
@@ -33,7 +33,7 @@ export default function StudioVideosContainer({ currentUserId }: Props) {
   if (!isLoading && videos.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
-        <p className="text-neutral-500 text-center">No videos found. Upload your first video!</p>
+        <p className="text-foreground-faint text-center">No videos found. Upload your first video!</p>
       </div>
     )
   }

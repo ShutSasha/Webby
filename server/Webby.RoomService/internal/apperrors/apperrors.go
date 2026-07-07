@@ -11,4 +11,5 @@ var (
 	ErrRoomMemberNotFound = errors.New("room member not found")
 	ErrBanned             = errors.New("banned")
 	ErrMaxMembersReached  = errors.New("max members reached")
+	ErrNoPoints           = errors.New("non enough points")
 )

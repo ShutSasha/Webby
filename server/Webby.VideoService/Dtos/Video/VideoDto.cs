@@ -17,6 +17,7 @@ public class VideoDto : IVideoDtoWithUser
    public int Views { get; set; }
    public required string PreviewUrl { get; set; }
    public required bool IsPrivate { get; set; }
+   public bool IsBanned { get; set; }
    public DateTime CreatedAt { get; set; }
    public VideoStatus VideoUploadStatus { get; set; }
    public MediaType MediaType { get; set; }

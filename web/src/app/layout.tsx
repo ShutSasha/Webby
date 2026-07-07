@@ -18,7 +18,7 @@ type Props = Readonly<{
 
 export default async function RootLayout({ children }: Props) {
   return (
-    <html lang="uk">
+    <html lang="uk" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
         <NextTopLoader
           color="#10b981"

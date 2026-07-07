@@ -23,6 +23,24 @@ func New(db *pgxpool.Pool) *complaintsRepository {
 func (r *complaintsRepository) ListComplaints(ctx context.Context, offset, limit int) ([]models.Complaint, int, error) {
 	const op = "repository.ListComplaints"
 
+	baseQuery := sq.Select().
+		From("\"Complaints\"").
+		Where("NOT EXISTS (SELECT 1 FROM complaint_results cr WHERE cr.complaint_id = \"Complaints\".\"ComplaintId\")").
+		Where(sq.Eq{"\"IsBanned\"": false}).
+		PlaceholderFormat(sq.Dollar)
+
+	countQuery := baseQuery.Column("COUNT(*)")
+
+	countSql, countArgs, err := countQuery.ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: failed to build count query: %w", op, err)
+	}
+
+	var total int
+	if err := r.db.QueryRow(ctx, countSql, countArgs...).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("%s: failed to count total complaints: %w", op, err)
+	}
+
 	query := sq.Select(
 		"\"ComplaintId\"",
 		"\"AuthorId\"",
@@ -33,6 +51,7 @@ func (r *complaintsRepository) ListComplaints(ctx context.Context, offset, limit
 		"\"CreatedAt\"",
 	).From("\"Complaints\"").
 		Where("NOT EXISTS (SELECT 1 FROM complaint_results cr WHERE cr.complaint_id = \"Complaints\".\"ComplaintId\")").
+		Where(sq.Eq{"\"IsBanned\"": false}).
 		OrderBy("\"CreatedAt\" DESC").
 		Limit(uint64(limit)).
 		Offset(uint64(offset)).
@@ -47,11 +66,12 @@ func (r *complaintsRepository) ListComplaints(ctx context.Context, offset, limit
 	if err != nil {
 		return nil, 0, fmt.Errorf("%s: %w", op, err)
 	}
+	defer rows.Close()
 
 	complaints := make([]models.Complaint, 0, limit)
 	for rows.Next() {
 		var complaint models.Complaint
-		if err := rows.Scan(&complaint.ID, &complaint.AuthorID, &complaint.TargetType, &complaint.TargetID, &complaint.ReasonType, &complaint.AdditionalInfo, &complaint.CreatedAt); err != nil {
+		if err := rows.Scan(&complaint.ID, &complaint.Complainer.ID, &complaint.Target.Type, &complaint.Target.ID, &complaint.ReasonType, &complaint.AdditionalInfo, &complaint.CreatedAt); err != nil {
 			return nil, 0, fmt.Errorf("%s: row scan failed: %w", op, err)
 		}
 		complaints = append(complaints, complaint)
@@ -61,7 +81,7 @@ func (r *complaintsRepository) ListComplaints(ctx context.Context, offset, limit
 		return nil, 0, fmt.Errorf("%s: rows iteration error: %w", op, err)
 	}
 
-	return complaints, 0, nil
+	return complaints, total, nil
 }
 
 func (r *complaintsRepository) ResolveComplaint(ctx context.Context, complaintID, userID uuid.UUID, isAccepted bool) error {

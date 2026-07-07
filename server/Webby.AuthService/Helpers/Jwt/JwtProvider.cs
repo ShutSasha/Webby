@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Webby.AuthService.Dtos;
 using Webby.AuthService.Helpers.Exception;
@@ -62,7 +63,7 @@ public class JwtProvider(IOptions<JwtOptions> options): IJwtProvider
    {
       if (string.IsNullOrWhiteSpace(accessToken))
          throw new ApiException("Access token is missing", 400, "Token is null or empty.");
-      
+   
       var parts = accessToken.Split('.');
       if (parts.Length != 3)
          throw new ApiException("Invalid JWT format", 400, "Token is not well-formed. Expected format: header.payload.signature");
@@ -75,17 +76,39 @@ public class JwtProvider(IOptions<JwtOptions> options): IJwtProvider
          ValidateIssuer = false,
          ValidateAudience = false,
          ValidateLifetime = false,
-         ValidateIssuerSigningKey = true
+         ValidateIssuerSigningKey = true,
+         RoleClaimType = "Role" 
+      };
+
+      var handler = new JwtSecurityTokenHandler
+      {
+         MapInboundClaims = false 
       };
 
       try
       {
-         return new JwtSecurityTokenHandler().ValidateToken(accessToken, validationParameters, out _);
+         return handler.ValidateToken(accessToken, validationParameters, out _);
       }
       catch (System.Exception ex)
       {
          throw new ApiException("JWT validation failed", 400, ex.Message);
       }
-   } 
+   }
+   
+   public IEnumerable<string> GetUserRoles(string accessToken)
+   {
+      
+      _ = GetPrincipal(accessToken);
+      
+      var handler = new JsonWebTokenHandler();
+      var jwtToken = handler.ReadJsonWebToken(accessToken);
+      
+      var roles = jwtToken.Claims
+         .Where(c => c.Type == "Role")
+         .Select(c => c.Value)
+         .ToList();
+
+      return roles;
+   }
   
 }

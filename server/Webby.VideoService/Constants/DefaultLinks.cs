@@ -13,6 +13,7 @@ public static class DefaultLinks
    
    public const string BaseExternalApiTwitchLink = "https://api.twitch.tv/helix/";
    public const string BaseTwitchStreamLink = "https://api.twitch.tv/helix/streams";
+   public const string BaseTwitchChannelLink = "https://api.twitch.tv/helix/search/channels";
    public const string BaseTwitchUserLink = "https://api.twitch.tv/helix/users";
    public const string BaseTwitchOAuthLink = "https://id.twitch.tv/oauth2/token";
    

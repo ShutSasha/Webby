@@ -1,6 +1,6 @@
-import RoomInteractionFooter from '../RoomInteractionFooter'
 import ChatInput from './ChatInput'
 import RoomChat from './RoomChat'
+import RoomInteractionFooter from '../Footer/RoomInteractionFooter'
 
 type Props = {
   chatId: string
