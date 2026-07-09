@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
     <PackageReference Include="FluentAssertions" Version="8.9.0" />
@@ -22,11 +26,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Webby.AuthService\Webby.AuthService.csproj" />
+    <ProjectReference Include="..\Webby.UserService\Webby.UserService.csproj" />
     <ProjectReference Include="..\Webby.VideoService\Webby.VideoService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Tests\Video\" />
+    <Folder Include="Tests\Payment\" />
   </ItemGroup>
 
 </Project>

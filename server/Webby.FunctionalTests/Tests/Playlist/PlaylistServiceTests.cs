@@ -6,23 +6,22 @@ using UserService;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.External;
 using Webby.VideoService.Dtos.Playlist;
-using Webby.VideoService.Dtos.Search;
 using Webby.VideoService.Helpers.Exception;
 using Webby.VideoService.Interfaces.Helpers;
 using Webby.VideoService.Interfaces.Repositories;
-using Webby.VideoService.Interfaces.Services;
+using Webby.VideoService.Models;
+using Webby.VideoService.Models.Enums;
 using Webby.VideoService.Models;
 using Webby.VideoService.Models.Enums;
 using Webby.VideoService.Services;
-using Xunit;
 
-namespace Webby.VideoService.Tests.Tests.Playlist;
+namespace Webby.FunctionalTests.Tests.Playlist;
 
 public class PlaylistServiceTests
 {
    private readonly IPlaylistRepository _playlistRepositoryMock;
    private readonly IMapper _mapperMock;
-   private readonly UserGrpcService.UserGrpcServiceClient _userClientMock;
+   private readonly GrpcClients.UserService.UserGrpcService.UserGrpcServiceClient _userClientMock;
    private readonly IVideoRepository _videoRepositoryMock;
    private readonly IExternalContentFetcher _externalContentFetcherMock;
    private readonly IEventPublisher _eventPublisherMock;
@@ -33,7 +32,7 @@ public class PlaylistServiceTests
    {
       _playlistRepositoryMock = Substitute.For<IPlaylistRepository>();
       _mapperMock = Substitute.For<IMapper>();
-      _userClientMock = Substitute.For<UserGrpcService.UserGrpcServiceClient>();
+      _userClientMock = Substitute.For<GrpcClients.UserService.UserGrpcService.UserGrpcServiceClient>();
       _videoRepositoryMock = Substitute.For<IVideoRepository>();
       _externalContentFetcherMock = Substitute.For<IExternalContentFetcher>();
       _eventPublisherMock = Substitute.For<IEventPublisher>();
@@ -56,7 +55,7 @@ public class PlaylistServiceTests
       var request = new CreatePlaylistRequest { Name = "My Favorite Anime OSTs", IsPrivate = false };
         
       var expectedDto = new PlaylistDto { Name = "My Favorite Anime OSTs", IsPrivate = false };
-      _mapperMock.Map<PlaylistDto>(Arg.Any<Models.Playlist>()).Returns(expectedDto);
+      _mapperMock.Map<PlaylistDto>(Arg.Any<VideoService.Models.Playlist>()).Returns(expectedDto);
 
       // Act
       var result = await _sut.CreatePlaylist(userId, request);
@@ -64,7 +63,7 @@ public class PlaylistServiceTests
       // Assert
       result.Should().BeEquivalentTo(expectedDto);
       
-      await _playlistRepositoryMock.Received(1).Add(Arg.Is<Models.Playlist>(p => 
+      await _playlistRepositoryMock.Received(1).Add(Arg.Is<VideoService.Models.Playlist>(p => 
          p.Name == request.Name && 
          p.UserId == userId &&
          p.IsPrivate == request.IsPrivate));
@@ -75,7 +74,7 @@ public class PlaylistServiceTests
    {
       // Arrange
       var playlistId = Guid.NewGuid();
-      _playlistRepositoryMock.FindById(playlistId).Returns((Models.Playlist)null);
+      _playlistRepositoryMock.FindById(playlistId).Returns((VideoService.Models.Playlist)null);
 
       // Act
       Func<Task> act = async () => await _sut.GetPlaylistById(playlistId);
@@ -90,7 +89,7 @@ public class PlaylistServiceTests
    {
       // Arrange
       var playlistId = Guid.NewGuid();
-      var privatePlaylist = new Models.Playlist { PlaylistId = playlistId, IsPrivate = true };
+      var privatePlaylist = new VideoService.Models.Playlist { PlaylistId = playlistId, IsPrivate = true };
       _playlistRepositoryMock.FindById(playlistId).Returns(privatePlaylist);
 
       // Act
@@ -106,7 +105,7 @@ public class PlaylistServiceTests
    {
       // Arrange
       var playlistId = Guid.NewGuid();
-      var publicPlaylist = new Models.Playlist { PlaylistId = playlistId, IsPrivate = false };
+      var publicPlaylist = new VideoService.Models.Playlist { PlaylistId = playlistId, IsPrivate = false };
       _playlistRepositoryMock.FindById(playlistId).Returns(publicPlaylist);
 
       // Act
@@ -133,13 +132,13 @@ public class PlaylistServiceTests
          IsPrivate = false 
       };
       
-      var existingPlaylist = new Models.Playlist 
+      var existingPlaylist = new VideoService.Models.Playlist 
       { 
          PlaylistId = playlistId, 
          UserId = actualOwnerId 
       };
       
-      _playlistRepositoryMock.FindById(playlistId).Returns(existingPlaylist);
+      _playlistRepositoryMock.FindByIdWithVideos(playlistId).Returns(existingPlaylist);
       
       // Act
       
@@ -150,7 +149,7 @@ public class PlaylistServiceTests
          .Where(e => e.StatusCode == 403 && 
                      e.Message == "Update playlist error");
       
-      await _playlistRepositoryMock.DidNotReceive().Update(Arg.Any<Models.Playlist>());
+      await _playlistRepositoryMock.DidNotReceive().Update(Arg.Any<VideoService.Models.Playlist>());
    }
 
    [Fact]
@@ -174,7 +173,7 @@ public class PlaylistServiceTests
       await act.Should().ThrowAsync<ApiException>()
          .Where(e => e.StatusCode == 404 && e.Message == "Update playlist error");
 
-      await _playlistRepositoryMock.DidNotReceive().Update(Arg.Any<Models.Playlist>());
+      await _playlistRepositoryMock.DidNotReceive().Update(Arg.Any<VideoService.Models.Playlist>());
    }
 
    [Fact]
@@ -191,15 +190,15 @@ public class PlaylistServiceTests
          IsPrivate = false 
       };
       
-      var existingPlaylist = new Models.Playlist 
+      var existingPlaylist = new VideoService.Models.Playlist 
       { 
          PlaylistId = playlistId, 
          UserId = actualOwnerId,
          IsPrivate = true,
-         Name = "Aboba"
+         Name = "Aboba",
       };
       
-      _playlistRepositoryMock.FindById(playlistId).Returns(existingPlaylist);
+      _playlistRepositoryMock.FindByIdWithVideos(playlistId).Returns(existingPlaylist);
       
       //Act
       var result = await _sut.UpdatePlaylist(actualOwnerId, request);
@@ -218,7 +217,7 @@ public class PlaylistServiceTests
       // Arrange
       var playlistId = Guid.NewGuid();
       var userId = Guid.NewGuid();
-      _playlistRepositoryMock.FindById(playlistId).Returns((Models.Playlist)null);
+      _playlistRepositoryMock.FindById(playlistId).Returns((VideoService.Models.Playlist)null);
 
       // Act
       Func<Task> act = async () => await _sut.DeletePlaylist(userId, playlistId);
@@ -236,7 +235,7 @@ public class PlaylistServiceTests
       var requestUserId = Guid.NewGuid();
       var ownerId = Guid.NewGuid(); // Другой пользователь
 
-      var playlist = new Models.Playlist { PlaylistId = playlistId, UserId = ownerId };
+      var playlist = new VideoService.Models.Playlist { PlaylistId = playlistId, UserId = ownerId };
       _playlistRepositoryMock.FindById(playlistId).Returns(playlist);
 
       // Act
@@ -256,7 +255,7 @@ public class PlaylistServiceTests
       // Arrange
       var playlistId = Guid.NewGuid();
       var userId = Guid.NewGuid();
-      var playlist = new Models.Playlist { PlaylistId = playlistId, UserId = userId };
+      var playlist = new VideoService.Models.Playlist { PlaylistId = playlistId, UserId = userId };
     
       _playlistRepositoryMock.FindById(playlistId).Returns(playlist);
 
@@ -274,7 +273,7 @@ public class PlaylistServiceTests
       var playlistId = Guid.NewGuid();
       var requestedUserId = Guid.NewGuid();
     
-      var playlist = new Models.Playlist 
+      var playlist = new VideoService.Models.Playlist 
       { 
          PlaylistId = playlistId, 
          Name = "Chainsaw Man Openings",
@@ -284,7 +283,7 @@ public class PlaylistServiceTests
       var expectedDto = new PlaylistDto { Name = "Chainsaw Man Openings" };
 
       _playlistRepositoryMock.FindByIdWithVideos(playlistId).Returns(playlist);
-      _mapperMock.Map<PlaylistDto>(Arg.Any<Models.Playlist>()).Returns(expectedDto);
+      _mapperMock.Map<PlaylistDto>(Arg.Any<VideoService.Models.Playlist>()).Returns(expectedDto);
       _externalContentFetcherMock
          .FetchExternalContentAsync(Arg.Any<List<PlaylistVideo>>())
          .Returns(new ExternalContentData()); 
@@ -306,7 +305,7 @@ public class PlaylistServiceTests
       var requestedUserId = Guid.NewGuid();
       var otherUserId = Guid.NewGuid();
  
-      var playlist = new Models.Playlist 
+      var playlist = new VideoService.Models.Playlist 
       { 
          PlaylistId = playlistId,
          PlaylistVideos = new List<PlaylistVideo>
@@ -314,7 +313,7 @@ public class PlaylistServiceTests
             new PlaylistVideo 
             { 
                Platform = SystemPlatforms.Webby, 
-               Video = new Video(isPrivate: true, userId: otherUserId, name: "new video #1")
+               Video = new VideoService.Models.Video(isPrivate: true, userId: otherUserId, name: "new video #1")
             }
          }
       };
@@ -377,7 +376,7 @@ public class PlaylistServiceTests
 
       var requestItems = new List<string>() { videoId };
 
-      var playlist = new Models.Playlist 
+      var playlist = new VideoService.Models.Playlist 
       { 
          PlaylistId = playlistId, 
          UserId = userId, 
@@ -385,8 +384,8 @@ public class PlaylistServiceTests
       };
 
       _playlistRepositoryMock
-         .GetByPredicate(Arg.Any<Expression<Func<Models.Playlist, bool>>>())
-         .Returns(new List<Models.Playlist> { playlist }.AsEnumerable());
+         .GetByPredicate(Arg.Any<Expression<Func<VideoService.Models.Playlist, bool>>>())
+         .Returns(new List<VideoService.Models.Playlist> { playlist }.AsEnumerable());
 
       var itemsToMockReturn = new List<PlaylistVideo> 
       { 

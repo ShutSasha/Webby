@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Grpc.Core;
-using UserService;
+using GrpcClients.UserService;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Dtos.Event;
 using Webby.VideoService.Dtos.Playlist;

@@ -1,8 +1,7 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using GrpcClients.UserService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
-using UserService;
 using Webby.VideoService.Constants;
 using Webby.VideoService.Data;
 using Webby.VideoService.Helpers.ContentFetch;
