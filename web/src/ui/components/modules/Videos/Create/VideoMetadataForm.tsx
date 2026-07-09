@@ -129,7 +129,7 @@ export default function VideoMetadataForm({
               onChange={onPreviewSelect}
             />
           </label>
-          <p className="text-xs text-foreground-faint mt-1">Optimal size 1280x720 (16:9). Max 2MB.</p>
+          <p className="text-xs text-foreground-faint mt-1">Optimal size 1280x720 (16:9). Max 1.5MB.</p>
         </div>
       </div>
 

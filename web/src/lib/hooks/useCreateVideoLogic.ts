@@ -79,8 +79,8 @@ export const useCreateVideoLogic = () => {
       return
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      addToast('Thumbnail image is too large. The maximum allowed size is 2MB.', 'error')
+    if (file.size > 1.5 * 1024 * 1024) {
+      addToast('Thumbnail image is too large. The maximum allowed size is 1.5MB.', 'error')
       return
     }
 
