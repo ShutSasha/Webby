@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Cloud.Vision.V1" Version="3.8.0" />
     <PackageReference Include="Grpc.AspNetCore.Web" Version="2.66.0" />
     <PackageReference Include="Grpc.Net.Client.Web" Version="2.76.0" />
     <PackageReference Include="NReco.VideoInfo" Version="1.2.1" />
@@ -18,10 +19,10 @@
     
     <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="AWSSDK.S3" Version="4.0.18.7" />
-    <PackageReference Include="Google.Protobuf" Version="3.28.3" />
-    <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.57.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.67.0">
+    <PackageReference Include="Google.Protobuf" Version="3.35.1" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.80.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.82.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -45,6 +46,12 @@
     <Content Include="..\.dockerignore">
       <Link>.dockerignore</Link>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Secrets\google-key.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -6,13 +6,13 @@ using Webby.VideoService.Models.Enums;
 
 namespace Webby.VideoService.Services.Background;
 
-public class VideoUploadProcessor(IVideoRepository videoRepository, IStorageService storageService, ILogger<VideoUploadProcessor> logger)
+public class VideoUploadProcessor
+   (IVideoRepository videoRepository,
+   IStorageService storageService,
+   ILogger<VideoUploadProcessor> logger,
+   IVideoModerationService moderationService)
 {
-   public async Task ProcessUpload(
-      Guid videoId,
-      string filePath,
-      string contentType,
-      CancellationToken token)
+   public async Task ProcessUpload(Guid videoId, string filePath, string contentType, CancellationToken token)
    {
       var video = await videoRepository.FindById(videoId);
       string? videoFileUrl = null;
@@ -23,6 +23,20 @@ public class VideoUploadProcessor(IVideoRepository videoRepository, IStorageServ
          var ffProbe = new FFProbe();
          var videoInfo = ffProbe.GetMediaInfo(filePath);
          var duration = (long)Math.Round(videoInfo.Duration.TotalSeconds);
+
+         logger.LogInformation($"Starting auto-moderation for video {videoId}");
+         var isSafe = await moderationService.IsVideoSafeAsync(filePath, (int)duration, token);
+         
+         if (!isSafe)
+         {
+             logger.LogWarning($"Video {videoId} rejected by moderation.");
+
+             video!.VideoUploadStatus = VideoStatus.Rejected;
+             await videoRepository.Update(video);
+             
+             File.Delete(filePath);
+             return; 
+         }
 
          logger.LogInformation($"Uploading file to storage");
          await using var stream = File.OpenRead(filePath);

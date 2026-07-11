@@ -26,6 +26,7 @@ try
     services.AddSingleton<IAmazonS3>(AwsS3ClientFactory.CreateS3Client(configuration));
 
     services.ConfigureOptionDependencies(configuration);
+    services.ConfigureGoogleApi(configuration);
     
     services.AddHelpers();
     services.AddGrpc(options => { options.Interceptors.Add<GrpcExceptionInterceptor>(); });

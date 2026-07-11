@@ -6,4 +6,5 @@ public enum VideoStatus
    Ready,
    Failed,
    Canceled,
+   Rejected,
 }

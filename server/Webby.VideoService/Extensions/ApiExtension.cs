@@ -1,4 +1,6 @@
 ﻿using System.Security.Cryptography.X509Certificates;
+using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Vision.V1;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
@@ -104,6 +106,7 @@ public static class ApiExtension
       serviceCollection.AddScoped<IYouTubeSearchService,YoutubeSearchService>();
       serviceCollection.AddScoped<ITwitchSearchService, TwitchSearchService>();
       serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
+      serviceCollection.AddScoped<IVideoModerationService, VideoModerationService>();
    }
 
    public static void AddBackgroundServices(this IServiceCollection serviceCollection)
@@ -134,6 +137,25 @@ public static class ApiExtension
    {
       serviceCollection.Configure<AwsOptions>(config.GetSection(nameof(AwsOptions)));
       serviceCollection.Configure<ExternalServicesOptions>(config.GetSection("ExternalServices"));
+   }
+
+   public static void ConfigureGoogleApi(this IServiceCollection serviceCollection, IConfiguration configuration)
+   {
+      var relativePath = configuration["GoogleCloud:VisionApiKeyPath"];
+      var absolutePath = Path.Combine(AppContext.BaseDirectory, relativePath!);
+
+      serviceCollection.AddSingleton<ImageAnnotatorClient>(sp =>
+      {
+         var googleCredential = CredentialFactory.FromFile<ServiceAccountCredential>(absolutePath)
+            .ToGoogleCredential();
+            
+         var clientBuilder = new ImageAnnotatorClientBuilder
+         {
+            GoogleCredential = googleCredential
+         };
+    
+         return clientBuilder.Build();
+      });
    }
 
    public static void AddInterceptors(this IServiceCollection serviceCollection)
