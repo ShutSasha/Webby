@@ -1,8 +1,9 @@
-import NextAuth, { type User } from 'next-auth'
+import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
 
-import { login } from '@/app/api/auth'
+import { login } from '@/lib/actions/auth.actions'
+import { isLoginRes } from '@/types/auth.types'
 
 import { authConfig } from './auth.config'
 
@@ -23,12 +24,11 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     Credentials({
       async authorize(credentials) {
         const response = await login(credentials.email as string, credentials.password as string)
-        console.log('AUTH_RESPONSE', response)
+
         if (!response) return null
 
-        if ('userId' in response) {
-          console.log('AUTH_USER', response)
-          return response as User
+        if (isLoginRes(response)) {
+          return { ...response.user, accessToken: response.accessToken }
         }
 
         if ('errors' in response) {

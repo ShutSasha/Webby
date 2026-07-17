@@ -1,0 +1,51 @@
+package handlers
+
+import (
+	"net/http"
+	"webby/room-service/docs"
+	"webby/room-service/internal/config"
+	"webby/room-service/pkg/http/middleware/auth"
+
+	"github.com/gin-gonic/gin"
+)
+
+func addRoutes(router *gin.Engine, cfg *config.Config, handler handler) {
+	requireAuth := auth.AuthMiddleware([]byte(cfg.JwtSecret))
+
+	api := router.Group("/api")
+	{
+		api.GET("/rooms/public", handler.ListPublic)
+		api.GET("/reactions", handler.Reactions)
+
+		rooms := api.Group("/rooms")
+		rooms.Use(requireAuth)
+		{
+			rooms.POST("", handler.Create)
+			rooms.GET("/my", handler.ListMy)
+			rooms.GET("/:id", handler.Get)
+			rooms.POST("/:id/react", handler.UseReaction)
+			rooms.PUT("/:id", handler.Update)
+			rooms.DELETE("/:id", handler.Delete)
+			rooms.POST("/:id/sync", handler.Synchronize)
+			rooms.POST("/:id/sync/report", handler.ReportTimecode)
+			rooms.GET("/:id/members", handler.ListMembers)
+			rooms.GET("/:id/members/points", handler.GetMemberPoints)
+			rooms.POST("/:id/members", handler.AddMembers)
+			rooms.DELETE("/:id/members/:memberId", handler.RemoveMember)
+		}
+	}
+
+	router.GET("/swagger", swaggerUI)
+	router.GET("/swagger/", swaggerUI)
+	router.GET("/swagger/index.html", swaggerUI)
+	router.GET("/swagger/doc.yaml", swaggerSpec)
+}
+
+func swaggerUI(c *gin.Context) {
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(docs.SwaggerUIHTML))
+}
+
+func swaggerSpec(c *gin.Context) {
+	c.Header("Content-Type", "application/x-yaml")
+	c.File("./docs/oas.yml")
+}

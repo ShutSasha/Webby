@@ -1,0 +1,44 @@
+package handlers
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+)
+
+type addMembersUri struct {
+	RoomID string `uri:"id" binding:"required,uuid"`
+}
+
+type addMembersBody struct {
+	UserIDs []uuid.UUID `json:"userIds" binding:"required,min=1,max=20,dive"`
+}
+
+func (h *handler) AddMembers(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	var uri addMembersUri
+	if err := c.ShouldBindUri(&uri); err != nil {
+		HandleValidationError(c, err)
+		return
+	}
+
+	var body addMembersBody
+	if err := c.ShouldBindJSON(&body); err != nil {
+		HandleValidationError(c, err)
+		return
+	}
+
+	roomID, _ := uuid.Parse(uri.RoomID)
+	userID, _ := uuid.Parse(ctx.Value("userID").(string))
+	if err := h.roomMemberService.AddMembers(ctx, roomID, userID, body.UserIDs); err != nil {
+		HandleAppError(c, "Add member error", err)
+		return
+	}
+
+	c.JSON(http.StatusOK, ApiResponse[struct{}]{
+		Success: true,
+		Message: "Members added successfully",
+	})
+}

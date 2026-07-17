@@ -1,0 +1,369 @@
+{
+   "Routes":[
+      {
+         "DownstreamPathTemplate": "/docs/user-service/v1/swagger.json",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/user/swagger/v1/swagger.json",
+         "UpstreamHttpMethod": [ "GET" ],
+         "AuthenticationOptions": {
+            "AllowAnonymous": true
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/statistics/me",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/statistics/me",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/is-following/{targetId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/is-following/{targetId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      
+
+      {
+         "DownstreamPathTemplate": "/api/users/",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/",
+         "UpstreamHttpMethod": [
+            "PATCH"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/update-user-avatar/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/update-user-avatar/{userId}",
+         "UpstreamHttpMethod": [
+            "PATCH"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/{followId}/follow",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{followId}/follow",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/achievements/{achievementId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/achievements/{achievementId}",
+         "UpstreamHttpMethod": [
+            "POST", "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/{userId}/follows",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{userId}/follows",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/{userId}/followers",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/{userId}/followers",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/me",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/me",
+         "UpstreamHttpMethod": [
+            "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/complaints/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/complaints/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/complaints",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/complaints",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/payments",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/payments",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+      
+      {
+         "DownstreamPathTemplate": "/api/payments/callback",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/payments/callback",
+         "UpstreamHttpMethod": [
+            "POST"
+         ]
+      },
+      
+      {
+         "DownstreamPathTemplate": "/api/payments/subscriptions/{paymentId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/payments/subscriptions/{paymentId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/subscription/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/subscription/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/blocks/{userId}/ban",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/blocks/{userId}/ban",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/blocks/{userId}/unban",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/blocks/{userId}/unban",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/users/roles/{userId}/change-role",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "localhost",
+               "Port": 5002
+            }
+         ],
+         "UpstreamPathTemplate": "/api/users/roles/{userId}/change-role",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Admin"
+         }
+      }
+   ]
+}

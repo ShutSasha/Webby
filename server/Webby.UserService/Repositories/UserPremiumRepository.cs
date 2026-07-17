@@ -1,0 +1,26 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Webby.UserService.Data;
+using Webby.UserService.Interfaces.Repository;
+using Webby.UserService.Models;
+using Webby.UserService.Models.Enums;
+
+namespace Webby.UserService.Repositories;
+
+public class UserPremiumRepository : GenericRepository<UserPremium>, IUserPremiumRepository
+{
+   public UserPremiumRepository(AppDbContext context) : base(context)
+   {
+   }
+
+   public async Task<UserPremium?> GetUserPremiumInformation(Guid userId) =>
+      await _context.UserPremiums
+         .Where(up => up.UserId == userId)
+         .Include(up => up.User)
+         .FirstOrDefaultAsync();
+   
+   public async Task<bool> HasUserValidSubscription(Guid userId)
+   {
+      return await _context.UserPremiums
+         .AnyAsync(up => up.UserId == userId && up.ExpiresAt > DateTime.UtcNow);
+   }
+}

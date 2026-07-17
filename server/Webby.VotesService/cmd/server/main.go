@@ -1,0 +1,181 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"log/slog"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"sync"
+	"time"
+	"webby/vote-service/internal/config"
+	grpcserver "webby/vote-service/internal/grpc"
+	httpserver "webby/vote-service/internal/handlers"
+	"webby/vote-service/internal/publisher"
+	"webby/vote-service/internal/repository"
+	"webby/vote-service/internal/services"
+	"webby/vote-service/pkg/slogpretty"
+
+	"github.com/redis/go-redis/v9"
+)
+
+const (
+	envLocal = "local"
+	envDev   = "dev"
+	envProd  = "prod"
+)
+
+func main() {
+	ctx := context.Background()
+
+	if err := run(ctx, os.Stdout); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context, w io.Writer) error {
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+
+	cfg := config.MustLoad()
+	logger := setupLogger(cfg.Env, w)
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	defer rdb.Close()
+
+	publisher := publisher.New(rdb)
+	logger.Info("redis connected successfully")
+
+	voteRepo := repository.NewRepository(rdb)
+
+	memberClient, err := grpcserver.NewMemberClient(cfg.Grpc.RoomServiceAddress)
+	if err != nil {
+		logger.Error(
+			"room service gRPC connection failed (member)",
+			slog.String("error", err.Error()),
+		)
+		return err
+	}
+	defer memberClient.Close()
+
+	roomClient, err := grpcserver.NewRoomClient(cfg.Grpc.RoomServiceAddress)
+	if err != nil {
+		logger.Error(
+			"room service gRPC connection failed (room)",
+			slog.String("error", err.Error()),
+		)
+		return err
+	}
+	defer roomClient.Close()
+
+	chatClient, err := grpcserver.NewChatClient(cfg.Grpc.ChatServiceAddress)
+	if err != nil {
+		logger.Warn("chat service gRPC connection failed — chat features disabled", slog.String("error", err.Error()))
+		return err
+	}
+	defer chatClient.Close()
+
+	queueClient, err := grpcserver.NewQueueClient(cfg.Grpc.QueueServiceAddress)
+	if err != nil {
+		logger.Warn(
+			"queue service gRPC connection failed "+
+				"— vote queue features disabled",
+			slog.String("error", err.Error()),
+		)
+		return err
+	}
+	defer queueClient.Close()
+
+	voteService := services.New(voteRepo, roomClient, chatClient, memberClient, queueClient, publisher)
+
+	logger.Info("services initialized")
+
+	server := httpserver.NewServer(cfg, logger, voteService)
+	httpServer := &http.Server{
+		Addr: net.JoinHostPort(
+			cfg.Http.Host, strconv.Itoa(cfg.Http.Port),
+		),
+		ReadTimeout:  cfg.Http.Timeout,
+		WriteTimeout: cfg.Http.Timeout,
+		Handler:      server,
+	}
+
+	go func() {
+		logger.Info(
+			"Server listening",
+			slog.String("host", cfg.Http.Host),
+			slog.Int("port", cfg.Http.Port),
+		)
+		if err := httpServer.ListenAndServe(); err != nil &&
+			err != http.ErrServerClosed {
+			logger.Error(
+				"error listening and serving",
+				slog.Any("error", err),
+			)
+		}
+	}()
+
+	var wg sync.WaitGroup
+	wg.Go(func() {
+		<-ctx.Done()
+		shutdownCtx := context.Background()
+		shutdownCtx, cancel := context.WithTimeout(
+			shutdownCtx, 10*time.Second,
+		)
+		defer cancel()
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			logger.Error(
+				"error shutting down http server",
+				slog.Any("error", err),
+			)
+		}
+		logger.Info("server stopped gracefully")
+	})
+	wg.Wait()
+
+	return nil
+}
+
+func setupLogger(env string, w io.Writer) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case envLocal:
+		log = setupPrettySlog()
+	case envDev:
+		log = slog.New(
+			slog.NewJSONHandler(
+				w, &slog.HandlerOptions{Level: slog.LevelDebug},
+			),
+		)
+	case envProd:
+		log = slog.New(
+			slog.NewJSONHandler(
+				w, &slog.HandlerOptions{Level: slog.LevelInfo},
+			),
+		)
+	}
+
+	return log
+}
+
+func setupPrettySlog() *slog.Logger {
+	opts := slogpretty.PrettyHandlerOptions{
+		SlogOpts: &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		},
+	}
+
+	handler := opts.NewPrettyHandler(os.Stdout)
+
+	return slog.New(handler)
+}

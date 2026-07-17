@@ -1,7 +1,11 @@
 import type { NextAuthConfig } from 'next-auth'
 
-import $api from '@/app/api'
-import { GoogleAuthRes } from '@/types/auth'
+import { mapUserData, refreshAccessToken } from '@/lib/utils/auth.utils'
+import { serverLog } from '@/lib/utils/general.utils'
+import { AuthServerResponse } from '@/types/auth.types'
+
+const TOKEN_REFRESH_BUFFER = 120
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
 export const authConfig = {
   pages: {
@@ -11,60 +15,70 @@ export const authConfig = {
     async signIn({ user, account }) {
       if (account?.provider === 'google') {
         try {
-          console.log('authConfig.signIn - Google user:', user)
-
-          const { data: googleAuthResponse } = await $api.post<GoogleAuthRes>('/auth/google-auth', {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            image: user.image,
+          const response = await fetch(`${API_URL}/auth/google-auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              image: user.image,
+            }),
           })
 
-          console.log('GOOGLE_AUTH RESPONSE', googleAuthResponse)
-          if (!googleAuthResponse.success) return false
+          const res: AuthServerResponse = await response.json()
 
-          user.userId = googleAuthResponse.data.userId
-          user.username = googleAuthResponse.data.username
-          user.email = googleAuthResponse.data.email
-          user.avatarUrl = googleAuthResponse.data.avatarUrl
+          if (!res.success || !res.data) {
+            const errorMessage = res.errors?.message || 'Authentication failed'
+            return `/api/auth/error?error=AccessDenied&message=${encodeURIComponent(errorMessage)}`
+          }
+
+          const serverUser = res.data.user
+
+          user.userId = serverUser.userId
+          user.username = serverUser.username
+          user.avatarUrl = serverUser.avatarUrl
+          user.role = serverUser.role
+          user.accessToken = res.data.accessToken
+          user.accessTokenExpires = res.data.accessTokenExpiresAt
 
           return true
         } catch (error) {
-          console.error('Backend sync error:', error)
+          serverLog('Backend sync error:', error)
           return false
         }
       }
+
       return true
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session: sessionData }) {
       if (user) {
-        token.id = user.userId
-        token.username = user.username
-        token.email = user.email
-        token.image = user.avatarUrl
+        mapUserData(token, user)
+        return token
       }
-      return token
+
+      if (trigger === 'update' && sessionData) {
+        if (sessionData.image) token.image = sessionData.image
+
+        return token
+      }
+
+      // seconds
+      const timeNow = Math.floor(Date.now() / 1000)
+      if (timeNow < token.accessTokenExpires - TOKEN_REFRESH_BUFFER) {
+        return token
+      }
+
+      return await refreshAccessToken(token)
     },
 
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id
-        session.user.username = token.username
-        session.user.email = token.email
-        session.user.image = token.image
+        mapUserData(session.user, token)
+        session.error = token.error
       }
       return session
-    },
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user
-      const isOnChats = nextUrl.pathname.startsWith('/chats')
-
-      if (isOnChats) {
-        if (isLoggedIn) return true
-        return false
-      }
-      return true
     },
   },
   providers: [],

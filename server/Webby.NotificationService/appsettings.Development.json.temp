@@ -1,0 +1,22 @@
+﻿{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  
+  "ConnectionStrings": {
+    "AppDbContext": "{{DatabaseConnectionString}}"
+  },
+  
+ "JwtOptions": {
+    "AccessSecretKey": "{{JwtAccessSecretKey}}",
+    "AccessExpiresDuration": "{{JwtAccessExpiresDuration}}"
+ },
+ 
+   "GrpcClients": {
+     "UserServiceUrl": "http://localhost:5004"
+   }
+ 
+}

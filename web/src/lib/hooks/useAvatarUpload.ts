@@ -1,0 +1,128 @@
+import { useRef, useState } from 'react'
+
+import { useSession } from 'next-auth/react'
+import { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop'
+
+import { useUploadAvatarMutation } from '@/lib/hooks/api/user/useUploadAvatarMutation'
+import { useProfileStore } from '@/stores/profile.store'
+import { useToastStore } from '@/stores/toast-store'
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+
+export const useAvatarUpload = () => {
+  const setLoading = useProfileStore(state => state.setLoading)
+  const { data: session } = useSession()
+  const addToast = useToastStore(state => state.addToast)
+
+  const [imgSrc, setImgSrc] = useState('')
+  const [crop, setCrop] = useState<Crop>()
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
+
+  const imgRef = useRef<HTMLImageElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { mutate: uploadAvatar, isPending } = useUploadAvatarMutation({
+    onSuccess: () => {
+      setImgSrc('')
+      setLoading(false) 
+    },
+    onError: () => {
+      setLoading(false)
+    },
+  })
+
+  const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0]
+
+      if (file.size > MAX_FILE_SIZE) {
+        addToast('File is too large. Maximum size is 5MB', 'error')
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+        return
+      }
+
+      const reader = new FileReader()
+      reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''))
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget
+    const cropSizeInPixels = Math.min(width, height) * 0.9
+
+    const initialCrop = centerCrop(
+      makeAspectCrop({ unit: 'px', width: cropSizeInPixels }, 1, width, height),
+      width,
+      height,
+    )
+
+    setCrop(initialCrop)
+    setCompletedCrop(initialCrop)
+  }
+
+  const handleUpload = async () => {
+    if (!completedCrop || !imgRef.current || !session?.user?.id) return
+
+    const canvas = document.createElement('canvas')
+    const scaleX = imgRef.current.naturalWidth / imgRef.current.width
+    const scaleY = imgRef.current.naturalHeight / imgRef.current.height
+    canvas.width = Math.floor(completedCrop.width * scaleX)
+    canvas.height = Math.floor(completedCrop.height * scaleY)
+    const ctx = canvas.getContext('2d')
+
+    if (ctx) {
+      ctx.drawImage(
+        imgRef.current,
+        completedCrop.x * scaleX,
+        completedCrop.y * scaleY,
+        completedCrop.width * scaleX,
+        completedCrop.height * scaleY,
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      )
+
+      canvas.toBlob(blob => {
+        if (!blob) return
+
+        setLoading(true)
+
+        const file = new File([blob], 'avatar.png', { type: 'image/png' })
+        const formData = new FormData()
+        formData.append('file', file)
+
+        uploadAvatar({ id: session.user.id, formData })
+      }, 'image/png')
+    }
+  }
+
+  const cancelUpload = () => {
+    setImgSrc('')
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+      fileInputRef.current.click()
+    }
+  }
+
+  return {
+    refs: { imgRef, fileInputRef },
+    state: { imgSrc, crop, completedCrop, isPending },
+    actions: {
+      onSelectFile,
+      onImageLoad,
+      setCrop,
+      setCompletedCrop,
+      handleUpload,
+      cancelUpload,
+      triggerFileInput,
+    },
+  }
+}

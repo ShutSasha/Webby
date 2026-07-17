@@ -1,0 +1,151 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"log/slog"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"sync"
+	"time"
+	"webby/room-category-service/internal/config"
+	"webby/room-category-service/internal/database"
+	grpcserver "webby/room-category-service/internal/grpc"
+	"webby/room-category-service/internal/grpc/categorypb"
+	httpserver "webby/room-category-service/internal/handlers"
+	"webby/room-category-service/internal/repository"
+	"webby/room-category-service/internal/services"
+	"webby/room-category-service/pkg/slogpretty"
+
+	"google.golang.org/grpc"
+)
+
+const (
+	envLocal = "local"
+	envDev   = "dev"
+	envProd  = "prod"
+)
+
+func main() {
+	ctx := context.Background()
+
+	if err := run(ctx, os.Stdout); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context, w io.Writer) error {
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+
+	config := config.MustLoad()
+	logger := setupLogger(config.Env, w)
+
+	db, err := database.New(config.ConnectionString)
+	if err != nil {
+		logger.Error("database connection failed", slog.String("error", err.Error()))
+		return err
+	}
+
+	defer db.Close()
+
+	logger.Info("database connected successfully")
+
+	categoryRepository := repository.New(db)
+	categoryService := services.New(categoryRepository)
+
+	server := httpserver.NewServer(
+		config,
+		logger,
+		categoryService,
+	)
+	httpServer := &http.Server{
+		Addr:         net.JoinHostPort(config.Http.Host, strconv.Itoa(config.Http.Port)),
+		ReadTimeout:  config.Http.Timeout,
+		WriteTimeout: config.Http.Timeout,
+		Handler:      server,
+	}
+
+	go func() {
+		logger.Info(
+			"Server listening",
+			slog.String("host", config.Http.Host),
+			slog.Int("port", config.Http.Port),
+		)
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("error listening and serving", slog.Any("error", err))
+		}
+	}()
+
+	grpcListener, err := net.Listen("tcp", net.JoinHostPort(config.Grpc.Host, strconv.Itoa(config.Grpc.Port)))
+	if err != nil {
+		logger.Error("grpc listen failed", slog.Any("error", err))
+		return err
+	}
+
+	grpcSrv := grpc.NewServer()
+	categorypb.RegisterCategoryGrpcServiceServer(grpcSrv, grpcserver.NewCategoryServer(categoryService))
+
+	go func() {
+		logger.Info(
+			"gRPC server listening",
+			slog.String("host", config.Grpc.Host),
+			slog.Int("port", config.Grpc.Port),
+		)
+		if err := grpcSrv.Serve(grpcListener); err != nil {
+			logger.Error("error serving grpc", slog.Any("error", err))
+		}
+	}()
+
+	var wg sync.WaitGroup
+	wg.Go(func() {
+		<-ctx.Done()
+		shutdownCtx := context.Background()
+		shutdownCtx, cancel := context.WithTimeout(shutdownCtx, 10*time.Second)
+		defer cancel()
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			logger.Error("error shutting down http server", slog.Any("error", err))
+		}
+		grpcSrv.GracefulStop()
+		logger.Info("server stopped gracefully")
+	})
+	wg.Wait()
+
+	return nil
+}
+
+func setupLogger(env string, w io.Writer) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case envLocal:
+		log = setupPrettySlog()
+	case envDev:
+		log = slog.New(
+			slog.NewJSONHandler(w, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envProd:
+		log = slog.New(
+			slog.NewJSONHandler(w, &slog.HandlerOptions{Level: slog.LevelInfo}),
+		)
+	}
+
+	return log
+}
+
+func setupPrettySlog() *slog.Logger {
+	opts := slogpretty.PrettyHandlerOptions{
+		SlogOpts: &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		},
+	}
+
+	handler := opts.NewPrettyHandler(os.Stdout)
+
+	return slog.New(handler)
+}

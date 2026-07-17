@@ -1,7 +1,16 @@
+import path from 'path'
+
 import type { NextConfig } from 'next'
 import type { RuleSetRule } from 'webpack'
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: path.join(__dirname),
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+    proxyClientMaxBodySize: '10mb',
+  },
   images: {
     remotePatterns: [
       {

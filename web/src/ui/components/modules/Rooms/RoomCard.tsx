@@ -1,63 +1,90 @@
-import { Route } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import UsersIcon from '@/assets/icons/ic_users.svg'
+import { BLUR_DATA_URLS } from '@/ui/images'
 
 type Props = {
   id: string
+  name: string
+  thumbnail: string
+  category: string
+  hostUsername: string
+  hostAvatarUrl: string
 }
 
-export default function RoomCard({ id }: Props) {
+export default function RoomCard({ id, name, thumbnail, category, hostUsername, hostAvatarUrl }: Props) {
   return (
-    <Link
-      href={`/rooms/${id}` as Route}
-      className="relative overflow-hidden flex rounded-xl h-[180px] py-3 px-2.5 cursor-pointer group"
-    >
-      {/* Background Image */}
-      <Image
-        src="https://cdn.magicdecor.in/com/2023/10/20174720/Anime-Scenery-Wallpaper-for-Walls-710x488.jpg"
-        alt="Background"
-        fill
-        priority
-        className="object-cover z-0 transition-transform duration-600 group-hover:scale-115"
-      />
-      {/* Overlay */}
-      <div className="absolute inset-0 z-1 bg-black/40 transition-all duration-500 group-hover:bg-black/30" />
+    <Link href={`/rooms/${id}`} className="flex flex-col gap-3 group cursor-pointer">
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-card">
+        <Image
+          src={thumbnail}
+          alt="Room preview"
+          width={640}
+          height={480}
+          loading="lazy"
+          className="object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-105"
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URLS['neutral800']}
+        />
 
-      <div className="z-10 flex-1 flex flex-col justify-between">
-        {/* Card Header */}
-        <div className="flex items-center justify-between">
-          {/* Live */}
-          <div className="bg-red-600 flex items-center gap-1 px-2 py-1 rounded-lg">
-            <span className="h-1.5 w-1.5 rounded-full bg-neutral-100 block" />
-            <p className="uppercase font-black text-[9px] leading-3 text-neutral-100">live</p>
-          </div>
-
-          {/* Viewers */}
-          <div className="flex items-center gap-1 py-1 px-2 rounded-lg bg-neutral-800 overflow-hidden">
-            <UsersIcon className="text-emerald-500" />
-            <span className="text-neutral-100 font-black text-[9px] leading-3">1.2K</span>
-          </div>
+        <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md">
+          <p className="uppercase font-bold text-[10px] tracking-wider text-neutral-100 line-clamp-1 max-w-[100px]">
+            {category}
+          </p>
         </div>
+      </div>
 
-        <div className="flex flex-col gap-1">
-          {/* User */}
-          <div className="flex gap-1.5 items-center">
-            <Image
-              src="https://static.wikia.nocookie.net/madagascar/images/3/30/37455825.jpg/revision/latest?cb=20150512133950&path-prefix=ru"
-              alt="User avatar"
-              width={24}
-              height={24}
-              className="rounded-full object-cover h-7 w-7 border border-emerald-500"
-            />
-            <p className="text-neutral-100/85 font-black text-[12px] leading-4">Username</p>
-          </div>
+      <div className="flex gap-3 items-start px-1">
+        <Image
+          src={hostAvatarUrl}
+          alt="User avatar"
+          width={80}
+          height={80}
+          className="size-10 rounded-full object-cover shrink-0 mt-0.5"
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URLS['neutral700']}
+        />
 
-          {/* Title */}
-          <p className="text-neutral-100 text-sm leading-4.5 font-black">Roadside. Jakob & Ryan</p>
+        <div className="flex flex-col overflow-hidden">
+          <h3
+            className="text-foreground-strong text-sm font-semibold leading-snug line-clamp-2 transition-colors
+              duration-200"
+          >
+            {name}
+          </h3>
+
+          <p className="text-muted-active text-xs mt-1 truncate hover:text-foreground transition-colors">
+            {hostUsername}
+          </p>
         </div>
       </div>
     </Link>
+  )
+}
+
+export function RoomCardSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 w-full">
+      {/* Thumbnail Skeleton */}
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-card/80 animate-pulse">
+        {/* Category Badge Skeleton */}
+        <div className="absolute top-2 left-2 z-10 bg-surface-tertiary/50 h-5 w-12 rounded-md" />
+      </div>
+
+      <div className="flex gap-3 items-start px-1">
+        {/* Avatar Skeleton */}
+        <div className="size-9 rounded-full bg-card/80 shrink-0 mt-0.5 animate-pulse" />
+
+        <div className="flex flex-1 flex-col mt-0.5">
+          <div className="flex flex-col gap-1.5">
+            <div className="h-3.5 bg-card/80 rounded w-[90%] animate-pulse" />
+            <div className="h-3.5 bg-card/80 rounded w-[70%] animate-pulse" />
+          </div>
+
+          {/* Username Skeleton */}
+          <div className="h-2.5 bg-card/60 rounded w-[40%] animate-pulse mt-2" />
+        </div>
+      </div>
+    </div>
   )
 }

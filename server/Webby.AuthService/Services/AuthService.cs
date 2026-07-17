@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using MimeKit.Encodings;
+using Webby.AuthService.Consts;
 using Webby.AuthService.Dtos;
+using Webby.AuthService.Dtos.Events;
 using Webby.AuthService.Helpers.Exception;
 using Webby.AuthService.Interfaces.Helpers;
 using Webby.AuthService.Interfaces.Repositories;
@@ -11,17 +14,23 @@ namespace Webby.AuthService.Services;
 
 public class AuthService : IAuthService
 {
-   private readonly IRepository<User> _repository;
+   private readonly IAuthRepository _repository;
    private readonly IPasswordHasher _passwordHasher;
    private readonly IMailService _mailService;
    private readonly IMapper _mapper;
+   private readonly ITokenService _tokenService;
+   private readonly IEventPublisher _eventPublisher;
 
-   public AuthService(IPasswordHasher passwordHasher, IRepository<User> repository, IMailService mailService, IMapper mapper)
+   public AuthService(IPasswordHasher passwordHasher, IAuthRepository repository,
+      IMailService mailService, IMapper mapper,
+      ITokenService tokenService, IEventPublisher eventPublisher)
    {
       _passwordHasher = passwordHasher;
       _repository = repository;
       _mailService = mailService;
       _mapper = mapper;
+      _tokenService = tokenService;
+      _eventPublisher = eventPublisher;
    }
 
    public async Task<bool> Register(RegisterUserRequest request)
@@ -64,10 +73,10 @@ public class AuthService : IAuthService
          Email = request.Email,
          Password = _passwordHasher.Generate(request.Password),
          About = string.Empty,
-         //TODO: change to default user image from aws bucket
-         AvatarUrl = "https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg",
+         AvatarUrl = DefaultLinks.DefaultUserIcon,
          VerificationCode = GenerateActivationCode(),
-         isVerified = false
+         isVerified = false,
+         Role = Role.User
       };
 
       await _repository.Add(user);
@@ -76,18 +85,29 @@ public class AuthService : IAuthService
       return false;
    }
    
-   public async Task<UserDto> Login(LoginUserRequest request)
+   public async Task<LoginUserResponse> Login(LoginUserRequest request)
    {
+      var loginUserResponse = new LoginUserResponse();
+      
       var errors = new Dictionary<string, string>();
       var user = (await _repository.GetByPredicate(u => u.Email == request.Email)).FirstOrDefault();
 
       if (user == null)
-         throw new ApiException("User not found", 404);
+      {
+         errors["message"] = "User with specified credentials wasn't found";
+         throw new ApiException("Login error", 404,errors);
+      }
       
       if (!user.isVerified)
       {
          errors["isVerified"] = "User isn't verified";
          throw new ApiException("Login error", 400, errors);
+      }
+
+      if (user.IsBanned)
+      {
+         errors["IsBanned"] = "Your account is blocked. Write to webbymailsystem@gmail.com to see details";
+         throw new ApiException("Login error", 403, errors);
       }
 
       if (!_passwordHasher.Verify(request.Password, user.Password))
@@ -98,16 +118,24 @@ public class AuthService : IAuthService
          throw new ApiException("Login error", 400, errors);
       }
 
-      return _mapper.Map<UserDto>(user);
+      var authTokenModel = await _tokenService.GenerateToken(user);
+      
+      loginUserResponse.User = _mapper.Map<UserDto>(user);
+      loginUserResponse.AccessToken = authTokenModel.AccessToken;
+      loginUserResponse.AccessTokenExpiresAt = authTokenModel.ExpiresAt;
+
+      return loginUserResponse;
    }
    
    public async Task SendCode(ResendVerificationCodeRequest request)
    {
       var user = (await _repository.GetByPredicate(user => user.Email == request.Email)).FirstOrDefault();
-
+      var errors = new Dictionary<string, string>();
+      
       if (user == null)
       {
-         throw new ApiException("User not found", 404);
+         errors["message"] = "User with specified email wasn't found";
+         throw new ApiException("Send code error", 404,errors);
       }
 
       var newVerificationCode = GenerateActivationCode();
@@ -117,7 +145,7 @@ public class AuthService : IAuthService
       await _mailService.SendVerificationCode(user.Email, newVerificationCode);
    }
 
-   public async Task<UserDto> VerifyEmail(VerifyUserRequest request)
+   public async Task VerifyEmail(VerifyUserRequest request)
    {
       var user = (await _repository.GetByPredicate(user => user.Email == request.Email)).FirstOrDefault();
       var errors = new Dictionary<string, string>();
@@ -140,19 +168,31 @@ public class AuthService : IAuthService
       user.VerificationCode = string.Empty;
 
       await _repository.Update(user);
-
-      return _mapper.Map<UserDto>(user);
+      
    }
-
-   public async Task<UserDto> PerformGoogleAuth(GoogleAuthRequest request)
+   
+   public async Task<LoginUserResponse> PerformGoogleAuth(GoogleAuthRequest request)
    {
       var user = (await _repository
             .GetByPredicate(u => u.UserId == request.Id || u.Email == request.Email))
          .FirstOrDefault();
-
+      
+      var loginUserResponse = new LoginUserResponse();
+      AuthToken authToken;
+      
       if (user != null)
       {
-         return _mapper.Map<UserDto>(user);
+         if (user.IsBanned)
+            throw new ApiException("Google auth error", 403,
+               "You're blocked. Write to webbymailsystem@gmail.com to see details");
+         
+         authToken = await _tokenService.GenerateToken(user);
+         
+         loginUserResponse.User = _mapper.Map<UserDto>(user);
+         loginUserResponse.AccessToken = authToken.AccessToken;
+         loginUserResponse.AccessTokenExpiresAt = authToken.ExpiresAt;
+
+         return loginUserResponse;
       }
       
       var newUser = new User
@@ -164,14 +204,105 @@ public class AuthService : IAuthService
          About = string.Empty,
          isVerified = true,
          VerificationCode = string.Empty,
-         Password = null
+         Password = null,
+         Role = Role.User
       };
 
       await _repository.Add(newUser);
+         
+      authToken = await _tokenService.GenerateToken(newUser);
+         
+      loginUserResponse.User = _mapper.Map<UserDto>(newUser);
+      loginUserResponse.AccessToken = authToken.AccessToken;
+      loginUserResponse.AccessTokenExpiresAt = authToken.ExpiresAt;
 
-      return _mapper.Map<UserDto>(newUser);
+      return loginUserResponse;
    }
-   
+
+   public async Task<LoginUserResponse> RefreshToken(string accessToken)
+   {
+      var errors = new Dictionary<string, string>();
+      var loginUserResponse = new LoginUserResponse();
+
+      var userId = await _tokenService.ExtractUserInfo(accessToken);
+
+      var existingUser = await _repository.FindById(userId);
+
+      if (existingUser == null)
+      {
+         errors["user"] = "User with specified id wasn't found";
+         throw new ApiException("Refresh token error", 404, errors);
+      }
+
+      if (existingUser.IsBanned)
+      {
+         errors["IsBanned"] = "Your account is banned. Write to webbymailsystem@gmail.com to see details";
+         throw new ApiException("Refresh token error", 403, errors);
+      }
+
+      var authTokenModel = await _tokenService.GenerateToken(existingUser);
+      
+      loginUserResponse.User = _mapper.Map<UserDto>(existingUser);
+      loginUserResponse.AccessToken = authTokenModel.AccessToken;
+      loginUserResponse.AccessTokenExpiresAt = authTokenModel.ExpiresAt;
+
+      return loginUserResponse;
+   }
+
+   public async Task ChangeUserPassword(Guid userId, ChangeUserPasswordRequest request)
+   {
+      var user = await _repository.FindById(userId);
+      
+      if (user == null)
+      {
+         throw new ApiException("Change password error", 400, "User with specified id wasn't found");
+      }
+
+      if (!_passwordHasher.Verify(request.CurrentPassword,user.Password))
+      {
+         throw new ApiException("Change password error", 400, "Current password is incorrect");
+      }
+
+      var newPasswordHash = _passwordHasher.Generate(request.NewPassword);
+      user.Password = newPasswordHash;
+
+      await _repository.Update(user);
+   }
+
+   public async Task ResetUserPassword(ResetUserPasswordRequest request)
+   {
+      var user = (await _repository.GetByPredicate(u => u.Email == request.Email)).FirstOrDefault();
+
+      if (user == null)
+      {
+         throw new ApiException("Reset user password error", 404, "User with indicated email wasn't found");
+      }
+
+      if (user.VerificationCode != string.Empty)
+      {
+         throw new ApiException("Reset user password error", 400, "User isn't verified");
+      }
+
+      var newPasswordHash = _passwordHasher.Generate(request.NewPassword);
+      user.Password = newPasswordHash;
+
+      await _repository.Update(user);
+
+      var resetPasswordEvent = new ResetPasswordEvent(user.UserId)
+      {
+         Value = 1
+      };
+
+      await _eventPublisher.PublishAsync(resetPasswordEvent);
+   }
+
+   public async Task<bool> IsValidRole(Guid userId,string accessToken)
+   {
+      var tokenRoles = _tokenService.ParseUserRolesFromToken(accessToken);
+      return await _repository.HasUserRoles(userId, tokenRoles);
+   }
+
+
    private string GenerateActivationCode()
    {
       const int length = 6;

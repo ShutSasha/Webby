@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package room;
+
+option go_package = "webby/room-service/internal/grpc/roompb";
+
+import "google/protobuf/empty.proto";
+
+service RoomGrpcService {
+  rpc GetRoomHost(GetRoomHostRequest) returns (GetRoomHostResponse);
+  rpc GetTotalRooms(google.protobuf.Empty) returns (GetTotalRoomsResponse);
+}
+
+message GetRoomHostRequest {
+  string roomId = 1;
+}
+
+message GetRoomHostResponse {
+  string hostId = 1;
+}
+
+message GetTotalRoomsResponse {
+  int32 totalRooms = 1;
+}

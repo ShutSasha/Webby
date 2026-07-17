@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+option go_package = "webby/chat-service/internal/grpc/userpb";
+
+service UserGrpcService {
+  rpc GetUserById (GetUserRequest) returns (UserResponse);
+  rpc GetUsersByIds (GetUsersRequest) returns (GetUsersResponse);
+  rpc FindUserIDs(FindUserIDsRequest) returns (FindUserIDsResponse);
+  rpc IsFollowed(IsFollowedRequest) returns (IsFollowedResponse);
+}
+
+message GetUserRequest {
+  string userId = 1;
+  optional string requestUserId = 2;
+}
+
+message UserResponse {
+  string userId = 1;
+  string username = 2;
+  string avatarUrl = 3;
+  bool isFollowed = 4;
+}
+
+message GetUsersRequest {
+  repeated string userIds = 1;
+}
+
+message GetUsersResponse {
+  repeated UserResponse users = 1;
+}
+
+message FindUserIDsRequest {
+  repeated string userIds = 1;
+  string search = 2;
+  int32 offset = 3;
+  int32 limit = 4;
+}
+
+message FindUserIDsResponse {
+  repeated string userIds = 1;
+  int32 total = 2;
+}
+
+message IsFollowedRequest {
+  string firstUserId = 1;
+  string secondUserId = 2;
+}
+
+message IsFollowedResponse {
+  bool isFollowed = 1;
+}

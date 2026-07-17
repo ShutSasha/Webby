@@ -3,16 +3,17 @@ import { startTransition, useActionState, useEffect, useState } from 'react'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { signIn, useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useForm } from 'react-hook-form'
 
-import { authenticate } from '@/app/api/auth'
-import GoogleIcon from '@/assets/auth/ic_google.svg'
 import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
-import AuthInput from '@/components/AuthInput'
-import Button from '@/components/Button'
-import { serverLog } from '@/lib/utils/utils'
+import { authenticate } from '@/lib/actions/auth.actions'
+import AuthInput from '@/ui/components/modules/Auth/AuthInput'
+import Button from '@/ui/components/shared/Button'
+
+import AuthErrorDisplay from './ErrorDisplay'
+import AuthSocialButtons from './OAuthButtons'
 
 const initialState = {
   success: false,
@@ -58,85 +59,64 @@ export default function LoginForm() {
     handleSuccess()
   }, [state.success])
 
-  const resendVerifyCode = async () => {
-    const api = process.env.NEXT_PUBLIC_API_URL
-
-    try {
-      await fetch(`${api}/auth/resend-verification-code`, {
-        method: 'POST',
-        body: JSON.stringify({ email: watchedEmail }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        keepalive: true,
-      })
-    } catch (error) {
-      serverLog('Error resending verification code:', error)
-    }
-  }
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col">
-      <h1 className="text-white text-xl font-bold text-center mb-4">Login</h1>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6">
+      <div className="flex flex-col gap-1 text-center">
+        <h1 className="text-foreground-secondary text-2xl font-bold">Log in to Webby</h1>
+        <p className="text-sm text-foreground-muted">Welcome back! Please enter your details.</p>
+      </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" autoComplete="email" />
-        <AuthInput
-          Icon={PasswordIcon}
-          {...register('password')}
-          showPassword={showPassword}
-          togglePassword={togglePassword}
-          type="password"
-          placeholder="Password"
-        />
-        <div className={`${state?.errors ? 'block' : 'hidden'}`}>
-          {state?.errors &&
-            Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
-              <p key={field} className="text-red-500 text-sm">
-                {message}
-                {message === `User isn't verified` ? (
-                  <span>
-                    {'. '}
-                    Verify it{' '}
-                    <Link
-                      href={`/sign-up/email-verify?email=${watchedEmail}`}
-                      className="underline"
-                      onClick={resendVerifyCode}
-                    >
-                      here
-                    </Link>
-                  </span>
-                ) : (
-                  ''
-                )}
-              </p>
-            ))}
-        </div>
-        <input type="hidden" name="redirectTo" value={callbackUrl} />
-        <Button
-          disabled={isPending}
-          type="submit"
-          viewType="Confirm"
-          className="text-[16px] leading-[22px] font-semibold w-fit mx-auto"
-          paddingClasses="px-5 py-2"
-        >
-          {isPending ? 'Sending...' : 'Log in'}
-        </Button>
-        <p className="text-center text-sm leading-5 text-neutral-300">
-          {`Haven't`} an account yet?{' '}
-          <Link href="/sign-up" className="text-emerald-500 hover:underline">
-            Sign up
+
+        <div className="flex flex-col gap-2">
+          <AuthInput
+            Icon={PasswordIcon}
+            {...register('password')}
+            showPassword={showPassword}
+            togglePassword={togglePassword}
+            type="password"
+            placeholder="Password"
+          />
+
+          <Link
+            href={'/forgot-password'}
+            className="text-xs text-foreground-muted hover:text-foreground-tertiary transition-colors self-end"
+          >
+            Forgot password?
           </Link>
-        </p>
-        <hr className="border-neutral-300" />
-        <p className="text-center text-sm leading-5 text-neutral-300">or log in via </p>
+        </div>
       </div>
-      <div className="flex flex-row gap-1 items-center justify-center">
-        <GoogleIcon
-          className="w-11 h-11 hover:text-emerald-500 transition-colors duration-300 ease-out cursor-pointer"
-          onClick={() => signIn('google', { callbackUrl: '/' })}
-        />
+
+      <AuthErrorDisplay email={watchedEmail} state={state} />
+      <input type="hidden" name="redirectTo" value={callbackUrl} />
+
+      <Button
+        disabled={isPending}
+        type="submit"
+        viewType={isPending ? 'loading' : 'confirm'}
+        className="w-full text-[16px]"
+        paddingClasses="py-3"
+      >
+        {isPending ? 'Logging in...' : 'Log in'}
+      </Button>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px w-full bg-background" />
+        <span className="text-xs text-foreground-faint uppercase tracking-wider whitespace-nowrap">
+          or continue with
+        </span>
+        <div className="h-px w-full bg-background" />
       </div>
+
+      <AuthSocialButtons />
+
+      <p className="text-center text-sm text-foreground-muted mt-2">
+        Don&apos;t have an account?{' '}
+        <Link href="/sign-up" className="text-foreground-strong font-semibold hover:underline">
+          Sign up
+        </Link>
+      </p>
     </form>
   )
 }

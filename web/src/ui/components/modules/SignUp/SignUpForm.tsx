@@ -2,25 +2,28 @@
 import { startTransition, useActionState, useState } from 'react'
 
 import Link from 'next/link'
-import { signIn } from 'next-auth/react'
 import { useForm } from 'react-hook-form'
 
-import { registerUser } from '@/app/api/auth'
-import GoogleIcon from '@/assets/auth/ic_google.svg'
 import MailIcon from '@/assets/auth/ic_mail.svg'
 import PasswordIcon from '@/assets/auth/ic_password.svg'
 import RepeatPasswordIcon from '@/assets/auth/ic_repeat_password.svg'
 import UsernameIcon from '@/assets/auth/ic_username.svg'
-import AuthInput from '@/components/AuthInput'
-import Button from '@/components/Button'
+import { registerUser } from '@/lib/actions/auth.actions'
+import AuthInput from '@/ui/components/modules/Auth/AuthInput'
+import Button from '@/ui/components/shared/Button'
+
+import AuthSocialButtons from '../Login/OAuthButtons'
 
 const initialState = {
   success: false,
-  errors: null,
+  errors: {},
 }
 
 export default function SignUpForm() {
   const [state, formAction, isPending] = useActionState(registerUser, initialState)
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const togglePassword = () => setShowPassword(prev => !prev)
+
   const { register, handleSubmit } = useForm({
     defaultValues: {
       email: '',
@@ -29,10 +32,6 @@ export default function SignUpForm() {
       repeatPassword: '',
     },
   })
-
-  const [showPassword, setShowPassword] = useState<boolean>(false)
-
-  const togglePassword = () => setShowPassword(prev => !prev)
 
   const onSubmit = (data: any) => {
     const formData = new FormData()
@@ -44,12 +43,14 @@ export default function SignUpForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col">
-      <h1 className="text-white text-xl font-bold text-center mb-4">Sign up</h1>
-
-      <div className="flex flex-col gap-3">
-        <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" />
+    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6">
+      <div className="flex flex-col gap-1 text-center">
+        <h1 className="text-foreground-strong text-2xl font-bold">Create account</h1>
+        <p className="text-sm text-foreground-muted">Join Webby to start watching and chatting.</p>
+      </div>
+      <div className="flex flex-col gap-4">
         <AuthInput Icon={UsernameIcon} {...register('username')} name="username" type="text" placeholder="Username" />
+        <AuthInput Icon={MailIcon} {...register('email')} type="email" placeholder="Email" />
         <AuthInput
           Icon={PasswordIcon}
           {...register('password')}
@@ -66,38 +67,43 @@ export default function SignUpForm() {
           type="password"
           placeholder="Repeat Password"
         />
-        <div>
-          {state.errors &&
-            Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
-              <p key={field} className="text-red-500 text-sm">
-                {message}
-              </p>
-            ))}
+      </div>
+
+      {state.errors && (
+        <div className="flex flex-col gap-1">
+          {Object.entries(state.errors as Record<string, string>).map(([field, message]) => (
+            <p key={field} className="text-red-500 text-sm">
+              {message}
+            </p>
+          ))}
         </div>
-        <Button
-          disabled={isPending}
-          type="submit"
-          viewType="Confirm"
-          className="text-[16px] leading-[22px] font-semibold w-fit mx-auto"
-          paddingClasses="px-5 py-2"
-        >
-          {isPending ? 'Sending...' : 'Sign Up'}
-        </Button>
-        <p className="text-center text-sm leading-5 text-neutral-300">
-          Already have an account?{' '}
-          <Link href="/login" className="text-emerald-500 hover:underline">
-            Log in
-          </Link>
-        </p>
-        <hr className="border-neutral-300" />
-        <p className="text-center text-sm leading-5 text-neutral-300">or sign up via </p>
+      )}
+      <Button
+        disabled={isPending}
+        type="submit"
+        viewType={isPending ? 'loading' : 'confirm'}
+        className="w-full text-[16px]"
+        paddingClasses="py-3"
+      >
+        {isPending ? 'Creating account...' : 'Create account'}
+      </Button>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px w-full bg-background" />
+        <span className="text-xs text-foreground-faint uppercase tracking-wider whitespace-nowrap">
+          or continue with
+        </span>
+        <div className="h-px w-full bg-background" />
       </div>
-      <div className="flex flex-row gap-1 items-center justify-center">
-        <GoogleIcon
-          className="w-11 h-11 hover:text-emerald-500 transition-colors duration-300 ease-out cursor-pointer"
-          onClick={() => signIn('google', { callbackUrl: '/' })}
-        />
-      </div>
+
+      <AuthSocialButtons />
+
+      <p className="text-center text-sm text-foreground-muted mt-2">
+        Already have an account?{' '}
+        <Link href="/login" className="text-foreground-strong font-semibold hover:underline">
+          Log in
+        </Link>
+      </p>
     </form>
   )
 }

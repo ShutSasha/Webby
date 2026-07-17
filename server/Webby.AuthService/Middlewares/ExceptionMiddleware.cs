@@ -22,23 +22,34 @@ public class ExceptionMiddleware
       }
       catch (ApiException ex)
       {
-         var errorResponse = ApiResponse.Fail(ex.Message, ex.Errors);
+         _logger.LogWarning(
+            "API Exception (StatusCode: {StatusCode}) Message: {Message} Errors: {@Errors}",
+            ex.StatusCode,
+            ex.Message,
+            ex.Errors
+         );
+
+         var errorResponse = ApiResponse.Fail(
+            ex.Message,
+            ex.Errors ?? new Dictionary<string, string>()
+         );
 
          context.Response.StatusCode = ex.StatusCode;
          context.Response.ContentType = "application/json";
 
          await context.Response.WriteAsJsonAsync(errorResponse);
       }
-      catch (Exception)
+      catch (Exception ex)
       {
-         var errorResponse = ApiResponse.Fail("Internal server error");
-
+         _logger.LogError(ex, "Unhandled server error occurred");
+         
+         var errorMsg = new Dictionary<string, string> { { "errorMsg", ex.Message } };
+         var errorResponse = ApiResponse.Fail("Internal server error", errorMsg);
+         
          context.Response.StatusCode = 500;
          context.Response.ContentType = "application/json";
 
          await context.Response.WriteAsJsonAsync(errorResponse);
       }
    }
-
-
 }

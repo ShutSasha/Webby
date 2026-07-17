@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package member;
+
+option go_package = "webby/room-service/internal/grpc/memberpb";
+
+service MemberGrpcService {
+  rpc MemberExists(MemberExistsRequest) returns (MemberExistsResponse);
+}
+
+message MemberExistsRequest {
+  string roomId = 1;
+  string userId = 2;
+}
+
+message MemberExistsResponse {
+  bool exists = 1;
+}

@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+option csharp_namespace = "UserService";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+service UserGrpcService {
+  rpc GetUserById (GetUserRequest) returns (UserResponse);
+  rpc GetUsersByIds (GetUsersRequest) returns (GetUsersResponse);
+  rpc GetUserSubscriptionIds (GetUserSubscriptionIdsRequest) returns (GetUserSubscriptionsIdsResponse);
+  rpc GetPremiumStatus(GetPremiumStatusRequest) returns (GetPremiumStatusResponse);
+  rpc CheckIfUserExist(CheckIfUserExistsRequest) returns (google.protobuf.BoolValue);
+  rpc FindUserIDs(FindUserIDsRequest) returns (FindUserIDsResponse);
+  rpc IsFollowed(IsFollowedRequest) returns (IsFollowedResponse);
+  rpc BanUser(BanUserRequest) returns (google.protobuf.Empty);
+  rpc GetMonthlyRegistrations(google.protobuf.Empty) returns (GetMonthlyRegistrationsResponse);
+  rpc GetMonthlySubscriptions(google.protobuf.Empty) returns (GetMonthlySubscriptionsResponse);
+  rpc GetTotalRegistrations(google.protobuf.Empty) returns (GetTotalRegistrationsResponse);
+  rpc GetMonthRevenue(google.protobuf.Empty) returns (GetMonthRevenueResponse);
+  rpc CheckUserCanBlockVideo(CheckUserCanBlockVideoRequest) returns (google.protobuf.BoolValue);
+}
+
+// REQUESTS
+
+message GetUserRequest {
+  string userId = 1;
+  optional string requestUserId = 2;
+}
+
+message GetUsersRequest {
+  repeated string userIds = 1;
+}
+
+message GetUserSubscriptionIdsRequest{
+  string requestUserId = 1;
+}
+
+message GetPremiumStatusRequest{
+  string userId = 1;
+}
+
+message CheckIfUserExistsRequest {
+  string userId = 1;
+ }
+ 
+message FindUserIDsRequest {
+  repeated string userIds = 1;
+  string search = 2;
+  int32 offset = 3;
+  int32 limit = 4;
+}
+
+message IsFollowedRequest {
+  string firstUserId = 1;
+  string secondUserId = 2;
+}
+
+message BanUserRequest {
+  string userID = 1;
+  string requestUserID = 2;
+}
+
+message CheckUserCanBlockVideoRequest{
+  string requestedUserId = 1;
+  string videoAuthorId = 2;
+}
+
+//RESPONSES
+
+message UserResponse {
+  string userId = 1;
+  string username = 2;
+  string avatarUrl = 3;
+  bool isFollowed = 4;
+}
+
+message GetUsersResponse {
+  repeated UserResponse users = 1;
+}
+
+message GetUserSubscriptionsIdsResponse{
+  repeated string userIds = 1;
+}
+
+enum PremiumStatus {
+  NONE = 0;
+  ACTIVE = 1;
+  EXPIRED = 2;
+  TRIAL = 3;
+}
+
+message GetPremiumStatusResponse {
+  PremiumStatus status = 1;
+}
+
+message FindUserIDsResponse {
+  repeated string userIds = 1;
+  int32 total = 2;
+}
+
+message IsFollowedResponse {
+  bool isFollowed = 1;
+}
+
+message GetMonthlyRegistrationsResponse {
+  map<int32, int32> registrations = 1;
+}
+
+message GetMonthlySubscriptionsResponse {
+  map<int32, int32> subscriptions = 1;
+}
+
+message GetTotalRegistrationsResponse {
+  int32 totalRegistrations  = 1;
+}
+
+message GetMonthRevenueResponse {
+  int32 monthRevenue  = 1;
+}

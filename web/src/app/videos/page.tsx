@@ -1,12 +1,18 @@
-import MediaHeader from '@/ui/components/common/MediaHeader'
-import MainLayout from '@/ui/components/MainLayout'
+import VideoPageHeader from '@/ui/components/modules/Videos/VideoPageHeader'
+import VideosPublicSearchContainer from '@/ui/components/modules/Videos/VideosPublicSearchContainer'
 
-export default function VideosPage() {
+type Props = {
+  searchParams: Promise<{ query?: string }>
+}
+
+export default async function VideosPage({ searchParams }: Props) {
+  const { query } = await searchParams
+  const safeQuery = query || ''
+
   return (
-    <MainLayout>
-      <div className="w-full bg-neutral-900 rounded-[20px] p-5 gap-4 box-border">
-        <MediaHeader searchPlaceholder="Search videos..." actionLabel="Create a video" />
-      </div>
-    </MainLayout>
+    <>
+      <VideoPageHeader />
+      <VideosPublicSearchContainer query={safeQuery} />
+    </>
   )
 }

@@ -1,6 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using Webby.AuthService.Data;
 using Webby.AuthService.Helpers;
+using Webby.AuthService.Helpers.Events;
+using Webby.AuthService.Helpers.Jwt;
 using Webby.AuthService.Interfaces.Helpers;
 using Webby.AuthService.Interfaces.Repositories;
 using Webby.AuthService.Interfaces.Services;
@@ -26,6 +30,41 @@ public static class ApiExtension
          });
       });
    }
+   
+    public static IServiceCollection AddSwaggerConfig(this IServiceCollection services)
+    {
+       services.AddSwaggerGen(options =>
+       {
+          options.EnableAnnotations();
+ 
+          options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+          {
+             Name = "Authorization",
+             Type = SecuritySchemeType.Http,
+             Scheme = "Bearer",
+             BearerFormat = "JWT",
+             In = ParameterLocation.Header,
+             Description = "Enter ONLY your JWT token"
+          });
+ 
+          options.AddSecurityRequirement(new OpenApiSecurityRequirement
+          {
+             {
+                new OpenApiSecurityScheme
+                {
+                   Reference = new OpenApiReference
+                   {
+                      Type = ReferenceType.SecurityScheme,
+                      Id = "Bearer"
+                   }
+                },
+                Array.Empty<string>()
+             }
+          });
+       });
+ 
+       return services;
+    }
 
    public static void AddDbConnection(this IServiceCollection serviceCollection, IConfiguration configuration)
    {
@@ -38,17 +77,27 @@ public static class ApiExtension
    public static void AddRepositories(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IRepository<User>, GenericRepository<User>>();
+      serviceCollection.AddScoped<IAuthRepository, AuthRepository>();
    }
 
    public static void AddServices(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IMailService, MailService>();
       serviceCollection.AddScoped<IAuthService, Services.AuthService>();
+      serviceCollection.AddScoped<ITokenService, TokenService>();
    }
 
    public static void AddHelpers(this IServiceCollection serviceCollection)
    {
       serviceCollection.AddScoped<IPasswordHasher, PasswordHasher>();
+      serviceCollection.AddScoped<IJwtProvider, JwtProvider>();
+      serviceCollection.AddScoped<IEventPublisher, EventPublisher>();
+   }
+   
+   public static void ConfigureRedisConnection(this IServiceCollection serviceCollection, IConfiguration configuration)
+   {
+      serviceCollection.AddSingleton<IConnectionMultiplexer>(sp =>
+         ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis") ?? string.Empty));
    }
    
 }

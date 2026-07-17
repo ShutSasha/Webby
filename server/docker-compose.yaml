@@ -1,0 +1,206 @@
+services:
+  api-gateway:
+    build: 
+      context: .
+      dockerfile: Webby.ApiGetaway/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - JwtOptions__AccessSecretKey=${JwtAccessSecretKey}
+      - JwtOptions__AccessExpiresDuration=${JwtAccessExpiresDuration}
+    container_name: webby-api-gateway
+
+  auth-service:
+    build: 
+      context: .
+      dockerfile: Webby.AuthService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
+      - SenderData__SenderPassword=${SenderPassword}
+      - SenderData__SenderEmail=${SenderEmail}
+      - JwtOptions__AccessSecretKey=${JwtAccessSecretKey}
+      - JwtOptions__AccessExpiresDuration=${JwtAccessExpiresDuration}
+      - AutoMapper__LicenseKey=${AutoMapperLicenseKey}
+    container_name: webby-auth-service
+  
+  notification-service:
+    build: 
+      context: .
+      dockerfile: Webby.NotificationService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
+      - JwtOptions__AccessSecretKey=${JwtAccessSecretKey}
+      - JwtOptions__AccessExpiresDuration=${JwtAccessExpiresDuration}
+    container_name: webby-notification-service
+    
+  user-service: 
+    build: 
+      context: .
+      dockerfile: Webby.UserService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
+      - AwsOptions__AccessKey=${AwsAccessKey}
+      - AwsOptions__SecretKey=${AwsSecretKey}
+      - AwsOptions__BucketName=${AwsBucketName}
+      - AwsOptions__Region=${AwsRegion}
+      - PaymentOptions__PaymentPublicKey=${StripePublishableKey}
+      - PaymentOptions__PaymentSecretKey=${StripeSecretKey}
+      - PaymentOptions__PaymentWebhookKey=${StripeWebhookKey}
+      - PaymentOptions__SuccessUrl=http://localhost:3000/payment/success
+      - PaymentOptions__CancelUrl=http://localhost:3000/payment/failed
+      - AutoMapper__LicenseKey=${AutoMapperLicenseKey}
+      - GrpcClients__VideoServiceUrl=http://video-service:5005
+      - GrpcClients__NotificationServiceUrl=http://video-service:5007
+    container_name: webby-user-service
+
+  video-service:
+    build: 
+      context: .
+      dockerfile: Webby.VideoService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__AppDbContext=${DatabaseConnectionString}
+      - AwsOptions__AccessKey=${AwsAccessKey}
+      - AwsOptions__SecretKey=${AwsSecretKey}
+      - AwsOptions__BucketName=${AwsBucketName}
+      - AwsOptions__Region=${AwsRegion}
+      - ExternalServices__YoutubeOptions__ApiKey=${YouTubeApiKey}
+      - ExternalServices__TwitchOptions__ClientId=${TwitchIdClient}
+      - ExternalServices__TwitchOptions__ClientSecret=${TwitchSecretKey}
+      - ExternalServices__TwitchOptions__ThumbnailWidth=1280
+      - ExternalServices__TwitchOptions__ThumbnailHeight=720
+      - GrpcClients__UserServiceUrl=http://user-service:5004
+    container_name: webby-video-service
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    container_name: webby-redis
+    environment:
+      - REDIS_PASSWORD=${RedisPassword}
+    command: redis-server --requirepass ${RedisPassword}
+
+  chat-service:
+    build:
+      context: .
+      dockerfile: Webby.ChatService/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${RedisPassword}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - GRPC_PORT=5008
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:5006
+    depends_on:
+      - redis
+    container_name: webby-chat-service
+
+  room-service:
+    build:
+      context: .
+      dockerfile: Webby.RoomService/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+      - AWS_ACCESS_KEY=${AwsAccessKey}
+      - AWS_SECRET_KEY=${AwsSecretKey}
+      - AWS_BUCKET=${AwsBucketName}
+      - AWS_REGION=${AwsRegion}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=5006
+      - GRPC_MEDIA_SERVICE_ADDRESS=video-service:5005
+      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:5008
+      - GRPC_CATEGORY_SERVICE_ADDRESS=room-category-service:5009
+      - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:5007
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${RedisPassword}
+    depends_on:
+      - redis
+    container_name: webby-room-service
+
+  room-category-service:
+    build:
+      context: .
+      dockerfile: Webby.RoomCategoryService/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=5009
+    container_name: webby-room-category-service
+
+  room-queue-service:
+    build:
+      context: .
+      dockerfile: Webby.RoomQueueService/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=5007
+      - GRPC_MEDIA_SERVICE_ADDRESS=video-service:5005
+      - GRPC_CHAT_SERVICE_ADDRESS=chat-service:5008
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:5006
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${RedisPassword}
+    depends_on:
+      - redis
+    container_name: webby-room-queue-service
+
+  votes-service:
+    build:
+      context: .
+      dockerfile: Webby.VotesService/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=5010
+      - GRPC_ROOM_SERVICE_ADDRESS=room-service:5006
+      - GRPC_QUEUE_SERVICE_ADDRESS=room-queue-service:5007
+    container_name: webby-votes-service
+
+  ws-gateway:
+    build:
+      context: .
+      dockerfile: Webby.WsGateway/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - CONNECTION_STRING=${DatabaseConnectionString}
+      - JWT_SECRET=${JwtAccessSecretKey}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PORT=5050
+      - TOKEN_TTL=15m
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${RedisPassword}
+      - GRPC_CHAT=chat-service:5008
+      - GRPC_VOTES=votes-service:5010
+      - GRPC_ROOM=room-service:5006
+    depends_on:
+      - redis
+    container_name: webby-ws-gateway
+
+volumes:
+  redis-data:

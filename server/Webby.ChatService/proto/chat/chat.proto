@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "webby/chat-service/internal/grpc/chatpb";
+
+service ChatGrpcService {
+  rpc CreateChat(CreateChatRequest) returns (ChatResponse);
+  rpc GetChatByRoomID(GetChatByRoomIdRequest) returns (ChatResponse);
+  rpc GetChatIDByRoomID(GetChatIDByRoomIDRequest) returns (ChatIDByRoomIDResponse);
+  rpc AddChatMember(AddChatMemberRequest) returns (AddChatMemberResponse);
+  rpc RoomIDByChatIDBatch(RoomIDByChatIDBatchRequest) returns(RoomIDByChatIDBatchResponse);
+  rpc IsChatRelatedToRoom(IsChatRelatedToRoomRequest) returns (IsChatRelatedToRoomResponse);
+}
+
+message CreateChatRequest {
+  string roomID = 1;
+}
+
+message GetChatByRoomIdRequest {
+  string roomID = 1;
+}
+
+message AddChatMemberRequest {
+  string chatID = 1;
+  string userID = 2;
+}
+
+message ChatResponse {
+  string id = 1;
+  string roomID = 2;
+}
+
+message AddChatMemberResponse {}
+
+message GetChatIDByRoomIDRequest {
+  string roomID = 1;
+}
+
+message ChatIDByRoomIDResponse {
+  string chatID = 2;
+}
+
+message RoomIDByChatIDBatchRequest {
+  repeated string chatIDs = 1;
+}
+
+message RoomIDByChatIDBatchResponse {
+  map<string, string> chatIDroomIDMap = 1;
+}
+
+message IsChatRelatedToRoomRequest {
+  string chatID = 1;
+}
+
+message IsChatRelatedToRoomResponse {
+  bool isRelated = 1;
+}

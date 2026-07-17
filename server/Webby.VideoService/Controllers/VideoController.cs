@@ -1,0 +1,178 @@
+﻿using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
+using Webby.VideoService.Dtos.Playlist;
+using Webby.VideoService.Dtos.Search;
+using Webby.VideoService.Dtos.Statistic;
+using Webby.VideoService.Dtos.Video;
+using Webby.VideoService.Dtos.Video.Enums;
+using Webby.VideoService.Helpers.Exception;
+using Webby.VideoService.Helpers.Jwt;
+using Webby.VideoService.Helpers.Response;
+using Webby.VideoService.Interfaces.Services;
+
+namespace Webby.VideoService.Controllers;
+
+[ApiController]
+[Route("api/videos")]
+public class VideoController: ControllerBase
+{
+   private readonly IVideoService _videoService;
+   public VideoController(IVideoService videoService)
+   {
+      _videoService = videoService;
+   }
+   
+   [HttpGet("{videoId}")]
+   [SwaggerOperation("Get video information")]
+   public async Task<ActionResult<ApiResponse<VideoDto>>> GetVideoInformation(
+      [FromRoute] string videoId)
+   {
+      var requestedUserId = JwtHelper.ExtractUserId(HttpContext,false);
+      var getVideoInformationResult = await _videoService.GetVideoInformation(videoId, requestedUserId);
+
+      return Ok(ApiResponse<VideoDto>.Ok("Successfully retrieved video information",
+         getVideoInformationResult));
+   }
+
+   
+   [HttpGet("search")]
+   [SwaggerOperation("Search video route")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> SearchVideo([FromQuery] SearchVideoOptions searchOptions)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var videos = await _videoService.SearchVideo(requestUserId,searchOptions);
+      return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video",videos));
+   }
+
+   [HttpGet("{videoId}/check-upload-status")]
+   [SwaggerOperation("Checks if video is uploaded to storage")]
+   public async Task<ActionResult<ApiResponse<bool>>> CheckUploadStatus([FromRoute] string videoId)
+   {
+      var isVideoUploaded = await _videoService.CheckUploadStatus(videoId);
+      return Ok(ApiResponse<bool>.Ok("Successfully extract video status",isVideoUploaded));
+   }
+   
+   
+   [HttpGet("{playlistId:guid}/search")]
+   [SwaggerOperation("Search video in playlist route")]
+   public async Task<ActionResult<PagedResponse<VideoDto>>> SearchVideoInPlaylist(
+      [FromRoute] Guid playlistId,
+      [FromQuery] SearchOptions searchOptions)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var pagesResponse = await _videoService.SearchVideoInPlaylist(requestUserId,playlistId, searchOptions);
+      return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved video from playlist",pagesResponse));
+   }
+
+   [HttpGet("moderation/search")]
+   [SwaggerOperation("Search videos route for moderation dashboard", "MODERATION REQUIRED")]
+   public async Task<ActionResult<PagedResponse<VideoModerationPreview>>> SearchVideoModeration([FromQuery] SearchOptions searchOptions)
+   {
+      var videoSearchResponse = await _videoService.SearchModerationVideos(searchOptions);
+      return Ok(ApiResponse<PagedResponse<VideoModerationPreview>>.Ok("Successfully retrieved videos", videoSearchResponse));
+   }
+   
+   [HttpGet("users/{userId:guid}")]
+   [SwaggerOperation("Get user videos")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<VideoDto>>>> GetUserVideos(
+      [FromRoute] Guid userId, [FromQuery] GetUserVideosRequest request)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var result = await _videoService.GetUserVideos(userId, requestUserId, request);
+      return Ok(ApiResponse<PagedResponse<VideoDto>>.Ok("Successfully retrieved user videos", result));
+   }
+
+   [HttpGet("{videoId}/statistic")]
+   [SwaggerOperation("Get video statistic", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse<VideoStatisticDto>>> GetVideoStatistic(string videoId,[FromQuery] GetStatisticRequest request)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      var statisticBlock = await _videoService
+         .GetVideoStatisticAsync(videoId,requestUserId.Value,request.Year,request.Month,request.Day);
+      return Ok(ApiResponse<VideoStatisticDto>.Ok("Sucessfully retrieved video statistic",statisticBlock));
+   }
+   
+   [HttpGet("recommendation/{videoId}")]
+   [SwaggerOperation("Get recommendations videos")]
+   public async Task<ActionResult<ApiResponse<PagedResponse<PreviewVideoDto>>>> GetVideoRecommendation(string videoId, [FromQuery] RecommendationOptions options)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false);
+      var getRecommendationVideoResult = await _videoService
+         .GetRecommendationVideos(videoId, requestUserId, options.ContentSeed, options.Page, options.PageSize);
+      return Ok(ApiResponse<PagedResponse<PreviewVideoDto>>.Ok("Successfully retrieved recommendation videos",getRecommendationVideoResult));
+   }
+   
+   [HttpPost("upload")]
+   [SwaggerOperation("Upload video file route", "AUTH REQUIRED")]
+   [RequestSizeLimit(5L * 1024 * 1024 * 1024)]
+   [RequestFormLimits(MultipartBodyLengthLimit = 5L * 1024 * 1024 * 1024)]
+   public async Task<ActionResult<ApiResponse<UploadVideoResponse>>> UploadFileVideo([FromForm] UploadVideoRequest request)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      var uploadResponse = await _videoService.UploadVideoFile(userId.Value, request);
+      return Ok(ApiResponse<UploadVideoResponse>.Ok("Successfully prepared for uploading video file",uploadResponse));
+   }
+   
+   [HttpPost("increment-view")]
+   [SwaggerOperation("Added view on specified video", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> IncrementVideoView([FromBody] IncrementViewRequest request)
+   {
+      var requestUserId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _videoService.IncrementVideoView(requestUserId.Value, request.VideoId);
+      return Ok(ApiResponse.Ok("Successfully increment video view"));
+   }
+   
+   [HttpPost]
+   [SwaggerOperation("Add information to video", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> CreateVideo([FromForm] CreateVideoRequest request)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _videoService.CreateVideo(userId.Value, request);
+      return Ok(ApiResponse.Ok("Successfully create video"));
+   }
+
+   [HttpPost("blocks/{videoId}/ban")]
+   [SwaggerOperation("", "MODERATION ROLE REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> BanVideo([FromRoute] string videoId)
+   {
+      await _videoService.BanVideo(videoId);
+      return Ok(ApiResponse.Ok("Successfully banned specified video"));
+   }
+   
+   [HttpPost("blocks/{videoId}/unban")]
+   [SwaggerOperation("", "MODERATION ROLE REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> UnbanVideo([FromRoute] string videoId)
+   {
+      await _videoService.UnbanVideo(videoId);
+      return Ok(ApiResponse.Ok("Successfully unbanned specified video"));
+   }
+
+   [HttpPatch]
+   [SwaggerOperation("Update video information route", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> UpdateVideo([FromForm] UpdateVideoRequest request)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _videoService.UpdateVideoInformation(userId.Value,request);
+      return Ok(ApiResponse.Ok("Successfully update video"));
+   }
+
+   [HttpDelete("{videoId}")]
+   [SwaggerOperation("Delete video route", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> DeleteVideo([FromRoute] string videoId)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext)!;
+      await _videoService.DeleteVideo(userId.Value, videoId);
+      return Ok(ApiResponse.Ok("Successfully delete video"));
+   }
+
+   [HttpDelete("{videoId}/cancel")]
+   [SwaggerOperation("Cancel uploading video route", "AUTH REQUIRED")]
+   public async Task<ActionResult<ApiResponse>> CancelVideo([FromRoute] string videoId)
+   {
+      var userId = JwtHelper.ExtractUserId(HttpContext, shouldThrowException: false)!;
+      await _videoService.CancelVideoUploading(userId.Value,videoId);
+      return Ok(ApiResponse.Ok("Successfully cancel video upload"));
+   }
+   
+}

@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package queue;
+
+option go_package = "webby/room-queue-service/internal/grpc/queuepb";
+
+import "google/protobuf/empty.proto";
+
+service QueueGrpcService {
+  rpc MakeNext(MakeNextRequest) returns (google.protobuf.Empty);
+}
+
+message MakeNextRequest {
+  string roomID = 1;
+  string queueItemID = 2;
+}

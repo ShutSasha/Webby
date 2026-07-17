@@ -1,0 +1,283 @@
+package services
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"webby/chat-service/internal/apperrors"
+	"webby/chat-service/internal/models"
+	"webby/chat-service/pkg/logger"
+
+	"github.com/google/uuid"
+)
+
+const eventUpdateChatHistory = "UPDATE_CHAT_HISTORY"
+const eventChatDeleted = "CHAT_DELETED"
+
+type chatReposotory interface {
+	Create(ctx context.Context, chat *models.Chat) (uuid.UUID, error)
+	GetByID(ctx context.Context, chatID uuid.UUID) (*models.Chat, error)
+	GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error)
+	GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error)
+	History(ctx context.Context, userID uuid.UUID, userIDs []uuid.UUID) ([]models.ChatHistoryItem, int, error)
+	Exists(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error)
+	GetByMembers(ctx context.Context, firstUserID, secondUserID uuid.UUID) (*models.Chat, error)
+	Delete(ctx context.Context, chatID uuid.UUID) error
+	RoomIDByChatIDBatch(ctx context.Context, chatIDs []string) (map[string]uuid.UUID, error)
+	IsChatRelatedToRoom(ctx context.Context, chatID uuid.UUID) (bool, error)
+}
+
+type chatServiceChatMemberRepository interface {
+	AddMembersBulk(ctx context.Context, chatID uuid.UUID, membersIDs ...uuid.UUID) error
+	GetUserInterlocutors(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	Exists(ctx context.Context, chatID, userID uuid.UUID) (bool, error)
+	GetChatInterlocutor(ctx context.Context, chatID, userID uuid.UUID) (uuid.UUID, error)
+}
+
+type roomMemberExister interface {
+	Exists(ctx context.Context, roomID, userID uuid.UUID) (bool, error)
+}
+
+type userManager interface {
+	GetUsersByIDs(ctx context.Context, userIDs []uuid.UUID) (map[uuid.UUID]models.Sender, error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (*models.Sender, error)
+	FindUserIDs(ctx context.Context, search string, userIDs []uuid.UUID, offset, limit int) ([]uuid.UUID, int, error)
+	IsFollowed(ctx context.Context, firstUserID, secondUserID uuid.UUID) (bool, error)
+}
+
+type chatService struct {
+	chatRepository       chatReposotory
+	chatMemberRepository chatServiceChatMemberRepository
+	roomMemberExister    roomMemberExister
+	userManager          userManager
+	eventPublisher       eventPublisher
+}
+
+func NewChatService(
+	chatRepository chatReposotory,
+	chatMemberRepository chatServiceChatMemberRepository,
+	roomMemberExister roomMemberExister,
+	userManager userManager,
+	eventPublisher eventPublisher,
+) *chatService {
+	return &chatService{
+		chatRepository:       chatRepository,
+		chatMemberRepository: chatMemberRepository,
+		roomMemberExister:    roomMemberExister,
+		userManager:          userManager,
+		eventPublisher:       eventPublisher,
+	}
+}
+
+func (s *chatService) CreateForRoom(ctx context.Context, roomID uuid.UUID) (*models.Chat, error) {
+	const op = "services.chatService.CreateForRoom"
+
+	existing, err := s.chatRepository.GetByRoomID(ctx, roomID)
+	if err == nil && existing != nil {
+		return existing, nil
+	}
+
+	chat := &models.Chat{RoomID: &roomID}
+	id, err := s.chatRepository.Create(ctx, chat)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	chat.ID = id
+	return chat, nil
+}
+
+func (s *chatService) CreatePrivate(ctx context.Context, initiatorID, targetID uuid.UUID) (*models.Chat, error) {
+	const op = "services.chatService.CreatePrivate"
+	log := logger.FromContext(ctx).With("op", op)
+
+	isFollowed, err := s.userManager.IsFollowed(ctx, initiatorID, targetID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	if !isFollowed {
+		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrNotFollowed)
+	}
+
+	existing, err := s.chatRepository.GetByMembers(ctx, initiatorID, targetID)
+	if err == nil && existing != nil {
+		return existing, nil
+	}
+
+	// TODO: leverage tx outbox pattern
+	chat := &models.Chat{}
+	chatID, err := s.chatRepository.Create(ctx, chat)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = s.chatMemberRepository.AddMembersBulk(ctx, chatID, initiatorID, targetID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	envelope := eventEnvelope{
+		Type:    eventUpdateChatHistory,
+		Payload: struct{}{},
+	}
+	for _, userID := range []uuid.UUID{initiatorID, targetID} {
+		topic := fmt.Sprintf("user:%s", userID.String())
+		if err := s.eventPublisher.Publish(ctx, topic, envelope); err != nil {
+			log.Error("failed to publish update chat history", slog.String("err", err.Error()))
+		}
+	}
+
+	chat.ID = chatID
+	return chat, nil
+}
+
+func (s *chatService) GetByID(ctx context.Context, chatID, userID uuid.UUID) (*models.EnrichedChat, error) {
+	const op = "services.chatService.GetByID"
+
+	exists, err := s.chatMemberRepository.Exists(ctx, chatID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	if !exists {
+		return nil, fmt.Errorf("%s: %w", op, apperrors.ErrNotMemeber)
+	}
+
+	chat, err := s.chatRepository.GetByID(ctx, chatID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	interlocutorID, err := s.chatMemberRepository.GetChatInterlocutor(ctx, chatID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	user, err := s.userManager.GetUserByID(ctx, interlocutorID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &models.EnrichedChat{
+		ID:        chatID,
+		CreatedAt: chat.CreatedAt,
+		User: models.User{
+			ID:        user.ID,
+			Username:  user.Username,
+			AvatarUrl: user.AvatarURL,
+		},
+	}, nil
+}
+
+func (s *chatService) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*models.Chat, error) {
+	const op = "services.chatService.GetByRoomID"
+
+	chat, err := s.chatRepository.GetByRoomID(ctx, roomID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return chat, nil
+}
+
+func (s *chatService) GetChatIDByRoomID(ctx context.Context, roomID uuid.UUID) (uuid.UUID, error) {
+	const op = "services.chatService.GetChatIDByRoomID"
+
+	id, err := s.chatRepository.GetChatIDByRoomID(ctx, roomID)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return id, nil
+}
+
+func (s *chatService) History(ctx context.Context, userID uuid.UUID, page, limit int, search string) ([]models.ChatHistoryItem, int, error) {
+	const op = "services.chatService.History"
+
+	interlocutorsIDs, err := s.chatMemberRepository.GetUserInterlocutors(ctx, userID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	offset := (page - 1) * limit
+	searchedIDs, total, err := s.userManager.FindUserIDs(ctx, search, interlocutorsIDs, offset, limit)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	chatHistory, total, err := s.chatRepository.History(ctx, userID, searchedIDs)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	userIDs := make([]uuid.UUID, len(chatHistory))
+	for i, chatHistoryItem := range chatHistory {
+		userIDs[i] = chatHistoryItem.User.ID
+	}
+
+	interlocutors, err := s.userManager.GetUsersByIDs(ctx, userIDs)
+	if err != nil {
+		return nil, 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	for i := range chatHistory {
+		userID := chatHistory[i].User.ID
+
+		if user, ok := interlocutors[userID]; ok {
+			chatHistory[i].User.AvatarUrl = user.AvatarURL
+			chatHistory[i].User.Username = user.Username
+		}
+	}
+
+	return chatHistory, total, nil
+}
+
+func (s *chatService) Delete(ctx context.Context, userID, chatID uuid.UUID) error {
+	const op = "services.chatService.Delete"
+	log := logger.FromContext(ctx).With("op", op)
+
+	isMember, err := s.chatMemberRepository.Exists(ctx, chatID, userID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if !isMember {
+		return fmt.Errorf("%s: %w", op, apperrors.ErrNotMemeber)
+	}
+
+	err = s.chatRepository.Delete(ctx, chatID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	chatDeletedEnvelope := eventEnvelope{
+		Type:    eventChatDeleted,
+		Payload: struct{}{},
+	}
+	chatTopic := fmt.Sprintf("chat:%s", chatID.String())
+	if err := s.eventPublisher.Publish(ctx, chatTopic, chatDeletedEnvelope); err != nil {
+		log.Error("failed to publish chat deleted", slog.String("err", err.Error()))
+	}
+
+	return nil
+}
+
+func (s *chatService) RoomIDByChatIDBatch(ctx context.Context, chatIDs []string) (map[string]uuid.UUID, error) {
+	const op = "chatService.RoomIDByChatIDBatch"
+
+	chatIDroomIDMap, err := s.chatRepository.RoomIDByChatIDBatch(ctx, chatIDs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return chatIDroomIDMap, nil
+}
+
+func (s *chatService) IsChatRelatedToRoom(ctx context.Context, chatID uuid.UUID) (bool, error) {
+	const op = "chatService.IsChatRelatedToRoom"
+
+	isRelated, err := s.chatRepository.IsChatRelatedToRoom(ctx, chatID)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return isRelated, nil
+}

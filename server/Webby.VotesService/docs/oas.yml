@@ -1,0 +1,608 @@
+openapi: 3.0.3
+info:
+  title: Webby - Vote Service
+  description: |
+    The Vote Service manages interactive voting and quizzes within rooms on the Webby platform.
+    Room hosts can create votes with predefined choices and a correct answer, and room members can cast their votes.
+
+    **Vote Type**
+
+    Currently supports:
+    - **right-choice** — A voting/quiz where the room host defines choices and marks one as the correct answer. 
+      After the vote duration expires, results are calculated and winners (users who selected the correct choice) are determined.
+
+    **Vote Lifecycle**
+
+    1. **Creation**: Room host creates a vote with 2-10 choices and duration (30-7200 seconds)
+    2. **Voting Period**: Room members cast votes by selecting a choice
+    3. **Expiration**: When duration ends, the vote is automatically locked (VOTING_LOCKED event)
+    4. **Resolution**: Room host resolves the vote by confirming the correct answer (VOTING_RESULTS event)
+    5. **Results**: Winners are notified and results are broadcasted to all room participants
+
+    **Real-Time Events (WebSocket)**
+
+    All voting events are broadcasted via WebSocket to all room participants:
+    - `VOTING_STARTED` — Vote has been created (sent when vote is created)
+    - `VOTE_CASTED` — A user has cast their vote
+    - `VOTING_LOCKED` — Vote duration has expired and voting is closed
+    - `VOTING_RESULTS` — Results have been published with winner information
+
+    **Authentication**
+
+    All endpoints require a valid JWT Bearer token issued by the AuthService.
+    The authenticated user must be a member of the target room.
+    Only the room host can create and resolve votes.
+  version: 1.0.0
+  contact:
+    name: Webby Platform Team
+
+tags:
+  - name: Votes
+    description: |
+      Endpoints for creating, voting, and resolving votes within a room.
+      All operations require authentication and room membership.
+
+paths:
+  /api/rooms/{id}/votes/right-choice:
+    post:
+      tags:
+        - Votes
+      summary: Create a right-choice vote
+      description: |
+        Create a new voting/quiz with predefined choices and a correct answer.
+
+        Only the room host can create votes. The vote automatically expires after the specified duration,
+        at which point the `VOTING_LOCKED` event is sent and voting is closed.
+
+        Once expired, the room host must resolve the vote by calling the `/resolve` endpoint 
+        to publish results and determine winners.
+
+        **Requires authentication and host privileges.**
+
+        **WebSocket Event**: `VOTING_STARTED` will be broadcasted to all room participants.
+      operationId: createRightChoiceVote
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRightChoiceVoteRequest"
+            example:
+              voteText: "Which planet is the largest?"
+              duration: 120
+              choices: ["Jupiter", "Saturn", "Neptune", "Earth"]
+      responses:
+        "200":
+          description: Vote created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not the room host.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/rooms/{id}/votes:
+    get:
+      tags:
+        - Votes
+      summary: List all votes in a room
+      description: |
+        Retrieve all active and expired votes in a room with their choices.
+
+        **Requires authentication and room membership.**
+      operationId: listVotes
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: List of votes retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteListResponse"
+        "400":
+          description: Invalid room ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not a room member.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/rooms/{id}/votes/{voteId}/vote:
+    post:
+      tags:
+        - Votes
+      summary: Cast a vote
+      description: |
+        Cast a vote for a specific choice. Each user can vote only once per vote.
+        The vote must not be expired.
+
+        **Requires authentication and room membership.**
+
+        **WebSocket Event**: `VOTE_CASTED` will be broadcasted to all room participants.
+      operationId: castVote
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+        - $ref: "#/components/parameters/VoteId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CastVoteRequest"
+            example:
+              choice: Earth
+      responses:
+        "200":
+          description: Vote cast successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error or invalid choice value.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not a room member or vote has expired.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vote or choice not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User has already voted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/rooms/{id}/votes/{voteId}/resolve:
+    post:
+      tags:
+        - Votes
+      summary: Resolve a vote and publish results
+      description: |
+        Resolve a vote by confirming the correct choice. This endpoint:
+
+        1. Validates that the provided `rightChoice` is one of the vote's choices
+        2. Calculates which users voted for the correct choice (winners)
+        3. Publishes the `VOTING_RESULTS` event to all room participants
+        4. Cancels the automatic expiration timer if still active
+
+        Only the room host can resolve votes.
+
+        **Requires authentication and host privileges.**
+
+        **WebSocket Event**: `VOTING_RESULTS` will be broadcasted with winner information.
+      operationId: resolveVote
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+        - $ref: "#/components/parameters/VoteId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveVoteRequest"
+            example:
+              rightChoice: "Jupiter"
+      responses:
+        "200":
+          description: Vote resolved and results published successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error or invalid choice value.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not the room host.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vote or choice not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/rooms/{id}/votes/next-video:
+    post:
+      tags:
+        - Votes
+      summary: Create a next video voting
+      description: |
+        Create a voting for selecting the next video to play in the room. Only the room host can create this voting.
+
+        The voting automatically expires after 15 seconds, at which point the `NEXT_VIDEO_VOTING_RESULTS` event is sent 
+        with the UUID of the queue item that received the most votes.
+
+        **Requires authentication and host privileges.**
+
+        **WebSocket Event**: `NEXT_VIDEO_VOTING_STARTED` will be broadcasted to all room participants when the voting is created.
+
+        For information on how to subscribe to and handle these WebSocket events, see the 
+        [WsGateway documentation](/index.html?urls.primaryName=WsGateway).
+      operationId: createNextVideoVoting
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: Next video voting created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not the room host.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/rooms/{id}/votes/next-video/vote:
+    post:
+      tags:
+        - Votes
+      summary: Vote for the next video
+      description: |
+        Cast a vote for a queue item as the next video to play. Each user can vote once per next-video voting session.
+
+        **Requires authentication and room membership.**
+      operationId: voteForNext
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteForNextRequest"
+      responses:
+        "200":
+          description: Vote cast successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not a room member.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/rooms/{id}/has-next-video-voting:
+    get:
+      tags:
+        - Votes
+      summary: Check if room has active next video voting
+      description: |
+        Check whether there is an active next-video voting session in the room.
+
+        **Requires authentication and room membership.**
+      operationId: hasNextVideoVoting
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: Successfully checked voting status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HasNextVideoVotingResponse"
+        "400":
+          description: Invalid room ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: User is not a room member.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    RoomId:
+      name: id
+      in: path
+      description: Room ID (UUID v4 format).
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+    VoteId:
+      name: voteId
+      in: path
+      description: Vote ID (UUID v4 format).
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: "660e8400-e29b-41d4-a716-446655440001"
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid JWT token.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: Unauthorized
+            data: null
+            errors:
+              message: token is missing or invalid
+    InternalError:
+      description: An unexpected server-side error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    CreateRightChoiceVoteRequest:
+      type: object
+      required:
+        - voteText
+        - duration
+        - choices
+      properties:
+        voteText:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: The question or text for the vote.
+          example: "Which planet is the largest?"
+        duration:
+          type: integer
+          minimum: 30
+          maximum: 7200
+          description: Duration in seconds before the vote expires and locks.
+          example: 120
+        choices:
+          type: array
+          minItems: 2
+          maxItems: 10
+          items:
+            type: string
+            minLength: 1
+            maxLength: 100
+          description: List of choice options available for voting.
+          example: ["Jupiter", "Saturn", "Neptune", "Earth"]
+
+    CastVoteRequest:
+      type: object
+      required:
+        - choice
+      properties:
+        choice:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: The choice value to vote for (must be one of the vote's choices).
+          example: "Jupiter"
+
+    ResolveVoteRequest:
+      type: object
+      required:
+        - rightChoice
+      properties:
+        rightChoice:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: The correct choice (must be one of the vote's choices).
+          example: "Jupiter"
+
+    VoteDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique vote identifier
+        voteText:
+          type: string
+          description: The vote question or text
+        duration:
+          type: integer
+          description: Duration in seconds
+        createdAt:
+          type: string
+          format: date-time
+          description: When the vote was created
+        isLocked:
+          type: boolean
+          description: Is ability to vote locked
+        myChoice:
+          type: string
+          description: User's choice (if it is present)
+        choices:
+          type: array
+          items:
+            type: string
+          description: List of available choices
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation successful"
+        data:
+          type: object
+          nullable: true
+          example: null
+        errors:
+          type: object
+          nullable: true
+          example: null
+
+    VoteListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Votes retrieved"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/VoteDetail"
+        errors:
+          type: object
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "An error occurred"
+        data:
+          type: object
+          nullable: true
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            field: "error message"
+
+    VoteForNextRequest:
+      type: object
+      required:
+        - queueItemId
+      properties:
+        queueItemId:
+          type: string
+          format: uuid
+          description: The queue item ID to vote for as the next video.
+          example: "550e8400-e29b-41d4-a716-446655440002"
+
+    HasNextVideoVotingResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Checked if room has next video voting"
+        data:
+          type: object
+          properties:
+            exists:
+              type: boolean
+              description: Whether there is an active next-video voting session in the room.
+              example: true
+            duration:
+              type: integer
+              description: how long is voting (seconds).
+              example: 20
+            expiresAt:
+              type: date-time
+              description: when voting is closing.
+        errors:
+          type: object
+          nullable: true
+          example: null

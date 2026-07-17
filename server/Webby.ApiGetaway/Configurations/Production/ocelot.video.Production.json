@@ -1,0 +1,401 @@
+{
+   "Routes":[
+      {
+         "DownstreamPathTemplate": "/docs/video-service/v1/swagger.json",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/video/swagger/v1/swagger.json",
+         "UpstreamHttpMethod": [ "GET" ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/playlists/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/playlists/{playlistId}/details",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/{playlistId}/details",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/playlists",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists",
+         "UpstreamHttpMethod": [
+            "POST","PATCH"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/playlists/videos",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/videos",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/playlists/streams",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/streams",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/playlists/{playlistId}/videos/{videoId}/exists",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/{playlistId}/videos/{videoId}/exists",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/playlists/{playlistId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/{playlistId}",
+         "UpstreamHttpMethod": [
+            "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/playlists/global-search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/playlists/global-search",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/{videoId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/{videoId}",
+         "UpstreamHttpMethod": [
+            "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/{videoId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/{videoId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/users/{userId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/users/{userId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos",
+         "UpstreamHttpMethod": [
+            "POST", "PATCH"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/{videoId}/statistic",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/{videoId}/statistic",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/upload",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/upload",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/{videoId}/cancel",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/{videoId}/cancel",
+         "UpstreamHttpMethod": [
+            "DELETE"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/search",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+      {
+         "DownstreamPathTemplate": "/api/videos/global-search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/global-search",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+      {
+         "DownstreamPathTemplate": "/api/videos/increment-view",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/increment-view",
+         "UpstreamHttpMethod": [
+            "POST"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/streams/search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/streams/search",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/streams/{streamerId}",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/streams/{streamerId}",
+         "UpstreamHttpMethod": [
+            "GET"
+         ]
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/blocks/{videoId}/ban",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/blocks/{videoId}/ban",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/blocks/{videoId}/unban",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/blocks/{videoId}/unban",
+         "UpstreamHttpMethod": [
+            "POST"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      },
+
+      {
+         "DownstreamPathTemplate": "/api/videos/moderation/search",
+         "DownstreamScheme": "http",
+         "DownstreamHostAndPorts": [
+            {
+               "Host": "video-service",
+               "Port": 5003
+            }
+         ],
+         "UpstreamPathTemplate": "/api/videos/moderation/search",
+         "UpstreamHttpMethod": [
+            "GET"
+         ],
+         "AuthenticationOptions": {
+            "AuthenticationProviderKey": "Bearer"
+         },
+         "RouteClaimsRequirement": {
+            "Role": "Moderator"
+         }
+      }
+   ]
+}

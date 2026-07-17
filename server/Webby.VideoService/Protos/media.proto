@@ -1,0 +1,39 @@
+﻿syntax = "proto3";
+
+package media;
+
+option csharp_namespace = "Webby.MediaService.GrpcServer";
+
+service MediaService {
+  rpc GetVideo(GetVideoRequest) returns (VideoResponse);
+  rpc GetVideosBatch(GetVideosBatchRequest) returns (GetVideosBatchResponse);
+  rpc GetAuthorIDByVideoID(GetAuthorIDByVideoIDRequest) returns (GetAuthorIDByVideoIDResponse);
+}
+
+message GetVideoRequest {
+  string id = 1;
+}
+
+message VideoResponse {
+  string id = 1;
+  string title = 2;
+  string thumbnail = 3;
+  string videoUrl = 4;
+}
+
+message GetVideosBatchRequest {
+  repeated string ids = 1;
+}
+
+message GetVideosBatchResponse {
+  repeated VideoResponse videos = 1;
+  repeated string unavailableVideoIds = 2;
+}
+
+message GetAuthorIDByVideoIDRequest {
+  string videoID = 1;
+}
+
+message GetAuthorIDByVideoIDResponse {
+  string authorID = 1;
+}

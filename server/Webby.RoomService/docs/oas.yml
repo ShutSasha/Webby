@@ -1,0 +1,1136 @@
+openapi: 3.0.3
+info:
+  title: Webby - Room Service
+  description: |
+    The Room Service manages rooms, room members, and related operations on the Webby platform.
+    Room hosts can create, update, and delete rooms, manage members, and control member points.
+
+    **Authentication**
+
+    Most endpoints require a valid JWT Bearer token issued by the AuthService.
+    The `GET /api/rooms/public` endpoint is accessible without authentication.
+  version: 1.0.0
+  contact:
+    name: Webby Platform Team
+
+tags:
+  - name: Rooms
+    description: Endpoints for managing rooms
+  - name: Members
+    description: Endpoints for managing room members
+  - name: Reactions
+    description: Endpoints for listing available reactions and sending reactions in rooms
+
+paths:
+  /api/reactions:
+    get:
+      tags:
+        - Reactions
+      summary: List available reactions
+      description: |
+        Retrieve all available reactions that can be sent from a room.
+        This endpoint is publicly accessible and returns reaction metadata including cost and sticker URL.
+      operationId: listReactions
+      responses:
+        "200":
+          description: Reactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReactionListResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/public:
+    get:
+      tags:
+        - Rooms
+      summary: List public rooms
+      description: |
+        Retrieve a paginated list of all publicly visible rooms.
+        Supports optional search and category filter. Does not require authentication.
+      operationId: listPublicRooms
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+          description: Items per page
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search rooms by name (case-insensitive)
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: Filter by category name (use "all" to clear filter)
+      responses:
+        "200":
+          description: Public rooms retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicRoomListResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms:
+    post:
+      tags:
+        - Rooms
+      summary: Create a room
+      description: |
+        Create a new room with a name, category, privacy setting, and optional thumbnail.
+        The authenticated user becomes the room host and is automatically added as a member.
+        A chat is also created for the room if the ChatService is available.
+      operationId: createRoom
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - categoryName
+                - isPrivate
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                  description: Room name
+                categoryName:
+                  type: string
+                  description: Category name (must exist)
+                isPrivate:
+                  type: string
+                  enum: ["true", "false"]
+                  description: Room visibility
+                thumbnail:
+                  type: string
+                  format: binary
+                  description: Room thumbnail image (max 2MB)
+      responses:
+        "201":
+          description: Room created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/my:
+    get:
+      tags:
+        - Rooms
+      summary: List my rooms
+      description: |
+        Retrieve a paginated list of rooms created by the authenticated user.
+        Supports optional search and category filter.
+      operationId: listMyRooms
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User rooms retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyRoomListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}:
+    get:
+      tags:
+        - Rooms
+      summary: Get a room
+      description: |
+        Retrieve a room by ID. For public rooms, the requesting user is automatically
+        added as a member. For private rooms, only existing members can access the room.
+      operationId: getRoom
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: Room retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomDetailResponse"
+        "400":
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — not a member of private room
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - Rooms
+      summary: Update a room
+      description: |
+        Update room properties. Only the room host can update.
+        Fields not provided will not be changed.
+      operationId: updateRoom
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                categoryName:
+                  type: string
+                isPrivate:
+                  type: string
+                  enum: ["true", "false"]
+                thumbnail:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Room updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomUpdateResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — only host can update
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Rooms
+      summary: Delete a room
+      description: |
+        Delete a room by ID. Only the room host can delete.
+        This action is permanent and cannot be undone.
+      operationId: deleteRoom
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: Room deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — only host can delete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/members:
+    get:
+      tags:
+        - Members
+      summary: List room members
+      description: Retrieve a paginated list of members for a room. Supports search by username.
+      operationId: listMembers
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search members by username
+      responses:
+        "200":
+          description: Room members retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberListResponse"
+        "400":
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Members
+      summary: Add members to a room
+      description: Add users to a room. Only the room host can add members.
+      operationId: addMembers
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddMembersRequest"
+      responses:
+        "200":
+          description: Members added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — only host can add members
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/members/{memberId}:
+    delete:
+      tags:
+        - Members
+      summary: Remove a member
+      description: Remove a user from a room. Only the room host can remove members. The host cannot be removed. After removing a member, it will loose access to the room, and will be notified about it through event №13 `REMOVE_MEMBER`. (You can read about this event in the [WsGateway documentation](/index.html?urls.primaryName=WsGateway))
+      operationId: removeMember
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: Member removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid UUID format or cannot remove host
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — only host can remove members
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room or member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/members/points:
+    get:
+      tags:
+        - Members
+      summary: Get member's points
+      description: Retrieve user points
+      operationId: getMemberPoints
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: Member's points retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberPointsReposponse"
+        "400":
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/react:
+    post:
+      tags:
+        - Reactions
+      summary: Send a reaction in a room
+      description: |
+        Send a reaction to the specified room.
+        The user must be a room member and not banned. Sends `ROOM_POINTS_UPDATED` and `REACTION_SENT` events.
+      operationId: useReaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UseReactionRequest"
+      responses:
+        "200":
+          description: Reaction sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error or invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — user is not a member or is banned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room or reaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/sync:
+    post:
+      tags:
+        - Rooms
+      summary: Synchronize room video playback
+      description: |
+        Initiate video synchronization for all room members. Only the room host can trigger synchronization.
+
+        **Flow:**
+        1. Host calls this endpoint to start synchronization
+        2. Server sends `REPORT_TIMECODE` event to all room members via WebSocket
+        3. Each member receives their current video timecode and sends it via `POST /api/rooms/{id}/sync/report`
+        4. Server collects timecodes from all members (waits ~800ms)
+        5. Server broadcasts `SYNCHRONIZE` event with the furthest user's timecode (highest value)
+        6. All members receive the synchronized timecode and seek their video to that position
+      operationId: synchronizeRoom
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      responses:
+        "200":
+          description: Synchronization initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — only host can synchronize
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/rooms/{id}/sync/report:
+    post:
+      tags:
+        - Rooms
+      summary: Report current video timecode for synchronization
+      description: |
+        Report the current video playback timecode for synchronization.
+
+        **Usage:**
+        1. Client receives `REPORT_TIMECODE` event via WebSocket with a `syncId`
+        2. Client gets the current video timecode (in seconds)
+        3. Client sends this endpoint with the syncId and timecode
+        4. Server collects timecodes from all members
+        5. After ~800ms, server broadcasts `SYNCHRONIZE` event with the furthest user's timecode
+      operationId: reportTimecode
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RoomId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportTimecodeRequest"
+      responses:
+        "200":
+          description: Timecode reported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Validation error or invalid timecode
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    RoomId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Room ID (UUID v4)
+    MemberId:
+      name: memberId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Member User ID (UUID v4)
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: An error occurred
+        data:
+          nullable: true
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            message: "resource not found"
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully
+        data:
+          nullable: true
+        errors:
+          nullable: true
+
+    RoomData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        categoryName:
+          type: string
+        isPrivate:
+          type: boolean
+        thumbnail:
+          type: string
+        chatId:
+          type: string
+          format: uuid
+          nullable: true
+
+    RoomDetailData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        categoryName:
+          type: string
+        isPrivate:
+          type: boolean
+        hostId:
+          type: string
+          format: uuid
+        thumbnail:
+          type: string
+        chatId:
+          type: string
+          format: uuid
+          nullable: true
+
+    RoomResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Room created
+        data:
+          $ref: "#/components/schemas/RoomData"
+        errors:
+          nullable: true
+
+    RoomDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Room retrieved
+        data:
+          $ref: "#/components/schemas/RoomDetailData"
+        errors:
+          nullable: true
+
+    RoomUpdateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Room updated
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            categoryName:
+              type: string
+            isPrivate:
+              type: boolean
+            thumbnail:
+              type: string
+        errors:
+          nullable: true
+
+    PublicRoomItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        hostId:
+          type: string
+          format: uuid
+        hostUsername:
+          type: string
+        hostAvatarUrl:
+          type: string
+        categoryName:
+          type: string
+        thumbnail:
+          type: string
+
+    PublicRoomListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Public rooms retrieved successfully
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/PublicRoomItem"
+            page:
+              type: integer
+            pageSize:
+              type: integer
+            totalCount:
+              type: integer
+        errors:
+          nullable: true
+
+    MyRoomItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        categoryName:
+          type: string
+        isPrivate:
+          type: boolean
+        thumbnail:
+          type: string
+
+    MemberPoints:
+      type: object
+      properties:
+        points:
+          type: integer
+
+    MyRoomListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: User rooms retrieved successfully
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/MyRoomItem"
+            page:
+              type: integer
+            pageSize:
+              type: integer
+            totalCount:
+              type: integer
+        errors:
+          nullable: true
+
+    MemberItem:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        username:
+          type: string
+        avatarUrl:
+          type: string
+        roomPoints:
+          type: integer
+
+    MemberListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Room members retrieved successfully
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/MemberItem"
+            page:
+              type: integer
+            pageSize:
+              type: integer
+            totalCount:
+              type: integer
+        errors:
+          nullable: true
+
+    MemberDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Points updated successfully
+        data:
+          $ref: "#/components/schemas/MemberItem"
+        errors:
+          nullable: true
+
+    MemberPointsReposponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Points updated successfully
+        data:
+          $ref: "#/components/schemas/MemberPoints"
+        errors:
+          nullable: true
+
+    AddMembersRequest:
+      type: object
+      required:
+        - userIds
+      properties:
+        userIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+          example:
+            - "550e8400-e29b-41d4-a716-446655440000"
+
+    UpdatePointsRequest:
+      type: object
+      required:
+        - points
+      properties:
+        points:
+          type: integer
+          description: Points delta (positive to add, negative to subtract)
+          example: 10
+
+    UseReactionRequest:
+      type: object
+      required:
+        - reactionId
+      properties:
+        reactionId:
+          type: string
+          format: uuid
+          description: Reaction ID to send
+    ReactionItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        cost:
+          type: integer
+        stickerUrl:
+          type: string
+          nullable: true
+    ReactionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Reactions retrieved successfully
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReactionItem"
+        errors:
+          nullable: true
+
+    ReportTimecodeRequest:
+      type: object
+      required:
+        - syncId
+        - timecode
+      properties:
+        syncId:
+          type: string
+          format: uuid
+          description: The synchronization session ID from the REPORT_TIMECODE event
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        timecode:
+          type: integer
+          description: Current video playback timecode in seconds
+          example: 120

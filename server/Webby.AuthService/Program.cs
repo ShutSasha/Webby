@@ -1,40 +1,60 @@
+using System.Text.Json.Serialization;
+using Serilog;
 using Webby.AuthService.Extensions;
+using Webby.AuthService.Helpers.Jwt;
 using Webby.AuthService.Helpers.Mail;
 using Webby.AuthService.Middlewares;
 
-var builder = WebApplication.CreateBuilder(args);
-var services = builder.Services;
-var configuration = builder.Configuration;
-
-services.AddEndpointsApiExplorer();
-services.AddSwaggerGen();
-
-services.AddCorsPolicy("AllowApiGetaway");
-services.AddDbConnection(configuration);
-
-services.AddControllers();
-services.Configure<SenderDataSettings>(configuration.GetSection("SenderData"));
-
-services.AddRepositories();
-services.AddHelpers();
-services.AddServices();
-services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-services.AddOpenApi();
-
-var app = builder.Build();
-
-app.UseCors("AllowApiGetaway");
-app.UseMiddleware<ExceptionMiddleware>();
-app.UseMiddleware<ValidationExceptionMiddleware>();
-
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var builder = WebApplication.CreateBuilder(args);
+    var services = builder.Services;
+    var configuration = builder.Configuration;
+
+    builder.AddCustomSerilog();
+    services.AddEndpointsApiExplorer();
+    services.AddSwaggerGen();
+    services.AddSwaggerConfig();
+
+    services.AddCorsPolicy("AllowApiGetaway");
+    services.AddDbConnection(configuration);
+    services.ConfigureRedisConnection(configuration);
+
+    services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+    services.Configure<SenderDataSettings>(configuration.GetSection("SenderData"));
+    services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
+
+    services.AddRepositories();
+    services.AddHelpers();
+    services.AddServices();
+    services.AddAutoMapper(cfg => { cfg.LicenseKey = configuration["AutoMapper:LicenseKey"]; }, typeof(Program));
+
+    services.AddOpenApi();
+
+    var app = builder.Build();
+
+    app.UseCors("AllowApiGetaway");
+    app.UseCustomSerilogRequestLogging();
+    app.UseMiddleware<ExceptionMiddleware>();
+    app.UseMiddleware<ValidationExceptionMiddleware>();
+    
+    app.UseSwagger(c => { c.RouteTemplate = "docs/auth-service/{documentName}/swagger.json"; });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/docs/auth-service/v1/swagger.json", "Auth Service API");
+        c.RoutePrefix = "docs/auth-service";
+    });
+    
+    app.UseHttpsRedirection();
+    app.UseRouting();
+
+    app.MapControllers();
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-app.UseRouting();
-
-app.MapControllers();
-app.Run();
+finally
+{
+    Log.CloseAndFlush();
+}

@@ -1,0 +1,23 @@
+﻿{
+   "Logging": {
+      "LogLevel": {
+         "Default": "Information",
+         "Microsoft.AspNetCore": "Warning"
+      }
+   },
+   "ConnectionStrings": {
+      "AppDbContext": "{{DatabaseConnectionString}}",
+       "Redis": "{{RedisDbConnectionString}}"
+   },
+   "SenderData": {
+      "SenderPassword": "{{SenderPassword}}",
+      "SenderEmail" : "{{SenderEmail}}"
+   },
+   "JwtOptions": {
+      "AccessSecretKey": "{{JwtAccessSecretKey}}",
+      "AccessExpiresDuration": "{{JwtAccessExpiresDuration}}"
+   },
+   "AutoMapper":{
+      "LicenseKey": "{{AutoMapperLicenseKey}}"
+   }
+}

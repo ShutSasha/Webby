@@ -1,13 +1,15 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
 
 import LogoutIcon from '@/assets/auth/ic_logout.svg'
 import UserProfileIcon from '@/assets/icons/ic_user_profile.svg'
+import { cn } from '@/lib/utils/general.utils'
+import { BLUR_DATA_URLS } from '@/ui/images'
 
-import { DesktopNavElement } from './NavElements'
+import { DesktopNavElement } from './DesktopNavElement'
+import SafeImage from '../../shared/SafeImage'
 
 type UserProfileProps = {
   isExpanded: boolean
@@ -24,8 +26,8 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
   if (status === 'loading') {
     return (
       <div
-        className={`${iconSize} bg-neutral-700 mt-auto animate-pulse rounded-full ${isExpanded ? 'w-full' : ''}`}
-      ></div>
+        className={cn(iconSize, 'bg-card animate-pulse rounded-full shrink-0', isExpanded && 'w-full rounded-xl h-12')}
+      />
     )
   }
 
@@ -38,47 +40,59 @@ export function UserProfile({ isExpanded, iconSize }: UserProfileProps) {
         Icon={UserProfileIcon}
         className={`mt-auto ${isExpanded ? 'w-full' : ''}`}
         iconSize={iconSize}
+        isUserProfile
       />
     )
   }
 
   return (
     <div
-      className={`flex h-fit items-center rounded-sm mt-auto ${
-        isExpanded ? 'flex-row w-full gap-2' : ' hover:text-emerald-500'
-      }`}
+      className={cn(
+        'flex items-center justify-center w-full rounded-xl transition-colors duration-300',
+        isExpanded ? 'justify-between px-2 py-1.5 hover:bg-card/60' : 'justify-center',
+      )}
     >
       <Link
-        href={'/'}
-        className={`w-full flex-1 flex flex-row items-center rounded-sm transition-colors duration-300 ease-out
-          hover:bg-neutral-800 ${isExpanded ? 'gap-2 p-1 ' : 'gap-0 p-0 '}`}
+        href={`/profile/${session.user.id}`}
+        className={cn('flex items-center justify-center', !isExpanded && 'group', isExpanded && 'gap-3')}
       >
-        <Image
-          src={
-            session.user.image
-              ? session.user.image
-              : 'https://i.pinimg.com/originals/44/64/20/4464203a781eed3650f1fdd624c4d02a.jpg'
-          }
+        <SafeImage
+          src={session.user.image}
           alt="user profile picture"
-          width={24}
-          height={24}
-          className={`${iconSize} object-cover rounded-full`}
+          width={100}
+          height={100}
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URLS['neutral800']}
+          className={cn(
+            iconSize,
+            'object-cover rounded-full shrink-0 transition-all duration-300',
+            !isExpanded && 'group-hover:ring-2 group-hover:ring-emerald-500/50',
+          )}
+          fallbackType="user"
         />
-        <p
-          className={`overflow-hidden whitespace-nowrap transition-opacity font-medium
-            ${isExpanded ? 'opacity-100 ' : 'w-0 h-0 opacity-0'}`}
+
+        <div
+          className={cn(
+            'flex flex-col transition-all duration-300 ease-in-out',
+            isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0',
+          )}
         >
-          {session.user.username}
-        </p>
+          <span className="text-sm font-semibold text-foreground truncate max-w-[120px]">{session.user.username}</span>
+          <span className="text-xs text-muted">View profile</span>
+        </div>
       </Link>
-      {isExpanded && (
-        <LogoutIcon
-          onClick={handleLogout}
-          className={
-            'size-6 text-neutral-300 hover:text-red-600 transition-colors duration-300 ease-out cursor-pointer'
-          }
-        />
-      )}
+
+      <button
+        onClick={handleLogout}
+        className={cn(
+          `p-2 rounded-lg text-foreground-faint hover:text-red-500 hover:bg-red-500/10 transition-colors duration-300
+          shrink-0`,
+          !isExpanded && 'hidden',
+        )}
+        title="Log out"
+      >
+        <LogoutIcon className="size-5" />
+      </button>
     </div>
   )
 }

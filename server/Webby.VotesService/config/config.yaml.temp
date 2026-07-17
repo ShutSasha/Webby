@@ -1,0 +1,19 @@
+env: "local"
+jwtSecret: "{{JwtAccessSecretKey}}"
+
+http:
+  host: "localhost"
+  port: 8084
+  timeout: 10s
+
+grpc:
+  host: "localhost"
+  port: 50055
+  roomServiceAddress: "localhost:50054"
+  queueServiceAddress: "localhost:50053"
+  chatServiceAddress: "localhost:50051"
+
+redis:
+  addr: "localhost:6379"
+  password: "your_super_password"
+  db: 0

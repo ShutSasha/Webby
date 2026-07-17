@@ -1,0 +1,29 @@
+﻿syntax="proto3";
+
+option csharp_namespace = "Webby.NotificationService.GrpcClient";
+
+enum GrpcNotificationTargetType {
+  GRPC_NOTIFICATION_TARGET_TYPE_UNSPECIFIED = 0;
+  GRPC_NOTIFICATION_TARGET_TYPE_SYSTEM = 1;
+  GRPC_NOTIFICATION_TARGET_TYPE_VIDEO = 2;
+  GRPC_NOTIFICATION_TARGET_TYPE_PLAYLIST = 3;
+  GRPC_NOTIFICATION_TARGET_TYPE_ROOM = 4;
+  GRPC_NOTIFICATION_TARGET_TYPE_USER = 5;
+  GRPC_NOTIFICATION_TARGET_TYPE_ACHIEVEMENT = 6;
+}
+
+service NotificationGrpcService{
+  rpc SendNotificationToUser(CreateNotificationRequest) returns (CreateNotificationResponse);
+}
+
+message CreateNotificationRequest{
+  string userId = 1;
+  string title = 2;
+  string message = 3;
+  GrpcNotificationTargetType targetType = 4;
+  string targetIdentifier = 5;
+}
+
+message CreateNotificationResponse {
+  bool success = 1;
+}
